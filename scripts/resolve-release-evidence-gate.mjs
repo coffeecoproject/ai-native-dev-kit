@@ -124,6 +124,7 @@ function buildReport(root) {
     environment,
     migration,
     sourceChain,
+    completionEvidenceSet,
     existingRules,
   });
   const gateState = gateStateFor(releaseTarget, missing, ownerState);
@@ -309,6 +310,9 @@ function missingEvidenceFor(input) {
   if (isProductionLike(input.releaseTarget) && input.releaseScope.sourceRevision === "unknown") missing.push("known-source-revision");
   for (const source of input.sourceChain) {
     if (source.name === "completion_evidence" && source.status !== "RECORDED") missing.push("completion-evidence-source");
+  }
+  for (const completion of input.completionEvidenceSet || []) {
+    if (completion.strict_check !== "PASS") missing.push(`completion-evidence-not-ready:${completion.ref}`);
   }
   for (const mapping of input.existingRules) {
     if (["PROJECT_STRONGER_RULE", "NEEDS_OWNER", "MISSING"].includes(mapping.mapping_state)) {

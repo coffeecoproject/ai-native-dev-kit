@@ -6,6 +6,11 @@ import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { createEvidenceAuthorityBinding, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import {
+  resolveRuntimeTrustBinding,
+  runtimeBindingMarkdown,
+  runtimeEvidenceItems,
+} from "./lib/verification-runtime-consumer.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -13,6 +18,7 @@ const knownFlags = new Set([
   "format",
   "intent",
   "verification-plan-ref",
+  "runtime-manifest-ref",
   "evidence",
   "existing-project-ref",
   "out",
@@ -22,6 +28,7 @@ const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const intent = String(args.intent || args._.slice(1).join(" ") || "").trim();
 const verificationPlanRef = String(args["verification-plan-ref"] || "").trim();
+const runtimeManifestRef = String(args["runtime-manifest-ref"] || "").trim();
 const evidenceRefs = splitList(args.evidence);
 const existingProjectRef = String(args["existing-project-ref"] || "").trim();
 const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
@@ -59,15 +66,34 @@ function buildReport(root) {
   const testEvidenceRef = testEvidenceRefForOutput(root, outputPath, reportSlug);
   const sourceSystems = sourceSystemsFor(verificationPlan);
   const requiredObligations = requiredObligationsFor(planEvidence);
-  const evidenceItems = evidenceRefs.map((ref, index) => evidenceItemFor(root, ref, index + 1));
+  const runtimeTrust = resolveRuntimeTrustBinding(root, {
+    manifestRef: runtimeManifestRef,
+    taskRef,
+    intentDigest,
+    verificationPlanRef: verificationPlan.ref,
+    verificationPlanDigest: planEvidence?.verification_plan_digest,
+  });
+  if (runtimeTrust.ok) {
+    sourceSystems.push({
+      name: "verification_run_manifest",
+      status: "RECORDED",
+      ref: runtimeTrust.binding.run_manifest_ref,
+      source_outcome: runtimeTrust.manifest.outcome,
+      digest: runtimeTrust.binding.run_manifest_digest,
+    });
+  }
+  const evidenceItems = [
+    ...runtimeEvidenceItems(runtimeTrust.manifest),
+    ...evidenceRefs.map((ref, index) => evidenceItemFor(root, ref, index + 1)),
+  ];
   const coverageMap = coverageMapFor(requiredObligations, evidenceItems);
   const controls = testQualityControlsFor(planEvidence, evidenceItems, coverageMap);
   const manual = manualVerificationFor(planEvidence, evidenceItems);
   const gaps = knownGapsFor(requiredObligations, coverageMap, evidenceItems);
-  const state = stateFor(requiredObligations, coverageMap, evidenceItems, verificationPlan);
+  const state = stateFor(requiredObligations, coverageMap, evidenceItems, verificationPlan, runtimeTrust.binding);
   const boundaries = boundariesFor();
   const structuredBase = {
-    schema_version: "1.77.1",
+    schema_version: "1.104.0",
     artifact_type: "test_evidence",
     task_ref: taskRef,
     intent: resolvedIntent,
@@ -78,6 +104,7 @@ function buildReport(root) {
     verification_plan_digest: planEvidence?.verification_plan_digest || "not provided",
     verification_plan_state: planEvidence?.verification_state || "not provided",
     source_systems: sourceSystems,
+    runtime_trust_binding: runtimeTrust.binding,
     authority_binding: createEvidenceAuthorityBinding(root, {
       taskRef,
       intentDigest,
@@ -103,7 +130,7 @@ function buildReport(root) {
   };
   return {
     reportType: "TEST_EVIDENCE_REPORT",
-    schemaVersion: "1.77.1",
+    schemaVersion: "1.104.0",
     generatedBy: "scripts/resolve-test-evidence.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -342,7 +369,8 @@ function knownGapsFor(requiredObligations, coverageMap) {
   return gaps;
 }
 
-function stateFor(requiredObligations, coverageMap, evidenceItems, verificationPlan) {
+function stateFor(requiredObligations, coverageMap, evidenceItems, verificationPlan, runtimeTrustBinding) {
+  if (runtimeTrustBinding?.status !== "VERIFIED") return "TEST_EVIDENCE_BLOCKED";
   if (!verificationPlan.ref || !verificationPlan.evidence) return "TEST_EVIDENCE_BLOCKED";
   if (requiredObligations.length === 0) return "TEST_EVIDENCE_BLOCKED";
   if (evidenceItems.length === 0) return "TEST_EVIDENCE_BLOCKED";
@@ -440,6 +468,10 @@ ${evidence.source_systems.length > 0 ? evidence.source_systems.map((item) => `| 
 - Required obligations: \`${report.coverageMap.length}\`
 - Covered obligations: \`${report.coverageMap.filter((item) => item.coverage_state === "COVERED").length}\`
 - Missing obligations: \`${report.coverageMap.filter((item) => item.coverage_state !== "COVERED").length}\`
+
+## Runtime Trust Binding
+
+${runtimeBindingMarkdown(evidence.runtime_trust_binding)}
 
 ## Evidence Items
 

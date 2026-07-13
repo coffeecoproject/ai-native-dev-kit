@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/verification-runtime-lifecycle-plan.schema.json",
+  "title": "Verification Runtime Lifecycle Plan",
+  "type": "object",
+  "schemaVersion": "1.103.0",
+  "artifactType": "verification_runtime_lifecycle_plan",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "lifecycle_plan_ref",
+    "lifecycle_plan_digest",
+    "run_id",
+    "task_ref",
+    "intent_digest",
+    "task_tier",
+    "runtime_trust_level",
+    "runtime_plan_ref",
+    "runtime_plan_digest",
+    "adapter_contract_digest",
+    "adapter_kind",
+    "declaration_source",
+    "execution_mode",
+    "actions",
+    "resources",
+    "environment_policy",
+    "run_workspace",
+    "authority_binding",
+    "boundaries",
+    "outcome",
+    "next_step"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.103.0" },
+    "artifact_type": { "const": "verification_runtime_lifecycle_plan" },
+    "lifecycle_plan_ref": { "type": "string", "minLength": 1 },
+    "lifecycle_plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "run_id": { "type": "string", "pattern": "^vrun-[a-z0-9][a-z0-9-]{5,80}$" },
+    "task_ref": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "task_tier": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH"] },
+    "runtime_trust_level": { "enum": ["SOURCE_OUTPUT_BINDING", "TARGETED_SERVICE_IDENTITY", "BLOCKED_FOR_CLASSIFICATION", "ISOLATED_RUNTIME"] },
+    "runtime_plan_ref": { "type": "string", "minLength": 1 },
+    "runtime_plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "adapter_contract_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "adapter_kind": { "enum": ["COMMAND_ONLY", "LOCAL_PROCESS", "DOCKER_CONTAINER", "KUBERNETES_WORKLOAD", "SERVERLESS_DEPLOYMENT", "STATIC_BUILD", "PROJECT_NATIVE", "UNRESOLVED"] },
+    "declaration_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "ref", "digest", "current_project_match"],
+      "properties": {
+        "status": { "enum": ["RECORDED", "NOT_REQUIRED", "MISSING", "INVALID"] },
+        "ref": { "type": "string" },
+        "digest": { "type": "string" },
+        "current_project_match": { "enum": ["Yes", "No"] }
+      }
+    },
+    "execution_mode": { "enum": ["NO_MANAGED_RUNTIME", "LOCAL_CONTROLLED", "LOCAL_CONTAINER_CONTROLLED", "EXTERNAL_EFFECT_BLOCKED", "UNRESOLVED"] },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "phase", "kind", "argv", "cwd", "timeout_ms", "environment", "output_ref", "obligation_ids", "positive_path", "negative_path", "resource_ids", "external_effect", "depends_on"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-zA-Z0-9:_-]+$" },
+          "phase": { "enum": ["PREPARE", "START_SERVICE", "VERIFY"] },
+          "kind": { "enum": ["COMMAND", "SERVICE", "PROBE"] },
+          "argv": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "cwd": { "type": "string" },
+          "timeout_ms": { "type": "integer" },
+          "environment": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "value"],
+              "properties": {
+                "name": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" },
+                "value": { "type": "string", "maxLength": 500 }
+              }
+            }
+          },
+          "output_ref": { "type": "string" },
+          "obligation_ids": { "type": "array", "items": { "type": "string" } },
+          "positive_path": { "enum": ["Yes", "No"] },
+          "negative_path": { "enum": ["Yes", "No"] },
+          "resource_ids": { "type": "array", "items": { "type": "string" } },
+          "external_effect": { "enum": ["No"] },
+          "depends_on": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["resource_id", "resource_type", "relative_path", "environment_name", "created_by_action", "cleanup_strategy", "production_instance", "shared_resource", "owner_marker_required", "role", "migration_revision"],
+        "properties": {
+          "resource_id": { "type": "string", "pattern": "^[a-zA-Z0-9:_-]+$" },
+          "resource_type": { "enum": ["DATABASE_FILE", "CACHE_NAMESPACE", "SESSION_NAMESPACE", "FILE_NAMESPACE"] },
+          "relative_path": { "type": "string" },
+          "environment_name": { "type": "string" },
+          "created_by_action": { "type": "string" },
+          "cleanup_strategy": { "enum": ["REMOVE_OWNED_PATH", "DROP_RUN_NAMESPACE"] },
+          "production_instance": { "enum": ["No"] },
+          "shared_resource": { "enum": ["No"] },
+          "owner_marker_required": { "enum": ["Yes"] },
+          "role": { "type": "string" },
+          "migration_revision": { "type": "string" }
+        }
+      }
+    },
+    "environment_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inherit_mode", "allowed_inherited_names", "blocked_name_patterns", "inject_run_id", "inject_owner_token", "stores_raw_secrets"],
+      "properties": {
+        "inherit_mode": { "const": "MINIMAL_ALLOWLIST" },
+        "allowed_inherited_names": { "type": "array", "items": { "type": "string" } },
+        "blocked_name_patterns": { "type": "array", "items": { "type": "string" } },
+        "inject_run_id": { "const": "Yes" },
+        "inject_owner_token": { "const": "CHILD_MEMORY_ONLY" },
+        "stores_raw_secrets": { "const": "No" }
+      }
+    },
+    "run_workspace": { "type": "string", "pattern": "^\\.intentos/runtime-runs/vrun-[a-z0-9-]+$" },
+    "authority_binding": { "$ref": "#/$defs/authorityBinding" },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uses_shell", "permits_external_effect", "permits_production", "permits_broad_cleanup", "stores_raw_owner_token", "asks_user_for_technical_choice", "approves_completion_or_release"],
+      "properties": {
+        "uses_shell": { "const": "No" },
+        "permits_external_effect": { "const": "No" },
+        "permits_production": { "const": "No" },
+        "permits_broad_cleanup": { "const": "No" },
+        "stores_raw_owner_token": { "const": "No" },
+        "asks_user_for_technical_choice": { "const": "No" },
+        "approves_completion_or_release": { "const": "No" }
+      }
+    },
+    "outcome": { "enum": ["LIFECYCLE_PLAN_READY", "LIFECYCLE_PLAN_BLOCKED"] },
+    "next_step": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "authorityBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding_version", "project", "task", "sources"],
+      "properties": {
+        "binding_version": { "const": "1.91.0" },
+        "project": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "fingerprint", "revision"],
+          "properties": {
+            "kind": { "enum": ["GIT", "NON_GIT"] },
+            "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+            "revision": { "type": "string", "minLength": 1 }
+          }
+        },
+        "task": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["task_ref", "intent_digest"],
+          "properties": {
+            "task_ref": { "type": "string", "minLength": 1 },
+            "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ref", "relative_path", "raw_file_digest"],
+            "properties": {
+              "ref": { "type": "string", "minLength": 1 },
+              "relative_path": { "type": "string", "minLength": 1 },
+              "raw_file_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

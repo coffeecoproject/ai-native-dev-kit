@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/verification-run-manifest.schema.json",
+  "title": "Verification Run Manifest",
+  "type": "object",
+  "schemaVersion": "1.103.0",
+  "artifactType": "verification_run_manifest",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "run_manifest_ref",
+    "run_manifest_digest",
+    "run_id",
+    "owner_token_digest",
+    "runtime_plan_ref",
+    "runtime_plan_digest",
+    "verification_plan_ref",
+    "verification_plan_digest",
+    "task_ref",
+    "intent_digest",
+    "task_tier",
+    "runtime_trust_level",
+    "source_identity",
+    "build_artifacts",
+    "run_window",
+    "preflight_results",
+    "service_instances",
+    "data_resources",
+    "session_contexts",
+    "resource_ledger",
+    "verification_executions",
+    "cleanup_summary",
+    "boundaries",
+    "authority_binding",
+    "outcome",
+    "next_step"
+  ],
+  "properties": {
+    "schema_version": { "enum": ["1.101.0", "1.102.0", "1.103.0"] },
+    "artifact_type": { "const": "verification_run_manifest" },
+    "run_manifest_ref": { "type": "string", "minLength": 1 },
+    "run_manifest_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "run_id": { "type": "string", "pattern": "^vrun-[a-zA-Z0-9][a-zA-Z0-9._-]{5,127}$" },
+    "owner_token_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "runtime_plan_ref": { "type": "string", "minLength": 1 },
+    "runtime_plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "lifecycle_plan_ref": { "type": "string", "minLength": 1 },
+    "lifecycle_plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "lifecycle_journal_ref": { "type": "string", "minLength": 1 },
+    "lifecycle_journal_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "adapter_contract_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "verification_plan_ref": { "type": "string", "minLength": 1 },
+    "verification_plan_digest": { "type": "string", "minLength": 1 },
+    "task_ref": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "task_tier": { "enum": ["LOW", "MEDIUM", "HIGH"] },
+    "runtime_trust_level": { "enum": ["SOURCE_OUTPUT_BINDING", "TARGETED_SERVICE_IDENTITY", "ISOLATED_RUNTIME"] },
+    "source_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "fingerprint", "revision", "current_project_match"],
+      "properties": {
+        "kind": { "enum": ["GIT", "NON_GIT"] },
+        "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "revision": { "type": "string", "minLength": 1 },
+        "current_project_match": { "enum": ["Yes", "No", "Unknown"] }
+      }
+    },
+    "build_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "ref", "digest", "source_revision_match"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["BINARY", "BUNDLE", "IMAGE", "STATIC_BUILD", "PACKAGE", "OTHER"] },
+          "ref": { "type": "string", "minLength": 1 },
+          "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "source_revision_match": { "enum": ["Yes", "No", "Unknown"] }
+        }
+      }
+    },
+    "run_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["started_at", "finished_at", "state"],
+      "properties": {
+        "started_at": { "type": "string", "minLength": 1 },
+        "finished_at": { "type": "string", "minLength": 1 },
+        "state": { "enum": ["COMPLETED", "FAILED", "BLOCKED", "CLEANUP_FAILED"] }
+      }
+    },
+    "preflight_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["probe", "required", "result", "evidence_ref", "evidence_digest", "reason"],
+        "properties": {
+          "probe": { "type": "string", "minLength": 1 },
+          "required": { "enum": ["Yes", "No"] },
+          "result": { "enum": ["PASS", "FAIL", "BLOCKED", "NOT_APPLICABLE"] },
+          "evidence_ref": { "type": "string", "minLength": 1 },
+          "evidence_digest": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "service_instances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "adapter_kind", "identity_status", "identity_fields", "started_at", "owned_by_run", "evidence_ref", "evidence_digest"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "adapter_kind": { "enum": ["COMMAND_ONLY", "LOCAL_PROCESS", "DOCKER_CONTAINER", "KUBERNETES_WORKLOAD", "SERVERLESS_DEPLOYMENT", "STATIC_BUILD", "PROJECT_NATIVE"] },
+          "identity_status": { "enum": ["VERIFIED", "NOT_REQUIRED", "BLOCKED"] },
+          "identity_fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "value_digest", "redacted_display"],
+              "properties": {
+                "name": { "type": "string", "minLength": 1 },
+                "value_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+                "redacted_display": { "type": "string", "minLength": 1 }
+              }
+            }
+          },
+          "started_at": { "type": "string", "minLength": 1 },
+          "owned_by_run": { "enum": ["Yes", "No"] },
+          "evidence_ref": { "type": "string", "minLength": 1 },
+          "evidence_digest": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "data_resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "resource_type", "instance_fingerprint", "namespace_digest", "migration_revision", "isolation_status", "production_instance", "owned_by_run"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "resource_type": { "enum": ["DATABASE", "CACHE", "QUEUE", "OBJECT_STORE", "OTHER"] },
+          "instance_fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "namespace_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "migration_revision": { "type": "string", "minLength": 1 },
+          "isolation_status": { "enum": ["ISOLATED", "READ_ONLY_SHARED", "NOT_ISOLATED", "BLOCKED"] },
+          "production_instance": { "enum": ["No", "Yes", "Unknown"] },
+          "owned_by_run": { "enum": ["Yes", "No"] }
+        }
+      }
+    },
+    "session_contexts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "role", "namespace_digest", "isolation_status", "owned_by_run", "credential_stored"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "minLength": 1 },
+          "namespace_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "isolation_status": { "enum": ["ISOLATED", "NOT_ISOLATED", "BLOCKED"] },
+          "owned_by_run": { "enum": ["Yes", "No"] },
+          "credential_stored": { "const": "No" }
+        }
+      }
+    },
+    "resource_ledger": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["resource_id", "resource_type", "created_by_run", "owner_marker_digest", "cleanup_state", "evidence_ref", "evidence_digest"],
+        "properties": {
+          "resource_id": { "type": "string", "minLength": 1 },
+          "resource_type": { "enum": ["PROCESS", "CONTAINER", "POD", "DEPLOYMENT", "DATABASE", "CACHE", "SESSION", "QUEUE", "OBJECT_STORE", "FILE", "OTHER"] },
+          "created_by_run": { "enum": ["Yes", "No"] },
+          "owner_marker_digest": { "type": "string", "minLength": 1 },
+          "cleanup_state": { "enum": ["CLEANED", "PRESERVED_WITH_REASON", "NOT_REQUIRED", "BLOCKED", "UNRELATED_NOT_TOUCHED"] },
+          "evidence_ref": { "type": "string", "minLength": 1 },
+          "evidence_digest": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "verification_executions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "result", "command_digest", "started_at", "finished_at", "exit_code", "output_ref", "output_digest", "covers_obligations", "service_instance_ids", "resource_ids", "positive_path", "negative_path"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "result": { "enum": ["PASSED", "FAILED", "BLOCKED", "NOT_RUN"] },
+          "command_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "started_at": { "type": "string", "minLength": 1 },
+          "finished_at": { "type": "string", "minLength": 1 },
+          "exit_code": { "type": "integer" },
+          "output_ref": { "type": "string", "minLength": 1 },
+          "output_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "covers_obligations": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "service_instance_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "resource_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "positive_path": { "enum": ["Yes", "No"] },
+          "negative_path": { "enum": ["Yes", "No"] }
+        }
+      }
+    },
+    "cleanup_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "owned_resources_remaining", "unrelated_resources_touched", "before_evidence_ref", "before_evidence_digest", "after_evidence_ref", "after_evidence_digest"],
+      "properties": {
+        "state": { "enum": ["VERIFIED", "NOT_REQUIRED", "BLOCKED", "FAILED"] },
+        "owned_resources_remaining": { "type": "integer" },
+        "unrelated_resources_touched": { "enum": ["Yes", "No", "Unknown"] },
+        "before_evidence_ref": { "type": "string", "minLength": 1 },
+        "before_evidence_digest": { "type": "string", "minLength": 1 },
+        "after_evidence_ref": { "type": "string", "minLength": 1 },
+        "after_evidence_digest": { "type": "string", "minLength": 1 }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stores_raw_secrets", "authorizes_broad_cleanup", "changes_production", "approves_implementation_release_or_production", "proves_product_or_business_correctness"],
+      "properties": {
+        "stores_raw_secrets": { "const": "No" },
+        "authorizes_broad_cleanup": { "const": "No" },
+        "changes_production": { "const": "No" },
+        "approves_implementation_release_or_production": { "const": "No" },
+        "proves_product_or_business_correctness": { "const": "No" }
+      }
+    },
+    "authority_binding": { "$ref": "#/$defs/authorityBinding" },
+    "outcome": { "enum": ["RUNTIME_TRUST_COMPLETE", "RUNTIME_TRUST_PARTIAL", "RUNTIME_TRUST_BLOCKED"] },
+    "next_step": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "authorityBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding_version", "project", "task", "sources"],
+      "properties": {
+        "binding_version": { "const": "1.91.0" },
+        "project": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "fingerprint", "revision"],
+          "properties": {
+            "kind": { "enum": ["GIT", "NON_GIT"] },
+            "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+            "revision": { "type": "string", "minLength": 1 }
+          }
+        },
+        "task": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["task_ref", "intent_digest"],
+          "properties": {
+            "task_ref": { "type": "string", "minLength": 1 },
+            "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ref", "relative_path", "raw_file_digest"],
+            "properties": {
+              "ref": { "type": "string", "minLength": 1 },
+              "relative_path": { "type": "string", "minLength": 1 },
+              "raw_file_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

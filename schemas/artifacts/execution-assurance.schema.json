@@ -29,7 +29,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1.74.0"
+      "enum": ["1.74.0", "1.104.0"]
     },
     "artifact_type": {
       "const": "execution_assurance_report"
@@ -277,6 +277,9 @@
         "$ref": "#/$defs/sourceSystem"
       }
     },
+    "runtime_trust_binding": {
+      "$ref": "#/$defs/runtimeTrustBinding"
+    },
     "task_entry_binding": {
       "$ref": "#/$defs/taskEntryBinding"
     },
@@ -421,6 +424,39 @@
     }
   },
   "$defs": {
+    "runtimeTrustBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement", "status", "run_manifest_ref", "run_manifest_digest", "run_id", "task_ref",
+        "intent_digest", "runtime_trust_level", "runtime_plan_ref", "runtime_plan_digest",
+        "lifecycle_plan_ref", "lifecycle_plan_digest", "verification_plan_ref", "verification_plan_digest",
+        "current_project_match", "current_task_match", "current_intent_match",
+        "current_verification_plan_match", "checker", "reason"
+      ],
+      "properties": {
+        "requirement": { "const": "REQUIRED" },
+        "status": { "enum": ["VERIFIED", "BLOCKED"] },
+        "run_manifest_ref": { "type": "string", "minLength": 1 },
+        "run_manifest_digest": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "task_ref": { "type": "string", "minLength": 1 },
+        "intent_digest": { "type": "string", "minLength": 1 },
+        "runtime_trust_level": { "type": "string", "minLength": 1 },
+        "runtime_plan_ref": { "type": "string", "minLength": 1 },
+        "runtime_plan_digest": { "type": "string", "minLength": 1 },
+        "lifecycle_plan_ref": { "type": "string", "minLength": 1 },
+        "lifecycle_plan_digest": { "type": "string", "minLength": 1 },
+        "verification_plan_ref": { "type": "string", "minLength": 1 },
+        "verification_plan_digest": { "type": "string", "minLength": 1 },
+        "current_project_match": { "enum": ["Yes", "No", "Unknown"] },
+        "current_task_match": { "enum": ["Yes", "No", "Unknown"] },
+        "current_intent_match": { "enum": ["Yes", "No", "Unknown"] },
+        "current_verification_plan_match": { "enum": ["Yes", "No", "Unknown"] },
+        "checker": { "const": "scripts/check-verification-run-manifest.mjs --require-complete" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
     "authorityBinding": {
       "type": "object",
       "additionalProperties": false,

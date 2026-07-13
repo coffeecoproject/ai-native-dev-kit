@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.100.0`
+`1.104.0`
 
 ## Project Version File
 
@@ -18,6 +18,22 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 
 ## Notes
 
+- `1.104.0` requires all strict completion consumers to validate and agree on
+  the same current-task Verification Run Manifest. Historical, copied, stale,
+  mismatched, textual, and empty evidence cannot satisfy current completion.
+
+- `1.103.0` adds exact no-shell local verification lifecycle execution,
+  run-owned resource ledgers, interruption-safe cleanup, and observed run
+  evidence without granting external, production, completion, or release
+  authority.
+
+- `1.102.0` adds project-evidenced runtime adapter contracts and
+  adapter-specific identity validation for local process, Docker, Kubernetes,
+  serverless, static, and project-native runtimes.
+- `1.101.0` adds task-tiered Verification Runtime Trust planning and strict run
+  manifests so evidence can bind to the intended source, service, isolated
+  resources, run window, and cleanup proof without asking the user to make
+  technical runtime choices.
 - `1.100.0` makes release authority, completion consumers, evidence identity,
   controlled apply rollback, existing-project discovery, baseline selection,
   and installed-project CI fail closed at their final consumers.

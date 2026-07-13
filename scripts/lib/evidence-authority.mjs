@@ -32,6 +32,7 @@ const workflowOutputDirectories = new Set([
   "runtime-hygiene-reports", "scope-change-reports", "skill-candidates",
   "standard-baseline-selections", "status-reports", "subagent-run-plans",
   "task-governance-reports", "test-evidence-reports", "verification-plans",
+  "verification-run-manifests", "verification-runtime-plans", "verification-runtime-lifecycle-plans", "runtime-runs",
   "workflow-adoption-maps", "workflow-guidance-cards", "workflow-improvements",
   "workflow-retros",
 ]);

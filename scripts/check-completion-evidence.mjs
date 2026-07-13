@@ -15,6 +15,10 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
 import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
+import {
+  runtimeTrustBindingsAgree,
+  validateRuntimeTrustBinding,
+} from "./lib/verification-runtime-consumer.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -30,6 +34,7 @@ const knownFlags = new Set([
   "strict-task-consumer",
   "require-plan-review",
   "require-evidence-authority",
+  "require-runtime-trust",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -37,7 +42,8 @@ const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"]);
 const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
-const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || args["require-source-refs"] || args["require-ready"] || requireEvidenceAuthority);
+const requireRuntimeTrust = Boolean(args["require-runtime-trust"]);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || args["require-source-refs"] || args["require-ready"] || requireEvidenceAuthority || requireRuntimeTrust);
 const requireSourceRefs = Boolean(args["require-source-refs"] || args["require-ready"]);
 const requireReady = Boolean(args["require-ready"]);
 const requireTaskGovernance = Boolean(args["require-task-governance"]);
@@ -46,7 +52,7 @@ const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const requirePlanReview = Boolean(args["require-plan-review"]);
 const strictRequested = requireReport || requireStructuredEvidence || requireSourceRefs || requireReady
   || requireTaskGovernance || requireWorkQueue || strictTaskConsumer || requirePlanReview
-  || requireEvidenceAuthority || Boolean(args.report);
+  || requireEvidenceAuthority || requireRuntimeTrust || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/completion-evidence.schema.json");
 const sourceSchemas = {
@@ -193,6 +199,10 @@ function checkReport(file) {
     if (hasSection(content, section)) pass(`${label} includes ${section}`);
     else fail(`${label} missing section ${section}`);
   }
+  if (requireRuntimeTrust) {
+    if (hasSection(content, "Runtime Trust Binding")) pass(`${label} includes Runtime Trust Binding`);
+    else fail(`${label} missing section Runtime Trust Binding`);
+  }
   requireBoundaryNo(content, label, "This report writes target files");
   requireBoundaryNo(content, label, "This report runs tests");
   requireBoundaryNo(content, label, "This report fabricates evidence");
@@ -217,6 +227,9 @@ function checkReport(file) {
   }
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
+  if (requireRuntimeTrust && evidence.schema_version !== "1.104.0") {
+    fail(`${label} --require-runtime-trust requires Completion Evidence schema 1.104.0`);
+  }
   reports.push({
     ref: `artifact:${path.relative(projectRoot, file).split(path.sep).join("/")}`,
     taskRef: evidence.task_ref,
@@ -286,11 +299,15 @@ function checkStructuredEvidence(label, file, evidence) {
     "check:source-digest-consistency",
     "check:intent-consistency",
     "check:source-chain-binding",
+    ...((requireRuntimeTrust || evidence.schema_version === "1.104.0")
+      ? ["check:runtime-trust", "check:runtime-consumer-agreement"]
+      : []),
   ]) {
     if (checksById.has(id)) pass(`${label} includes gate check ${id}`);
     else fail(`${label} missing gate check ${id}`);
   }
   checkCrossSourceBinding(label, evidence, sourceRecords);
+  checkRuntimeTrust(label, file, evidence, sourceRecords);
   checkTaskEntryBinding({
     content: "",
     evidence,
@@ -330,6 +347,35 @@ function checkStructuredEvidence(label, file, evidence) {
   }
   if (requireReady && evidence.completion_state !== "COMPLETION_EVIDENCE_READY") {
     fail(`${label} --require-ready requires COMPLETION_EVIDENCE_READY`);
+  }
+}
+
+function checkRuntimeTrust(label, file, evidence, sourceRecords) {
+  if (!requireRuntimeTrust) return;
+  const verificationPlan = sourceRecords.get("verification_plan");
+  const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, {
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+    verificationPlanRef: verificationPlan?.source?.ref,
+    verificationPlanDigest: verificationPlan?.source?.digest,
+  });
+  if (!validation.ok) {
+    validation.errors.forEach((error) => fail(`${label} ${error}`));
+    return;
+  }
+  pass(`${label} Runtime Trust binding matches the authoritative current run`);
+  const testBinding = sourceRecords.get("test_evidence")?.evidence?.runtime_trust_binding;
+  const executionBinding = sourceRecords.get("execution_assurance")?.evidence?.runtime_trust_binding;
+  if (!testBinding || !executionBinding) {
+    fail(`${label} Test Evidence and Execution Assurance must both carry Runtime Trust bindings`);
+    return;
+  }
+  const agreement = runtimeTrustBindingsAgree([evidence.runtime_trust_binding, testBinding, executionBinding]);
+  if (agreement.ok) pass(`${label} all completion consumers use the same Runtime Trust run`);
+  else agreement.errors.forEach((error) => fail(`${label} ${error}`));
+  if (evidence.completion_state === "COMPLETION_EVIDENCE_READY" && evidence.runtime_trust_binding.status !== "VERIFIED") {
+    fail(`${label} COMPLETION_EVIDENCE_READY requires verified Runtime Trust`);
   }
 }
 

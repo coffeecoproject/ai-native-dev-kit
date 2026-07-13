@@ -7183,13 +7183,14 @@ function checkExecutionAssuranceChainProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "EXECUTION_ASSURANCE"
         && parsed.readOnly === true
-        && parsed.schemaVersion === "1.74.0"
+        && parsed.schemaVersion === "1.104.0"
         && parsed.structuredEvidence?.artifact_type === "execution_assurance_report"
         && parsed.structuredEvidence?.can_codex_write_now === "No"
         && parsed.structuredEvidence?.completion_contract
         && parsed.structuredEvidence?.planned_impact_map
         && parsed.structuredEvidence?.actual_diff
         && parsed.structuredEvidence?.patch_assessment
+        && parsed.structuredEvidence?.runtime_trust_binding?.status === "BLOCKED"
         && parsed.structuredEvidence?.boundary?.approves_commit_or_push === "No") {
         pass("1.72-1.74 execution assurance resolver JSON includes safe evidence fields");
       } else {
@@ -9526,9 +9527,9 @@ function checkTestEvidenceBindingProtocol() {
   ]);
   if (resolver.status === 0
     && resolver.stdout.includes("Test Evidence Report")
-    && resolver.stdout.includes("TEST_EVIDENCE_COMPLETE")
+    && resolver.stdout.includes("TEST_EVIDENCE_BLOCKED")
     && resolver.stdout.includes("This report executes tests: No")) {
-    pass("1.77 test evidence resolver prints safe complete report");
+    pass("1.104 test evidence resolver blocks a current claim without Runtime Trust");
   } else {
     fail(`1.77 test evidence resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
@@ -9548,10 +9549,11 @@ function checkTestEvidenceBindingProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "TEST_EVIDENCE_REPORT"
-        && parsed.schemaVersion === "1.77.1"
+        && parsed.schemaVersion === "1.104.0"
         && parsed.structuredEvidence?.artifact_type === "test_evidence"
-        && parsed.structuredEvidence?.schema_version === "1.77.1"
+        && parsed.structuredEvidence?.schema_version === "1.104.0"
         && parsed.structuredEvidence?.test_evidence_digest
+        && parsed.structuredEvidence?.runtime_trust_binding?.status === "BLOCKED"
         && parsed.structuredEvidence?.evidence_items?.every((item) => item.exit_code === 0 && item.failure_reason === "not recorded")
         && parsed.structuredEvidence?.source_systems?.some((item) => item.name === "verification_plan")
         && parsed.structuredEvidence?.coverage_map?.every((item) => item.coverage_state === "COVERED")
@@ -9787,9 +9789,9 @@ function checkCompletionEvidenceGateProtocol() {
   ]);
   if (resolver.status === 0
     && resolver.stdout.includes("Completion Evidence Gate Report")
-    && resolver.stdout.includes("COMPLETION_EVIDENCE_READY")
+    && resolver.stdout.includes("BLOCKED_BY_RUNTIME_TRUST")
     && resolver.stdout.includes("This report runs tests: No")) {
-    pass("1.78 completion evidence resolver prints safe complete report");
+    pass("1.104 completion evidence resolver blocks a current claim without Runtime Trust");
   } else {
     fail(`1.78 completion evidence resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
@@ -9813,15 +9815,16 @@ function checkCompletionEvidenceGateProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "COMPLETION_EVIDENCE_GATE"
-        && parsed.schemaVersion === "1.78.0"
+        && parsed.schemaVersion === "1.104.0"
         && parsed.structuredEvidence?.artifact_type === "completion_evidence_gate"
-        && parsed.structuredEvidence?.completion_state === "COMPLETION_EVIDENCE_READY"
-        && parsed.structuredEvidence?.can_claim_complete === "Yes"
+        && parsed.structuredEvidence?.completion_state === "BLOCKED_BY_RUNTIME_TRUST"
+        && parsed.structuredEvidence?.can_claim_complete === "No"
+        && parsed.structuredEvidence?.runtime_trust_binding?.status === "BLOCKED"
         && parsed.structuredEvidence?.source_chain?.length === 4
         && parsed.structuredEvidence?.source_chain?.every((item) => typeof item.intent_digest === "string" && item.intent_digest.startsWith("sha256:"))
-        && parsed.structuredEvidence?.gate_checks?.every((item) => item.status === "PASS")
+        && parsed.structuredEvidence?.gate_checks?.some((item) => item.id === "check:runtime-trust" && item.status === "FAIL")
         && parsed.structuredEvidence?.boundary?.runs_tests === "No") {
-        pass("1.78 completion evidence resolver JSON includes ready source chain");
+        pass("1.104 completion evidence resolver JSON includes runtime-blocked source chain");
       } else {
         fail(`1.78 completion evidence resolver JSON missing expected fields: ${resolverJson.stdout}`);
       }
@@ -12042,10 +12045,11 @@ function checkExecutionTruthHardcutProtocol() {
   if (validResolver.status === 0) {
     try {
       const parsed = JSON.parse(validResolver.stdout);
-      if (parsed.closureDecision?.decision === "DONE"
+      if (parsed.closureDecision?.decision === "NEEDS_EVIDENCE"
         && parsed.inputVerification?.some((item) => item.input === "Execution Closure" && item.verified === "Yes")
-        && parsed.inputVerification?.some((item) => item.input === "Change Impact Coverage" && item.verified === "Yes")) {
-        pass("1.90 resolver returns DONE only with verified matched evidence");
+        && parsed.inputVerification?.some((item) => item.input === "Change Impact Coverage" && item.verified === "Yes")
+        && parsed.decisionInputs?.some((item) => item.input === "Runtime Trust" && item.status === "MISSING")) {
+        pass("1.104 resolver preserves verified historical inputs but blocks DONE without Runtime Trust");
       } else {
         fail(`1.90 resolver valid decision missing verified inputs: ${validResolver.stdout}`);
       }
@@ -15527,9 +15531,9 @@ function checkGeneratedProjectE2E() {
   ]);
   if (generatedTestEvidenceResolve.status !== 0
     || !fs.existsSync(path.join(target, generatedTestEvidenceReport))
-    || !generatedTestEvidenceResolve.stdout.includes("TEST_EVIDENCE_COMPLETE")
+    || !generatedTestEvidenceResolve.stdout.includes("TEST_EVIDENCE_BLOCKED")
     || !generatedTestEvidenceResolve.stdout.includes("Exit Code")) {
-    fail(`generated project Test Evidence resolver should write a source-bound report: ${generatedTestEvidenceResolve.stderr || generatedTestEvidenceResolve.stdout}`);
+    fail(`generated project Test Evidence resolver should write a source-bound Runtime Trust blocker: ${generatedTestEvidenceResolve.stderr || generatedTestEvidenceResolve.stdout}`);
     return;
   }
   const generatedTestEvidenceStrictCheck = runNode([
@@ -15547,7 +15551,7 @@ function checkGeneratedProjectE2E() {
     || !generatedTestEvidenceStrictCheck.stdout.includes("Test Evidence check passed")
     || !generatedTestEvidenceStrictCheck.stdout.includes("test_evidence_ref points to this report")
     || !generatedTestEvidenceStrictCheck.stdout.includes("verification_plan_digest matches referenced Verification Plan")
-    || !generatedTestEvidenceStrictCheck.stdout.includes("TEST_EVIDENCE_COMPLETE covers every required obligation")) {
+    || !generatedTestEvidenceStrictCheck.stdout.includes("Markdown outcome matches structured test_evidence_state")) {
     fail(`generated project Test Evidence strict source binding failed: ${generatedTestEvidenceStrictCheck.stderr || generatedTestEvidenceStrictCheck.stdout}`);
     return;
   }
@@ -15583,7 +15587,7 @@ function checkGeneratedProjectE2E() {
   ]);
   if (generatedCompletionResolve.status !== 0
     || !fs.existsSync(path.join(target, generatedCompletionReport))
-    || !generatedCompletionResolve.stdout.includes("COMPLETION_EVIDENCE_READY")
+    || !generatedCompletionResolve.stdout.includes("BLOCKED_BY_RUNTIME_TRUST")
     || !generatedCompletionResolve.stdout.includes("Can Claim Complete")) {
     fail(`generated project Completion Evidence resolver should write a source-bound report: ${generatedCompletionResolve.stderr || generatedCompletionResolve.stdout}`);
     return;
@@ -15595,17 +15599,16 @@ function checkGeneratedProjectE2E() {
     generatedCompletionReport,
     "--require-structured-evidence",
     "--require-source-refs",
-    "--require-ready",
   ]);
   if (generatedCompletionStrictCheck.status !== 0
     || !generatedCompletionStrictCheck.stdout.includes("Completion Evidence Gate check passed")
     || !generatedCompletionStrictCheck.stdout.includes("completion_evidence_ref points to this report")
-    || !generatedCompletionStrictCheck.stdout.includes("ready gate can claim complete")
+    || !generatedCompletionStrictCheck.stdout.includes("includes gate check check:runtime-trust")
     || !generatedCompletionStrictCheck.stdout.includes("source execution_assurance outcome matches referenced evidence")) {
     fail(`generated project Completion Evidence strict source binding failed: ${generatedCompletionStrictCheck.stderr || generatedCompletionStrictCheck.stdout}`);
     return;
   }
-  pass("generated project strict Completion Evidence source binding");
+  pass("generated project Completion Evidence keeps source binding while Runtime Trust blocks readiness");
   const generatedStatusReport = "delivery-status-cards/001-generated-status.md";
   const generatedStatusResolve = runNode([
     path.join(target, "scripts", "resolve-user-delivery-console.mjs"),
@@ -15617,9 +15620,9 @@ function checkGeneratedProjectE2E() {
   ]);
   if (generatedStatusResolve.status !== 0
     || !fs.existsSync(path.join(target, generatedStatusReport))
-    || !generatedStatusResolve.stdout.includes("Passed for this request")
-    || !generatedStatusResolve.stdout.includes("Can the current task be treated as done? | Yes")) {
-    fail(`generated project User Delivery Console should write a current-task matched status card: ${generatedStatusResolve.stderr || generatedStatusResolve.stdout}`);
+    || !generatedStatusResolve.stdout.includes("Not passed")
+    || !generatedStatusResolve.stdout.includes("Can the current task be treated as done? | No")) {
+    fail(`generated project User Delivery Console should preserve the Runtime Trust blocker: ${generatedStatusResolve.stderr || generatedStatusResolve.stdout}`);
     return;
   }
   const generatedStatusCheck = runNode([
@@ -17137,7 +17140,7 @@ function checkGeneratedProjectE2E() {
     generatedTestEvidenceReport,
   ]);
   if (generatedTestEvidenceRefreshAfterUpdate.status !== 0
-    || !generatedTestEvidenceRefreshAfterUpdate.stdout.includes("TEST_EVIDENCE_COMPLETE")) {
+    || !generatedTestEvidenceRefreshAfterUpdate.stdout.includes("TEST_EVIDENCE_BLOCKED")) {
     fail(`generated project Test Evidence refresh after workflow update failed: ${generatedTestEvidenceRefreshAfterUpdate.stderr || generatedTestEvidenceRefreshAfterUpdate.stdout}`);
     return;
   }
@@ -17170,7 +17173,7 @@ function checkGeneratedProjectE2E() {
   ]);
   if (generatedCompletionResolveAfterUpdate.status !== 0
     || !fs.existsSync(path.join(target, generatedCompletionReport))
-    || !generatedCompletionResolveAfterUpdate.stdout.includes("COMPLETION_EVIDENCE_READY")) {
+    || !generatedCompletionResolveAfterUpdate.stdout.includes("BLOCKED_BY_RUNTIME_TRUST")) {
     fail(`generated project Completion Evidence resolver after workflow update failed: ${generatedCompletionResolveAfterUpdate.stderr || generatedCompletionResolveAfterUpdate.stdout}`);
     return;
   }
@@ -17181,10 +17184,11 @@ function checkGeneratedProjectE2E() {
     generatedCompletionReport,
     "--require-structured-evidence",
     "--require-source-refs",
-    "--require-ready",
   ]);
   if (generatedCompletionStrictCheckAfterUpdate.status !== 0
-    || !generatedCompletionStrictCheckAfterUpdate.stdout.includes("Completion Evidence Gate check passed")) {
+    || !generatedCompletionStrictCheckAfterUpdate.stdout.includes("Completion Evidence Gate check passed")
+    || !generatedCompletionStrictCheckAfterUpdate.stdout.includes("includes gate check check:runtime-trust")
+    || !generatedCompletionStrictCheckAfterUpdate.stdout.includes("includes gate check check:runtime-consumer-agreement")) {
     fail(`generated project Completion Evidence strict source binding after workflow update failed: ${generatedCompletionStrictCheckAfterUpdate.stderr || generatedCompletionStrictCheckAfterUpdate.stdout}`);
     return;
   }
@@ -17258,7 +17262,8 @@ function checkGeneratedProjectE2E() {
   if (generatedReleaseEvidenceResolve.status !== 0
     || !fs.existsSync(path.join(target, generatedReleaseEvidenceReport))
     || !generatedReleaseEvidenceResolve.stdout.includes("Release Evidence Gate Report")
-    || !generatedReleaseEvidenceResolve.stdout.includes("READY_FOR_INTERNAL_TRIAL_REVIEW")) {
+    || !generatedReleaseEvidenceResolve.stdout.includes("BLOCKED_BY_MISSING_RELEASE_EVIDENCE")
+    || !generatedReleaseEvidenceResolve.stdout.includes(`completion-evidence-not-ready:artifact:${generatedCompletionReport}`)) {
     fail(`generated project Release Evidence Gate resolver after update failed: ${generatedReleaseEvidenceResolve.stderr || generatedReleaseEvidenceResolve.stdout}`);
     return;
   }
@@ -17271,14 +17276,12 @@ function checkGeneratedProjectE2E() {
     "--require-current-completion",
     "--strict-source-binding",
   ]);
-  if (generatedReleaseEvidenceCheck.status !== 0
-    || !generatedReleaseEvidenceCheck.stdout.includes(`Completion Evidence set artifact:${generatedCompletionReport} strict checker passed`)
-    || !generatedReleaseEvidenceCheck.stdout.includes("required evidence build-or-preview-evidence digest matches resolved artifact")
-    || !generatedReleaseEvidenceCheck.stdout.includes("Release Evidence Gate check passed")) {
-    fail(`generated project Release Evidence Gate checker after update failed: ${generatedReleaseEvidenceCheck.stderr || generatedReleaseEvidenceCheck.stdout}`);
+  if (generatedReleaseEvidenceCheck.status === 0
+    || !`${generatedReleaseEvidenceCheck.stdout}\n${generatedReleaseEvidenceCheck.stderr}`.includes(`Completion Evidence set artifact:${generatedCompletionReport} strict checker failed`)) {
+    fail(`generated project Release Evidence Gate checker must reject Runtime Trust-blocked Completion Evidence after update: ${generatedReleaseEvidenceCheck.stderr || generatedReleaseEvidenceCheck.stdout}`);
     return;
   }
-  pass("generated project Release Evidence Gate resolver/checker after update");
+  pass("generated project Release Evidence Gate stays blocked by Runtime Trust-blocked Completion Evidence after update");
   }
 
   const dryRunTarget = path.join(tempRoot, "dry-run-project");
@@ -18591,6 +18594,135 @@ function checkExecutionAuthorityConsumerHardcutProtocol() {
   }
 }
 
+function checkVerificationRuntimeTrustProtocol() {
+  const assets = [
+    "core/verification-runtime-trust.md",
+    "core/verification-runtime-adapters.md",
+    "core/verification-runtime-lifecycle.md",
+    "core/runtime-trust-consumer-hardcut.md",
+    "docs/verification-runtime-trust.md",
+    "docs/verification-runtime-adapters.md",
+    "docs/verification-runtime-lifecycle.md",
+    "docs/runtime-trust-consumer-hardcut.md",
+    "checklists/verification-runtime-trust-review.md",
+    "checklists/verification-runtime-adapter-review.md",
+    "checklists/verification-runtime-lifecycle-review.md",
+    "checklists/runtime-trust-consumer-review.md",
+    "templates/verification-runtime-plan.md",
+    "templates/verification-run-manifest.md",
+    "templates/verification-runtime-lifecycle-plan.md",
+    "schemas/artifacts/verification-runtime-plan.schema.json",
+    "schemas/artifacts/verification-run-manifest.schema.json",
+    "schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
+    "scripts/lib/verification-runtime-trust.mjs",
+    "scripts/lib/verification-runtime-adapters.mjs",
+    "scripts/lib/verification-runtime-lifecycle.mjs",
+    "scripts/lib/verification-runtime-consumer.mjs",
+    "scripts/resolve-verification-runtime-plan.mjs",
+    "scripts/check-verification-runtime-plan.mjs",
+    "scripts/check-verification-run-manifest.mjs",
+    "scripts/resolve-verification-runtime-lifecycle.mjs",
+    "scripts/check-verification-runtime-lifecycle.mjs",
+    "scripts/run-verification-runtime.mjs",
+    "tests/verification-runtime-trust.test.mjs",
+    "tests/verification-runtime-lifecycle.test.mjs",
+    "tests/verification-runtime-consumer.test.mjs",
+    "verification-runtime-plans/.gitkeep",
+    "verification-run-manifests/.gitkeep",
+    "verification-runtime-lifecycle-plans/.gitkeep",
+  ];
+  for (const file of assets) {
+    if (exists(file)) pass(`1.103 verification runtime chain asset exists: ${file}`);
+    else fail(`1.103 verification runtime chain asset missing: ${file}`);
+  }
+
+  const core = read("core/verification-runtime-trust.md");
+  for (const marker of [
+    "SOURCE_OUTPUT_BINDING",
+    "TARGETED_SERVICE_IDENTITY",
+    "ISOLATED_RUNTIME",
+    "POSSIBLE_HIGH",
+    "run_id",
+    "owner_token_digest",
+    "Codex",
+  ]) {
+    if (core.includes(marker)) pass(`1.102 runtime trust core includes ${marker}`);
+    else fail(`1.102 runtime trust core missing ${marker}`);
+  }
+  if (/user[^\n]{0,80}(choose|select)[^\n]{0,80}(port|database|runtime|adapter|container)/i.test(core)) {
+    fail("1.102 runtime trust core asks the user to make a technical runtime choice");
+  } else {
+    pass("1.102 runtime trust keeps technical runtime selection Codex-owned");
+  }
+
+  const adapters = read("core/verification-runtime-adapters.md");
+  for (const marker of ["LOCAL_PROCESS", "DOCKER_CONTAINER", "KUBERNETES_WORKLOAD", "SERVERLESS_DEPLOYMENT", "STATIC_BUILD", "PROJECT_NATIVE", "OBSERVE_AND_PLAN_ONLY"]) {
+    if (adapters.includes(marker)) pass(`1.102 runtime adapter core includes ${marker}`);
+    else fail(`1.102 runtime adapter core missing ${marker}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const command of ["verification-runtime-plan", "verification-runtime-plan-check", "verification-runtime-lifecycle", "verification-runtime-lifecycle-check", "verification-runtime-run", "verification-run-check"]) {
+    if (cli.includes(`\"${command}\"`)) pass(`1.103 advanced CLI exposes ${command}`);
+    else fail(`1.103 advanced CLI missing ${command}`);
+  }
+
+  const installedCi = read("platforms/github/ci-ai-workflow.yml");
+  for (const checker of ["check-verification-runtime-plan.mjs", "check-verification-runtime-lifecycle.mjs", "check-verification-run-manifest.mjs"]) {
+    if (installedCi.includes(checker)) pass(`1.103 installed CI includes ${checker}`);
+    else fail(`1.103 installed CI missing ${checker}`);
+  }
+  for (const strictFlag of [
+    "check-test-evidence.mjs . --require-runtime-trust",
+    "check-execution-assurance.mjs . --require-runtime-trust",
+    "check-completion-evidence.mjs . --require-runtime-trust",
+    "check-closure-decision.mjs . --require-runtime-trust",
+  ]) {
+    if (installedCi.includes(strictFlag)) pass(`1.104 installed CI includes ${strictFlag}`);
+    else fail(`1.104 installed CI missing ${strictFlag}`);
+  }
+
+  const consumerAuthority = read("scripts/lib/verification-runtime-consumer.mjs");
+  for (const marker of ["check-verification-run-manifest.mjs", "--require-complete", "runtimeTrustBindingsAgree", "current_verification_plan_match"]) {
+    if (consumerAuthority.includes(marker)) pass(`1.104 Runtime Trust consumer authority includes ${marker}`);
+    else fail(`1.104 Runtime Trust consumer authority missing ${marker}`);
+  }
+  for (const [file, marker] of [
+    ["scripts/check-test-evidence.mjs", "require-runtime-trust"],
+    ["scripts/check-execution-assurance.mjs", "require-runtime-trust"],
+    ["scripts/check-completion-evidence.mjs", "require-runtime-trust"],
+    ["scripts/resolve-closure-decision.mjs", "Runtime Trust"],
+  ]) {
+    if (read(file).includes(marker)) pass(`1.104 ${file} consumes Runtime Trust`);
+    else fail(`1.104 ${file} does not consume Runtime Trust`);
+  }
+
+  const focused = runNode(["--test", "tests/verification-runtime-trust.test.mjs"]);
+  if (focused.status === 0) pass("1.102 verification runtime trust regressions");
+  else fail(`1.102 verification runtime trust regressions failed: ${focused.stderr || focused.stdout}`);
+  const lifecycleFocused = runNode(["--test", "tests/verification-runtime-lifecycle.test.mjs"]);
+  if (lifecycleFocused.status === 0) pass("1.103 verification runtime lifecycle regressions");
+  else fail(`1.103 verification runtime lifecycle regressions failed: ${lifecycleFocused.stderr || lifecycleFocused.stdout}`);
+  const consumerFocused = runNode(["--test", "tests/verification-runtime-consumer.test.mjs"]);
+  if (consumerFocused.status === 0) pass("1.104 verification runtime consumer regressions");
+  else fail(`1.104 verification runtime consumer regressions failed: ${consumerFocused.stderr || consumerFocused.stdout}`);
+
+  for (const args of [
+    ["scripts/check-verification-runtime-plan.mjs", ".", "--allow-empty"],
+    ["scripts/check-verification-runtime-lifecycle.mjs", ".", "--allow-empty"],
+    ["scripts/check-verification-run-manifest.mjs", ".", "--allow-empty"],
+  ]) {
+    const result = runNode(args);
+    if (result.status === 0) pass(`1.103 ${args[0]} accepts an explicitly empty repository state`);
+    else fail(`1.103 ${args[0]} empty-state check failed: ${result.stderr || result.stdout}`);
+  }
+  for (const checker of ["check-test-evidence.mjs", "check-execution-assurance.mjs", "check-completion-evidence.mjs"]) {
+    const result = runNode([`scripts/${checker}`, ".", "--allow-empty", "--require-runtime-trust"]);
+    if (result.status !== 0) pass(`1.104 ${checker} rejects allow-empty under strict Runtime Trust`);
+    else fail(`1.104 ${checker} allowed strict Runtime Trust to be bypassed by allow-empty`);
+  }
+}
+
 checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
@@ -18669,6 +18801,7 @@ checkProjectIdentityProjectionProtocol();
 checkReviewContextAuthorityProtocol();
 checkZeroExperienceSoloOperatingModelProtocol();
 checkExecutionAuthorityConsumerHardcutProtocol();
+checkVerificationRuntimeTrustProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();

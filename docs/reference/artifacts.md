@@ -23,6 +23,8 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `business-rule-closures/` | Business Rule Closure cards that close rule dimensions, safe defaults, limited user decisions, and real-environment validation expectations before impact coverage |
 | `change-impact-coverage-reports/` | Affected-surface coverage for validation, rule, API, backend, data, permission, copy, and business-behavior changes |
 | `verification-plans/` | Source-bound verification plans that translate business rule closure and impact coverage into concrete checks, test-correctness controls, and manual verification ownership |
+| `verification-runtime-plans/` | Task-tier-derived runtime trust plans covering source binding, project-evidenced adapter contracts, preflight, service identity, isolation, ownership, and cleanup requirements |
+| `verification-run-manifests/` | Project- and task-bound records of the exact source revision, service/resource identities, verification outputs, run ownership, and bounded cleanup |
 | `test-evidence-reports/` | Evidence-binding reports that map concrete command/manual/report evidence to Verification Plan obligations |
 | `completion-evidence-reports/` | Final task-completion evidence gate reports that bind Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance into one checked source chain |
 | `delivery-status-cards/` | User Delivery Console cards that translate existing evidence into a plain-language status, missing-item, and safe-next-action view |
@@ -103,7 +105,7 @@ Goal Card is not approval to implement. Subagent output is not authority. Human 
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
 
-Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Release Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence Report, Completion Evidence Gate, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
+Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Release Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Verification Plan, Verification Runtime Plan, Verification Run Manifest, Test Evidence Report, Completion Evidence Gate, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
 
 Completion Evidence Gate structured evidence uses `completion_evidence_gate` and
 lives in `completion-evidence-reports/`. Under strict 1.78.2+ checks, older
@@ -213,6 +215,14 @@ Change Impact Coverage lives under `.intentos/core/` in generated projects. It h
 
 Verification Plan Governance lives under `.intentos/core/` in generated projects. It turns closed business rules and impact coverage into a concrete verification plan so Codex cannot rely on broad command output alone or write generated tests without test-correctness review. It does not execute tests, approve implementation, approve release/production, or replace Execution Assurance.
 
+Verification Runtime Trust lives under `.intentos/core/` in generated projects. It derives whether the current task needs source/output binding, targeted service identity, or an isolated runtime, while keeping ports, databases, containers, sessions, and test-tool selection inside Codex. Its plan and run manifest do not execute tests, approve completion, or authorize production.
+
+Runtime Trust Consumer Hardcut lives under `.intentos/core/` in generated
+projects. It requires strict Test Evidence, Execution Assurance, Completion
+Evidence, and public `finish` to validate and agree on the same current-task
+Verification Run Manifest. Historical reports remain audit evidence and do not
+become current runtime proof.
+
 Delivery Path Governance lives under `.intentos/core/` in generated projects. It explains whether a project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked, while keeping Delivery Path Reports read-only and non-approving.
 
 Debt & Knowledge Handoff lives under `.intentos/core/` in generated projects. It records what remains unfinished, how to verify it, which files or areas to revisit, and where to resume next time. It does not forgive debt, approve implementation, approve release or production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
@@ -270,3 +280,5 @@ Short rule:
 - need to translate baseline choice into user-readable decisions: baseline decision card
 - need to recommend platform/capability/risk baseline packs: baseline pack selection report
 - need to close work: final report
+- need to define how a trusted local verification run may execute: verification runtime lifecycle plan
+- need to prove which exact code, process, resources, outputs, and cleanup produced test evidence: verification run manifest

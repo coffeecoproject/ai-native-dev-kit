@@ -14,6 +14,7 @@ import {
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
+import { asArtifactRef, validateRuntimeTrustBinding } from "./lib/verification-runtime-consumer.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -27,6 +28,7 @@ const knownFlags = new Set([
   "require-current-evidence",
   "require-test-quality-controls",
   "require-evidence-authority",
+  "require-runtime-trust",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -39,9 +41,10 @@ const strictSourceBinding = Boolean(args["strict-source-binding"]);
 const requireCurrentEvidence = Boolean(args["require-current-evidence"]);
 const requireTestQualityControls = Boolean(args["require-test-quality-controls"]);
 const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
+const requireRuntimeTrust = Boolean(args["require-runtime-trust"]);
 const strictRequested = requireReport || requireStructuredEvidence || requireVerificationPlanRef
   || strictSourceBinding || requireCurrentEvidence || requireTestQualityControls
-  || requireEvidenceAuthority || Boolean(args.report);
+  || requireEvidenceAuthority || requireRuntimeTrust || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/test-evidence.schema.json");
 const verificationPlanSchema = loadSchema(projectRoot, "schemas/artifacts/verification-plan.schema.json");
@@ -191,6 +194,10 @@ function checkReport(file) {
     if (hasSection(content, section)) pass(`${label} includes ${section}`);
     else fail(`${label} missing section ${section}`);
   }
+  if (requireRuntimeTrust) {
+    if (hasSection(content, "Runtime Trust Binding")) pass(`${label} includes Runtime Trust Binding`);
+    else fail(`${label} missing section Runtime Trust Binding`);
+  }
   requireBoundaryNo(content, label, "This report writes target files");
   requireBoundaryNo(content, label, "This report executes tests");
   requireBoundaryNo(content, label, "This report fabricates evidence");
@@ -200,10 +207,10 @@ function checkReport(file) {
   requireBoundaryNo(content, label, "This report proves real-environment behavior");
 
   const result = validateEvidenceBlock(content, structuredEvidenceSchema, label, {
-    require: requireStructuredEvidence || requireVerificationPlanRef || strictSourceBinding || requireCurrentEvidence || requireTestQualityControls || requireEvidenceAuthority,
+    require: requireStructuredEvidence || requireVerificationPlanRef || strictSourceBinding || requireCurrentEvidence || requireTestQualityControls || requireEvidenceAuthority || requireRuntimeTrust,
     digestField: "test_evidence_digest",
   });
-  if (!result.present && !(requireStructuredEvidence || requireVerificationPlanRef || strictSourceBinding || requireCurrentEvidence || requireTestQualityControls || requireEvidenceAuthority)) {
+  if (!result.present && !(requireStructuredEvidence || requireVerificationPlanRef || strictSourceBinding || requireCurrentEvidence || requireTestQualityControls || requireEvidenceAuthority || requireRuntimeTrust)) {
     pass(`${label} structured evidence optional and not present`);
     return;
   }
@@ -213,9 +220,54 @@ function checkReport(file) {
   }
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
+  checkRuntimeTrust(label, file, evidence);
   const markdown = parseMarkdownEvidence(content);
   checkEvidenceAuthority(label, file, evidence);
   checkStructuredEvidence(label, file, evidence, markdown);
+}
+
+function checkRuntimeTrust(label, file, evidence) {
+  if (!requireRuntimeTrust) return;
+  if (evidence.schema_version !== "1.104.0") {
+    fail(`${label} --require-runtime-trust requires Test Evidence schema 1.104.0`);
+    return;
+  }
+  const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, {
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+    verificationPlanRef: evidence.verification_plan_ref,
+    verificationPlanDigest: evidence.verification_plan_digest,
+  });
+  if (!validation.ok) {
+    validation.errors.forEach((error) => fail(`${label} ${error}`));
+    return;
+  }
+  pass(`${label} Runtime Trust binding matches the authoritative current run`);
+  const executionById = new Map((validation.manifest.verification_executions || []).map((item) => [`runtime:${item.id}`, item]));
+  const evidenceById = new Map((evidence.evidence_items || []).map((item) => [item.id, item]));
+  for (const row of evidence.coverage_map || []) {
+    if (row.coverage_state !== "COVERED") continue;
+    const runtimeIds = (row.evidence_ids || []).filter((id) => executionById.has(id));
+    if (runtimeIds.length === 0) {
+      fail(`${label} covered obligation ${row.obligation_id} requires evidence from the bound Runtime Trust run`);
+      continue;
+    }
+    for (const id of runtimeIds) {
+      const execution = executionById.get(id);
+      const item = evidenceById.get(id);
+      if (!item || execution.result !== "PASSED" || item.result_state !== "PASSED") {
+        fail(`${label} Runtime Trust evidence ${id} must be PASSED in both manifest and Test Evidence`);
+        continue;
+      }
+      if (item.ref !== asArtifactRef(execution.output_ref) || item.output_digest !== execution.output_digest) {
+        fail(`${label} Runtime Trust evidence ${id} output ref/digest does not match the bound run`);
+      }
+      if (!execution.covers_obligations.includes(row.obligation_id) || !item.covers_obligations.includes(row.obligation_id)) {
+        fail(`${label} Runtime Trust evidence ${id} does not cover ${row.obligation_id} in both records`);
+      }
+    }
+  }
 }
 
 function checkEvidenceAuthority(label, file, evidence) {

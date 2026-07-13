@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.100.0`
+Current version: `1.104.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,44 @@ Current version: `1.100.0`
 
 ## Current Release
 
-`1.100.0`
+`1.104.0`
 
 Includes:
+
+- Runtime Trust Consumer Hardcut `1.104.0`: requires Test Evidence, Execution
+  Assurance, Completion Evidence, and public `finish` to independently validate
+  and agree on one current-task Verification Run Manifest.
+- `1.104.0` keeps historical consumer evidence readable but rejects it from
+  strict completion claims. Runtime provenance does not prove semantic test
+  correctness and does not authorize release or production.
+
+- Verification Runtime Lifecycle `1.103.0`: turns a current Runtime Plan and
+  strict project-owned declaration into exact no-shell local actions,
+  run-owned resources, a material-action journal, observed execution outputs,
+  and cleanup-before/after evidence.
+- `1.103.0` executes only command-only or bounded local lifecycle modes. It
+  blocks missing declarations, stale plans, provider/remote/container effects,
+  production, release, broad cleanup, credentials, and unowned resources. It
+  does not approve implementation, completion, release, or production.
+
+- Verification Runtime Adapters `1.102.0`: binds runtime adapter selection to
+  current project evidence, deterministic adapter capabilities,
+  adapter-specific identity fields, and one contract digest without asking the
+  user to choose technical infrastructure.
+- `1.102.0` supports local process, Docker, Kubernetes, serverless, static, and
+  project-native adapter contracts in observation-and-planning mode. It does
+  not start runtimes, call providers, execute tests, create/delete resources,
+  or perform cleanup.
+
+- Verification Runtime Trust Core `1.101.0`: adds task-tier-derived runtime
+  trust planning and project-bound run manifests for source revision, service
+  instance, isolated data/session resources, run ownership, exact outputs, and
+  bounded cleanup.
+- `1.101.0` keeps all runtime, port, database, container, and test-tool choices
+  inside Codex. It validates the plan and recorded run but does not start
+  services, execute tests, create/delete resources, approve completion, or yet
+  require downstream Test Evidence and Completion consumers to use the new
+  artifacts.
 
 - Execution Authority And Consumer Hardcut `1.100.0`: makes release ownership,
   public completion, evidence identity, controlled apply, existing-project

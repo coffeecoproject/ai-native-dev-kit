@@ -35,6 +35,9 @@ exact evidence work. Ordinary users should not choose among them.
 | `node scripts/cli.mjs impact-coverage-check <project>` | Check recorded Change Impact Coverage Reports | No |
 | `node scripts/cli.mjs verification-plan <project> --intent "<change>" --business-rule-ref <ref> --impact-ref <ref>` | Turn closed business rule and impact coverage into a source-bound verification plan with test-correctness controls | No by default; writes only the requested report file with `--out` |
 | `node scripts/cli.mjs verification-plan-check <project>` | Check recorded Verification Plans for current-task binding, obligations, broad-command rejection, manual owners, and non-authority boundaries | No |
+| `node scripts/cli.mjs verification-runtime-plan <project> --intent "<goal>"` | Derive the task-tier-specific runtime trust, adapter, preflight, isolation, and cleanup requirements without asking the user to choose technical infrastructure | No by default; writes only the requested report file with `--out` |
+| `node scripts/cli.mjs verification-runtime-plan-check <project>` | Check recorded Verification Runtime Plans for task/source identity, tier, adapter, controls, isolation, digest, and no-authority boundaries | No |
+| `node scripts/cli.mjs verification-run-check <project>` | Check recorded Verification Run Manifests for current source revision, service/resource identity, run ownership, executions, output digests, and safe cleanup | No |
 | `node scripts/cli.mjs test-evidence <project> --verification-plan-ref <ref> --evidence <refs>` | Bind explicit command/manual/report evidence to a Verification Plan without running tests or approving completion | No by default; writes only the requested report file with `--out` |
 | `node scripts/cli.mjs test-evidence-check <project>` | Check recorded Test Evidence Reports for obligation coverage, freshness, output digests, owner validity, and no-overclaim boundaries | No |
 | `node scripts/cli.mjs delivery-path <project>` | Report current path toward useful use, self-test, internal trial, release review, or blocked status | No |
@@ -196,6 +199,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-verification-plan.mjs` is the 1.76 verification plan entry. It consumes a task intent, optional Business Rule Closure, optional Change Impact Coverage report, project level, platform profile, and change kind, then prints one Verification Plan with source-system binding, concrete obligations, test-correctness controls, manual-verification ownership, non-applicable obligations, and explicit no-test-execution/no-approval boundaries. It is read-only by default; `--out <relative-report-path>` writes only the requested report file for later checking.
 
 `scripts/check-verification-plan.mjs` checks recorded Verification Plans. It rejects implementation/release overclaims, stale or mismatched business-rule / impact refs, missing obligations for required impact surfaces, API contract coverage without positive and negative checks, backend-rule coverage without backend verification, broad-command-only proof for required obligations, high-risk or BL2 plans without generated-test review controls, manual verification without owners, and task/digest drift. Use `--require-structured-evidence`, `--require-business-rule-ref`, `--require-impact-ref`, and `--strict-source-binding` when a plan must be bound to the exact current task and source reports.
+
+`scripts/resolve-verification-runtime-plan.mjs` is the 1.102 runtime-trust planning entry. It derives LOW, MEDIUM, HIGH, or POSSIBLE_HIGH requirements from the current task, selects a project-supported runtime adapter, and records current discovery evidence, adapter capabilities, adapter-specific identity fields, required preflight, resource isolation, ownership, cleanup, and Evidence Authority bindings. Runtime, port, database, container, and test-tool selection remain Codex-owned. The resolver is read-only by default and does not start services, create resources, run tests, or approve completion.
+
+`scripts/check-verification-runtime-plan.mjs` and `scripts/check-verification-run-manifest.mjs` validate the two runtime-trust artifact families. The plan checker rejects risk downgrades, stale adapter discovery sources, tampered contracts, unsupported trust levels, and incomplete controls. The run checker rejects wrong source revisions, stale plans, wrong or incomplete adapter identities, production data, unowned cleanup, raw credentials, missing positive/negative paths, and output-digest drift. Resource lifecycle execution remains 1.103; downstream Test Evidence and Completion hardcut remains 1.104.
 
 `scripts/resolve-test-evidence.mjs` is the 1.77 test evidence binding entry. It consumes a saved Verification Plan plus explicit evidence file refs, then prints one Test Evidence Report with source-system binding, evidence items, obligation coverage, test quality controls, known gaps, manual verification state, output digests, and no-test-execution/no-approval boundaries. It is read-only by default; `--out <relative-report-path>` writes only the requested report file for later checking. If no evidence input exists, it blocks or records partial coverage instead of fabricating proof.
 
@@ -520,3 +527,16 @@ These are primarily for maintaining this repository:
 - `scripts/score-output-quality.mjs`
 
 Target projects normally do not need to run intentos-only checks.
+
+## Verification Runtime Lifecycle
+
+- `scripts/resolve-verification-runtime-plan.mjs`: derives required runtime trust and adapter identity.
+- `scripts/resolve-verification-runtime-lifecycle.mjs`: converts a ready Runtime Plan and current project declaration into exact bounded local actions.
+- `scripts/check-verification-runtime-lifecycle.mjs`: rejects stale, unsafe, unowned, external-effect, or over-authorized lifecycle plans.
+- `scripts/run-verification-runtime.mjs`: executes one ready local lifecycle plan with no shell and emits observed run/cleanup evidence.
+- `scripts/check-verification-run-manifest.mjs`: validates the resulting identity, execution, ownership, and cleanup chain.
+- `scripts/lib/verification-runtime-consumer.mjs`: resolves and independently validates one current Run Manifest for downstream completion consumers.
+
+Strict consumer checks use `--require-runtime-trust` on Test Evidence,
+Execution Assurance, and Completion Evidence. Public `finish` consumes Runtime
+Trust automatically and does not ask the ordinary user to select evidence.

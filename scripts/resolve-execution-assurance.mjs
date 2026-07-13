@@ -7,15 +7,16 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { createEvidenceAuthorityBinding, isFileEvidenceRef } from "./lib/evidence-authority.mjs";
+import { resolveRuntimeTrustBinding, runtimeBindingMarkdown } from "./lib/verification-runtime-consumer.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "task", "kind", "base", "cached", "out"]);
+const knownFlags = new Set(["json", "format", "intent", "task", "kind", "base", "cached", "runtime-manifest-ref", "out"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const schemaVersion = "1.74.0";
+const schemaVersion = "1.104.0";
 const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
 
 if (unknown.length > 0) {
@@ -34,6 +35,7 @@ const report = buildReport(projectRoot, {
   kind: String(args.kind || ""),
   base: String(args.base || ""),
   cached: Boolean(args.cached),
+  runtimeManifestRef: String(args["runtime-manifest-ref"] || ""),
 });
 
 if (outputFormat === "json") {
@@ -55,7 +57,31 @@ function buildReport(root, options) {
   const plannedImpactMap = buildImpactMap(executionKind, sourceSystems);
   const evidenceBindings = buildEvidenceBindings(completionContract);
   const review = buildReview(root, executionKind, sourceSystems);
-  const state = chooseState({ executionKind, actualDiff, sourceSystems, patchAssessment, completionContract, plannedImpactMap, evidenceBindings, review });
+  const runtimeTrust = resolveRuntimeTrustBinding(root, {
+    manifestRef: options.runtimeManifestRef,
+    taskRef: options.task,
+    intentDigest: digest(options.intent),
+  });
+  if (runtimeTrust.ok) {
+    sourceSystems.push({
+      name: "verification_run_manifest",
+      status: "RECORDED",
+      ref: runtimeTrust.binding.run_manifest_ref,
+      source_system_ref: runtimeTrust.binding.run_manifest_ref,
+      source_task_ref: runtimeTrust.binding.task_ref,
+      source_outcome: runtimeTrust.manifest.outcome,
+      current_task_match: "Yes",
+      report_digest: digest(fs.readFileSync(runtimeTrust.file, "utf8")),
+      contribution: "Authoritative current-run runtime evidence.",
+    });
+    evidenceBindings.push({
+      criterion_id: "criterion:runtime-trust",
+      evidence_ref: runtimeTrust.binding.run_manifest_ref,
+      resolved: "Yes",
+      current_task_match: "Yes",
+    });
+  }
+  const state = chooseState({ executionKind, actualDiff, sourceSystems, patchAssessment, completionContract, plannedImpactMap, evidenceBindings, review, runtimeTrustBinding: runtimeTrust.binding });
   const canClaimDone = state === "VERIFIED_DONE" ? "Yes" : "No";
   const safeNextStep = nextStepFor(state);
   const structuredEvidence = {
@@ -87,6 +113,7 @@ function buildReport(root, options) {
     review,
     patch_assessment: patchAssessment,
     source_systems: sourceSystems,
+    runtime_trust_binding: runtimeTrust.binding,
     pending_human_decisions: pendingDecisionsFor(state),
     forbidden_claims: [],
     boundary: {
@@ -346,7 +373,8 @@ function buildReview(root, executionKind, sourceSystems) {
   };
 }
 
-function chooseState({ executionKind, actualDiff, sourceSystems, patchAssessment, completionContract, plannedImpactMap, evidenceBindings, review }) {
+function chooseState({ executionKind, actualDiff, sourceSystems, patchAssessment, completionContract, plannedImpactMap, evidenceBindings, review, runtimeTrustBinding }) {
+  if (runtimeTrustBinding?.status !== "VERIFIED") return "BLOCKED_BY_MISSING_EVIDENCE";
   if (executionKind === "UNKNOWN") return "NEEDS_HUMAN_DECISION";
   if (actualDiff.target_diff_status === "UNEXPECTED_DIFF") return "BLOCKED_BY_UNEXPECTED_DIFF";
   if (["PATCH_SMELL", "BLOCKED_PATCH"].includes(patchAssessment.state)) return "BLOCKED_BY_PATCH_SMELL";
@@ -505,6 +533,10 @@ function humanReportText(report) {
   for (const item of evidence.evidence_bindings) {
     push(`| ${item.criterion_id} | \`${item.evidence_ref}\` | \`${item.resolved}\` | \`${item.current_task_match}\` |`);
   }
+  push("");
+  push("## Runtime Trust Binding");
+  push("");
+  push(runtimeBindingMarkdown(evidence.runtime_trust_binding));
   push("");
   push("## Independent Review Binding");
   push("");

@@ -10,6 +10,10 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
 import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
+import {
+  runtimeTrustBindingsAgree,
+  validateRuntimeTrustBinding,
+} from "./lib/verification-runtime-consumer.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -24,6 +28,7 @@ const knownFlags = new Set([
   "strict-task-consumer",
   "require-plan-review",
   "require-evidence-authority",
+  "require-runtime-trust",
   "allow-empty",
   "report",
   "mode",
@@ -32,7 +37,8 @@ const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
-const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || requireEvidenceAuthority);
+const requireRuntimeTrust = Boolean(args["require-runtime-trust"]);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || requireEvidenceAuthority || requireRuntimeTrust);
 const requireEvidenceRefs = Boolean(args["require-evidence-refs"]);
 const requireReview = Boolean(args["require-review"]);
 const requireActualDiff = Boolean(args["require-actual-diff"]);
@@ -45,9 +51,10 @@ const allowEmptyReports = Boolean(args["allow-empty"]);
 const strictRequested = requireStructuredEvidence || requireEvidenceRefs || requireReview
   || requireActualDiff || requirePreciseEvidence || requireTaskGovernance
   || requireWorkQueue || strictTaskConsumer || requirePlanReview
-  || requireEvidenceAuthority || Boolean(args.report);
+  || requireEvidenceAuthority || requireRuntimeTrust || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
-const schemaVersion = "1.74.0";
+const currentSchemaVersion = "1.104.0";
+const readableSchemaVersions = new Set(["1.74.0", currentSchemaVersion]);
 const schemaPath = "schemas/artifacts/execution-assurance.schema.json";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -222,6 +229,7 @@ function checkReports() {
     if (!content.includes("read-only derived verification view")) fail(`${label} must state read-only derived verification view boundary`);
     else pass(`${label} states read-only derived verification view boundary`);
     for (const section of requiredSections) requireSection(content, section, label);
+    if (requireRuntimeTrust) requireSection(content, "Runtime Trust Binding", label);
     if (requireStructuredEvidence) requireSection(content, "Machine-Readable Evidence", label);
     const summary = checkSummary(content, label);
     const evidence = checkStructuredEvidence(content, label, file);
@@ -303,8 +311,9 @@ function checkStructuredEvidence(content, label, file) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} evidence includes ${field}`);
     else fail(`${label} evidence missing ${field}`);
   }
-  if (parsed.schema_version === schemaVersion) pass(`${label} evidence schema_version is ${schemaVersion}`);
-  else fail(`${label} evidence schema_version must be ${schemaVersion}`);
+  if (readableSchemaVersions.has(parsed.schema_version)) pass(`${label} evidence schema_version is readable`);
+  else fail(`${label} evidence schema_version must be one of ${[...readableSchemaVersions].join(", ")}`);
+  checkRuntimeTrust(label, file, parsed);
   if (parsed.artifact_type === "execution_assurance_report") pass(`${label} evidence artifact_type is execution_assurance_report`);
   else fail(`${label} evidence artifact_type invalid`);
   checkEvidenceAuthority(label, file, parsed);
@@ -356,6 +365,41 @@ function checkStructuredEvidence(content, label, file) {
   });
   checkBoundary(parsed, label);
   return parsed;
+}
+
+function checkRuntimeTrust(label, file, evidence) {
+  if (!requireRuntimeTrust) return;
+  if (evidence.schema_version !== currentSchemaVersion) {
+    fail(`${label} --require-runtime-trust requires Execution Assurance schema ${currentSchemaVersion}`);
+    return;
+  }
+  const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, {
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+  });
+  if (!validation.ok) {
+    validation.errors.forEach((error) => fail(`${label} ${error}`));
+    return;
+  }
+  pass(`${label} Runtime Trust binding matches the authoritative current run`);
+  for (const source of evidence.source_systems || []) {
+    if (source.name !== "test_evidence" || source.status !== "RECORDED" || !isFileEvidenceRef(source.ref)) continue;
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, file, source.ref, { markdownOnly: true });
+    if (!resolved.ok) {
+      fail(`${label} Test Evidence source is unsafe or unresolved: ${resolved.error}`);
+      continue;
+    }
+    const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+    const testBinding = extracted?.ok ? extracted.value?.runtime_trust_binding : null;
+    const agreement = runtimeTrustBindingsAgree([evidence.runtime_trust_binding, testBinding]);
+    if (!testBinding) fail(`${label} recorded Test Evidence source lacks Runtime Trust binding`);
+    else if (!agreement.ok) agreement.errors.forEach((error) => fail(`${label} ${error}`));
+    else pass(`${label} Execution Assurance and Test Evidence use the same Runtime Trust run`);
+  }
+  if (evidence.assurance_state === "VERIFIED_DONE" && evidence.runtime_trust_binding?.status !== "VERIFIED") {
+    fail(`${label} VERIFIED_DONE requires verified Runtime Trust`);
+  }
 }
 
 function checkEvidenceAuthority(label, file, evidence) {

@@ -3,7 +3,7 @@
   "$id": "https://coffeecoproject.dev/schemas/test-evidence.schema.json",
   "title": "Test Evidence",
   "type": "object",
-  "schemaVersion": "1.77.1",
+  "schemaVersion": "1.104.0",
   "artifactType": "test_evidence",
   "required": [
     "schema_version",
@@ -28,7 +28,7 @@
     "next_step"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.77.1"] },
+    "schema_version": { "type": "string", "enum": ["1.77.1", "1.104.0"] },
     "artifact_type": { "type": "string", "enum": ["test_evidence"] },
     "task_ref": { "type": "string" },
     "intent": { "type": "string" },
@@ -48,6 +48,7 @@
             "type": "string",
             "enum": [
               "verification_plan",
+              "verification_run_manifest",
               "business_rule_closure",
               "change_impact_coverage",
               "existing_project_rule",
@@ -263,11 +264,45 @@
       },
       "additionalProperties": false
     },
+    "runtime_trust_binding": { "$ref": "#/$defs/runtimeTrustBinding" },
     "authority_binding": { "$ref": "#/$defs/authorityBinding" },
     "next_step": { "type": "string" }
   },
   "additionalProperties": false,
   "$defs": {
+    "runtimeTrustBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement", "status", "run_manifest_ref", "run_manifest_digest", "run_id", "task_ref",
+        "intent_digest", "runtime_trust_level", "runtime_plan_ref", "runtime_plan_digest",
+        "lifecycle_plan_ref", "lifecycle_plan_digest", "verification_plan_ref", "verification_plan_digest",
+        "current_project_match", "current_task_match", "current_intent_match",
+        "current_verification_plan_match", "checker", "reason"
+      ],
+      "properties": {
+        "requirement": { "const": "REQUIRED" },
+        "status": { "enum": ["VERIFIED", "BLOCKED"] },
+        "run_manifest_ref": { "type": "string", "minLength": 1 },
+        "run_manifest_digest": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "task_ref": { "type": "string", "minLength": 1 },
+        "intent_digest": { "type": "string", "minLength": 1 },
+        "runtime_trust_level": { "type": "string", "minLength": 1 },
+        "runtime_plan_ref": { "type": "string", "minLength": 1 },
+        "runtime_plan_digest": { "type": "string", "minLength": 1 },
+        "lifecycle_plan_ref": { "type": "string", "minLength": 1 },
+        "lifecycle_plan_digest": { "type": "string", "minLength": 1 },
+        "verification_plan_ref": { "type": "string", "minLength": 1 },
+        "verification_plan_digest": { "type": "string", "minLength": 1 },
+        "current_project_match": { "enum": ["Yes", "No", "Unknown"] },
+        "current_task_match": { "enum": ["Yes", "No", "Unknown"] },
+        "current_intent_match": { "enum": ["Yes", "No", "Unknown"] },
+        "current_verification_plan_match": { "enum": ["Yes", "No", "Unknown"] },
+        "checker": { "const": "scripts/check-verification-run-manifest.mjs --require-complete" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
     "authorityBinding": {
       "type": "object",
       "additionalProperties": false,

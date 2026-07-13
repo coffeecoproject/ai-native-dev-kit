@@ -8,12 +8,13 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
+import { resolveRuntimeTrustBinding } from "./lib/verification-runtime-consumer.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "report", "require-task-governance", "require-work-queue", "strict-task-consumer"]);
+const knownFlags = new Set(["json", "report", "require-task-governance", "require-work-queue", "strict-task-consumer", "require-runtime-trust"]);
 const unknown = unknownOptions(args, knownFlags);
 const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
@@ -21,6 +22,7 @@ const outputJson = Boolean(args.json);
 const requireTaskGovernance = Boolean(args["require-task-governance"]);
 const requireWorkQueue = Boolean(args["require-work-queue"]);
 const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
+const requireRuntimeTrust = Boolean(args["require-runtime-trust"]);
 const explicitReport = args.report ? resolveSelectedReport(String(args.report)) : "";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -231,11 +233,16 @@ function requireDoneEvidence(content, label) {
   const evidence = sectionBody(content, "Evidence Map") || "";
   const verification = parseInputVerification(content, label);
   const verificationEvidence = evidenceRow(evidence, "Verification");
+  const runtimeEvidence = evidenceRow(evidence, "Runtime Trust");
+  const runtimeIsCurrent = requireRuntimeTrust || Boolean(runtimeEvidence);
   const executionEvidence = evidenceRow(evidence, "Execution Closure");
   const impactEvidence = evidenceRow(evidence, "Change Impact Coverage") || evidenceRow(evidence, "Impact coverage");
   const humanEvidence = evidenceRow(evidence, "Human decision");
   if (verificationEvidence?.status === "PASS") pass(`${label} DONE evidence includes Verification PASS`);
   else fail(`${label} cannot be DONE without Verification PASS`);
+  if (!runtimeIsCurrent) pass(`${label} historical DONE remains readable without current Runtime Trust authority`);
+  else if (runtimeEvidence?.status === "PASS") pass(`${label} DONE evidence includes Runtime Trust PASS`);
+  else fail(`${label} cannot be DONE without Runtime Trust PASS`);
   if (executionEvidence?.status === "PASS") pass(`${label} DONE evidence includes Execution Closure PASS`);
   else fail(`${label} cannot be DONE without Execution Closure PASS`);
   if (["PASS", "N/A"].includes(impactEvidence?.status)) pass(`${label} DONE impact coverage is PASS or N/A`);
@@ -244,6 +251,7 @@ function requireDoneEvidence(content, label) {
   else fail(`${label} cannot be DONE with missing human decision`);
 
   requireVerifiedInput(verification, label, "Verification", { required: "Yes" });
+  const runtime = runtimeIsCurrent ? requireVerifiedInput(verification, label, "Runtime Trust", { required: "Yes" }) : null;
   const execution = requireVerifiedInput(verification, label, "Execution Closure", { required: "Yes" });
   const impact = requireVerifiedInput(verification, label, "Change Impact Coverage", {
     required: impactEvidence?.status === "PASS" ? "Yes" : "No",
@@ -253,8 +261,25 @@ function requireDoneEvidence(content, label) {
   });
 
   if (execution?.verified === "Yes") requireVerifiedExecutionClosure(execution, label);
+  if (runtime?.verified === "Yes") requireVerifiedRuntimeTrust(runtime, content, label);
   if (impact?.required === "Yes" && impact?.verified === "Yes") requireVerifiedImpactCoverage(impact, label);
   if (human?.required === "Yes" && human?.verified === "Yes") requireDistinctHumanDecision(human, [execution, impact], label);
+}
+
+function requireVerifiedRuntimeTrust(entry, content, label) {
+  const taskRef = tableValue(content, "Task ref");
+  const intentDigest = tableValue(content, "Intent digest");
+  if (!taskRef || !/^sha256:[a-f0-9]{64}$/i.test(intentDigest)) {
+    fail(`${label} DONE Runtime Trust requires canonical Task ref and Intent digest`);
+    return;
+  }
+  const result = resolveRuntimeTrustBinding(projectRoot, {
+    manifestRef: entry.ref,
+    taskRef,
+    intentDigest,
+  });
+  if (result.ok) pass(`${label} verified Runtime Trust passes exact current-task authority checks`);
+  else fail(`${label} verified Runtime Trust fails authority checks: ${result.binding.reason}`);
 }
 
 function evidenceRow(content, name) {
@@ -472,10 +497,10 @@ function checkSourceEvidence() {
   }
 
   const verifiedExample = runNode(["scripts/check-closure-decision.mjs", "examples/1.49-structured-impact-coverage/contract-input-rule"]);
-  if (verifiedExample.status === 0 && verifiedExample.stdout.includes("verified Execution Closure passes exact strict checker")) {
-    pass("1.90 verified unified closure example passes checker");
+  if (verifiedExample.status === 0 && verifiedExample.stdout.includes("historical DONE remains readable without current Runtime Trust authority")) {
+    pass("1.104 historical verified closure remains readable without becoming current Runtime Trust evidence");
   } else {
-    fail(`1.90 verified unified closure example failed: ${verifiedExample.stderr || verifiedExample.stdout}`);
+    fail(`1.104 historical verified closure compatibility failed: ${verifiedExample.stderr || verifiedExample.stdout}`);
   }
 
   const explainExample = runNode(["scripts/check-closure-decision.mjs", "examples/1.54-decision-explain-trace"]);

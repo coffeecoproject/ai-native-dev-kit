@@ -17,6 +17,21 @@ jobs:
         run: node scripts/check-ai-workflow.mjs . --mode core
       - name: Check current task, completion, and release consumers
         run: node scripts/check-consumer-chain.mjs . --base origin/${{ github.base_ref }}
+      - name: Check verification runtime plans
+        run: node scripts/check-verification-runtime-plan.mjs . --allow-empty
+      - name: Check verification runtime lifecycle plans
+        run: node scripts/check-verification-runtime-lifecycle.mjs . --allow-empty
+      - name: Check verification run manifests
+        run: node scripts/check-verification-run-manifest.mjs . --allow-empty
+      - name: Check strict runtime completion consumers when runtime evidence exists
+        shell: bash
+        run: |
+          if find verification-run-manifests .intentos/verification-run-manifests -type f -name '*.md' -print -quit 2>/dev/null | grep -q .; then
+            node scripts/check-test-evidence.mjs . --require-runtime-trust
+            node scripts/check-execution-assurance.mjs . --require-runtime-trust
+            node scripts/check-completion-evidence.mjs . --require-runtime-trust
+            node scripts/check-closure-decision.mjs . --require-runtime-trust
+          fi
       - name: Check AI workflow next action
         run: node scripts/workflow-next.mjs .
       - name: Check guided adoption entry

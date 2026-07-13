@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.100.0`。
+当前版本：`1.104.0`。
 
-发布记录：[releases/1.100.0/release-record.md](releases/1.100.0/release-record.md)。
+发布记录：[releases/1.104.0/release-record.md](releases/1.104.0/release-record.md)。
 
 IntentOS 面向零基础个人开发者：用户只描述真实业务、补充项目无法推断的业务事实，并在产生真实费用、生产、用户通信、账号平台或不可逆数据影响前表达同意；AI 负责全部技术判断、实现、测试、复查、证据、修复和交付组织。
 
@@ -45,6 +45,26 @@ node scripts/cli.mjs work <project> "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.104.0 把“验收运行真实性”硬切到所有严格完成判断中。Test Evidence、
+Execution Assurance、Completion Evidence 和公开 `finish` 现在会分别验证并
+共同绑定同一份当前任务 Verification Run Manifest。历史、复制、过期、错任务、
+文字声明或空证据都不能再支持当前任务完成。
+
+1.103.0 增加“验收运行生命周期”：IntentOS 现在可以把当前运行计划转换成
+精确的本地动作，以无 shell 方式执行，记录真实输出和服务身份，只管理本轮拥有的
+资源，并保留清理前后证明。远程平台、容器提供方、生产、发布、凭证、宽泛清理和
+非本轮资源仍然严格阻断。
+
+1.102.0 增加“验收运行适配器”：IntentOS 会从当前项目证据自动判断本地进程、
+Docker、Kubernetes、Serverless、静态站点或原生平台，并严格检查每种运行方式
+必须具备的身份信息。技术选择仍由 Codex 负责；本版只识别和规划，不启动服务、
+调用平台或创建资源。
+
+1.101.0 增加“验收运行真实性”核心：IntentOS 会按任务风险自动判断测试需要绑定到
+当前源码、具体服务实例、隔离数据与会话、本轮资源和清理证明的严格程度。端口、
+数据库、容器和测试工具由 Codex 选择，不交给零基础用户判断。本版先建立运行计划
+和运行清单的可信核心，尚不提前硬切后续完成判断链。
 
 1.100.0 把现有规则真正接到执行链：发布计划不能把平台或生产操作交给 Codex，
 任务完成必须消费当前任务证据，受控写入失败会回滚已尝试动作，大型老项目不再因
@@ -184,6 +204,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Business Rule Closure | 写代码前先把业务规则闭环，AI 负责补齐规则维度和默认建议，用户只确认少数关键判断 |
 | Change Impact Coverage | 防止业务规则只改一层，要求前端、API、后端、文案、测试和交接等相关面逐项收口 |
 | Verification Plan Governance | 根据业务规则和影响面生成任务绑定的验证义务，说明哪些测试或检查足以支持后续收口；不执行测试，不批准实现或发布 |
+| Verification Runtime Trust | 按任务风险自动选择验证运行方式，绑定当前源码、服务实例、隔离资源、测试输出和安全清理；用户不用选择端口、数据库、容器或测试工具 |
 | Test Evidence Binding | 把真实命令、报告、界面观察或日志证据绑定到 Verification Plan 的每个必验证项；检查退出码、证据文件、digest、任务匹配和测试质量控制，不执行测试、不批准发布 |
 | Completion Evidence Gate | 最终说“任务完成”前，检查 Business Rule Closure、Verification Plan、Test Evidence、Execution Assurance 是否 recorded、ready、同 task、同 source chain；不运行测试、不批准发布 |
 | User Delivery Console | 用一张普通用户状态卡回答“做到哪、能不能算完成、能不能进上线评审、还缺什么、下一步能安全做什么”；只汇总下层证据，不替代下层证据系统 |

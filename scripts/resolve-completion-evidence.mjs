@@ -6,6 +6,11 @@ import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { createEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
+import {
+  resolveRuntimeTrustBinding,
+  runtimeBindingMarkdown,
+  runtimeTrustBindingsAgree,
+} from "./lib/verification-runtime-consumer.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -17,6 +22,7 @@ const knownFlags = new Set([
   "verification-plan-ref",
   "test-evidence-ref",
   "execution-assurance-ref",
+  "runtime-manifest-ref",
   "out",
 ]);
 const unknown = unknownOptions(args, knownFlags);
@@ -74,12 +80,20 @@ function buildReport(root) {
     }),
   ];
   const taskRef = explicitTask || firstTaskRef(sources) || `tasks/001-${slugify(intent)}.md`;
+  const verificationPlan = sources.find((source) => source.name === "verification_plan");
+  const runtimeTrust = resolveRuntimeTrustBinding(root, {
+    manifestRef: String(args["runtime-manifest-ref"] || ""),
+    taskRef,
+    intentDigest: digest(intent),
+    verificationPlanRef: verificationPlan?.ref,
+    verificationPlanDigest: verificationPlan?.digest,
+  });
   const completionEvidenceRef = completionEvidenceRefForOutput(root, outputPath, slugify(intent));
-  const checks = buildChecks(sources, taskRef, digest(intent));
+  const checks = buildChecks(sources, taskRef, digest(intent), runtimeTrust);
   const state = stateFor(checks);
   const canClaimComplete = state === "COMPLETION_EVIDENCE_READY" ? "Yes" : "No";
   const base = {
-    schema_version: "1.78.0",
+    schema_version: "1.104.0",
     artifact_type: "completion_evidence_gate",
     task_ref: taskRef,
     intent,
@@ -99,6 +113,7 @@ function buildReport(root) {
       ready: source.ready,
       reason: source.reason,
     })),
+    runtime_trust_binding: runtimeTrust.binding,
     gate_checks: checks,
     task_consistency: taskConsistencyFor(sources, taskRef),
     missing_or_blocking_items: checks
@@ -113,14 +128,17 @@ function buildReport(root) {
       fromFile: outputPath,
       taskRef,
       intentDigest: base.intent_digest,
-      sourceRefs: sources.filter((source) => source.status === "RECORDED").map((source) => source.ref),
+      sourceRefs: [
+        ...sources.filter((source) => source.status === "RECORDED").map((source) => source.ref),
+        runtimeTrust.binding.run_manifest_ref,
+      ],
     }),
     completion_gate_digest: evidenceDigest(base, ["completion_gate_digest"]),
   };
   structuredEvidence.completion_gate_digest = evidenceDigest(structuredEvidence, ["completion_gate_digest"]);
   return {
     reportType: "COMPLETION_EVIDENCE_GATE",
-    schemaVersion: "1.78.0",
+    schemaVersion: "1.104.0",
     generatedBy: "scripts/resolve-completion-evidence.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -204,7 +222,7 @@ function sourceFor(root, name, refValue, options) {
   };
 }
 
-function buildChecks(sources, taskRef, intentDigest) {
+function buildChecks(sources, taskRef, intentDigest, runtimeTrust) {
   const required = [
     ["business_rule_closure", "Business Rule Closure is READY_FOR_IMPACT_COVERAGE."],
     ["verification_plan", "Verification Plan is VERIFICATION_PLAN_READY."],
@@ -222,6 +240,32 @@ function buildChecks(sources, taskRef, intentDigest) {
       actual: source?.outcome || source?.status || "NOT_PROVIDED",
       reason: pass ? "Required source is ready." : source?.reason || "Required source is missing.",
     };
+  });
+  checks.push({
+    id: "check:runtime-trust",
+    status: runtimeTrust.ok ? "PASS" : "FAIL",
+    source: "verification_run_manifest",
+    expected: "The exact current-task Verification Run Manifest passes Runtime Trust authority checks.",
+    actual: runtimeTrust.binding.status,
+    reason: runtimeTrust.binding.reason,
+  });
+  const testEvidence = sources.find((item) => item.name === "test_evidence")?.evidence;
+  const executionAssurance = sources.find((item) => item.name === "execution_assurance")?.evidence;
+  const agreement = runtimeTrustBindingsAgree([
+    runtimeTrust.binding,
+    testEvidence?.runtime_trust_binding,
+    executionAssurance?.runtime_trust_binding,
+  ]);
+  const completeConsumerSet = Boolean(testEvidence?.runtime_trust_binding && executionAssurance?.runtime_trust_binding);
+  checks.push({
+    id: "check:runtime-consumer-agreement",
+    status: runtimeTrust.ok && completeConsumerSet && agreement.ok ? "PASS" : "FAIL",
+    source: "runtime_trust_consumers",
+    expected: "Test Evidence, Execution Assurance, and Completion Evidence bind the same current run.",
+    actual: completeConsumerSet && agreement.ok ? "AGREED" : "MISMATCHED_OR_MISSING",
+    reason: !completeConsumerSet
+      ? "Test Evidence and Execution Assurance must both carry Runtime Trust bindings."
+      : agreement.ok ? "All completion consumers bind the same Runtime Trust run." : agreement.errors.join("; "),
   });
   const consistency = taskConsistencyFor(sources, taskRef);
   checks.push({
@@ -382,6 +426,7 @@ function normalizeRef(value) {
 
 function stateFor(checks) {
   if (checks.every((check) => check.status === "PASS")) return "COMPLETION_EVIDENCE_READY";
+  if (checks.some((check) => check.id.startsWith("check:runtime-") && check.status !== "PASS")) return "BLOCKED_BY_RUNTIME_TRUST";
   if (checks.some((check) => check.id === "check:task-consistency" && check.status !== "PASS")) return "BLOCKED_BY_TASK_MISMATCH";
   if (checks.some((check) => check.id === "check:intent-consistency" && check.status !== "PASS")) return "BLOCKED_BY_TASK_MISMATCH";
   if (checks.some((check) => check.id === "check:source-digest-consistency" && check.status !== "PASS")) return "BLOCKED_BY_MISSING_SOURCE";
@@ -402,6 +447,7 @@ function nextStepFor(state) {
     BLOCKED_BY_EXECUTION_ASSURANCE: "Create a VERIFIED_DONE Execution Assurance report before claiming completion.",
     BLOCKED_BY_TASK_MISMATCH: "Regenerate stale or reused source artifacts for the current task.",
     BLOCKED_BY_MISSING_SOURCE: "Attach the missing BRC, Verification Plan, Test Evidence, and Execution Assurance artifacts.",
+    BLOCKED_BY_RUNTIME_TRUST: "Regenerate the current-task verification run and all completion consumers from the same Runtime Trust manifest.",
   };
   return map[state] || "Resolve missing completion evidence.";
 }
@@ -450,6 +496,10 @@ ${evidence.gate_checks.map((check) => `| \`${check.id}\` | \`${check.status}\` |
 | Source | Status | Ref | Task Ref | Intent Digest | Outcome | Ready | Digest | Reason |
 |---|---|---|---|---|---|---|---|---|
 ${evidence.source_chain.map((source) => `| \`${source.name}\` | \`${source.status}\` | \`${source.ref}\` | \`${source.task_ref}\` | \`${source.intent_digest || "not provided"}\` | \`${source.source_outcome}\` | \`${source.ready}\` | \`${source.digest}\` | ${source.reason} |`).join("\n")}
+
+## Runtime Trust Binding
+
+${runtimeBindingMarkdown(evidence.runtime_trust_binding)}
 
 ## Task Consistency
 

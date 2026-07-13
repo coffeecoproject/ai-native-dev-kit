@@ -124,6 +124,12 @@ jobs:
 
       - name: Operating model tests
         run: node --test tests/operating-model.test.mjs
+      - name: Verification runtime trust tests
+        run: node --test tests/verification-runtime-trust.test.mjs
+      - name: Verification runtime lifecycle tests
+        run: node --test tests/verification-runtime-lifecycle.test.mjs
+      - name: Verification runtime consumer tests
+        run: node --test tests/verification-runtime-consumer.test.mjs
 
       - name: Execution and distribution trust tests
         run: node --test tests/execution-distribution-trust.test.mjs

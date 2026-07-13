@@ -80,6 +80,45 @@ broad-command-only evidence. Test Evidence Binding does not run tests, design
 tests, approve implementation, approve release or production, or prove product
 correctness.
 
+1.101.0 adds two runtime-trust artifact families:
+
+- Verification Runtime Plan
+- Verification Run Manifest
+
+The Runtime Plan binds the current task tier and project identity to a
+Codex-selected runtime adapter, required preflight probes, service identity,
+resource isolation, run ownership, cleanup, and positive/negative path
+requirements. LOW uses source/output binding, MEDIUM adds targeted service
+identity, HIGH requires isolated runtime controls, and POSSIBLE_HIGH remains
+blocked until classified. The user is not asked to choose ports, databases,
+containers, runtime adapters, or test tools.
+
+The Run Manifest records the exact project revision, build artifacts, run
+window, service instance identity, isolated data/session resources,
+`run_id`-bound ownership ledger, verification executions, output digests, and
+bounded cleanup result. Secrets and raw owner tokens are forbidden; connection
+details must be represented by non-secret fingerprints.
+
+In 1.101 these artifacts establish a validated runtime-trust core. They do not
+start services, run tests, create or delete resources, approve completion, or
+automatically make existing Test Evidence runtime-trusted. Strict downstream
+Test Evidence, Execution Assurance, Completion, and release consumption is a
+separate compatibility hardcut.
+
+1.102.0 extends the Runtime Plan with a project-evidenced adapter contract:
+
+- contract version and deterministic digest;
+- project-local discovery source refs and digests;
+- supported trust levels;
+- adapter-specific identity fields and preflight probes;
+- managed resource types;
+- an explicit `OBSERVE_AND_PLAN_ONLY` lifecycle boundary.
+
+The Run Manifest binds the exact adapter contract digest. For new `1.102`
+records, a verified service/build instance must provide the identity fields
+required by the selected adapter. Historical `1.101` records remain readable
+without gaining adapter-verified status.
+
 1.78.0 extends structured Markdown evidence to:
 
 - Completion Evidence Gate
@@ -242,6 +281,14 @@ node scripts/resolve-product-completeness.mjs <project> --evidence evidence/smok
 The JSON must match `schemas/artifacts/product-completeness-evidence.schema.json` and keep `approves_release_or_production` and `proves_real_users_can_use_product` false.
 
 ## Current Boundary
+
+Verification Runtime Lifecycle `1.103.0` adds a strict lifecycle plan binding exact no-shell actions, current Runtime Plan and declaration digests, run-owned resources, minimal environment inheritance, and cleanup limits. A `1.103.0` Verification Run Manifest additionally binds the exact lifecycle plan and append-only lifecycle journal. These records prove bounded execution provenance, not business correctness or release authority.
+
+Runtime Trust Consumer Hardcut `1.104.0` adds one shared binding to Test Evidence,
+Execution Assurance, and Completion Evidence. Strict consumers independently
+validate the exact current Verification Run Manifest and must agree on its run,
+task, intent, Runtime Plan, Lifecycle Plan, and Verification Plan identity.
+Historical schemas remain readable but cannot satisfy strict Runtime Trust.
 
 Structured evidence improves verification. It does not write files, execute apply plans, validate real human identity, approve implementation, approve release or production, install hooks, change CI, or enable BL2.
 

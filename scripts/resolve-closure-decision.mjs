@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
+import { resolveRuntimeTrustBinding } from "./lib/verification-runtime-consumer.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -21,6 +22,7 @@ const knownFlags = new Set([
   "execution-closure",
   "guided-closure",
   "human-decision",
+  "runtime-manifest",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -34,6 +36,7 @@ const refs = {
   executionClosure: stringArg("execution-closure"),
   guidedClosure: stringArg("guided-closure"),
   humanDecision: stringArg("human-decision"),
+  runtimeManifest: stringArg("runtime-manifest"),
 };
 
 if (unknown.length > 0) {
@@ -76,6 +79,8 @@ function buildClosureDecision(root, context) {
       canCountAsDone: decision.name === "DONE" ? "Yes" : "No",
       plainReason: decision.reason,
       finalClosureSource: "UNIFIED_CLOSURE_DECISION",
+      taskRef: context.task || "N/A",
+      intentDigest: context.intentDigest || "N/A",
     },
     decisionInputs: inputs.map((item) => ({
       input: item.name,
@@ -146,11 +151,29 @@ function collectInputs(root, context, git) {
     required: highRisk,
     reservedRefs: [executionRef, impactRef, guidedRef],
   });
+  const runtimeTrust = resolveRuntimeTrustBinding(root, {
+    manifestRef: context.refs.runtimeManifest,
+    taskRef: context.task,
+    intentDigest: context.intentDigest,
+  });
+  const runtimeInput = input(
+    "Runtime Trust",
+    runtimeTrust.ok ? "PASS" : "MISSING",
+    runtimeTrust.binding.run_manifest_ref,
+    runtimeTrust.binding.reason,
+    {
+      required: "Yes",
+      verified: runtimeTrust.ok ? "Yes" : "No",
+      checker: runtimeTrust.binding.checker,
+      intentDigest: runtimeTrust.binding.intent_digest,
+    },
+  );
 
   return [
     input("Project path", fs.existsSync(root) ? "PASS" : "FAIL", root, fs.existsSync(root) ? "Project path is readable." : "Project path cannot be read."),
     input("Task intent", context.task && /^sha256:[a-f0-9]{64}$/i.test(context.intentDigest) ? "PASS" : "MISSING", context.task || "N/A", context.task && context.intentDigest ? "Canonical task reference and intent digest are present." : "Canonical task reference or intent digest is missing.", { required: "Yes", verified: context.task && context.intentDigest ? "Yes" : "No", checker: "work-queue-task-identity", intentDigest: context.intentDigest }),
     input("Verification", verificationStatus === "pass" ? "PASS" : verificationStatus === "fail" ? "FAIL" : "MISSING", context.verification || "N/A", verificationFinding(verificationStatus), { required: "Yes", verified: verificationStatus === "pass" ? "Yes" : "No", checker: "explicit-verification-summary" }),
+    runtimeInput,
     input("Change Impact Coverage", impactInput.status, impactRef || "N/A", impactInput.finding, impactInput),
     input("Execution Closure", executionInput.status, executionRef || "N/A", executionInput.finding, executionInput),
     input("Guided Closure", guidedRef ? "PASS" : "OPTIONAL", guidedRef || "N/A", guidedRef ? "Guided user-facing close-out summary exists." : "Guided summary is optional after the unified decision.", { required: "No", verified: guidedRef ? "Yes" : "N/A", checker: guidedRef ? "project-local-ref" : "N/A" }),
@@ -377,6 +400,7 @@ function chooseDecision(inputs) {
   const byName = Object.fromEntries(inputs.map((item) => [item.name, item]));
   if (byName["Project path"]?.status === "FAIL") return makeDecision("BLOCKED", "The project path cannot be read.");
   if (byName.Verification?.status === "FAIL") return makeDecision("BLOCKED", "Verification appears to have failed.");
+  if (byName["Runtime Trust"]?.status !== "PASS") return makeDecision("NEEDS_EVIDENCE", "Current-task runtime evidence is missing or invalid.");
   if (byName["Human Decision"]?.status === "FAIL") return makeDecision("NEEDS_HUMAN_DECISION", "Human decision evidence is not valid for this close-out.");
   if (byName["Human Decision"]?.status === "MISSING") return makeDecision("NEEDS_HUMAN_DECISION", "A high-risk boundary needs explicit human decision.");
   if (byName["Change Impact Coverage"]?.status === "FAIL") return makeDecision("NEEDS_IMPACT_COVERAGE", "Related-surface evidence failed validation or does not match this task.");
@@ -398,7 +422,7 @@ function dominantReasonFor(decisionValue, inputs) {
     BLOCKED: byName["Project path"]?.status === "FAIL" ? "Project path" : "Verification",
     NEEDS_HUMAN_DECISION: "Human Decision",
     NEEDS_IMPACT_COVERAGE: "Change Impact Coverage",
-    NEEDS_EVIDENCE: byName.Verification?.status !== "PASS" ? "Verification" : "Execution Closure",
+    NEEDS_EVIDENCE: byName["Runtime Trust"]?.status !== "PASS" ? "Runtime Trust" : byName.Verification?.status !== "PASS" ? "Verification" : "Execution Closure",
     NOT_DONE: "Task intent",
     DONE: "Required inputs",
   }[decisionValue.name] || "Unified Closure Decision";
@@ -500,7 +524,7 @@ function verificationFinding(status) {
 
 function evidenceMap(inputs) {
   return inputs
-    .filter((item) => ["Change Impact Coverage", "Execution Closure", "Verification", "Human Decision"].includes(item.name))
+    .filter((item) => ["Change Impact Coverage", "Execution Closure", "Verification", "Runtime Trust", "Human Decision"].includes(item.name))
     .map((item) => ({
       evidence: item.name,
       status: item.status,
@@ -512,7 +536,7 @@ function evidenceMap(inputs) {
 
 function inputVerification(inputs) {
   return inputs
-    .filter((item) => ["Change Impact Coverage", "Execution Closure", "Verification", "Human Decision"].includes(item.name))
+    .filter((item) => ["Change Impact Coverage", "Execution Closure", "Verification", "Runtime Trust", "Human Decision"].includes(item.name))
     .map((item) => ({
       input: item.name,
       required: item.required || "No",
@@ -556,6 +580,7 @@ function needFromHuman(decisionValue, inputs) {
   if (decisionValue.name === "NEEDS_HUMAN_DECISION") return "Confirm the high-risk boundary and approval scope.";
   if (decisionValue.name === "NOT_DONE") return "Confirm which task is being closed.";
   const missing = inputs.filter((item) => item.status === "MISSING").map((item) => item.name);
+  if (missing.includes("Runtime Trust")) return "Nothing technical. Codex must complete the bounded verification run and evidence binding.";
   return missing.length > 0 ? `Confirm or provide: ${missing.join(", ")}.` : "No human decision is required by this read-only decision.";
 }
 
@@ -723,6 +748,8 @@ function printHuman(report) {
   console.log(`| Can count as done | ${report.closureDecision.canCountAsDone} |`);
   console.log(`| Plain reason | ${report.closureDecision.plainReason} |`);
   console.log(`| Final closure source | \`${report.closureDecision.finalClosureSource}\` |`);
+  console.log(`| Task ref | \`${report.closureDecision.taskRef}\` |`);
+  console.log(`| Intent digest | \`${report.closureDecision.intentDigest}\` |`);
   console.log("");
   console.log("## Decision Inputs");
   console.log("");

@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.100.0`.
+Current release: `1.104.0`.
 
-Release record: [releases/1.100.0/release-record.md](releases/1.100.0/release-record.md).
+Release record: [releases/1.104.0/release-record.md](releases/1.104.0/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
@@ -52,6 +52,32 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.104.0 hardcuts Runtime Trust into every strict completion consumer. Test
+Evidence, Execution Assurance, Completion Evidence, and public `finish` now
+independently validate and agree on the same current-task Verification Run
+Manifest. Historical, copied, stale, mismatched, textual, or empty evidence
+cannot satisfy a current completion claim.
+
+1.103.0 adds the bounded Verification Runtime Lifecycle. IntentOS can now turn
+a current Runtime Plan into exact local actions, execute them without a shell,
+record observed outputs and service identity, own only run-scoped resources,
+and preserve cleanup-before/after proof. Provider, remote, container,
+production, release, credential-bearing, broad-cleanup, and unowned effects
+remain blocked.
+
+1.102.0 adds Verification Runtime Adapters. IntentOS now binds its runtime
+choice to current project evidence and checks the exact identity required for a
+local process, Docker container, Kubernetes workload, serverless deployment,
+static build, or native app target. Codex still makes every technical choice;
+this release observes and plans but does not start services or create resources.
+
+1.101.0 adds Verification Runtime Trust Core. IntentOS now derives how strongly
+a task's test run must be bound to the current source, service instance,
+isolated data/session resources, run-owned cleanup, and exact outputs. Codex
+chooses the technical runtime path; the zero-experience user is not asked to
+choose ports, databases, containers, or test tools. This release validates the
+plan and run record but does not yet hardcut downstream completion consumers.
 
 1.100.0 makes existing authority executable end to end: release plans cannot
 assign provider or production effects to Codex, public completion consumes the

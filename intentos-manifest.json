@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.100.0",
+  "intentOSVersion": "1.104.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.100.0"
+    "phase": "1.104.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2969,7 +2969,58 @@
       "verification-plans/.gitkeep",
       "work-queue-takeover-reports/.gitkeep",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep"
+      "workflow-guidance-cards/.gitkeep",
+      "checklists/verification-runtime-trust-review.md",
+      "core/verification-runtime-trust.md",
+      "docs/plans/verification-runtime-trust-1.101-plan.md",
+      "docs/verification-runtime-trust.md",
+      "releases/1.101.0/known-limitations.md",
+      "releases/1.101.0/release-record.md",
+      "releases/1.101.0/self-check-report.md",
+      "schemas/artifacts/verification-run-manifest.schema.json",
+      "schemas/artifacts/verification-runtime-plan.schema.json",
+      "scripts/check-verification-run-manifest.mjs",
+      "scripts/check-verification-runtime-plan.mjs",
+      "scripts/lib/verification-runtime-trust.mjs",
+      "scripts/resolve-verification-runtime-plan.mjs",
+      "templates/verification-run-manifest.md",
+      "templates/verification-runtime-plan.md",
+      "tests/verification-runtime-trust.test.mjs",
+      "verification-run-manifests/.gitkeep",
+      "verification-runtime-plans/.gitkeep",
+      "checklists/verification-runtime-adapter-review.md",
+      "core/verification-runtime-adapters.md",
+      "docs/plans/release-execution-topology-governance-1.105-1.107-plan.md",
+      "docs/plans/verification-runtime-adapters-1.102-plan.md",
+      "docs/verification-runtime-adapters.md",
+      "releases/1.102.0/known-limitations.md",
+      "releases/1.102.0/release-record.md",
+      "releases/1.102.0/self-check-report.md",
+      "scripts/lib/verification-runtime-adapters.mjs",
+      "checklists/verification-runtime-lifecycle-review.md",
+      "core/verification-runtime-lifecycle.md",
+      "docs/plans/verification-runtime-lifecycle-1.103-plan.md",
+      "docs/verification-runtime-lifecycle.md",
+      "releases/1.103.0/known-limitations.md",
+      "releases/1.103.0/release-record.md",
+      "releases/1.103.0/self-check-report.md",
+      "schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
+      "scripts/check-verification-runtime-lifecycle.mjs",
+      "scripts/lib/verification-runtime-lifecycle.mjs",
+      "scripts/resolve-verification-runtime-lifecycle.mjs",
+      "scripts/run-verification-runtime.mjs",
+      "templates/verification-runtime-lifecycle-plan.md",
+      "tests/verification-runtime-lifecycle.test.mjs",
+      "verification-runtime-lifecycle-plans/.gitkeep",
+      "checklists/runtime-trust-consumer-review.md",
+      "core/runtime-trust-consumer-hardcut.md",
+      "docs/plans/runtime-trust-consumer-hardcut-1.104-plan.md",
+      "docs/runtime-trust-consumer-hardcut.md",
+      "releases/1.104.0/known-limitations.md",
+      "releases/1.104.0/release-record.md",
+      "releases/1.104.0/self-check-report.md",
+      "scripts/lib/verification-runtime-consumer.mjs",
+      "tests/verification-runtime-consumer.test.mjs"
     ],
     "targetCore": [
       ".github/pull_request_template.md",
@@ -3586,7 +3637,38 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      ".intentos/checklists/verification-runtime-trust-review.md",
+      ".intentos/core/verification-runtime-trust.md",
+      ".intentos/docs/verification-runtime-trust.md",
+      ".intentos/schemas/artifacts/verification-run-manifest.schema.json",
+      ".intentos/schemas/artifacts/verification-runtime-plan.schema.json",
+      ".intentos/templates/verification-run-manifest.md",
+      ".intentos/templates/verification-runtime-plan.md",
+      "scripts/check-verification-run-manifest.mjs",
+      "scripts/check-verification-runtime-plan.mjs",
+      "scripts/lib/verification-runtime-trust.mjs",
+      "scripts/resolve-verification-runtime-plan.mjs",
+      "verification-run-manifests",
+      "verification-runtime-plans",
+      ".intentos/checklists/verification-runtime-adapter-review.md",
+      ".intentos/core/verification-runtime-adapters.md",
+      ".intentos/docs/verification-runtime-adapters.md",
+      "scripts/lib/verification-runtime-adapters.mjs",
+      ".intentos/checklists/verification-runtime-lifecycle-review.md",
+      ".intentos/core/verification-runtime-lifecycle.md",
+      ".intentos/docs/verification-runtime-lifecycle.md",
+      ".intentos/schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
+      ".intentos/templates/verification-runtime-lifecycle-plan.md",
+      "scripts/check-verification-runtime-lifecycle.mjs",
+      "scripts/lib/verification-runtime-lifecycle.mjs",
+      "scripts/resolve-verification-runtime-lifecycle.mjs",
+      "scripts/run-verification-runtime.mjs",
+      "verification-runtime-lifecycle-plans",
+      ".intentos/checklists/runtime-trust-consumer-review.md",
+      ".intentos/core/runtime-trust-consumer-hardcut.md",
+      ".intentos/docs/runtime-trust-consumer-hardcut.md",
+      "scripts/lib/verification-runtime-consumer.mjs"
     ],
     "targetFull": [
       ".github/pull_request_template.md",
@@ -4336,7 +4418,38 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      ".intentos/checklists/verification-runtime-trust-review.md",
+      ".intentos/core/verification-runtime-trust.md",
+      ".intentos/docs/verification-runtime-trust.md",
+      ".intentos/schemas/artifacts/verification-run-manifest.schema.json",
+      ".intentos/schemas/artifacts/verification-runtime-plan.schema.json",
+      ".intentos/templates/verification-run-manifest.md",
+      ".intentos/templates/verification-runtime-plan.md",
+      "scripts/check-verification-run-manifest.mjs",
+      "scripts/check-verification-runtime-plan.mjs",
+      "scripts/lib/verification-runtime-trust.mjs",
+      "scripts/resolve-verification-runtime-plan.mjs",
+      "verification-run-manifests",
+      "verification-runtime-plans",
+      ".intentos/checklists/verification-runtime-adapter-review.md",
+      ".intentos/core/verification-runtime-adapters.md",
+      ".intentos/docs/verification-runtime-adapters.md",
+      "scripts/lib/verification-runtime-adapters.mjs",
+      ".intentos/checklists/verification-runtime-lifecycle-review.md",
+      ".intentos/core/verification-runtime-lifecycle.md",
+      ".intentos/docs/verification-runtime-lifecycle.md",
+      ".intentos/schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
+      ".intentos/templates/verification-runtime-lifecycle-plan.md",
+      "scripts/check-verification-runtime-lifecycle.mjs",
+      "scripts/lib/verification-runtime-lifecycle.mjs",
+      "scripts/resolve-verification-runtime-lifecycle.mjs",
+      "scripts/run-verification-runtime.mjs",
+      "verification-runtime-lifecycle-plans",
+      ".intentos/checklists/runtime-trust-consumer-review.md",
+      ".intentos/core/runtime-trust-consumer-hardcut.md",
+      ".intentos/docs/runtime-trust-consumer-hardcut.md",
+      "scripts/lib/verification-runtime-consumer.mjs"
     ],
     "intentOSCore": [
       ".intentos/checklists/platform-release-recipe-review.md",
@@ -4500,7 +4613,11 @@
       "templates/adoption-assurance-report.md",
       "templates/existing-rule-reconciliation-report.md",
       "templates/governance-convergence-report.md",
-      "templates/native-migration-plan.md"
+      "templates/native-migration-plan.md",
+      "core/verification-runtime-trust.md",
+      "core/verification-runtime-adapters.md",
+      "core/verification-runtime-lifecycle.md",
+      "core/runtime-trust-consumer-hardcut.md"
     ],
     "templates": [
       ".intentos/templates/apply-execution-receipt.md",
@@ -4627,7 +4744,10 @@
       "templates/workflow-guidance-card.md",
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
-      "templates/workflow-version.json"
+      "templates/workflow-version.json",
+      "templates/verification-run-manifest.md",
+      "templates/verification-runtime-plan.md",
+      "templates/verification-runtime-lifecycle-plan.md"
     ],
     "prompts": [
       ".intentos/prompts/business-rule-closure-agent.md",
@@ -4793,7 +4913,11 @@
       "checklists/verification-plan-review.md",
       "checklists/work-queue-review.md",
       "checklists/workflow-adoption-map-review.md",
-      "checklists/workflow-guidance-review.md"
+      "checklists/workflow-guidance-review.md",
+      "checklists/verification-runtime-trust-review.md",
+      "checklists/verification-runtime-adapter-review.md",
+      "checklists/verification-runtime-lifecycle-review.md",
+      "checklists/runtime-trust-consumer-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -4911,7 +5035,10 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "verification-run-manifests",
+      "verification-runtime-plans",
+      "verification-runtime-lifecycle-plans"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -5076,7 +5203,17 @@
       "scripts/start-project.mjs",
       "scripts/summarize-ai-logs.mjs",
       "scripts/workflow-daily-summary.mjs",
-      "scripts/workflow-next.mjs"
+      "scripts/workflow-next.mjs",
+      "scripts/check-verification-run-manifest.mjs",
+      "scripts/check-verification-runtime-plan.mjs",
+      "scripts/lib/verification-runtime-trust.mjs",
+      "scripts/resolve-verification-runtime-plan.mjs",
+      "scripts/lib/verification-runtime-adapters.mjs",
+      "scripts/check-verification-runtime-lifecycle.mjs",
+      "scripts/lib/verification-runtime-lifecycle.mjs",
+      "scripts/resolve-verification-runtime-lifecycle.mjs",
+      "scripts/run-verification-runtime.mjs",
+      "scripts/lib/verification-runtime-consumer.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -6558,7 +6695,38 @@
       "work-queue",
       "work-queue-takeover-reports",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      ".intentos/checklists/verification-runtime-trust-review.md",
+      ".intentos/core/verification-runtime-trust.md",
+      ".intentos/docs/verification-runtime-trust.md",
+      ".intentos/schemas/artifacts/verification-run-manifest.schema.json",
+      ".intentos/schemas/artifacts/verification-runtime-plan.schema.json",
+      ".intentos/templates/verification-run-manifest.md",
+      ".intentos/templates/verification-runtime-plan.md",
+      "scripts/check-verification-run-manifest.mjs",
+      "scripts/check-verification-runtime-plan.mjs",
+      "scripts/lib/verification-runtime-trust.mjs",
+      "scripts/resolve-verification-runtime-plan.mjs",
+      "verification-run-manifests",
+      "verification-runtime-plans",
+      ".intentos/checklists/verification-runtime-adapter-review.md",
+      ".intentos/core/verification-runtime-adapters.md",
+      ".intentos/docs/verification-runtime-adapters.md",
+      "scripts/lib/verification-runtime-adapters.mjs",
+      ".intentos/checklists/verification-runtime-lifecycle-review.md",
+      ".intentos/core/verification-runtime-lifecycle.md",
+      ".intentos/docs/verification-runtime-lifecycle.md",
+      ".intentos/schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
+      ".intentos/templates/verification-runtime-lifecycle-plan.md",
+      "scripts/check-verification-runtime-lifecycle.mjs",
+      "scripts/lib/verification-runtime-lifecycle.mjs",
+      "scripts/resolve-verification-runtime-lifecycle.mjs",
+      "scripts/run-verification-runtime.mjs",
+      "verification-runtime-lifecycle-plans",
+      ".intentos/checklists/runtime-trust-consumer-review.md",
+      ".intentos/core/runtime-trust-consumer-hardcut.md",
+      ".intentos/docs/runtime-trust-consumer-hardcut.md",
+      "scripts/lib/verification-runtime-consumer.mjs"
     ],
     "workflowReadiness": [
       ".intentos/checklists/baseline-decision-review.md",
@@ -7113,7 +7281,38 @@
       "verification-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      ".intentos/checklists/verification-runtime-trust-review.md",
+      ".intentos/core/verification-runtime-trust.md",
+      ".intentos/docs/verification-runtime-trust.md",
+      ".intentos/schemas/artifacts/verification-run-manifest.schema.json",
+      ".intentos/schemas/artifacts/verification-runtime-plan.schema.json",
+      ".intentos/templates/verification-run-manifest.md",
+      ".intentos/templates/verification-runtime-plan.md",
+      "scripts/check-verification-run-manifest.mjs",
+      "scripts/check-verification-runtime-plan.mjs",
+      "scripts/lib/verification-runtime-trust.mjs",
+      "scripts/resolve-verification-runtime-plan.mjs",
+      "verification-run-manifests",
+      "verification-runtime-plans",
+      ".intentos/checklists/verification-runtime-adapter-review.md",
+      ".intentos/core/verification-runtime-adapters.md",
+      ".intentos/docs/verification-runtime-adapters.md",
+      "scripts/lib/verification-runtime-adapters.mjs",
+      ".intentos/checklists/verification-runtime-lifecycle-review.md",
+      ".intentos/core/verification-runtime-lifecycle.md",
+      ".intentos/docs/verification-runtime-lifecycle.md",
+      ".intentos/schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
+      ".intentos/templates/verification-runtime-lifecycle-plan.md",
+      "scripts/check-verification-runtime-lifecycle.mjs",
+      "scripts/lib/verification-runtime-lifecycle.mjs",
+      "scripts/resolve-verification-runtime-lifecycle.mjs",
+      "scripts/run-verification-runtime.mjs",
+      "verification-runtime-lifecycle-plans",
+      ".intentos/checklists/runtime-trust-consumer-review.md",
+      ".intentos/core/runtime-trust-consumer-hardcut.md",
+      ".intentos/docs/runtime-trust-consumer-hardcut.md",
+      "scripts/lib/verification-runtime-consumer.mjs"
     ]
   },
   "copyRules": {
@@ -7365,6 +7564,10 @@
       {
         "source": "workflow-guidance-cards",
         "target": "workflow-guidance-cards"
+      },
+      {
+        "source": "verification-runtime-lifecycle-plans",
+        "target": "verification-runtime-lifecycle-plans"
       }
     ],
     "files": [
@@ -8351,6 +8554,62 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "docs/verification-runtime-trust.md",
+        "target": ".intentos/docs/verification-runtime-trust.md"
+      },
+      {
+        "source": "scripts/check-verification-run-manifest.mjs",
+        "target": "scripts/check-verification-run-manifest.mjs"
+      },
+      {
+        "source": "scripts/check-verification-runtime-plan.mjs",
+        "target": "scripts/check-verification-runtime-plan.mjs"
+      },
+      {
+        "source": "scripts/lib/verification-runtime-trust.mjs",
+        "target": "scripts/lib/verification-runtime-trust.mjs"
+      },
+      {
+        "source": "scripts/resolve-verification-runtime-plan.mjs",
+        "target": "scripts/resolve-verification-runtime-plan.mjs"
+      },
+      {
+        "source": "docs/verification-runtime-adapters.md",
+        "target": ".intentos/docs/verification-runtime-adapters.md"
+      },
+      {
+        "source": "scripts/lib/verification-runtime-adapters.mjs",
+        "target": "scripts/lib/verification-runtime-adapters.mjs"
+      },
+      {
+        "source": "docs/verification-runtime-lifecycle.md",
+        "target": ".intentos/docs/verification-runtime-lifecycle.md"
+      },
+      {
+        "source": "scripts/check-verification-runtime-lifecycle.mjs",
+        "target": "scripts/check-verification-runtime-lifecycle.mjs"
+      },
+      {
+        "source": "scripts/lib/verification-runtime-lifecycle.mjs",
+        "target": "scripts/lib/verification-runtime-lifecycle.mjs"
+      },
+      {
+        "source": "scripts/resolve-verification-runtime-lifecycle.mjs",
+        "target": "scripts/resolve-verification-runtime-lifecycle.mjs"
+      },
+      {
+        "source": "scripts/run-verification-runtime.mjs",
+        "target": "scripts/run-verification-runtime.mjs"
+      },
+      {
+        "source": "docs/runtime-trust-consumer-hardcut.md",
+        "target": ".intentos/docs/runtime-trust-consumer-hardcut.md"
+      },
+      {
+        "source": "scripts/lib/verification-runtime-consumer.mjs",
+        "target": "scripts/lib/verification-runtime-consumer.mjs"
       }
     ]
   }
