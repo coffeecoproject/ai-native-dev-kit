@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+node scripts/workflow-next.mjs . --json --intent "verify the current Web project safely" >/dev/null
+node scripts/resolve-work-queue.mjs . --json >/dev/null
+node scripts/resolve-task-governance.mjs . --json --intent "verify the current Web project safely" >/dev/null
+
 if [ -f package.json ]; then
   if command -v corepack >/dev/null 2>&1 && [ -f pnpm-lock.yaml ]; then
     corepack pnpm lint
@@ -24,6 +28,6 @@ if [ -f package.json ]; then
     npm run build
   fi
 else
-  echo "No package.json found. Update scripts/verify.sh for this project stack."
-  exit 1
+  echo "IntentOS project-entry, Work Queue, and Task Governance checks passed."
+  echo "The Web product scaffold is not present yet, so Web build verification is not applicable."
 fi

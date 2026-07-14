@@ -31,7 +31,11 @@ function runInstalled(root, script, args) {
 
 function project() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-runtime-consumer-"));
-  const initialized = run("scripts/init-project.mjs", ["--target", root, "--starter", "generic-project"]);
+  const initialized = run("scripts/init-project.mjs", [
+    "--target", root,
+    "--starter", "generic-project",
+    "--goal", "build an appointment service that requires a service time",
+  ]);
   assert.equal(initialized.status, 0, `${initialized.stdout}\n${initialized.stderr}`);
   fs.cpSync(path.join(kitRoot, "examples/1.77-test-evidence-binding/appointment-service-time"), root, { recursive: true });
   fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ name: "runtime-consumer-fixture", private: true }, null, 2));

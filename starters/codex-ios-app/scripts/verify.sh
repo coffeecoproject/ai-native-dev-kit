@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+node scripts/workflow-next.mjs . --json --intent "verify the current iOS project safely" >/dev/null
+node scripts/resolve-work-queue.mjs . --json >/dev/null
+node scripts/resolve-task-governance.mjs . --json --intent "verify the current iOS project safely" >/dev/null
+
+if ! find . -maxdepth 3 \( -name '*.xcodeproj' -o -name '*.xcworkspace' -o -name 'Package.swift' \) -print -quit | grep -q .; then
+  echo "IntentOS project-entry, Work Queue, and Task Governance checks passed."
+  echo "The iOS product scaffold is not present yet, so xcodebuild verification is not applicable."
+  exit 0
+fi
+
 if ! command -v xcodebuild >/dev/null 2>&1; then
   echo "xcodebuild not found. Install Xcode command line tools or update scripts/verify.sh for this project."
   exit 1

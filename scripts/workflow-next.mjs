@@ -16,6 +16,7 @@ import {
   projectSignalFiles,
   walkRelativePaths as walkRelativePathsForRoot,
 } from "./lib/project-signals.mjs";
+import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1049,7 +1050,10 @@ function buildResult() {
   };
 }
 
-const result = buildResult();
+const initialEntryTrust = resolveInitialProjectEntryTrust();
+const safeForLegacyInspection = !["UNSAFE", "NON_DIRECTORY"].includes(initialEntryTrust.target_topology.state);
+const baseResult = safeForLegacyInspection ? buildResult() : blockedTopologyResult(initialEntryTrust);
+const result = attachProjectEntryTrust(baseResult, initialEntryTrust);
 const enforceFailures = enforceReasons(result);
 
 if (outputJson) {
@@ -1068,6 +1072,101 @@ if (outputJson) {
 
 if (enforce && enforceFailures.length > 0) {
   process.exit(2);
+}
+if (result.projectEntryTrust?.entry_state === "BLOCKED_REPAIR_REQUIRED") {
+  process.exit(2);
+}
+
+function resolveInitialProjectEntryTrust() {
+  try {
+    return resolveProjectEntryTrust({
+      projectRoot,
+      sourceRoot: localKitRoot() || path.resolve(__dirname, ".."),
+      goal: String(args.intent || "inspect project state"),
+    });
+  } catch (error) {
+    return {
+      entry_state: "BLOCKED_REPAIR_REQUIRED",
+      blockers: ["PROJECT_ENTRY_TRUST_UNAVAILABLE"],
+      reason: error.message,
+      target_topology: { state: "UNSAFE" },
+      project_fact_projection: null,
+      entry_trust_digest: "N/A",
+    };
+  }
+}
+
+function blockedTopologyResult(trust) {
+  return {
+    projectRoot,
+    projectState: "TARGET_TOPOLOGY_BLOCKED",
+    workflowState: "UNAVAILABLE",
+    onboardingState: "UNAVAILABLE",
+    platformBaselineState: "UNAVAILABLE",
+    industrialBaselineState: "UNAVAILABLE",
+    baselineLevel: null,
+    selectedProfiles: [],
+    selectedIndustrialPacks: [],
+    versionState: "UNAVAILABLE",
+    projectStateTags: [trust.target_topology.state, "PROJECT_ENTRY_TRUST_BLOCKED"],
+    adoptionMode: "READ_ONLY",
+    governanceSignals: null,
+    nextAction: "REPAIR_PROJECT_ENTRY_TRUST",
+    canWriteWorkflowAssets: "no",
+    mustStopForHuman: "no",
+    pendingMigrationReports: [],
+    missingWorkflowAssets: [],
+    missingAgentSections: [],
+    notes: [trust.target_topology.reason || "Target topology is unsafe."],
+    suggestedCommand: `node scripts/cli.mjs doctor ${JSON.stringify(projectRoot)}`,
+  };
+}
+
+function attachProjectEntryTrust(value, precomputedTrust = null) {
+  try {
+    const trust = precomputedTrust || resolveInitialProjectEntryTrust();
+    const next = {
+      ...value,
+      projectEntryTrust: trust,
+      projectFactProjection: trust.project_fact_projection,
+      projectFactProjectionDigest: trust.project_fact_projection?.projection_digest || "N/A",
+      projectEntryTrustDigest: trust.entry_trust_digest || "N/A",
+    };
+    if (trust.entry_state === "READY_FOR_CONTROLLED_SETUP") {
+      next.projectState = "NEW_PROJECT_TARGET";
+      next.projectStateTags = [trust.target_topology.state, "CONTROLLED_SETUP_REQUIRED"];
+      next.nextAction = "PREPARE_CONTROLLED_SETUP";
+      next.canWriteWorkflowAssets = "no_until_exact_plan_and_readiness";
+      next.mustStopForHuman = "no";
+      next.suggestedCommand = `node scripts/cli.mjs work ${JSON.stringify(projectRoot)} ${JSON.stringify(trust.goal_projection.original_goal)}`;
+      next.notes = ["The target is safe for controlled setup. Codex prepares the exact plan, transaction, rollback, receipt, and activation evidence automatically."];
+    } else if (trust.entry_state === "READY_FOR_READ_ONLY_ASSESSMENT" && trust.project_identity?.state === "UNBOOTSTRAPPED") {
+      next.nextAction = "RUN_ADOPTION_ASSESSMENT";
+      next.canWriteWorkflowAssets = "no";
+      next.mustStopForHuman = "no";
+      next.notes = ["This is an existing project without current IntentOS identity. Codex continues with read-only authority reconciliation before any selected apply."];
+    }
+    if (trust.blockers.length > 0 && value.projectState !== "INTENTOS_REPOSITORY") {
+      next.nextAction = "REPAIR_PROJECT_ENTRY_TRUST";
+      next.canWriteWorkflowAssets = "no";
+      next.mustStopForHuman = "no";
+      next.suggestedCommand = `node scripts/cli.mjs doctor ${JSON.stringify(projectRoot)}`;
+      next.notes = [...(value.notes || []), `Project entry trust is blocked: ${trust.blockers.join(", ")}. Codex must repair or continue read-only.`];
+    }
+    return next;
+  } catch (error) {
+    return {
+      ...value,
+      nextAction: "REPAIR_PROJECT_ENTRY_TRUST",
+      canWriteWorkflowAssets: "no",
+      mustStopForHuman: "no",
+      projectEntryTrust: { entry_state: "BLOCKED_REPAIR_REQUIRED", blockers: ["PROJECT_ENTRY_TRUST_UNAVAILABLE"], reason: error.message },
+      projectFactProjection: null,
+      projectFactProjectionDigest: "N/A",
+      projectEntryTrustDigest: "N/A",
+      notes: [...(value.notes || []), `Project entry trust could not be established: ${error.message}`],
+    };
+  }
 }
 
 function printHumanOutput(result) {
@@ -1207,17 +1306,17 @@ function buildHumanOutput(result) {
   const action = result.nextAction;
   const stateReason = result.notes?.[0] || "Workflow state was inspected.";
 
-  if (result.projectState === "TARGET_MISSING") {
+  if (result.nextAction === "PREPARE_CONTROLLED_SETUP") {
     return {
-      summary: "The target project path does not exist, so AI cannot inspect or configure the project yet.",
-      status: "Must stop",
-      reason: "The target directory is missing.",
-      riskLevel: "medium",
-      canAiContinue: "no",
-      decisions: ["Confirm the correct project path or create the target directory."],
-      nextStep: "Select or create a valid project root, then run workflow-next again.",
-      aiCanDo: ["Wait for a valid project path."],
-      aiMustNotDo: ["Do not create workflow files in an unknown or unintended location."],
+      summary: "This is a safe new-project target. Codex can prepare the project without asking you to choose technical setup options.",
+      status: "Controlled setup ready",
+      reason: "The target topology, original goal, project facts, and IntentOS Guidance are available for a bounded setup plan.",
+      riskLevel: "low",
+      canAiContinue: "yes",
+      decisions: ["No technical decision is needed from the user."],
+      nextStep: "Codex prepares and verifies the exact setup transaction, then activates the first governed task.",
+      aiCanDo: ["Prepare the exact setup plan.", "Verify rollback and activation before claiming setup complete."],
+      aiMustNotDo: ["Do not write before exact plan and readiness pass.", "Do not treat copied files as verified activation."],
     };
   }
 

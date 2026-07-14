@@ -267,6 +267,7 @@ test("controlled plan output rejects absolute and protected paths", () => {
   const root = tempRoot("intentos-198-plan-");
   const absolute = run("scripts/init-project.mjs", [
     "--starter", "codex-web-app", "--target", root,
+    "--goal", "build a governed web application",
     "--profiles", "web-app", "--baseline-level", "BL1_STANDARD",
     "--write-plan", path.join(root, "apply-execution-plans/absolute.json"),
   ]);
@@ -275,6 +276,7 @@ test("controlled plan output rejects absolute and protected paths", () => {
 
   const protectedPath = run("scripts/init-project.mjs", [
     "--starter", "codex-web-app", "--target", root,
+    "--goal", "build a governed web application",
     "--profiles", "web-app", "--baseline-level", "BL1_STANDARD",
     "--write-plan", "AGENTS.md",
   ]);
@@ -366,7 +368,10 @@ test("unknown release package identity blocks release review", () => {
 
 test("generated project installs and runs release-channel command", () => {
   const root = tempRoot("intentos-198-generated-");
-  const init = run("scripts/init-project.mjs", ["--target", root]);
+  const init = run("scripts/init-project.mjs", [
+    "--target", root,
+    "--goal", "build a booking application with a source-only release path",
+  ]);
   assert.equal(init.status, 0, combined(init));
   for (const relative of [
     "scripts/resolve-release-channel-policy.mjs",
@@ -415,7 +420,10 @@ test("generated project installs and runs release-channel command", () => {
 
 test("installed CI consumer chain blocks implementation without current evidence", () => {
   const root = tempRoot("intentos-100-installed-consumer-");
-  const init = run("scripts/init-project.mjs", ["--target", root]);
+  const init = run("scripts/init-project.mjs", [
+    "--target", root,
+    "--goal", "build a small governed JavaScript service",
+  ]);
   assert.equal(init.status, 0, combined(init));
   fs.mkdirSync(path.join(root, "src"));
   fs.writeFileSync(path.join(root, "src/index.mjs"), "export const value = 1;\n");

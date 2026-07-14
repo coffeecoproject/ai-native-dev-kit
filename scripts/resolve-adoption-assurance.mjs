@@ -3,10 +3,21 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import os from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evaluateVerifiedAdoptionApplyChain } from "./lib/adoption-apply-chain.mjs";
+import { evidenceDigest, loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
+import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
+import { verifyProjectLocalBehavioralRoute } from "./lib/behavioral-adoption-activation.mjs";
+import {
+  createSameRunEvidenceEnvelope,
+  encodeSameRunEnvelopeBundle,
+  sameRunBindingFromTrust,
+  sourceRowFromEnvelope,
+  validateSameRunEvidenceEnvelope,
+} from "./lib/same-run-evidence-envelope.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -46,10 +57,16 @@ if (outputFormat === "json") {
 
 function buildReport(root, options) {
   const signals = collectSignals(root);
+  const entryTrust = resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: kitRoot,
+    goal: options.intent,
+  });
   const sources = resolveSources(root, options);
+  const sameRunEvidence = sameRunEvidenceFor(sources._sameRun);
   const simulation = simulationFor(root, signals);
   const surfaces = surfacesFor(root, signals, sources, simulation);
-  const dirty = isDirty(root);
+  const dirty = entryTrust?.project_fact_projection?.current_work_continuity?.state === "CURRENT_CONFLICTED";
   const pendingDecisions = pendingDecisionsFor(surfaces, dirty, sources);
   const assuranceState = assuranceStateFor({ surfaces, simulation, dirty, sources });
   const canClaimFullAdoption = assuranceState === "VERIFIED_ACTIVE" ? "Yes" : "No";
@@ -68,6 +85,7 @@ function buildReport(root, options) {
     surfaces,
     evidence_refs: evidenceRefs,
     source_systems: sources,
+    same_run_evidence: sameRunEvidence,
     simulation,
     pending_decisions: pendingDecisions,
     forbidden_claims: forbiddenClaimsFor(),
@@ -92,6 +110,7 @@ function buildReport(root, options) {
     },
     targetProjectState: signals,
     sourceSystems: sources,
+    sameRunEvidence,
     surfaces,
     evidenceRefs,
     simulation,
@@ -100,6 +119,24 @@ function buildReport(root, options) {
     boundary,
     structuredEvidence,
     outcome: assuranceState,
+  };
+}
+
+function sameRunEvidenceFor(chain) {
+  return {
+    run_id: chain?.runId || "N/A",
+    task_ref: chain?.binding?.taskRef || "N/A",
+    persistence_status: "EPHEMERAL",
+    durable_authority: "No",
+    authorizes_apply: "No",
+    authorizes_activation: "No",
+    envelopes: (chain?.envelopes || []).map((envelope) => ({
+      evidence_type: envelope.evidence_type,
+      envelope_id: envelope.envelope_id,
+      envelope_digest: envelope.envelope_digest,
+      sequence: envelope.sequence,
+      producer: envelope.producer,
+    })),
   };
 }
 
@@ -150,13 +187,266 @@ function collectSignals(root) {
 }
 
 function resolveSources(root, options) {
-  return {
+  const entryTrust = resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: kitRoot,
+    goal: options.intent,
+  });
+  const binding = sameRunBindingFromTrust(entryTrust);
+  const runId = crypto.randomUUID();
+  const envelopes = [];
+  const native = runSameRunProducer({
+    name: "native_migration",
+    script: "resolve-native-migration.mjs",
+    args: ["--json"],
+    schemaRef: "schemas/artifacts/native-migration-plan.schema.json",
+    root,
+    runId,
+    sequence: 1,
+    binding,
+    sources: [],
+    env: process.env,
+  });
+  if (native.envelope) envelopes.push(native.envelope);
+
+  const reconciliation = runSameRunProducer({
+    name: "existing_rule_reconciliation",
+    script: "resolve-existing-rule-reconciliation.mjs",
+    args: ["--auto-native", "--json", "--intent", options.intent],
+    schemaRef: "schemas/artifacts/existing-rule-reconciliation.schema.json",
+    root,
+    runId,
+    sequence: 2,
+    binding,
+    sources: envelopes,
+    env: envelopeEnvironment(process.env, envelopes),
+  });
+  if (reconciliation.envelope) envelopes.push(reconciliation.envelope);
+
+  const convergence = runSameRunProducer({
+    name: "governance_convergence",
+    script: "resolve-governance-convergence.mjs",
+    args: ["--json", "--intent", options.intent],
+    schemaRef: "schemas/artifacts/governance-convergence.schema.json",
+    root,
+    runId,
+    sequence: 3,
+    binding,
+    sources: envelopes,
+    env: envelopeEnvironment(process.env, envelopes),
+  });
+  if (convergence.envelope) envelopes.push(convergence.envelope);
+
+  const adoptionReview = runSameRunProducer({
+    name: "controlled_native_adoption_review",
+    script: "resolve-controlled-native-adoption-review.mjs",
+    args: ["--json", "--intent", options.intent],
+    schemaRef: "schemas/artifacts/controlled-native-adoption-review.schema.json",
+    root,
+    runId,
+    sequence: 4,
+    binding,
+    sources: convergence.envelope ? [convergence.envelope] : [],
+    env: envelopeEnvironment(process.env, convergence.envelope ? [convergence.envelope] : []),
+  });
+  if (adoptionReview.envelope) envelopes.push(adoptionReview.envelope);
+
+  const result = {
     workflow_next: resolveSource("workflow_next", "workflow-next.mjs", root, ["--json"]),
-    native_migration: resolveSource("native_migration", "resolve-native-migration.mjs", root, ["--json"]),
-    existing_rule_reconciliation: resolveSource("existing_rule_reconciliation", "resolve-existing-rule-reconciliation.mjs", root, ["--auto-native", "--json"]),
-    governance_convergence: resolveSource("governance_convergence", "resolve-governance-convergence.mjs", root, ["--json", "--intent", options.intent]),
+    native_migration: native.source,
+    existing_rule_reconciliation: reconciliation.source,
+    governance_convergence: convergence.source,
+    controlled_native_adoption_review: adoptionReview.source,
     release_plan: resolveSource("release_plan", "resolve-release-plan.mjs", root, ["--json", "--intent", options.intent]),
   };
+  Object.defineProperty(result, "_sameRun", {
+    enumerable: false,
+    value: { runId, envelopes, binding },
+  });
+  return result;
+}
+
+function runSameRunProducer(options) {
+  const humanArgs = options.args.filter((item) => item !== "--json");
+  const result = spawnSync(process.execPath, [path.join(scriptDir, options.script), options.root, ...humanArgs], {
+    cwd: kitRoot,
+    env: options.env,
+    input: options.sources.length > 0 ? encodeSameRunEnvelopeBundle(options.sources) : undefined,
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 50,
+  });
+  const extracted = extractSingleMachineEvidence(result.stdout);
+  const evidence = extracted.ok ? extracted.value : null;
+  const parsed = evidence ? {
+    reportType: evidence.report_type,
+    schemaVersion: evidence.schema_version,
+    generatedBy: `scripts/${options.script}`,
+    projectRoot: options.root,
+    intent: optionValue(options.args, "--intent") || "Not provided",
+    structuredEvidence: evidence,
+    outcome: evidence.outcome,
+  } : null;
+  const schema = loadSchema(options.root, options.schemaRef);
+  const validation = evidence && schema
+    ? validateSchema(evidence, schema, { label: options.name })
+    : { ok: false, errors: [evidence ? `${options.schemaRef} is unavailable` : "structured evidence is missing"] };
+  const semantic = result.status === 0 && parsed && validation.ok
+    ? validateProducerWithStrictChecker(options, evidence, result.stdout)
+    : { ok: false, errors: [] };
+  const ok = result.status === 0 && parsed && validation.ok && semantic.ok;
+  if (!ok) {
+    const diagnostic = [result.error?.message, result.stderr, !parsed ? result.stdout : validation.errors?.join("; "), semantic.errors?.join("; ")]
+      .filter(Boolean)
+      .join("; ") || `${options.name} unavailable`;
+    return {
+      source: {
+        name: options.name,
+        status: "BLOCKED",
+        ref: options.script,
+        contribution: normalizeLine(diagnostic),
+        authority_block: "No",
+      },
+      envelope: null,
+    };
+  }
+  const envelope = createSameRunEvidenceEnvelope({
+    runId: options.runId,
+    sequence: options.sequence,
+    evidenceType: options.name,
+    producer: `scripts/${options.script}`,
+    producerSchemaVersion: String(parsed.schemaVersion || evidence.schema_version || "unknown"),
+    projectBinding: options.binding.projectBinding,
+    taskRef: options.binding.taskRef,
+    intentDigest: options.binding.goalDigest,
+    goalDigest: options.binding.goalDigest,
+    projectFactDigest: options.binding.projectFactDigest,
+    guidanceDigest: options.binding.guidanceDigest,
+    authorityInventoryDigest: options.binding.authorityInventoryDigest,
+    sourceRevision: options.binding.sourceRevision,
+    sources: options.sources.map((item) => sourceRowFromEnvelope(item)),
+    payload: compactProducerPayload(parsed),
+    checkerResult: "PASS",
+  });
+  const envelopeValidation = validateSameRunEvidenceEnvelope(envelope, {
+    evidenceType: options.name,
+    producer: `scripts/${options.script}`,
+    projectBinding: options.binding.projectBinding,
+    taskRef: options.binding.taskRef,
+    goalDigest: options.binding.goalDigest,
+    projectFactDigest: options.binding.projectFactDigest,
+    guidanceDigest: options.binding.guidanceDigest,
+    authorityInventoryDigest: options.binding.authorityInventoryDigest,
+    sourceRevision: options.binding.sourceRevision,
+  });
+  if (!envelopeValidation.ok) throw new Error(envelopeValidation.errors.join("; "));
+  return {
+    source: {
+      name: options.name,
+      status: sourceStatusFor(options.name, parsed),
+      ref: `${envelope.envelope_id}#${envelope.envelope_digest}`,
+      contribution: sourceContribution(options.name, parsed),
+      authority_block: hasProjectAuthorityBlock(options.name, parsed) ? "Yes" : "No",
+    },
+    envelope,
+  };
+}
+
+function validateProducerWithStrictChecker(options, expectedEvidence, humanOutput) {
+  const config = sameRunCheckerConfig(options.name);
+  if (!config) return { ok: false, errors: [`no strict checker is registered for ${options.name}`] };
+  const humanEvidence = extractSingleMachineEvidence(humanOutput);
+  if (!humanEvidence.ok) return humanEvidence;
+  if (evidenceDigest(humanEvidence.value, []) !== evidenceDigest(expectedEvidence, [])) {
+    return { ok: false, errors: [`${options.name} JSON and Markdown evidence differ`] };
+  }
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), `intentos-same-run-${options.name}-`));
+  try {
+    const reportDir = path.join(tempRoot, config.directory);
+    fs.mkdirSync(reportDir, { recursive: true });
+    const reportFile = sameRunReportFile(tempRoot, reportDir, config, expectedEvidence);
+    fs.mkdirSync(path.dirname(reportFile), { recursive: true });
+    fs.writeFileSync(reportFile, humanOutput, { flag: "wx" });
+    const checked = spawnSync(process.execPath, [
+      path.join(scriptDir, config.script),
+      tempRoot,
+      "--require-structured-evidence",
+      ...config.args,
+    ], {
+      cwd: kitRoot,
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024 * 50,
+    });
+    if (checked.status !== 0) {
+      return { ok: false, errors: [`${options.name} strict checker failed: ${normalizeLine(checked.stderr || checked.stdout)}`] };
+    }
+    return { ok: true, errors: [], checker: config.script };
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function sameRunReportFile(tempRoot, reportDir, config, evidence) {
+  if (!config.refField) return path.join(reportDir, "same-run.md");
+  const candidate = String(evidence?.[config.refField] || "").replaceAll("\\", "/");
+  if (!candidate || path.posix.isAbsolute(candidate) || candidate.split("/").includes("..")) {
+    throw new Error(`${config.refField} must be a safe project-relative report path`);
+  }
+  const normalized = path.posix.normalize(candidate);
+  const requiredPrefix = `${config.directory}/`;
+  if (!normalized.startsWith(requiredPrefix) || !normalized.endsWith(".md")) {
+    throw new Error(`${config.refField} must stay inside ${config.directory} and end in .md`);
+  }
+  const resolved = path.resolve(tempRoot, normalized);
+  const relative = path.relative(path.resolve(reportDir), resolved);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error(`${config.refField} escapes the strict-check report directory`);
+  }
+  return resolved;
+}
+
+function optionValue(args, flag) {
+  const index = args.indexOf(flag);
+  return index >= 0 ? String(args[index + 1] || "") : "";
+}
+
+function sameRunCheckerConfig(name) {
+  return {
+    native_migration: { script: "check-native-migration.mjs", directory: "native-migration-plans", args: [] },
+    existing_rule_reconciliation: { script: "check-existing-rule-reconciliation.mjs", directory: "existing-rule-reconciliations", args: [] },
+    governance_convergence: { script: "check-governance-convergence.mjs", directory: "governance-convergence-reports", args: [] },
+    controlled_native_adoption_review: {
+      script: "check-controlled-native-adoption-review.mjs",
+      directory: "native-adoption-review-reports",
+      args: ["--require-report"],
+      refField: "review_ref",
+    },
+  }[name] || null;
+}
+
+function extractSingleMachineEvidence(content) {
+  const section = String(content || "").match(/## Machine-Readable Evidence\s*\n+```json\s*([\s\S]*?)```/i);
+  if (!section) return { ok: false, errors: ["same-run human report has no Machine-Readable Evidence JSON"] };
+  try { return { ok: true, value: JSON.parse(section[1]), errors: [] }; } catch (error) {
+    return { ok: false, errors: [`same-run human evidence is invalid JSON: ${error.message}`] };
+  }
+}
+
+function compactProducerPayload(report) {
+  return {
+    reportType: report.reportType,
+    schemaVersion: report.schemaVersion,
+    generatedBy: report.generatedBy,
+    projectRoot: report.projectRoot,
+    intent: report.intent,
+    structuredEvidence: report.structuredEvidence,
+    outcome: report.outcome,
+  };
+}
+
+function envelopeEnvironment(base, envelopes) {
+  const env = { ...base };
+  if (envelopes.length > 0) env.INTENTOS_SAME_RUN_STDIN = "1";
+  return env;
 }
 
 function resolveSource(name, script, root, extraArgs) {
@@ -177,7 +467,6 @@ function resolveSource(name, script, root, extraArgs) {
 }
 
 function sourceStatusFor(name, parsed) {
-  if (hasDirtyProjectState(parsed)) return "NEEDS_INPUT";
   if (name === "workflow_next") {
     const stopActions = new Set([
       "SELECT_OR_CREATE_TARGET",
@@ -204,6 +493,10 @@ function sourceStatusFor(name, parsed) {
     const state = parsed.structuredEvidence?.convergence_state || parsed.humanSummary?.convergenceState || parsed.outcome || "";
     return /^CONVERGENCE_BLOCKED/i.test(String(state)) ? "NEEDS_INPUT" : "RECORDED";
   }
+  if (name === "controlled_native_adoption_review") {
+    const state = parsed.structuredEvidence?.adoption_recommendation?.state || parsed.outcome || "";
+    return /^(BLOCKED|FAILED)/i.test(String(state)) ? "NEEDS_INPUT" : "RECORDED";
+  }
   if (name === "release_plan") {
     const state = parsed.machineReadableEvidence?.release_plan?.state || parsed.humanSummary?.releasePlanState || parsed.outcome || "";
     return /^(BLOCKED|NEEDS_)/i.test(String(state)) ? "NEEDS_INPUT" : "RECORDED";
@@ -225,6 +518,10 @@ function hasProjectAuthorityBlock(name, parsed) {
   if (name === "governance_convergence") {
     const state = parsed.structuredEvidence?.convergence_state || parsed.humanSummary?.convergenceState || parsed.outcome || "";
     return String(state) === "CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY";
+  }
+  if (name === "controlled_native_adoption_review") {
+    const state = parsed.structuredEvidence?.adoption_recommendation?.state || parsed.outcome || "";
+    return /BLOCKED_BY_PROJECT_AUTHORITY|NATIVE_APPLY_NOT_RECOMMENDED/i.test(String(state));
   }
   if (name === "release_plan") {
     const state = parsed.machineReadableEvidence?.release_plan?.state || parsed.humanSummary?.releasePlanState || parsed.outcome || "";
@@ -248,6 +545,7 @@ function sourceContribution(name, parsed) {
   if (name === "governance_convergence") return parsed.humanSummary?.convergenceState || parsed.outcome || "recorded";
   if (name === "existing_rule_reconciliation") return parsed.structuredEvidence?.native_adoption_decision?.recommendation || parsed.outcome || "recorded";
   if (name === "native_migration") return parsed.structuredEvidence?.project_state || parsed.projectState?.state || parsed.outcome || "recorded";
+  if (name === "controlled_native_adoption_review") return parsed.structuredEvidence?.adoption_recommendation?.state || parsed.outcome || "recorded";
   if (name === "release_plan") return parsed.humanSummary?.releasePlanState || parsed.outcome || "recorded";
   return parsed.outcome || parsed.nextAction || parsed.projectState || parsed.reportType || "recorded";
 }
@@ -262,12 +560,12 @@ function surfacesFor(root, signals, sources, simulation) {
     surface("ai_rules_agents", signals.hasAiRules ? "MAPPED" : "PENDING_APPLY", signals.hasAiRules ? "file:AGENTS.md" : "checker:native-migration", signals.hasAiRules ? "Existing AI rules are preserved or mapped." : "AI rule merge remains pending."),
     surface("engineering_baseline", signals.hasEngineeringBaseline || hasReconciliation ? "MAPPED" : "MISSING", hasReconciliation ? "checker:reconcile-rules" : "checker:baseline", "Existing vs IntentOS engineering baseline comparison must be recorded."),
     surface("environment_baseline", signals.hasEnvironmentBaseline || hasReconciliation ? "MAPPED" : "MISSING", hasReconciliation ? "checker:reconcile-rules" : "checker:baseline", "Environment baseline comparison must be recorded."),
-    surface("release_rollback", signals.hasReleaseRollback ? "PROJECT_OWNED" : "PENDING_HUMAN_DECISION", "checker:release-plan", signals.hasReleaseRollback ? "Release and rollback remain project-owned." : "Release owner / rollback posture needs owner confirmation."),
-    surface("ci_hooks", signals.hasCiHooks ? "PROJECT_OWNED" : "PENDING_HUMAN_DECISION", "checker:convergence", "CI/hooks require comparison and no unauthorized mutation."),
+    surface("release_rollback", "PROJECT_OWNED", "checker:release-plan", signals.hasReleaseRollback ? "Release and rollback remain project-owned." : "Release readiness is not yet assessed and does not block behavioral adoption."),
+    surface("ci_hooks", "PROJECT_OWNED", "checker:convergence", signals.hasCiHooks ? "Existing CI/hooks remain project-owned and are compared before mutation." : "No CI/hook authority was observed; Codex keeps this release-scoped surface separate from behavioral adoption."),
     surface("documents", signals.hasDocuments || hasConvergence ? "MAPPED" : "MISSING", "checker:convergence", "Document source-of-truth and archive posture must be known."),
     surface("work_queue", signals.hasWorkQueue ? "MAPPED" : "PENDING_APPLY", "checker:work-queue", "Current, paused, and backlog behavior must be known."),
     surface("ai_logs_audit", signals.hasAiLogs || hasConvergence ? "MAPPED" : "PENDING_APPLY", "checker:convergence", "AI logs are governance notes only, not routine command logs."),
-    surface("risk_authority", hasMigration || hasConvergence ? "PROJECT_OWNED" : "PENDING_HUMAN_DECISION", "checker:native-migration", "Business, production, data, compliance, secrets, payment, and migration authority remain project-owned."),
+    surface("risk_authority", "PROJECT_OWNED", "checker:native-migration", hasMigration || hasConvergence ? "Protected authority remains project-owned and mapped." : "Protected authority remains project-owned while Codex continues evidence mapping."),
     surface("apply_chain", applyChain.status, applyChain.evidence, applyChain.notes),
     surface("simulation_task", simulation.state === "SIMULATION_PASSED" ? "VERIFIED" : "MISSING", simulation.id, "Read-only synthetic task routing must pass before full adoption can be claimed."),
   ];
@@ -282,22 +580,26 @@ function applyChainStateFor(root, signals) {
 }
 
 function simulationFor(root, signals) {
-  const routeSpecs = [
-    ["ask / guide", "resolve-beginner-entry.mjs", [root, "--goal", simulationTask, "--json"]],
-    ["workflow-next", "workflow-next.mjs", [root, "--json"]],
-    ["work queue / current task check", "resolve-work-queue.mjs", [root, "--json"]],
-    ["change impact coverage", "resolve-change-impact-coverage.mjs", [root, "--intent", simulationTask, "--json"]],
-    ["review surface", "resolve-review-surface.mjs", [root, "--intent", simulationTask, "--json"]],
-    ["apply-plan if write would be needed", "resolve-apply-plan.mjs", [root, "--intent", simulationTask, "--action", "NO_ACTION", "--json"]],
-    ["closure / finish decision", "resolve-closure-decision.mjs", [root, "--intent", simulationTask, "--verification", "read-only simulation route completed without target writes", "--json"]],
-  ];
-  const steps = routeSpecs.map(([step, script, scriptArgs]) => simulationStep(step, script, scriptArgs));
+  const verification = verifyProjectLocalBehavioralRoute({
+    targetRoot: root,
+    sourceRoot: kitRoot,
+    goal: simulationTask,
+  });
+  const steps = verification.results.map((item) => ({
+    step: item.name,
+    status: item.exit_code === 0 ? "PASSED" : "FAILED",
+    ref: `project-local:${item.name}`,
+    exit_code: item.exit_code,
+    read_only: "Yes",
+    writes_target_files: "No",
+    target_diff_status: "UNCHANGED",
+    output_digest: item.output_digest,
+    outcome: item.error || item.outcome,
+  }));
   const route = steps.map((item) => item.step);
-  const available = steps.every((item) => item.status !== "SKIPPED");
-  let state = "SIMULATION_PASSED";
-  if (!available) state = signals.exists === "Yes" ? "SIMULATION_PARTIAL" : "SIMULATION_BLOCKED";
-  else if (steps.some((item) => item.status === "FAILED")) state = "SIMULATION_FAILED";
-  else if (steps.some((item) => item.status === "BLOCKED")) state = "SIMULATION_BLOCKED";
+  const state = verification.ok
+    ? verification.state === "VERIFIED_ACTIVE" ? "SIMULATION_PASSED" : "SIMULATION_READ_ONLY_PASSED"
+    : signals.exists === "Yes" ? "SIMULATION_BLOCKED" : "SIMULATION_PARTIAL";
   return {
     id: "simulation:synthetic-required-field-validation",
     state,
@@ -305,6 +607,8 @@ function simulationFor(root, signals) {
     writes_target_files: "No",
     route,
     steps,
+    behavioral_activation_state: verification.state,
+    blockers: verification.errors,
   };
 }
 
@@ -402,19 +706,20 @@ function digest(text) {
 }
 
 function hasBlockingSources(sources) {
-  return Object.values(sources).some((source) => source.status === "NEEDS_INPUT" || source.status === "BLOCKED");
+  return Object.entries(sources).some(([name, source]) => name !== "release_plan"
+    && (source.status === "NEEDS_INPUT" || source.status === "BLOCKED"));
 }
 
 function assuranceStateFor({ surfaces, simulation, dirty, sources }) {
   if (dirty) return "BLOCKED_BY_DIRTY_WORKTREE";
-  if (Object.values(sources).some((source) => source.authority_block === "Yes")) {
+  if (Object.entries(sources).some(([name, source]) => name !== "release_plan" && source.authority_block === "Yes")) {
     return "BLOCKED_BY_PROJECT_AUTHORITY";
   }
   if (hasBlockingSources(sources)) return "BLOCKED_BY_UPSTREAM_EVIDENCE";
   const applyChain = surfaces.find((item) => item.surface === "apply_chain");
   const hasMissing = surfaces.some((item) => item.status === "MISSING");
   const hasPending = surfaces.some((item) => item.status === "PENDING_APPLY" || item.status === "PENDING_HUMAN_DECISION" || item.status === "BLOCKED" || item.status === "PRESENT_UNVERIFIED");
-  const allSourcesRecorded = Object.values(sources).every((source) => source.status === "RECORDED");
+  const allSourcesRecorded = Object.entries(sources).every(([name, source]) => name === "release_plan" || source.status === "RECORDED");
   const allSimulationStepsPassed = Array.isArray(simulation.steps)
     && simulation.steps.length > 0
     && simulation.steps.every((step) => step.status === "PASSED" && step.exit_code === 0 && step.writes_target_files === "No" && step.target_diff_status === "UNCHANGED");
@@ -425,15 +730,16 @@ function assuranceStateFor({ surfaces, simulation, dirty, sources }) {
 
 function pendingDecisionsFor(surfaces, dirty, sources) {
   const pending = [];
-  if (dirty) pending.push("Classify current dirty worktree before adoption assurance can be finalized.");
+  if (dirty) pending.push("NO_USER_ACTION: Codex must resolve current-work ownership conflicts before overlapping apply actions.");
   for (const item of surfaces) {
     if (["MISSING", "PENDING_APPLY", "PENDING_HUMAN_DECISION", "BLOCKED"].includes(item.status)) {
-      pending.push(`${item.surface}: ${item.notes}`);
+      pending.push(`NO_USER_ACTION: ${item.surface}: ${item.notes}`);
     }
   }
-  for (const source of Object.values(sources)) {
+  for (const [name, source] of Object.entries(sources)) {
+    if (name === "release_plan" && source.status === "NEEDS_INPUT") continue;
     if (source.status === "NEEDS_INPUT" || source.status === "BLOCKED") {
-      pending.push(`${source.name}: ${source.contribution}`);
+      pending.push(`NO_USER_ACTION: ${source.name}: ${source.contribution}`);
     }
   }
   return [...new Set(pending)];
@@ -484,10 +790,10 @@ function boundaryFor() {
 
 function nextSafeStepFor(state) {
   if (state === "VERIFIED_ACTIVE") return "continue work in IntentOS mode while preserving project-owned release and risk authority";
-  if (state === "BLOCKED_BY_DIRTY_WORKTREE") return "classify current worktree changes before migration or assurance apply planning";
-  if (state === "BLOCKED_BY_PROJECT_AUTHORITY") return "resolve project-owned release, CI/hook, or protected authority decision before full adoption";
-  if (state === "BLOCKED_BY_UPSTREAM_EVIDENCE") return "resolve blocked upstream migration, reconciliation, convergence, or release-plan evidence before claiming adoption";
-  if (state === "READ_ONLY_DIAGNOSIS_ONLY") return "record missing adoption surfaces before claiming adoption";
+  if (state === "BLOCKED_BY_DIRTY_WORKTREE") return "Codex resolves current-work ownership and blocks only overlapping apply actions";
+  if (state === "BLOCKED_BY_PROJECT_AUTHORITY") return "Codex preserves project authority and continues evidence mapping; ask only for a missing business or external fact";
+  if (state === "BLOCKED_BY_UPSTREAM_EVIDENCE") return "Codex resolves blocked migration, reconciliation, or convergence evidence before claiming adoption";
+  if (state === "READ_ONLY_DIAGNOSIS_ONLY") return "Codex records and closes missing adoption surfaces before claiming adoption";
   if (state === "FAILED_ASSURANCE") return "remove unsupported adoption claims and rerun assurance";
   return "prepare or verify a bounded apply plan for missing surfaces, then rerun adoption assurance";
 }

@@ -10,17 +10,19 @@ Use `scripts/init-project.mjs`; do not copy this starter directly.
 Request -> Preflight -> Spec -> Eval -> Task -> Execute -> Verify -> Review -> Release -> Log -> Retro
 ```
 
-## First setup
+## First use
 
-1. Run project onboarding with `.intentos/prompts/project-onboarding-agent.md`.
-2. Let AI draft onboarding docs from conversation.
-3. Codex derives the Android stack, baseline, risk controls, first slice, and build assumptions from the goal and project evidence.
-4. Run `node scripts/check-project-onboarding.mjs .`.
-5. Run `node scripts/check-engineering-baseline.mjs .` before structural engineering decisions.
-6. Run `node scripts/check-project-onboarding.mjs . --strict` after the derived records are internally verified.
-7. Use `.intentos/templates/request-card.md` to create the first request card in `requests/`.
+Tell Codex the Android product goal in plain language. The controlled
+initializer has already preserved that goal as the only current Work Queue item
+and verified that this project can run IntentOS from its own installed assets.
 
-Codex drafts, checks, and applies technical decisions. Ask the user only for a business fact that cannot be inferred or consent to one prepared real-world effect.
+Codex now derives the Android stack, baseline, risk controls, build assumptions,
+review depth, verification, and first useful slice. The user is asked only for
+a business fact that cannot be inferred, an unavailable external fact, a
+genuine product preference, or consent to one prepared real-world effect.
+
+Do not ask the user to choose an internal command, framework, baseline, pack,
+test, reviewer, migration depth, or evidence format.
 
 ## Verify
 

@@ -87,12 +87,14 @@ function createRunContext(testCase) {
       starter,
       "--target",
       context.project,
+      "--goal",
+      options.goal || "create an IntentOS generated fixture project",
       ...(Array.isArray(options.args) ? options.args.map(String) : []),
     ], {
       cwd: kitRoot,
       encoding: "utf8",
     });
-    context.setupCommand = `node scripts/init-project.mjs --starter ${starter} --target {project}`;
+    context.setupCommand = `node scripts/init-project.mjs --starter ${starter} --target {project} --goal \"${options.goal || "create an IntentOS generated fixture project"}\"`;
     context.setupStdout = setupResult.stdout || "";
     context.setupStderr = setupResult.stderr || "";
     context.setupStatus = setupResult.status ?? 1;

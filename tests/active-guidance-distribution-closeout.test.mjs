@@ -6,8 +6,6 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { analyzeActiveGuidanceConflicts } from "../scripts/lib/review-context-authority.mjs";
-
 const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 function run(script, args, options = {}) {
@@ -26,7 +24,11 @@ function output(result) {
 test("1.107.1 generated Codex project passes the effective guidance authority scan", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-guidance-new-"));
   try {
-    const initialized = run("scripts/init-project.mjs", ["--target", root, "--starter", "generic-project"]);
+    const initialized = run("scripts/init-project.mjs", [
+      "--target", root,
+      "--starter", "generic-project",
+      "--goal", "build a small booking application",
+    ]);
     assert.equal(initialized.status, 0, output(initialized));
     assert.match(initialized.stdout, /Codex reads the project, derives the platform and baseline/);
     assert.match(initialized.stdout, /missing business fact, product preference, exact real-world consent, or unavailable external fact/);
@@ -40,7 +42,7 @@ test("1.107.1 generated Codex project passes the effective guidance authority sc
   }
 });
 
-test("1.107.1 existing-project migration reports use controlled apply instead of technical user approval", () => {
+test("1.109 existing-project setup cannot bypass controlled adoption with force-new-project", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-guidance-existing-"));
   try {
     const existingAgent = "# Existing Project Agent\n\nPreserve project authority.\n";
@@ -56,20 +58,11 @@ test("1.107.1 existing-project migration reports use controlled apply instead of
       "generic-project",
       "--force-new-project",
     ]);
-    assert.equal(initialized.status, 0, output(initialized));
+    assert.notEqual(initialized.status, 0, output(initialized));
+    assert.match(output(initialized), /force-new-project was removed/i);
     assert.equal(fs.readFileSync(path.join(root, "AGENTS.md"), "utf8"), existingAgent);
     assert.equal(fs.readFileSync(path.join(root, ".github/pull_request_template.md"), "utf8"), existingPr);
-
-    for (const relativePath of [
-      ".intentos/migration-reports/agents-governance.md",
-      ".intentos/migration-reports/pr-template-governance.md",
-    ]) {
-      const content = fs.readFileSync(path.join(root, relativePath), "utf8");
-      assert.match(content, /Status: PENDING_CONTROLLED_APPLY/);
-      assert.match(content, /No technical choice is required/);
-      assert.match(content, /project-authority reconciliation|authority reconciliation/);
-      assert.deepEqual(analyzeActiveGuidanceConflicts(content), [], relativePath);
-    }
+    assert.equal(fs.existsSync(path.join(root, ".intentos")), false);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

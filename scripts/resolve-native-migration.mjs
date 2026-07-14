@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import {
@@ -10,6 +11,11 @@ import {
   walkRelativePaths,
 } from "./lib/project-signals.mjs";
 import { extractNativeRulesFromMarkdown } from "./lib/native-rule-extraction.mjs";
+import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
+import { sameRunBindingFromTrust } from "./lib/same-run-evidence-envelope.mjs";
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const kitRoot = path.resolve(scriptDir, "..");
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "intent", "owner", "adapter-only"]);
@@ -40,23 +46,32 @@ if (outputFormat === "json") {
 }
 
 function buildNativeMigration(root, options) {
+  const entryTrust = resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: kitRoot,
+    goal: options.intent || "assess existing project adoption",
+  });
+  const sourceBinding = sameRunBindingFromTrust(entryTrust);
   const exists = fs.existsSync(root);
   const git = exists ? gitWorktreeState(root) : null;
   const paths = exists ? walkRelativePaths(root, ".", {
-    maxDepth: 20,
-    maxEntries: 100000,
+    maxDepth: 1024,
+    maxEntries: 1000000,
     ignoredDirs: defaultIgnoredDirs,
   }).sort() : [];
   const pathSet = new Set(paths);
   const signals = exists ? collectSignals(root, pathSet) : emptySignals();
   const projectState = classifyProject(root, exists, git, signals);
+  const migrationSignals = projectState.state === "INTENTOS_REPOSITORY"
+    ? currentIntentOSSignals(root)
+    : signals;
   const posture = postureFor(projectState, options);
   const authority = authorityFor(posture, projectState);
-  const inventory = inventoryFor(signals);
-  const { ruleClassifications, ruleExtractionCoverage, parserWarnings } = classifyRules(root, signals);
-  const conflicts = conflictsFor(signals, posture, ruleClassifications);
-  const proposedActions = proposedActionsFor(posture, signals, projectState);
-  const humanDecisionsNeeded = humanDecisionsFor(posture, projectState, signals);
+  const inventory = inventoryFor(migrationSignals);
+  const { ruleClassifications, ruleExtractionCoverage, parserWarnings } = classifyRules(root, migrationSignals, projectState);
+  const conflicts = conflictsFor(migrationSignals, posture, ruleClassifications);
+  const proposedActions = proposedActionsFor(posture, migrationSignals, projectState);
+  const humanDecisionsNeeded = humanDecisionsFor(posture, projectState, migrationSignals);
   const outcome = outcomeFor(posture);
 
   const report = {
@@ -93,8 +108,23 @@ function buildNativeMigration(root, options) {
     },
     outcome,
   };
-  report.structuredEvidence = structuredEvidenceFor(report);
+  report.structuredEvidence = structuredEvidenceFor(report, sourceBinding);
   return report;
+}
+
+function currentIntentOSSignals(root) {
+  const existing = (refs) => refs.filter((ref) => fs.existsSync(path.join(root, ref)));
+  return {
+    hasProjectSignals: true,
+    agentRules: existing(["AGENTS.md", "platforms/codex/AGENTS.template.md"]),
+    governanceDocs: existing(["core/operating-model.md", "core/project-entry-adoption-trust.md"]),
+    workIntake: existing(["core/work-queue.md", "core/task-governance.md"]),
+    ciGates: existing([".github/workflows/ai-workflow-checks.yml", "scripts/self-check.mjs"]),
+    releaseRollback: existing(["core/release-execution-protocol.md"]),
+    hooksAutomation: [],
+    intentOSAssets: existing(["intentos-manifest.json"]),
+    productionSignals: [],
+  };
 }
 
 function collectSignals(root, pathSet) {
@@ -316,14 +346,17 @@ function inventoryRow(area, assets, handling) {
   };
 }
 
-function classifyRules(root, signals) {
+function classifyRules(root, signals, projectState) {
+  if (projectState.state === "INTENTOS_REPOSITORY") {
+    return currentIntentOSSourceAuthority();
+  }
   const candidates = [
     ...signals.agentRules,
-    ...signals.governanceDocs.slice(0, 4),
-    ...signals.releaseRollback.slice(0, 3),
-    ...signals.ciGates.slice(0, 3),
+    ...signals.governanceDocs,
+    ...signals.releaseRollback,
+    ...signals.ciGates,
   ];
-  const unique = Array.from(new Set(candidates)).slice(0, 10);
+  const unique = Array.from(new Set(candidates));
   if (unique.length === 0) {
     const fallback = {
       ruleClassifications: [
@@ -335,13 +368,13 @@ function classifyRules(root, signals) {
         contextHeading: "project scan",
         sourceExcerpt: "No existing governance rule source detected.",
         ruleClass: "UNKNOWN_AUTHORITY",
-        authority: "unknown",
+        authority: "Unresolved project authority",
         defaultHandling: "stop for classification",
-        preserveOrReplace: "preserve until owner confirms",
+        preserveOrReplace: "preserve until Codex can classify from project evidence",
         reason: "IntentOS cannot replace rules that were not found or owned.",
         riskSurfaces: "workflow",
-        targetAction: "ask human to confirm native adoption scope",
-        humanDecisionRequired: "Yes",
+        targetAction: "Codex preserves the source and stops before apply until it can classify authority from project evidence",
+        humanDecisionRequired: "No",
         confidence: "LOW",
       },
       ],
@@ -384,13 +417,13 @@ function classifyRules(root, signals) {
         source_excerpt: rel,
         context_heading: "path detected",
         rule_class: "UNKNOWN_AUTHORITY",
-        authority: "unknown",
+        authority: "Unresolved project authority",
         default_handling: "stop for classification",
         preserve_or_replace: "preserve until classified",
-        reason: "Detected path needs owner confirmation before migration.",
+        reason: "Detected path remains authoritative until Codex can classify it from project evidence.",
         risk_surfaces: "workflow",
-        target_action: "ask human to classify authority",
-        human_decision_required: "Yes",
+        target_action: "Codex preserves the source and stops before apply until it can classify authority from project evidence",
+        human_decision_required: "No",
         confidence: "LOW",
       });
       continue;
@@ -408,40 +441,81 @@ function classifyRules(root, signals) {
         source_excerpt: `No rule-like lines extracted from ${rel}.`,
         context_heading: "file scan",
         rule_class: "UNKNOWN_AUTHORITY",
-        authority: "unknown",
+        authority: "Unresolved project authority",
         default_handling: "stop for classification",
         preserve_or_replace: "preserve until classified",
-        reason: "The file was detected as governance-like but no rule-level extraction was confident.",
+        reason: "The file remains authoritative because rule-level extraction was not confident.",
         risk_surfaces: "workflow",
-        target_action: "ask human to classify authority",
-        human_decision_required: "Yes",
+        target_action: "Codex preserves the source and stops before apply until it can classify authority from project evidence",
+        human_decision_required: "No",
         confidence: "LOW",
       });
     }
   }
 
   return {
-    ruleClassifications: extractedRules.slice(0, 40).map((item, index) => ({
+    ruleClassifications: extractedRules.map((item, index) => ({
       ruleId: `R-${String(index + 1).padStart(3, "0")}`,
-      sourceFile: item.source_file,
+      sourceFile: safeRuleText(item.source_file),
       sourceStartLine: item.source_start_line,
       sourceEndLine: item.source_end_line,
-      contextHeading: item.context_heading,
-      sourceExcerpt: item.source_excerpt,
+      contextHeading: safeRuleText(item.context_heading),
+      sourceExcerpt: safeRuleText(item.source_excerpt, { redactAssignments: true }),
       ruleClass: item.rule_class,
-      authority: item.authority,
-      defaultHandling: item.default_handling,
-      preserveOrReplace: item.preserve_or_replace,
-      reason: item.reason,
-      riskSurfaces: item.risk_surfaces,
-      targetAction: item.target_action,
-      humanDecisionRequired: item.human_decision_required,
+      authority: safeRuleText(item.authority || "unresolved_project_authority"),
+      defaultHandling: safeRuleText(item.default_handling),
+      preserveOrReplace: safeRuleText(item.preserve_or_replace),
+      reason: safeRuleText(item.reason),
+      riskSurfaces: safeRuleText(item.risk_surfaces),
+      targetAction: safeRuleText(item.target_action),
+      humanDecisionRequired: "No",
       confidence: item.confidence,
       detectedTerms: item.detected_terms || [],
     })),
     ruleExtractionCoverage: coverage,
     parserWarnings: warnings,
   };
+}
+
+function currentIntentOSSourceAuthority() {
+  return {
+    ruleClassifications: [{
+      ruleId: "R-001",
+      sourceFile: "intentos-manifest.json",
+      sourceStartLine: 1,
+      sourceEndLine: 1,
+      contextHeading: "IntentOS source authority",
+      sourceExcerpt: "The authoritative source manifest defines the current IntentOS distribution.",
+      ruleClass: "WORKFLOW_RULE",
+      authority: "IntentOS source repository",
+      defaultHandling: "preserve current source authority",
+      preserveOrReplace: "preserve",
+      reason: "A current IntentOS source repository is not an existing project awaiting native migration.",
+      riskSurfaces: "workflow authority",
+      targetAction: "continue source verification without self-migration",
+      humanDecisionRequired: "No",
+      confidence: "HIGH",
+      detectedTerms: [],
+    }],
+    ruleExtractionCoverage: [{
+      sourceFile: "intentos-manifest.json",
+      linesScanned: 1,
+      rulesExtracted: 1,
+      unclassifiedBlocks: [],
+      skippedBlocks: [],
+      lowSignalBlocks: [],
+      parserWarnings: [],
+    }],
+    parserWarnings: [],
+  };
+}
+
+function safeRuleText(value, options = {}) {
+  let text = String(value || "").replace(/[\r\n]+/g, " ").replace(/\|/g, "/").replace(/\s+/g, " ").trim();
+  if (options.redactAssignments) {
+    text = text.replace(/\b(secret|token|password|api[_-]?key)\s*=\s*[^\s,;]+/gi, "$1=[REDACTED]");
+  }
+  return text || "unresolved";
 }
 
 function toCoverage(coverage) {
@@ -477,7 +551,7 @@ function toCoverage(coverage) {
   };
 }
 
-function structuredEvidenceFor(report) {
+function structuredEvidenceFor(report, sourceBinding) {
   return {
     schema_version: "1.65.0",
     artifact_type: "native_migration_plan",
@@ -490,6 +564,12 @@ function structuredEvidenceFor(report) {
     business_authority: report.businessAuthority,
     production_authority: report.productionAuthority,
     requires_human_approval_before_apply: report.requiresHumanApprovalBeforeApply,
+    project_binding: sourceBinding.projectBinding,
+    goal_digest: sourceBinding.goalDigest,
+    project_fact_digest: sourceBinding.projectFactDigest,
+    guidance_digest: sourceBinding.guidanceDigest,
+    authority_inventory_digest: sourceBinding.authorityInventoryDigest,
+    source_revision: sourceBinding.sourceRevision,
     rule_extraction_coverage: report.ruleExtractionCoverage.map((item) => ({
       source_file: item.sourceFile,
       lines_scanned: item.linesScanned,
@@ -549,22 +629,22 @@ function structuredEvidenceFor(report) {
 function conflictsFor(signals, posture, rules) {
   const conflicts = [];
   if (signals.agentRules.length > 0) {
-    conflicts.push(conflict("C-001", "WORKFLOW_CONFLICT", signals.agentRules.join(", "), "IntentOS workflow authority", "IntentOS after reviewed plan and approval", "Yes"));
+    conflicts.push(conflict("C-001", "WORKFLOW_CONFLICT", signals.agentRules.join(", "), "IntentOS workflow authority", "Codex compares and preserves stronger project rules before selected overlay", "No"));
   }
   if (signals.releaseRollback.length > 0) {
-    conflicts.push(conflict("C-002", "PRODUCTION_CONFLICT", signals.releaseRollback.slice(0, 4).join(", "), "Release Guide / Recipe / Handoff mapping", "Preserve SOP and map only", "Yes"));
+    conflicts.push(conflict("C-002", "PRODUCTION_CONFLICT", signals.releaseRollback.slice(0, 4).join(", "), "Release Guide / Recipe / Handoff mapping", "Preserve SOP and map only", "No"));
   }
   if (signals.ciGates.length > 0 || signals.hooksAutomation.length > 0) {
-    conflicts.push(conflict("C-003", "PRODUCTION_CONFLICT", [...signals.ciGates, ...signals.hooksAutomation].slice(0, 4).join(", "), "IntentOS checks / hook policy", "Map first; do not modify CI or hooks", "Yes"));
+    conflicts.push(conflict("C-003", "PRODUCTION_CONFLICT", [...signals.ciGates, ...signals.hooksAutomation].slice(0, 4).join(", "), "IntentOS checks / hook policy", "Map first; do not modify CI or hooks", "No"));
   }
   if (rules.some((item) => item.ruleClass === "UNKNOWN_AUTHORITY")) {
-    conflicts.push(conflict("C-004", "OWNER_CONFLICT", "unknown-authority rule", "Native migration", "Stop until owner classifies rule", "Yes"));
+    conflicts.push(conflict("C-004", "OWNER_CONFLICT", "unknown-authority rule", "Native migration", "Preserve and block replacement until Codex resolves authority from evidence", "No"));
   }
   if (posture === "NATIVE_FIRST_PENDING_WORKTREE_REVIEW") {
-    conflicts.push(conflict("C-005", "OWNER_CONFLICT", "dirty worktree", "Native migration apply", "No writes until worktree boundary is resolved", "Yes"));
+    conflicts.push(conflict("C-005", "OWNER_CONFLICT", "dirty worktree", "Native migration apply", "Codex continues read-only mapping and blocks only overlapping writes", "No"));
   }
   if (conflicts.length === 0) {
-    conflicts.push(conflict("C-001", "WORKFLOW_CONFLICT", "no strong old workflow conflict detected", "IntentOS workflow authority", "Use IntentOS planning after human confirms", "Yes"));
+    conflicts.push(conflict("C-001", "WORKFLOW_CONFLICT", "no strong old workflow conflict detected", "IntentOS workflow authority", "Codex may continue the selected reversible operating overlay after internal gates", "No"));
   }
   return conflicts;
 }
@@ -578,7 +658,7 @@ function proposedActionsFor(posture, signals, projectState) {
     action(1, "Record Native Migration Plan", "native-migration-plans/001-native-migration.md", "No", "Yes", "Proposed"),
     action(2, "Prepare Unified Apply Plan for approved governance assets only", "apply-plans/001-native-governance.md", "No", "Yes", "Proposed"),
     action(3, "Record Controlled Apply Readiness before any apply", "apply-readiness-reports/001-native-governance.md", "No", "Yes", "Proposed"),
-    action(4, "Record human Approval Record for exact governance action IDs", "approval-records/001-native-governance.md", "No", "Yes", "Proposed"),
+    action(4, "Materialize the original natural-language request as a bounded Approval Record for exact reversible action IDs", "approval-records/001-native-governance.md", "No", "Yes", "Proposed"),
   ];
   if (signals.agentRules.length > 0) {
     actions.push(action(5, "Plan IntentOS-native AGENTS.md replacement after classification", "AGENTS.md", "No", "Yes", "Proposed"));
@@ -599,28 +679,24 @@ function action(step, actionText, exactTargetPath, writesTargetFiles, requiresHu
 function authorityTransitionFor(posture) {
   if (posture === "ADAPTER_ONLY_RECOMMENDED" || posture === "BLOCKED_NEEDS_OWNER") {
     return {
-      oldWorkflowRules: "remain active until owner and authority are clarified",
+      oldWorkflowRules: "remain active until Codex resolves authority from project evidence",
       intentOsRules: "blocked from becoming workflow authority",
-      transitionCondition: "human owner confirms migration posture and approves reviewed plan",
+      transitionCondition: "current project evidence, reviewed exact plan, and controlled readiness establish a safe selected overlay",
     };
   }
   return {
-    oldWorkflowRules: "preserved until reviewed migration plan is approved",
+    oldWorkflowRules: "preserved until a reviewed exact plan proves the selected replacement or merge",
     intentOsRules: "preferred future workflow authority for Codex planning",
-    transitionCondition: "human approval of exact Native Migration Plan and related apply plan",
+    transitionCondition: "the original adoption request is bound to exact reversible actions after Plan Review and controlled readiness; real-world effects still require exact consent",
   };
 }
 
 function humanDecisionsFor(posture, projectState, signals) {
-  const decisions = [
-    decision("Confirm IntentOS-native planning posture", "human", posture === "BLOCKED_NEEDS_OWNER" ? "Needed now" : "Pending"),
-    decision("Approve or reject governance replacement plan", "human", "Pending"),
-    decision("Confirm which old rules are business or production constraints", "human", "Pending"),
-  ];
-  if (signals.agentRules.length > 0) decisions.push(decision("Approve AGENTS.md replacement only after classification and restore plan", "human", "Pending"));
-  if (projectState.state === "DIRTY_WORKTREE_PROJECT") decisions.push(decision("Resolve dirty worktree before governance writes", "human", "Needed now"));
-  if (projectState.productionSensitive === "Yes") decisions.push(decision("Confirm release/production owner for any release SOP mapping", "release owner", "Needed before apply"));
-  return decisions;
+  const notes = [decision("No technical migration decision is required from the user", "Codex", "NO_USER_ACTION")];
+  if (projectState.state === "DIRTY_WORKTREE_PROJECT") notes.push(decision("Map current changes and isolate selected overlay writes", "Codex", "INTERNAL_GUARD_REQUIRED"));
+  if (signals.agentRules.length > 0) notes.push(decision("Preserve and reconcile the effective agent entry before replacement", "Codex", "INTERNAL_REVIEW_REQUIRED"));
+  if (projectState.productionSensitive === "Yes") notes.push(decision("Preserve release and production authority; request consent only for a prepared real-world effect", "Codex", "REAL_WORLD_EFFECT_ONLY"));
+  return notes;
 }
 
 function decision(name, owner, status) {
@@ -628,14 +704,14 @@ function decision(name, owner, status) {
 }
 
 function recommendedNextStepFor(posture) {
-  if (posture === "NATIVE_FIRST_PENDING_WORKTREE_REVIEW") return "Review current worktree and pause governance writes.";
-  if (posture === "PRODUCTION_SAFE_NATIVE_OVERLAY") return "Review native migration plan with production/release constraints preserved.";
-  if (posture === "ADAPTER_ONLY_RECOMMENDED" || posture === "BLOCKED_NEEDS_OWNER") return "Keep adapter-only read-only mapping until owner or authority is clear.";
-  return "Review native migration plan, then prepare Unified Apply Plan only if human approves.";
+  if (posture === "NATIVE_FIRST_PENDING_WORKTREE_REVIEW") return "Codex maps current-work ownership read-only, then prepares only non-overlapping selected overlay actions.";
+  if (posture === "PRODUCTION_SAFE_NATIVE_OVERLAY") return "Codex prepares a selected native overlay while preserving production and release authority.";
+  if (posture === "ADAPTER_ONLY_RECOMMENDED" || posture === "BLOCKED_NEEDS_OWNER") return "Codex preserves unresolved authority and continues evidence collection without target writes.";
+  return "Codex prepares the exact selected overlay, Plan Review, bounded request authority, and controlled readiness.";
 }
 
 function outcomeFor(posture) {
-  if (posture === "BLOCKED_NEEDS_OWNER" || posture === "ADAPTER_ONLY_RECOMMENDED") return "NEEDS_HUMAN_DECISION";
+  if (posture === "BLOCKED_NEEDS_OWNER" || posture === "ADAPTER_ONLY_RECOMMENDED") return "BLOCKED";
   return "NATIVE_MIGRATION_PLAN_RECORDED";
 }
 

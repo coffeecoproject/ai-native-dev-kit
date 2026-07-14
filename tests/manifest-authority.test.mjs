@@ -153,6 +153,8 @@ test("normalized manifest preserves generated assets", () => {
       "generic-project",
       "--target",
       targetRoot,
+      "--goal",
+      "build a local project that verifies normalized manifest assets",
     ]);
     assert.equal(init.status, 0, checkerOutput(init));
 

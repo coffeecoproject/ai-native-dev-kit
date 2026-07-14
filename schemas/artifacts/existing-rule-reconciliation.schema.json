@@ -142,7 +142,7 @@
           "preserved_existing_terms": { "type": "array" },
           "added_intentos_terms": { "type": "array" },
           "risk_surfaces": { "type": "array" },
-          "human_decision_required": { "type": "string", "enum": ["Yes"] },
+          "human_decision_required": { "type": "string", "enum": ["Yes", "No"] },
           "requires_apply_chain": { "type": "string", "enum": ["Yes"] },
           "can_replace_existing_rule": { "type": "string", "enum": ["No"] },
           "target_action": { "type": "string" }
@@ -159,7 +159,7 @@
           "surface": { "type": "string" },
           "owner": { "type": "string" },
           "authority": { "type": "string" },
-          "human_decision_required": { "type": "string", "enum": ["Yes"] },
+          "human_decision_required": { "type": "string", "enum": ["Yes", "No"] },
           "handling": { "type": "string" }
         }
       }

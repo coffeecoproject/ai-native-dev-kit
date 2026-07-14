@@ -768,6 +768,8 @@
       "generic-project",
       "--target",
       "{tmp}/init-plan-project",
+      "--goal",
+      "create a generic project for init dry-run verification",
       "--dry-run"
     ],
     "expectStatus": 0,

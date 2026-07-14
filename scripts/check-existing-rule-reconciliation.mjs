@@ -247,9 +247,9 @@ function checkReconciliationMatrix(content, label, evidence) {
     else fail(`${rowLabel} missing IntentOS reference ref`);
     if (generalOutcomes.has(outcome)) pass(`${rowLabel} has valid outcome`);
     else fail(`${rowLabel} invalid outcome: ${outcome || "<empty>"}`);
-    if (humanDecision === "Yes") pass(`${rowLabel} requires human decision`);
-    else fail(`${rowLabel} must require human decision`);
-    if (/apply-plan after (approval|human review)|Native Migration Plan before reconciliation|ask human/i.test(targetAction)) {
+    if (["Yes", "No"].includes(humanDecision)) pass(`${rowLabel} declares whether a user decision is required`);
+    else fail(`${rowLabel} must declare human decision as Yes or No`);
+    if (/apply[- ]plan|Native Migration Plan before reconciliation|ask (?:human|user)|keep existing|preserve the rule/i.test(targetAction)) {
       pass(`${rowLabel} target action stays plan-bound`);
     } else {
       fail(`${rowLabel} target action must stay plan-bound`);
@@ -517,14 +517,16 @@ function validateStructuredItem(item, label) {
       if (Array.isArray(value) ? value.length > 0 : isConcrete(value)) pass(`${rowLabel} MERGE includes ${field}`);
       else fail(`${rowLabel} MERGE missing ${field}`);
     }
-    if (item?.human_decision_required === "Yes" && item?.requires_apply_chain === "Yes" && /prepare apply-plan after approval/i.test(item?.target_action || "")) {
+    if (["Yes", "No"].includes(item?.human_decision_required)
+      && item?.requires_apply_chain === "Yes"
+      && /(?:prepare|prepares).*(?:apply plan|apply-plan)/i.test(item?.target_action || "")) {
       pass(`${rowLabel} MERGE remains future apply-plan wording`);
     } else {
       fail(`${rowLabel} MERGE must remain future apply-plan wording`);
     }
   }
-  if (item?.human_decision_required === "Yes") pass(`${rowLabel} requires human decision`);
-  else fail(`${rowLabel} must require human decision`);
+  if (["Yes", "No"].includes(item?.human_decision_required)) pass(`${rowLabel} declares whether a user decision is required`);
+  else fail(`${rowLabel} must declare human_decision_required as Yes or No`);
   if (item?.requires_apply_chain === "Yes") pass(`${rowLabel} requires apply chain`);
   else fail(`${rowLabel} must require apply chain`);
   if (item?.can_replace_existing_rule === "No") pass(`${rowLabel} cannot replace existing rule`);
@@ -572,8 +574,8 @@ function validateProtectedConstraint(item, label) {
     if (isConcrete(item?.[field])) pass(`${rowLabel} includes ${field}`);
     else fail(`${rowLabel} missing ${field}`);
   }
-  if (item?.human_decision_required === "Yes") pass(`${rowLabel} requires human decision`);
-  else fail(`${rowLabel} must require human decision`);
+  if (["Yes", "No"].includes(item?.human_decision_required)) pass(`${rowLabel} declares whether a user decision is required`);
+  else fail(`${rowLabel} must declare human_decision_required as Yes or No`);
 }
 
 function checkProtectedConstraintSection(content, label, evidence) {

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.108.0",
+  "intentOSVersion": "1.109.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.108.0"
+    "phase": "1.109.0"
   },
   "groups": {
     "sourceRequired": [
@@ -59,6 +59,7 @@
       "beginner-entry-cards/.gitkeep",
       "business-rule-closures/.gitkeep",
       "business-universe-coverage-reports/.gitkeep",
+      "calibration-reports/project-entry-adoption-1.109.json",
       "change-impact-coverage-reports/.gitkeep",
       "checklists/adoption-assurance-review.md",
       "checklists/approval-record-review.md",
@@ -219,6 +220,7 @@
       "core/platform-strategy.md",
       "core/product-baseline.md",
       "core/product-completeness-gate.md",
+      "core/project-entry-adoption-trust.md",
       "core/project-onboarding.md",
       "core/real-mvp-example-evidence.md",
       "core/real-project-adoption-trial.md",
@@ -419,6 +421,7 @@
       "docs/plans/product-adoption-trust-finalization-1.68.2-plan.md",
       "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
       "docs/plans/productization-hardcut-1.0-plan.md",
+      "docs/plans/project-entry-adoption-trust-hardcut-1.109-plan.md",
       "docs/plans/project-identity-projection-1.97-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
       "docs/plans/public-entry-adoption-integration-1.81.2-plan.md",
@@ -465,6 +468,7 @@
       "docs/platform-standard-baseline-packs.md",
       "docs/product-baseline.md",
       "docs/product-completeness-gate.md",
+      "docs/project-entry-adoption-trust.md",
       "docs/project-memory.md",
       "docs/quickstart.md",
       "docs/real-adoption-usage.md",
@@ -546,6 +550,7 @@
       "examples/1.10-guided-decision-delivery-loop/active-work-threads/001-appointment-first-slice.md",
       "examples/1.10-guided-decision-delivery-loop/conversation-turns/001-payment-mention.md",
       "examples/1.10-guided-decision-delivery-loop/guided-decision-summaries/001-status-model.md",
+      "examples/1.108-business-universe-coverage/README.md",
       "examples/1.12-change-boundary-baseline-state/README.md",
       "examples/1.12-change-boundary-baseline-state/active-work-threads/001-appointment-first-slice.md",
       "examples/1.12-change-boundary-baseline-state/baseline-state-reports/001-no-code-baseline.md",
@@ -923,7 +928,6 @@
       "examples/1.88-plan-review-gate/low-docs-plan-skip/plan-review-reports/001-low-skip.md",
       "examples/1.88-plan-review-gate/medium-ui-plan-reviewed/docs/example-plan.md",
       "examples/1.88-plan-review-gate/medium-ui-plan-reviewed/plan-review-reports/001-medium-ui.md",
-      "examples/1.108-business-universe-coverage/README.md",
       "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
       "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
@@ -1410,6 +1414,9 @@
       "releases/1.108.0/known-limitations.md",
       "releases/1.108.0/release-record.md",
       "releases/1.108.0/self-check-report.md",
+      "releases/1.109.0/known-limitations.md",
+      "releases/1.109.0/release-record.md",
+      "releases/1.109.0/self-check-report.md",
       "releases/1.11.0/known-limitations.md",
       "releases/1.11.0/release-record.md",
       "releases/1.11.0/self-check-report.md",
@@ -1947,6 +1954,7 @@
       "schemas/artifacts/adoption-assurance.schema.json",
       "schemas/artifacts/apply-execution-receipt.schema.json",
       "schemas/artifacts/approval-record.schema.json",
+      "schemas/artifacts/behavioral-adoption-activation.schema.json",
       "schemas/artifacts/business-rule-closure.schema.json",
       "schemas/artifacts/business-universe-coverage.schema.json",
       "schemas/artifacts/change-impact-coverage.schema.json",
@@ -1965,6 +1973,9 @@
       "schemas/artifacts/plan-review.schema.json",
       "schemas/artifacts/preflight.schema.json",
       "schemas/artifacts/product-completeness-evidence.schema.json",
+      "schemas/artifacts/project-entry-calibration.schema.json",
+      "schemas/artifacts/project-entry-trust.schema.json",
+      "schemas/artifacts/project-fact-projection.schema.json",
       "schemas/artifacts/release-approval-record.schema.json",
       "schemas/artifacts/release-channel-policy.schema.json",
       "schemas/artifacts/release-evidence-gate.schema.json",
@@ -1976,6 +1987,7 @@
       "schemas/artifacts/request.schema.json",
       "schemas/artifacts/review-loop-report.schema.json",
       "schemas/artifacts/runtime-hygiene.schema.json",
+      "schemas/artifacts/same-run-evidence-envelope.schema.json",
       "schemas/artifacts/spec.schema.json",
       "schemas/artifacts/subagent-run-plan.schema.json",
       "schemas/artifacts/task-governance.schema.json",
@@ -2052,6 +2064,7 @@
       "scripts/check-platform-release-recipe.mjs",
       "scripts/check-product-baseline.mjs",
       "scripts/check-product-completeness.mjs",
+      "scripts/check-project-entry-calibration.mjs",
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-release-adapter.mjs",
@@ -2091,8 +2104,11 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/behavioral-adoption-activation.mjs",
+      "scripts/lib/bootstrap-transaction.mjs",
       "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -2101,6 +2117,8 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
+      "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-execution-topology.mjs",
@@ -2109,7 +2127,9 @@
       "scripts/lib/release-trust.mjs",
       "scripts/lib/review-context-authority.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/same-run-evidence-envelope.mjs",
       "scripts/lib/solo-operating-model.mjs",
+      "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
@@ -3074,6 +3094,12 @@
       "tests/business-universe-consumer-chain.test.mjs",
       "tests/business-universe-coverage.test.mjs",
       "tests/business-universe-existing-project-scan.test.mjs",
+      "tests/project-entry-adoption-consumer-chain.test.mjs",
+      "tests/project-entry-adoption-trust.test.mjs",
+      "tests/project-entry-business-universe-binding.test.mjs",
+      "tests/project-entry-calibration.test.mjs",
+      "tests/project-entry-generated-parity.test.mjs",
+      "tests/project-entry-new-project-transaction.test.mjs",
       "tests/release-execution-topology.test.mjs",
       "tests/release-topology-consumer.test.mjs",
       "tests/release-topology-migration.test.mjs",
@@ -3214,6 +3240,7 @@
       ".intentos/core/patch-classification.md",
       ".intentos/core/product-baseline.md",
       ".intentos/core/product-completeness-gate.md",
+      ".intentos/core/project-entry-adoption-trust.md",
       ".intentos/core/project-onboarding.md",
       ".intentos/core/real-mvp-example-evidence.md",
       ".intentos/core/real-project-adoption-trial.md",
@@ -3290,6 +3317,7 @@
       ".intentos/docs/platform-standard-baseline-packs.md",
       ".intentos/docs/product-baseline.md",
       ".intentos/docs/product-completeness-gate.md",
+      ".intentos/docs/project-entry-adoption-trust.md",
       ".intentos/docs/project-memory.md",
       ".intentos/docs/real-adoption-usage.md",
       ".intentos/docs/real-mvp-example-evidence.md",
@@ -3375,21 +3403,53 @@
       ".intentos/prompts/workflow-adapter-agent.md",
       ".intentos/prompts/workflow-concierge-agent.md",
       ".intentos/schemas/artifacts",
+      ".intentos/schemas/artifacts/adoption-assurance.schema.json",
       ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
+      ".intentos/schemas/artifacts/approval-record.schema.json",
+      ".intentos/schemas/artifacts/behavioral-adoption-activation.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
+      ".intentos/schemas/artifacts/change-impact-coverage.schema.json",
+      ".intentos/schemas/artifacts/completion-evidence.schema.json",
+      ".intentos/schemas/artifacts/controlled-apply-readiness.schema.json",
+      ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
+      ".intentos/schemas/artifacts/eval.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".intentos/schemas/artifacts/goal-card.schema.json",
+      ".intentos/schemas/artifacts/governance-convergence.schema.json",
       ".intentos/schemas/artifacts/launch-review-view.schema.json",
+      ".intentos/schemas/artifacts/low-risk-apply-candidate.schema.json",
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
+      ".intentos/schemas/artifacts/plan-review.schema.json",
+      ".intentos/schemas/artifacts/preflight.schema.json",
+      ".intentos/schemas/artifacts/product-completeness-evidence.schema.json",
+      ".intentos/schemas/artifacts/project-entry-trust.schema.json",
+      ".intentos/schemas/artifacts/project-fact-projection.schema.json",
+      ".intentos/schemas/artifacts/release-approval-record.schema.json",
+      ".intentos/schemas/artifacts/release-channel-policy.schema.json",
       ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
+      ".intentos/schemas/artifacts/release-execution-plan.schema.json",
+      ".intentos/schemas/artifacts/release-execution-topology.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
+      ".intentos/schemas/artifacts/release-plan.schema.json",
+      ".intentos/schemas/artifacts/release-topology-migration.schema.json",
+      ".intentos/schemas/artifacts/request.schema.json",
+      ".intentos/schemas/artifacts/review-loop-report.schema.json",
+      ".intentos/schemas/artifacts/runtime-hygiene.schema.json",
+      ".intentos/schemas/artifacts/same-run-evidence-envelope.schema.json",
+      ".intentos/schemas/artifacts/spec.schema.json",
+      ".intentos/schemas/artifacts/subagent-run-plan.schema.json",
       ".intentos/schemas/artifacts/task-governance.schema.json",
+      ".intentos/schemas/artifacts/task.schema.json",
+      ".intentos/schemas/artifacts/test-evidence.schema.json",
+      ".intentos/schemas/artifacts/unified-apply-plan.schema.json",
       ".intentos/schemas/artifacts/verification-plan.schema.json",
       ".intentos/schemas/artifacts/verification-run-manifest.schema.json",
       ".intentos/schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
       ".intentos/schemas/artifacts/verification-runtime-plan.schema.json",
+      ".intentos/schemas/artifacts/work-queue-takeover.schema.json",
       ".intentos/standard-baseline-packs",
       ".intentos/templates/active-work-thread.md",
       ".intentos/templates/adoption-assessment.md",
@@ -3660,8 +3720,11 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/behavioral-adoption-activation.mjs",
+      "scripts/lib/bootstrap-transaction.mjs",
       "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -3670,12 +3733,16 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
+      "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/review-context-authority.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/same-run-evidence-envelope.mjs",
       "scripts/lib/solo-operating-model.mjs",
+      "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
@@ -3896,6 +3963,7 @@
       ".intentos/core/plan-review-gate.md",
       ".intentos/core/product-baseline.md",
       ".intentos/core/product-completeness-gate.md",
+      ".intentos/core/project-entry-adoption-trust.md",
       ".intentos/core/project-onboarding.md",
       ".intentos/core/real-mvp-example-evidence.md",
       ".intentos/core/real-project-adoption-trial.md",
@@ -3987,6 +4055,7 @@
       ".intentos/docs/platform-standard-baseline-packs.md",
       ".intentos/docs/product-baseline.md",
       ".intentos/docs/product-completeness-gate.md",
+      ".intentos/docs/project-entry-adoption-trust.md",
       ".intentos/docs/project-memory.md",
       ".intentos/docs/real-adoption-usage.md",
       ".intentos/docs/real-mvp-example-evidence.md",
@@ -4119,17 +4188,28 @@
       ".intentos/schemas/artifacts",
       ".intentos/schemas/artifacts/adoption-assurance.schema.json",
       ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
+      ".intentos/schemas/artifacts/approval-record.schema.json",
+      ".intentos/schemas/artifacts/behavioral-adoption-activation.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
+      ".intentos/schemas/artifacts/change-impact-coverage.schema.json",
       ".intentos/schemas/artifacts/completion-evidence.schema.json",
+      ".intentos/schemas/artifacts/controlled-apply-readiness.schema.json",
       ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
+      ".intentos/schemas/artifacts/eval.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".intentos/schemas/artifacts/goal-card.schema.json",
       ".intentos/schemas/artifacts/governance-convergence.schema.json",
       ".intentos/schemas/artifacts/launch-review-view.schema.json",
+      ".intentos/schemas/artifacts/low-risk-apply-candidate.schema.json",
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
       ".intentos/schemas/artifacts/plan-review.schema.json",
+      ".intentos/schemas/artifacts/preflight.schema.json",
+      ".intentos/schemas/artifacts/product-completeness-evidence.schema.json",
+      ".intentos/schemas/artifacts/project-entry-trust.schema.json",
+      ".intentos/schemas/artifacts/project-fact-projection.schema.json",
       ".intentos/schemas/artifacts/release-approval-record.schema.json",
       ".intentos/schemas/artifacts/release-channel-policy.schema.json",
       ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
@@ -4138,13 +4218,21 @@
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
       ".intentos/schemas/artifacts/release-topology-migration.schema.json",
+      ".intentos/schemas/artifacts/request.schema.json",
+      ".intentos/schemas/artifacts/review-loop-report.schema.json",
       ".intentos/schemas/artifacts/runtime-hygiene.schema.json",
+      ".intentos/schemas/artifacts/same-run-evidence-envelope.schema.json",
+      ".intentos/schemas/artifacts/spec.schema.json",
+      ".intentos/schemas/artifacts/subagent-run-plan.schema.json",
       ".intentos/schemas/artifacts/task-governance.schema.json",
+      ".intentos/schemas/artifacts/task.schema.json",
       ".intentos/schemas/artifacts/test-evidence.schema.json",
+      ".intentos/schemas/artifacts/unified-apply-plan.schema.json",
       ".intentos/schemas/artifacts/verification-plan.schema.json",
       ".intentos/schemas/artifacts/verification-run-manifest.schema.json",
       ".intentos/schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
       ".intentos/schemas/artifacts/verification-runtime-plan.schema.json",
+      ".intentos/schemas/artifacts/work-queue-takeover.schema.json",
       ".intentos/standard-baseline-packs",
       ".intentos/templates/active-work-thread.md",
       ".intentos/templates/adoption-assessment.md",
@@ -4459,8 +4547,11 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/behavioral-adoption-activation.mjs",
+      "scripts/lib/bootstrap-transaction.mjs",
       "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -4469,6 +4560,8 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
+      "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-execution-topology.mjs",
@@ -4477,7 +4570,9 @@
       "scripts/lib/release-trust.mjs",
       "scripts/lib/review-context-authority.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/same-run-evidence-envelope.mjs",
       "scripts/lib/solo-operating-model.mjs",
+      "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
@@ -4609,6 +4704,7 @@
       ".intentos/core/platform-release-recipes.md",
       ".intentos/core/product-baseline.md",
       ".intentos/core/product-completeness-gate.md",
+      ".intentos/core/project-entry-adoption-trust.md",
       ".intentos/core/project-onboarding.md",
       ".intentos/core/real-mvp-example-evidence.md",
       ".intentos/core/real-project-adoption-trial.md",
@@ -5127,16 +5223,22 @@
       "ordinary-first-slices",
       "patch-classification-false-positives",
       "patch-classifications",
+      "plan-review-reports",
       "preflight",
       "product-completeness-reports",
       "real-adoption-trials",
       "release-adapters",
       "release-approval-records",
+      "release-candidates",
+      "release-channel-policies",
+      "release-evidence-gate-reports",
       "release-execution-plans",
+      "release-execution-topologies",
       "release-guides",
       "release-handoff-packs",
       "release-plans",
       "release-recipes",
+      "release-topology-migrations",
       "releases",
       "requests",
       "review-loop-reports",
@@ -5158,6 +5260,7 @@
       "verification-runtime-lifecycle-plans",
       "verification-runtime-plans",
       "work-queue",
+      "work-queue-takeover-reports",
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
@@ -5260,8 +5363,11 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/behavioral-adoption-activation.mjs",
+      "scripts/lib/bootstrap-transaction.mjs",
       "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -5270,12 +5376,16 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
+      "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/review-context-authority.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/same-run-evidence-envelope.mjs",
       "scripts/lib/solo-operating-model.mjs",
+      "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
@@ -6306,6 +6416,7 @@
       ".intentos/core/platform-release-recipes.md",
       ".intentos/core/product-baseline.md",
       ".intentos/core/product-completeness-gate.md",
+      ".intentos/core/project-entry-adoption-trust.md",
       ".intentos/core/real-mvp-example-evidence.md",
       ".intentos/core/real-project-adoption-trial.md",
       ".intentos/core/release-adapter.md",
@@ -6393,6 +6504,7 @@
       ".intentos/docs/platform-standard-baseline-packs.md",
       ".intentos/docs/product-baseline.md",
       ".intentos/docs/product-completeness-gate.md",
+      ".intentos/docs/project-entry-adoption-trust.md",
       ".intentos/docs/project-memory.md",
       ".intentos/docs/real-adoption-usage.md",
       ".intentos/docs/real-mvp-example-evidence.md",
@@ -6492,26 +6604,46 @@
       ".intentos/schemas/artifacts",
       ".intentos/schemas/artifacts/adoption-assurance.schema.json",
       ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
+      ".intentos/schemas/artifacts/approval-record.schema.json",
+      ".intentos/schemas/artifacts/behavioral-adoption-activation.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
+      ".intentos/schemas/artifacts/change-impact-coverage.schema.json",
       ".intentos/schemas/artifacts/completion-evidence.schema.json",
+      ".intentos/schemas/artifacts/controlled-apply-readiness.schema.json",
       ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
+      ".intentos/schemas/artifacts/eval.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".intentos/schemas/artifacts/goal-card.schema.json",
       ".intentos/schemas/artifacts/governance-convergence.schema.json",
       ".intentos/schemas/artifacts/launch-review-view.schema.json",
+      ".intentos/schemas/artifacts/low-risk-apply-candidate.schema.json",
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
       ".intentos/schemas/artifacts/plan-review.schema.json",
+      ".intentos/schemas/artifacts/preflight.schema.json",
+      ".intentos/schemas/artifacts/product-completeness-evidence.schema.json",
+      ".intentos/schemas/artifacts/project-entry-trust.schema.json",
+      ".intentos/schemas/artifacts/project-fact-projection.schema.json",
       ".intentos/schemas/artifacts/release-approval-record.schema.json",
       ".intentos/schemas/artifacts/release-channel-policy.schema.json",
       ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
       ".intentos/schemas/artifacts/release-execution-plan.schema.json",
+      ".intentos/schemas/artifacts/release-execution-topology.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
+      ".intentos/schemas/artifacts/release-topology-migration.schema.json",
+      ".intentos/schemas/artifacts/request.schema.json",
+      ".intentos/schemas/artifacts/review-loop-report.schema.json",
       ".intentos/schemas/artifacts/runtime-hygiene.schema.json",
+      ".intentos/schemas/artifacts/same-run-evidence-envelope.schema.json",
+      ".intentos/schemas/artifacts/spec.schema.json",
+      ".intentos/schemas/artifacts/subagent-run-plan.schema.json",
       ".intentos/schemas/artifacts/task-governance.schema.json",
+      ".intentos/schemas/artifacts/task.schema.json",
       ".intentos/schemas/artifacts/test-evidence.schema.json",
+      ".intentos/schemas/artifacts/unified-apply-plan.schema.json",
       ".intentos/schemas/artifacts/verification-plan.schema.json",
       ".intentos/schemas/artifacts/verification-run-manifest.schema.json",
       ".intentos/schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
@@ -6769,8 +6901,11 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/behavioral-adoption-activation.mjs",
+      "scripts/lib/bootstrap-transaction.mjs",
       "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -6779,12 +6914,16 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
+      "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/review-context-authority.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/same-run-evidence-envelope.mjs",
       "scripts/lib/solo-operating-model.mjs",
+      "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
@@ -6973,6 +7112,7 @@
       ".intentos/core/patch-classification.md",
       ".intentos/core/product-baseline.md",
       ".intentos/core/product-completeness-gate.md",
+      ".intentos/core/project-entry-adoption-trust.md",
       ".intentos/core/project-onboarding.md",
       ".intentos/core/real-mvp-example-evidence.md",
       ".intentos/core/real-project-adoption-trial.md",
@@ -7043,6 +7183,7 @@
       ".intentos/docs/ordinary-user-first-slice.md",
       ".intentos/docs/product-baseline.md",
       ".intentos/docs/product-completeness-gate.md",
+      ".intentos/docs/project-entry-adoption-trust.md",
       ".intentos/docs/real-adoption-usage.md",
       ".intentos/docs/real-mvp-example-evidence.md",
       ".intentos/docs/release-adapter.md",
@@ -7136,24 +7277,53 @@
       ".intentos/prompts/walkthrough-agent.md",
       ".intentos/prompts/work-queue-agent.md",
       ".intentos/prompts/workflow-concierge-agent.md",
+      ".intentos/schemas/artifacts/adoption-assurance.schema.json",
       ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
+      ".intentos/schemas/artifacts/approval-record.schema.json",
+      ".intentos/schemas/artifacts/behavioral-adoption-activation.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
+      ".intentos/schemas/artifacts/change-impact-coverage.schema.json",
+      ".intentos/schemas/artifacts/completion-evidence.schema.json",
+      ".intentos/schemas/artifacts/controlled-apply-readiness.schema.json",
+      ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
+      ".intentos/schemas/artifacts/eval.schema.json",
+      ".intentos/schemas/artifacts/execution-assurance.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".intentos/schemas/artifacts/goal-card.schema.json",
+      ".intentos/schemas/artifacts/governance-convergence.schema.json",
       ".intentos/schemas/artifacts/launch-review-view.schema.json",
+      ".intentos/schemas/artifacts/low-risk-apply-candidate.schema.json",
+      ".intentos/schemas/artifacts/native-migration-plan.schema.json",
+      ".intentos/schemas/artifacts/plan-review.schema.json",
+      ".intentos/schemas/artifacts/preflight.schema.json",
+      ".intentos/schemas/artifacts/product-completeness-evidence.schema.json",
+      ".intentos/schemas/artifacts/project-entry-trust.schema.json",
+      ".intentos/schemas/artifacts/project-fact-projection.schema.json",
       ".intentos/schemas/artifacts/release-approval-record.schema.json",
       ".intentos/schemas/artifacts/release-channel-policy.schema.json",
+      ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
       ".intentos/schemas/artifacts/release-execution-plan.schema.json",
+      ".intentos/schemas/artifacts/release-execution-topology.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
+      ".intentos/schemas/artifacts/release-topology-migration.schema.json",
+      ".intentos/schemas/artifacts/request.schema.json",
+      ".intentos/schemas/artifacts/review-loop-report.schema.json",
       ".intentos/schemas/artifacts/runtime-hygiene.schema.json",
+      ".intentos/schemas/artifacts/same-run-evidence-envelope.schema.json",
+      ".intentos/schemas/artifacts/spec.schema.json",
+      ".intentos/schemas/artifacts/subagent-run-plan.schema.json",
       ".intentos/schemas/artifacts/task-governance.schema.json",
+      ".intentos/schemas/artifacts/task.schema.json",
       ".intentos/schemas/artifacts/test-evidence.schema.json",
+      ".intentos/schemas/artifacts/unified-apply-plan.schema.json",
       ".intentos/schemas/artifacts/verification-plan.schema.json",
       ".intentos/schemas/artifacts/verification-run-manifest.schema.json",
       ".intentos/schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
       ".intentos/schemas/artifacts/verification-runtime-plan.schema.json",
+      ".intentos/schemas/artifacts/work-queue-takeover.schema.json",
       ".intentos/standard-baseline-packs",
       ".intentos/templates/active-work-thread.md",
       ".intentos/templates/adoption-assessment.md",
@@ -7390,8 +7560,15 @@
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
+      "scripts/lib/behavioral-adoption-activation.mjs",
+      "scripts/lib/bootstrap-transaction.mjs",
       "scripts/lib/business-universe.mjs",
+      "scripts/lib/current-work-continuity.mjs",
+      "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/same-run-evidence-envelope.mjs",
+      "scripts/lib/target-topology.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
       "scripts/lib/verification-runtime-lifecycle.mjs",
@@ -7462,156 +7639,12 @@
   "copyRules": {
     "directories": [
       {
-        "source": "adoption-assurance-reports",
-        "target": "adoption-assurance-reports"
-      },
-      {
-        "source": "apply-execution-plans",
-        "target": "apply-execution-plans"
-      },
-      {
-        "source": "apply-plans",
-        "target": "apply-plans"
-      },
-      {
-        "source": "apply-readiness-reports",
-        "target": "apply-readiness-reports"
-      },
-      {
-        "source": "apply-receipts",
-        "target": "apply-receipts"
-      },
-      {
-        "source": "approval-records",
-        "target": "approval-records"
-      },
-      {
-        "source": "baseline-decision-cards",
-        "target": "baseline-decision-cards"
-      },
-      {
-        "source": "baseline-pack-selections",
-        "target": "baseline-pack-selections"
-      },
-      {
-        "source": "baseline-state-reports",
-        "target": "baseline-state-reports"
-      },
-      {
-        "source": "beginner-entry-cards",
-        "target": "beginner-entry-cards"
-      },
-      {
-        "source": "business-rule-closures",
-        "target": "business-rule-closures"
-      },
-      {
-        "source": "business-universe-coverage-reports",
-        "target": "business-universe-coverage-reports"
-      },
-      {
-        "source": "change-boundary-reports",
-        "target": "change-boundary-reports"
-      },
-      {
-        "source": "change-impact-coverage-reports",
-        "target": "change-impact-coverage-reports"
-      },
-      {
         "source": "checklists",
         "target": ".intentos/checklists"
       },
       {
-        "source": "closure-decisions",
-        "target": "closure-decisions"
-      },
-      {
-        "source": "completion-evidence-reports",
-        "target": "completion-evidence-reports"
-      },
-      {
-        "source": "controlled-apply-candidates",
-        "target": "controlled-apply-candidates"
-      },
-      {
         "source": "core",
         "target": ".intentos/core"
-      },
-      {
-        "source": "delivery-path-reports",
-        "target": "delivery-path-reports"
-      },
-      {
-        "source": "delivery-status-cards",
-        "target": "delivery-status-cards"
-      },
-      {
-        "source": "doc-lifecycle-reports",
-        "target": "doc-lifecycle-reports"
-      },
-      {
-        "source": "execution-assurance-reports",
-        "target": "execution-assurance-reports"
-      },
-      {
-        "source": "execution-closures",
-        "target": "execution-closures"
-      },
-      {
-        "source": "existing-rule-reconciliations",
-        "target": "existing-rule-reconciliations"
-      },
-      {
-        "source": "governance-convergence-reports",
-        "target": "governance-convergence-reports"
-      },
-      {
-        "source": "governance-maps",
-        "target": "governance-maps"
-      },
-      {
-        "source": "guided-closure-cards",
-        "target": "guided-closure-cards"
-      },
-      {
-        "source": "hook-orchestration-plans",
-        "target": "hook-orchestration-plans"
-      },
-      {
-        "source": "hook-policies",
-        "target": "hook-policies"
-      },
-      {
-        "source": "launch-review-views",
-        "target": "launch-review-views"
-      },
-      {
-        "source": "mvp-example-reports",
-        "target": "mvp-example-reports"
-      },
-      {
-        "source": "native-adoption-review-reports",
-        "target": "native-adoption-review-reports"
-      },
-      {
-        "source": "native-migration-plans",
-        "target": "native-migration-plans"
-      },
-      {
-        "source": "ordinary-first-slices",
-        "target": "ordinary-first-slices"
-      },
-      {
-        "source": "patch-classifications",
-        "target": "patch-classifications"
-      },
-      {
-        "source": "plan-review-reports",
-        "target": "plan-review-reports"
-      },
-      {
-        "source": "product-completeness-reports",
-        "target": "product-completeness-reports"
       },
       {
         "source": "profiles",
@@ -7622,108 +7655,16 @@
         "target": ".intentos/prompts"
       },
       {
-        "source": "real-adoption-trials",
-        "target": "real-adoption-trials"
-      },
-      {
-        "source": "release-adapters",
-        "target": "release-adapters"
-      },
-      {
-        "source": "release-approval-records",
-        "target": "release-approval-records"
-      },
-      {
-        "source": "release-candidates",
-        "target": "release-candidates"
-      },
-      {
-        "source": "release-channel-policies",
-        "target": "release-channel-policies"
-      },
-      {
-        "source": "release-evidence-gate-reports",
-        "target": "release-evidence-gate-reports"
-      },
-      {
-        "source": "release-execution-plans",
-        "target": "release-execution-plans"
-      },
-      {
-        "source": "release-execution-topologies",
-        "target": "release-execution-topologies"
-      },
-      {
-        "source": "release-guides",
-        "target": "release-guides"
-      },
-      {
-        "source": "release-handoff-packs",
-        "target": "release-handoff-packs"
-      },
-      {
-        "source": "release-plans",
-        "target": "release-plans"
-      },
-      {
         "source": "release-recipes",
         "target": "release-recipes"
-      },
-      {
-        "source": "release-topology-migrations",
-        "target": "release-topology-migrations"
-      },
-      {
-        "source": "review-surface-cards",
-        "target": "review-surface-cards"
-      },
-      {
-        "source": "schemas/artifacts",
-        "target": ".intentos/schemas/artifacts"
       },
       {
         "source": "standard-baseline-packs",
         "target": ".intentos/standard-baseline-packs"
       },
       {
-        "source": "standard-baseline-selections",
-        "target": "standard-baseline-selections"
-      },
-      {
-        "source": "task-governance-reports",
-        "target": "task-governance-reports"
-      },
-      {
         "source": "templates",
         "target": ".intentos/templates"
-      },
-      {
-        "source": "test-evidence-reports",
-        "target": "test-evidence-reports"
-      },
-      {
-        "source": "verification-plans",
-        "target": "verification-plans"
-      },
-      {
-        "source": "verification-runtime-lifecycle-plans",
-        "target": "verification-runtime-lifecycle-plans"
-      },
-      {
-        "source": "work-queue",
-        "target": "work-queue"
-      },
-      {
-        "source": "work-queue-takeover-reports",
-        "target": "work-queue-takeover-reports"
-      },
-      {
-        "source": "workflow-adoption-maps",
-        "target": "workflow-adoption-maps"
-      },
-      {
-        "source": "workflow-guidance-cards",
-        "target": "workflow-guidance-cards"
       }
     ],
     "files": [
@@ -7960,6 +7901,10 @@
         "target": ".intentos/docs/product-completeness-gate.md"
       },
       {
+        "source": "docs/project-entry-adoption-trust.md",
+        "target": ".intentos/docs/project-entry-adoption-trust.md"
+      },
+      {
         "source": "docs/project-memory.md",
         "target": ".intentos/docs/project-memory.md"
       },
@@ -8090,6 +8035,194 @@
       {
         "source": "platforms/github/ci-ai-workflow.yml",
         "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
+        "source": "schemas/artifacts/adoption-assurance.schema.json",
+        "target": ".intentos/schemas/artifacts/adoption-assurance.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/apply-execution-receipt.schema.json",
+        "target": ".intentos/schemas/artifacts/apply-execution-receipt.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/approval-record.schema.json",
+        "target": ".intentos/schemas/artifacts/approval-record.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/behavioral-adoption-activation.schema.json",
+        "target": ".intentos/schemas/artifacts/behavioral-adoption-activation.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/business-rule-closure.schema.json",
+        "target": ".intentos/schemas/artifacts/business-rule-closure.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/business-universe-coverage.schema.json",
+        "target": ".intentos/schemas/artifacts/business-universe-coverage.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/change-impact-coverage.schema.json",
+        "target": ".intentos/schemas/artifacts/change-impact-coverage.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/completion-evidence.schema.json",
+        "target": ".intentos/schemas/artifacts/completion-evidence.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/controlled-apply-readiness.schema.json",
+        "target": ".intentos/schemas/artifacts/controlled-apply-readiness.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/controlled-native-adoption-review.schema.json",
+        "target": ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/eval.schema.json",
+        "target": ".intentos/schemas/artifacts/eval.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/execution-assurance.schema.json",
+        "target": ".intentos/schemas/artifacts/execution-assurance.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/existing-project-adoption-autopilot.schema.json",
+        "target": ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/existing-rule-reconciliation.schema.json",
+        "target": ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/goal-card.schema.json",
+        "target": ".intentos/schemas/artifacts/goal-card.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/governance-convergence.schema.json",
+        "target": ".intentos/schemas/artifacts/governance-convergence.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/launch-review-view.schema.json",
+        "target": ".intentos/schemas/artifacts/launch-review-view.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/low-risk-apply-candidate.schema.json",
+        "target": ".intentos/schemas/artifacts/low-risk-apply-candidate.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/native-migration-plan.schema.json",
+        "target": ".intentos/schemas/artifacts/native-migration-plan.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/plan-review.schema.json",
+        "target": ".intentos/schemas/artifacts/plan-review.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/preflight.schema.json",
+        "target": ".intentos/schemas/artifacts/preflight.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/product-completeness-evidence.schema.json",
+        "target": ".intentos/schemas/artifacts/product-completeness-evidence.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/project-entry-trust.schema.json",
+        "target": ".intentos/schemas/artifacts/project-entry-trust.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/project-fact-projection.schema.json",
+        "target": ".intentos/schemas/artifacts/project-fact-projection.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/release-approval-record.schema.json",
+        "target": ".intentos/schemas/artifacts/release-approval-record.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/release-channel-policy.schema.json",
+        "target": ".intentos/schemas/artifacts/release-channel-policy.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/release-evidence-gate.schema.json",
+        "target": ".intentos/schemas/artifacts/release-evidence-gate.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/release-execution-plan.schema.json",
+        "target": ".intentos/schemas/artifacts/release-execution-plan.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/release-execution-topology.schema.json",
+        "target": ".intentos/schemas/artifacts/release-execution-topology.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/release-handoff-evidence.schema.json",
+        "target": ".intentos/schemas/artifacts/release-handoff-evidence.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/release-plan.schema.json",
+        "target": ".intentos/schemas/artifacts/release-plan.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/release-topology-migration.schema.json",
+        "target": ".intentos/schemas/artifacts/release-topology-migration.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/request.schema.json",
+        "target": ".intentos/schemas/artifacts/request.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/review-loop-report.schema.json",
+        "target": ".intentos/schemas/artifacts/review-loop-report.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/runtime-hygiene.schema.json",
+        "target": ".intentos/schemas/artifacts/runtime-hygiene.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/same-run-evidence-envelope.schema.json",
+        "target": ".intentos/schemas/artifacts/same-run-evidence-envelope.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/spec.schema.json",
+        "target": ".intentos/schemas/artifacts/spec.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/subagent-run-plan.schema.json",
+        "target": ".intentos/schemas/artifacts/subagent-run-plan.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/task-governance.schema.json",
+        "target": ".intentos/schemas/artifacts/task-governance.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/task.schema.json",
+        "target": ".intentos/schemas/artifacts/task.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/test-evidence.schema.json",
+        "target": ".intentos/schemas/artifacts/test-evidence.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/unified-apply-plan.schema.json",
+        "target": ".intentos/schemas/artifacts/unified-apply-plan.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/verification-plan.schema.json",
+        "target": ".intentos/schemas/artifacts/verification-plan.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/verification-run-manifest.schema.json",
+        "target": ".intentos/schemas/artifacts/verification-run-manifest.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
+        "target": ".intentos/schemas/artifacts/verification-runtime-lifecycle-plan.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/verification-runtime-plan.schema.json",
+        "target": ".intentos/schemas/artifacts/verification-runtime-plan.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/work-queue-takeover.schema.json",
+        "target": ".intentos/schemas/artifacts/work-queue-takeover.schema.json"
       },
       {
         "source": "scripts/baseline-project.mjs",
@@ -8476,12 +8609,24 @@
         "target": "scripts/lib/baseline-selection.mjs"
       },
       {
+        "source": "scripts/lib/behavioral-adoption-activation.mjs",
+        "target": "scripts/lib/behavioral-adoption-activation.mjs"
+      },
+      {
+        "source": "scripts/lib/bootstrap-transaction.mjs",
+        "target": "scripts/lib/bootstrap-transaction.mjs"
+      },
+      {
         "source": "scripts/lib/business-universe.mjs",
         "target": "scripts/lib/business-universe.mjs"
       },
       {
         "source": "scripts/lib/check-result.mjs",
         "target": "scripts/lib/check-result.mjs"
+      },
+      {
+        "source": "scripts/lib/current-work-continuity.mjs",
+        "target": "scripts/lib/current-work-continuity.mjs"
       },
       {
         "source": "scripts/lib/evidence-authority.mjs",
@@ -8514,6 +8659,14 @@
       {
         "source": "scripts/lib/plan-review-binding.mjs",
         "target": "scripts/lib/plan-review-binding.mjs"
+      },
+      {
+        "source": "scripts/lib/project-entry-trust.mjs",
+        "target": "scripts/lib/project-entry-trust.mjs"
+      },
+      {
+        "source": "scripts/lib/project-fact-projection.mjs",
+        "target": "scripts/lib/project-fact-projection.mjs"
       },
       {
         "source": "scripts/lib/project-signals.mjs",
@@ -8552,8 +8705,16 @@
         "target": "scripts/lib/risk-surfaces.mjs"
       },
       {
+        "source": "scripts/lib/same-run-evidence-envelope.mjs",
+        "target": "scripts/lib/same-run-evidence-envelope.mjs"
+      },
+      {
         "source": "scripts/lib/solo-operating-model.mjs",
         "target": "scripts/lib/solo-operating-model.mjs"
+      },
+      {
+        "source": "scripts/lib/target-topology.mjs",
+        "target": "scripts/lib/target-topology.mjs"
       },
       {
         "source": "scripts/lib/task-entry-binding.mjs",

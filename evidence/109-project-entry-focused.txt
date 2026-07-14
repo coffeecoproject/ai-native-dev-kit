@@ -1,0 +1,27 @@
+id: evidence:109-project-entry-focused
+evidence_type: COMMAND_OUTPUT
+result_state: PASSED
+command: npm run verify:project-entry
+owner: Codex
+environment: isolated release candidate /private/tmp/intentos-109-release.kFA0qD
+ran_at: 2026-07-15T05:01:54+08:00
+exit_code: 0
+ran_after_change: Yes
+current_task_match: Yes
+covers_obligations: verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-, verify:user-flow-regression-smoke-existing-critical-flow-still-works-af, verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t, verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-, verify:backend-rule-backend-rule-test-server-domain-logic-enforces-the-, verify:error-copy-error-copy-check-blocked-users-receive-clear-bounded-
+failure_reason: N/A
+limitations: Repository-level project-entry behavior evidence; it does not prove a business product or production environment.
+
+Actual result:
+
+- tests: 38
+- pass: 38
+- fail: 0
+- exit code: 0
+- duration: 16644.414334 ms
+
+The run covered same-run evidence binding, deep authority inventory, current
+work continuity, topology and symlink safety, project-bound bootstrap receipts,
+atomic rollback and orphan recovery, generated cold start for every supported
+starter, exact controlled update identity continuity, Business Universe
+consumer preservation, and calibration fail-closed cases.

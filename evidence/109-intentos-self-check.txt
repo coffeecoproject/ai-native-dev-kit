@@ -1,0 +1,24 @@
+id: evidence:109-intentos-self-check
+evidence_type: COMMAND_OUTPUT
+result_state: PASSED
+command: node scripts/check-intentos.mjs
+owner: Codex
+environment: isolated release candidate /private/tmp/intentos-109-release.kFA0qD
+ran_at: 2026-07-15T05:01:54+08:00
+exit_code: 0
+ran_after_change: Yes
+current_task_match: Yes
+covers_obligations: verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders, verify:test-coverage-regression-smoke-task-specific-verification-exists
+failure_reason: N/A
+limitations: Repository self-check evidence for the current task; it does not prove a product runtime or production environment.
+
+Actual result:
+
+- command exit code: 0
+- IntentOS self-check: passed
+- PASS signals: 9312
+- FAIL signals: 0
+
+The self-check validated the 1.109 project-entry assets, consumer chain,
+generated-project behavior, active guidance, release records, manifest coverage,
+and task-specific evidence wiring in the isolated release candidate.

@@ -2,7 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "./lib/manifest.mjs";
@@ -16,6 +16,19 @@ import {
   validateReadinessPlanReview,
 } from "./lib/adoption-apply-chain.mjs";
 import { projectIdentity } from "./lib/evidence-authority.mjs";
+import {
+  createBootstrapTransaction,
+  executeBootstrapTransaction,
+  recoverInterruptedBootstrap,
+} from "./lib/bootstrap-transaction.mjs";
+import {
+  resolveBehavioralAdoptionActivation,
+  validateBehavioralActivation,
+  verifyProjectLocalBehavioralRoute,
+} from "./lib/behavioral-adoption-activation.mjs";
+import { resolveProjectEntryTrust, requireTrustedProjectEntry } from "./lib/project-entry-trust.mjs";
+import { projectGoalProjection } from "./lib/project-fact-projection.mjs";
+import { inspectTargetTopology } from "./lib/target-topology.mjs";
 import {
   normalizeBaselineLevel,
   parseSelectionIds,
@@ -1888,7 +1901,7 @@ function enrichExecutionActions(actions, targetPath, options, createdAt, receipt
   });
 }
 
-function boundControlledAdoptionActions(actions) {
+function boundControlledAdoptionActions(actions, operation) {
   for (const action of actions) {
     if (!action.willWrite) {
       if (action.type === "NEEDS_HUMAN_APPROVAL") {
@@ -1900,7 +1913,7 @@ function boundControlledAdoptionActions(actions) {
       continue;
     }
     if (action.type === "WRITE_APPLY_RECEIPT") continue;
-    if (action.executionSupported === true && !isForbiddenControlledApplyAction(action)) continue;
+    if (action.executionSupported === true && !isForbiddenControlledApplyAction(action, operation)) continue;
     action.originalType = action.type;
     action.type = "HUMAN_ONLY";
     action.willWrite = false;
@@ -1976,6 +1989,7 @@ function gitFingerprint(targetPath) {
     isDirty: changedFiles.length > 0,
     changedFileCount: changedFiles.length,
     changedFilesSample: changedFiles.slice(0, 20),
+    changedFiles,
   };
 }
 
@@ -2141,9 +2155,15 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
   }
   const agentsPath = path.join(targetPath, agentEntry);
   if (!fs.existsSync(agentsPath)) {
-    addFilePlanAction(actions, targetPath, path.join(kitRoot, "platforms", "codex", "AGENTS.template.md"), "AGENTS.md", {
+    const starterAgent = path.join(kitRoot, "starters", starter, "AGENTS.md");
+    const agentSource = !options.update && fs.existsSync(starterAgent)
+      ? starterAgent
+      : path.join(kitRoot, "platforms", "codex", "AGENTS.template.md");
+    addFilePlanAction(actions, targetPath, agentSource, "AGENTS.md", {
       overwrite: false,
-      reason: "missing AGENTS.md governance file",
+      reason: !options.update && agentSource === starterAgent
+        ? "starter-owned AGENTS.md governance entry"
+        : "missing AGENTS.md governance file",
     });
   } else {
     const content = fs.readFileSync(agentsPath, "utf8");
@@ -2243,9 +2263,11 @@ function buildPlan(targetPath, options = {}) {
   });
   collapseDuplicateTargetActions(actions);
   const createdAt = new Date().toISOString();
-  const receiptPath = `apply-receipts/${planRunId(createdAt)}.md`;
+  const receiptPath = operation === "INIT_PROJECT" && projectEntryOrigin === "NEW_PROJECT"
+    ? ".intentos/bootstrap-receipt.json"
+    : `apply-receipts/${planRunId(createdAt)}.md`;
   enrichExecutionActions(actions, targetPath, options, createdAt, receiptPath);
-  boundControlledAdoptionActions(actions);
+  boundControlledAdoptionActions(actions, operation);
   assignPlanActionIds(actions);
 
   const targetFingerprint = createTargetFingerprint(targetPath, actions);
@@ -2272,6 +2294,11 @@ function buildPlan(targetPath, options = {}) {
       selectedIndustrialPacks: baselineConfig.industrialPacks,
       backupDir: options.backupDir || null,
       controlledAdoption: true,
+      projectEntryOrigin,
+      goal: String(options.goal || "").trim(),
+      goalDigest: String(options.goal || "").trim()
+        ? projectGoalProjection(options.goal).goal_digest
+        : "N/A",
     },
     targetFingerprint,
     expectedPreconditions: {
@@ -2370,6 +2397,21 @@ function validatePlanForApply(plan, backupDirOverride = null) {
   if (!Array.isArray(plan.actions) || plan.actions.length === 0) {
     throw new Error("Invalid plan: actions must be a non-empty array");
   }
+  if (!["NEW_PROJECT", "EXISTING_PROJECT"].includes(plan.arguments?.projectEntryOrigin)) {
+    throw new Error("Invalid plan: projectEntryOrigin must be NEW_PROJECT or EXISTING_PROJECT");
+  }
+  if (plan.operation === "INIT_PROJECT" && plan.arguments.projectEntryOrigin === "NEW_PROJECT") {
+    const goal = String(plan.arguments.goal || "").trim();
+    if (!goal) {
+      throw new Error("New-project controlled apply requires the original natural-language goal");
+    }
+    if (projectGoalProjection(goal).goal_digest !== plan.arguments.goalDigest) {
+      throw new Error("New-project controlled apply goal binding is missing or invalid");
+    }
+    if (plan.receiptPath !== ".intentos/bootstrap-receipt.json") {
+      throw new Error("New-project controlled apply must use the canonical bootstrap receipt path");
+    }
+  }
   for (const action of plan.actions) {
     if (!action || typeof action !== "object") {
       throw new Error("Invalid plan: every action must be an object");
@@ -2383,7 +2425,7 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     if (action.willWrite && action.type !== "WRITE_APPLY_RECEIPT" && action.executionSupported !== true) {
       throw new Error(`Plan contains an unsupported generated action ${action.id} for ${action.path}; use a narrower selected migration plan`);
     }
-    if (action.willWrite && isForbiddenControlledApplyAction(action)) {
+    if (action.willWrite && isForbiddenControlledApplyAction(action, plan.operation)) {
       throw new Error(`Plan contains a human-only or high-risk controlled apply action ${action.id} for ${action.path}`);
     }
     const currentHash = sha256File(assertSafeWritePath(plan.targetRoot, action.path, "plan action target"));
@@ -2410,13 +2452,10 @@ function validatePlanForApply(plan, backupDirOverride = null) {
   if (currentFingerprint.targetExists !== plan.targetFingerprint?.targetExists) {
     throw new Error("Plan precondition failed: target existence changed");
   }
-  for (const key of ["isGitRepository", "gitBranch", "gitHead", "isDirty", "changedFileCount"]) {
+  for (const key of ["isGitRepository", "gitBranch", "gitHead"]) {
     if (currentFingerprint[key] !== plan.targetFingerprint?.[key]) {
       throw new Error(`Plan precondition failed: target fingerprint ${key} changed`);
     }
-  }
-  if (currentFingerprint.sourceStateDigest !== plan.targetFingerprint?.sourceStateDigest) {
-    throw new Error("Plan precondition failed: target source state changed after planning");
   }
   const expectedHashes = plan.targetFingerprint?.fileHashes || {};
   for (const [rel, expected] of Object.entries(expectedHashes)) {
@@ -2428,10 +2467,12 @@ function validatePlanForApply(plan, backupDirOverride = null) {
   return backupDir;
 }
 
-function isForbiddenControlledApplyAction(action) {
+function isForbiddenControlledApplyAction(action, operation = "UPDATE_WORKFLOW_ASSETS") {
   const target = String(action?.path || "");
   const reason = String(action?.reason || "");
-  return target.startsWith(".github/workflows/")
+  const generatedProjectWorkflow = operation === "INIT_PROJECT"
+    && target === ".github/workflows/ai-workflow-checks.yml";
+  return (!generatedProjectWorkflow && target.startsWith(".github/workflows/"))
     || target.startsWith("hooks/")
     || target.startsWith("migrations/")
     || target.startsWith("deploy/")
@@ -2616,7 +2657,8 @@ function replayApprovedPlan(plan, context) {
       throw new Error(`Unexpected target writes detected: ${unexpectedChangedPaths.join(", ")}`);
     }
 
-    activation = verifyInstalledWorkflowActivation(plan.targetRoot, plan);
+    const pendingActivation = writePendingControlledUpdateActivation(plan, context, results);
+    activation = verifyInstalledWorkflowActivation(plan.targetRoot, plan, pendingActivation.environment);
     if (activation.status !== "VERIFIED") {
       throw new Error(`Installed workflow activation failed: ${activation.reason || "unknown error"}`);
     }
@@ -2670,6 +2712,128 @@ function replayApprovedPlan(plan, context) {
   }
   if (executionError) throw new Error(`${executionError.message}; apply receipt: ${plan.receiptPath}`);
   return receipt;
+}
+
+function writePendingControlledUpdateActivation(plan, context, results) {
+  const capability = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  const appliedActions = plan.actions
+    .filter((action) => action.willWrite && action.id !== plan.receiptActionId)
+    .map((action) => ({
+      id: action.id,
+      path: action.path,
+      hash_after: results.get(action.id)?.hash_after || "N/A",
+      expected_hash_after: action.expectedHashAfter || "N/A",
+    }));
+  const base = {
+    schema_version: "1.109.0",
+    artifact_type: "pending_controlled_update_activation",
+    canonical_root: fs.realpathSync(plan.targetRoot),
+    owner_pid: process.pid,
+    created_at: new Date().toISOString(),
+    expires_at: expiresAt,
+    capability_digest: sha256Content(capability),
+    receipt_ref: plan.receiptPath,
+    plan_ref: context.planRelativePath,
+    plan_file_digest: evidenceFileDigest(path.join(plan.targetRoot, context.planRelativePath)),
+    plan_digest: plan.planDigest,
+    approval_ref: context.approvalRelativePath,
+    approval_file_digest: evidenceFileDigest(context.approval.fullPath),
+    readiness_ref: context.readinessRelativePath,
+    readiness_file_digest: evidenceFileDigest(context.readiness.fullPath),
+    action_graph_digest: evidenceDigest(appliedActions, []),
+    applied_actions: appliedActions,
+    boundary: {
+      temporary_identity_only: true,
+      authorizes_additional_writes: false,
+      authorizes_release_or_production: false,
+    },
+  };
+  const record = { ...base, record_digest: evidenceDigest(base, []) };
+  const receiptPath = assertSafeWritePath(plan.targetRoot, plan.receiptPath, "pending controlled update activation");
+  fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+  atomicWriteFile(receiptPath, `${JSON.stringify(record, null, 2)}\n`);
+  return {
+    environment: {
+      INTENTOS_CONTROLLED_UPDATE_ACTIVATION_RECEIPT: plan.receiptPath,
+      INTENTOS_CONTROLLED_UPDATE_ACTIVATION_CAPABILITY: capability,
+      INTENTOS_CONTROLLED_UPDATE_ACTIVATION_RECORD_DIGEST: record.record_digest,
+    },
+  };
+}
+
+function evidenceFileDigest(file) {
+  return evidenceDigest(fs.readFileSync(file).toString("base64"), []);
+}
+
+function replayApprovedNewProjectPlan(plan, context) {
+  if (plan.operation !== "INIT_PROJECT" || plan.arguments?.projectEntryOrigin !== "NEW_PROJECT") {
+    throw new Error("Bootstrap replay requires an approved NEW_PROJECT initialization plan");
+  }
+  if (plan.receiptPath !== ".intentos/bootstrap-receipt.json") {
+    throw new Error("New-project plan must use the canonical bootstrap receipt path");
+  }
+  const goalProjection = projectGoalProjection(plan.arguments?.goal);
+  if (goalProjection.goal_digest !== plan.arguments?.goalDigest) {
+    throw new Error("New-project plan goal binding changed after planning");
+  }
+  const actions = bootstrapActionsFromPlan(plan);
+  const sourceInventory = plan.actions
+    .filter((action) => action.willWrite && !action.dynamicReceipt)
+    .map((action) => ({
+      id: action.id,
+      path: action.path,
+      source_ref: action.source || "N/A",
+      source_hash: action.sourceHash,
+    }));
+  const transaction = createBootstrapTransaction({
+    topology: inspectTargetTopology(plan.targetRoot),
+    actions,
+    goalDigest: goalProjection.goal_digest,
+    planRef: context.planRelativePath,
+    planDigest: plan.planDigest,
+    approvalRef: context.approvalRelativePath,
+    approvalDigest: evidenceDigest(context.approval.evidence, []),
+    readinessRef: context.readinessRelativePath,
+    readinessDigest: evidenceDigest(context.readiness.evidence, []),
+    sourceInventoryDigest: evidenceDigest(sourceInventory, []),
+    successReceiptPath: plan.receiptPath,
+  });
+  let behavioralActivation = null;
+  const result = executeBootstrapTransaction(transaction, {
+    verifyActivation: () => verifyProjectLocalBehavioralRoute({
+      targetRoot: plan.targetRoot,
+      sourceRoot: kitRoot,
+      goal: goalProjection.original_goal,
+      transaction,
+      sourceInventory,
+      allowProjectLocalExecution: true,
+    }),
+    finalizeActivation: ({ receipt, verification }) => {
+      behavioralActivation = resolveBehavioralAdoptionActivation({
+        projectBinding: projectIdentity(plan.targetRoot),
+        goalDigest: goalProjection.goal_digest,
+        applyReceipt: {
+          ref: transaction.success_receipt_path,
+          digest: receipt.receipt_digest,
+          state: receipt.state,
+        },
+        coldStart: verification.coldStart,
+        routeCalibration: verification.routeCalibration,
+      });
+      const semantic = validateBehavioralActivation(behavioralActivation, {
+        projectBinding: behavioralActivation.project_binding,
+        goalDigest: goalProjection.goal_digest,
+      });
+      const schema = loadSchema(kitRoot, "schemas/artifacts/behavioral-adoption-activation.schema.json");
+      const structural = validateSchema(behavioralActivation, schema, { label: "behavioral adoption activation" });
+      return { ok: semantic.ok && structural.ok, errors: [...semantic.errors, ...structural.errors] };
+    },
+  });
+  if (result.state !== "APPLY_VERIFIED" || behavioralActivation?.activation_state !== "VERIFIED_ACTIVE") {
+    throw new Error(`Controlled new-project apply did not verify: ${(result.errors || []).join("; ") || result.state}`);
+  }
+  return result;
 }
 
 function replayAction(plan, action) {
@@ -2737,7 +2901,7 @@ function rollbackActions(plan, actions, results) {
   return verified;
 }
 
-function verifyInstalledWorkflowActivation(targetRoot, plan) {
+function verifyInstalledWorkflowActivation(targetRoot, plan, activationEnvironment = {}) {
   const script = path.join(targetRoot, "scripts", "workflow-next.mjs");
   if (!fs.existsSync(script)) return { ...activationNotRun(), status: "FAILED", reason: "installed workflow-next entry is missing" };
   const trustedWorkflowNext = path.join(kitRoot, "scripts", "workflow-next.mjs");
@@ -2751,9 +2915,10 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
   const before = snapshotTargetFiles(targetRoot);
   const result = spawnSync(process.execPath, [script, targetRoot, "--json"], {
     cwd: targetRoot,
+    env: { ...process.env, ...activationEnvironment },
     encoding: "utf8",
     maxBuffer: 1024 * 1024 * 20,
-    timeout: 30000,
+    timeout: 120000,
   });
   let baselineResult = null;
   let industrialResult = null;
@@ -2762,9 +2927,10 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
     baselineResult = fs.existsSync(baselineScript)
       ? spawnSync(process.execPath, [baselineScript, targetRoot, "--require-selection", "--allow-pending-receipt"], {
         cwd: targetRoot,
+        env: { ...process.env, ...activationEnvironment },
         encoding: "utf8",
         maxBuffer: 1024 * 1024 * 20,
-        timeout: 30000,
+        timeout: 60000,
       })
       : { status: 1, stdout: "", stderr: "installed baseline checker is missing" };
   }
@@ -2773,9 +2939,10 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
     industrialResult = fs.existsSync(industrialScript)
       ? spawnSync(process.execPath, [industrialScript, targetRoot], {
         cwd: targetRoot,
+        env: { ...process.env, ...activationEnvironment },
         encoding: "utf8",
         maxBuffer: 1024 * 1024 * 20,
-        timeout: 30000,
+        timeout: 60000,
       })
       : { status: 1, stdout: "", stderr: "installed industrial baseline checker is missing" };
   }
@@ -2794,6 +2961,7 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
   const baselineOk = !baselineResult || baselineResult.status === 0;
   const industrialOk = !industrialResult || industrialResult.status === 0;
   const ok = result.status === 0 && parsed && isWorkflowActivationState(parsed, plan) && projectState && changed.length === 0 && baselineOk && industrialOk;
+  const projectEntryReason = String(parsed?.projectEntryTrust?.project_identity?.reason || "").trim();
   return {
     status: ok ? "VERIFIED" : "FAILED",
     workflow_next_exit_code: String(result.status ?? "N/A"),
@@ -2806,7 +2974,7 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
         ? baselineResult.stderr || baselineResult.stdout
         : industrialResult && industrialResult.status !== 0
           ? industrialResult.stderr || industrialResult.stdout
-        : result.stderr || result.stdout || `activation changed: ${changed.join(", ")}`,
+        : projectEntryReason || result.stderr || result.stdout || `activation changed: ${changed.join(", ")}`,
     ),
   };
 }
@@ -2940,6 +3108,9 @@ function normalizeOutput(value) {
 }
 
 function writePlan(plan, planPath) {
+  if (!fs.existsSync(plan.targetRoot)) {
+    throw new Error("--write-plan is read-only and will not create an absent target; use --dry-run or the ordinary controlled init entry");
+  }
   if (path.isAbsolute(String(planPath || ""))) throw new Error("--write-plan must use a project-local relative path");
   const fullPath = path.resolve(plan.targetRoot, planPath);
   assertInsideRoot(plan.targetRoot, fullPath, "--write-plan");
@@ -2955,7 +3126,7 @@ function writePlan(plan, planPath) {
 }
 
 function printPlan(plan) {
-  console.log(JSON.stringify(plan, null, 2));
+  fs.writeSync(process.stdout.fd, `${JSON.stringify(plan, null, 2)}\n`);
 }
 
 function workflowNextGate(targetPath) {
@@ -3024,6 +3195,270 @@ function executeInit(targetPath, starter, options = {}) {
   printNextSteps();
 }
 
+function executeControlledNewProjectSetup(targetPath, starter, options = {}) {
+  const recovery = recoverInterruptedBootstrap(targetPath);
+  if (!recovery.ok) throw new Error((recovery.errors || [recovery.state]).join("; "));
+  const topology = inspectTargetTopology(targetPath);
+  if (!["ABSENT_LEAF", "EMPTY_DIRECTORY"].includes(topology.state)) {
+    throw new Error(`Controlled new-project setup requires an absent leaf or empty directory, received ${topology.state}`);
+  }
+  const goalProjection = projectGoalProjection(
+    options.goal || `Create a new ${starter} project named ${path.basename(targetPath)}`,
+  );
+  const entryTrust = resolveProjectEntryTrust({
+    projectRoot: targetPath,
+    sourceRoot: kitRoot,
+    goal: goalProjection.original_goal,
+  });
+  const entryGate = requireTrustedProjectEntry(entryTrust, "CONTROLLED_SETUP");
+  if (!entryGate.ok) throw new Error(`Project entry trust blocked setup: ${entryGate.errors.join("; ")}`);
+
+  const plan = buildPlan(targetPath, { ...options, starter, update: false });
+  attachInitialGoalToPlan(plan, goalProjection);
+  const actions = bootstrapActionsFromPlan(plan);
+  const requestAuthority = {
+    artifact_type: "bootstrap_request_authority",
+    target_root: targetPath,
+    starter,
+    goal_digest: goalProjection.goal_digest,
+    execution_intent: goalProjection.execution_intent,
+    user_technical_choice_required: "No",
+    real_world_effect: "REVERSIBLE_LOCAL_PROJECT_SETUP",
+  };
+  const readiness = {
+    artifact_type: "bootstrap_controlled_readiness",
+    entry_trust_digest: entryTrust.entry_trust_digest,
+    topology_digest: topology.topology_digest,
+    plan_digest: plan.planDigest,
+    operation: plan.operation,
+    exact_action_ids: actions.map((action) => action.id),
+    blockers: [],
+  };
+  const sourceInventory = plan.actions
+    .filter((action) => action.willWrite && !action.dynamicReceipt)
+    .map((action) => ({
+      id: action.id,
+      path: action.path,
+      source_ref: action.source || "N/A",
+      source_hash: action.sourceHash,
+    }));
+  const transaction = createBootstrapTransaction({
+    topology,
+    actions,
+    goalDigest: goalProjection.goal_digest,
+    planRef: "bootstrap:generated-in-memory-plan",
+    planDigest: plan.planDigest,
+    approvalRef: "bootstrap:original-natural-language-request",
+    approvalDigest: evidenceDigest(requestAuthority, []),
+    readinessRef: "bootstrap:derived-controlled-readiness",
+    readinessDigest: evidenceDigest(readiness, []),
+    sourceInventoryDigest: evidenceDigest(sourceInventory, []),
+  });
+  let behavioralActivation = null;
+  const result = executeBootstrapTransaction(transaction, {
+    verifyActivation: () => verifyProjectLocalBehavioralRoute({
+      targetRoot: targetPath,
+      sourceRoot: kitRoot,
+      goal: goalProjection.original_goal,
+      transaction,
+      sourceInventory,
+      allowProjectLocalExecution: true,
+    }),
+    finalizeActivation: ({ receipt, verification }) => {
+      const applyReceipt = {
+        ref: transaction.success_receipt_path,
+        digest: receipt.receipt_digest,
+        state: receipt.state,
+      };
+      behavioralActivation = resolveBehavioralAdoptionActivation({
+        projectBinding: projectIdentity(targetPath),
+        goalDigest: goalProjection.goal_digest,
+        applyReceipt,
+        coldStart: verification.coldStart,
+        routeCalibration: verification.routeCalibration,
+      });
+      const semantic = validateBehavioralActivation(behavioralActivation, {
+        projectBinding: behavioralActivation.project_binding,
+        goalDigest: goalProjection.goal_digest,
+      });
+      const schema = loadSchema(kitRoot, "schemas/artifacts/behavioral-adoption-activation.schema.json");
+      const structural = validateSchema(behavioralActivation, schema, { label: "behavioral adoption activation" });
+      return { ok: semantic.ok && structural.ok, errors: [...semantic.errors, ...structural.errors] };
+    },
+  });
+  if (result.state !== "APPLY_VERIFIED" || behavioralActivation?.activation_state !== "VERIFIED_ACTIVE") {
+    throw new Error(`Controlled setup did not verify: ${[...(result.errors || []), ...(behavioralActivation?.blockers || [])].join("; ") || result.state}`);
+  }
+  console.log("");
+  console.log(`Initialized and verified ${starter} at ${targetPath}`);
+  console.log(`Apply receipt: ${path.join(targetPath, transaction.success_receipt_path)}`);
+  console.log("IntentOS operating mode: VERIFIED_ACTIVE");
+  printNextSteps();
+}
+
+function attachInitialGoalToPlan(plan, goalProjection) {
+  const requestPath = "requests/001-initial-goal.md";
+  const queuePath = "work-queue/001-initial-goal.md";
+  const title = markdownCell(goalProjection.original_goal);
+  const requestContent = [
+    "---",
+    "schema_version: 1.0",
+    "artifact_type: request",
+    "number: 001",
+    "slug: initial-goal",
+    "title: Initial Product Goal",
+    "priority: P1",
+    "task_level: L2",
+    "status: ready",
+    `created_at: ${new Date().toISOString()}`,
+    "---",
+    "# Request: 001-initial-goal",
+    "",
+    "## Raw Request",
+    "",
+    goalProjection.original_goal,
+    "",
+    "## User / Customer",
+    "",
+    "The original requester and the product users whose needs Codex must derive from the project goal and later business facts.",
+    "",
+    "## Problem",
+    "",
+    "The product goal is recorded, but its business rules, complete scope, implementation slices, and verification obligations still need evidence-based derivation.",
+    "",
+    "## Desired Outcome",
+    "",
+    "Codex turns the original goal into a complete governed delivery path without delegating technical choices to the user.",
+    "",
+    "## Constraints",
+    "",
+    `- Preserve the original intent digest: \`${goalProjection.goal_digest}\`.`,
+    "- Derive technical architecture, baseline, task risk, implementation, and verification through IntentOS.",
+    "- Do not perform release, production, paid-service, destructive-data, or other real-world effects without exact consent when required.",
+    "",
+    "## Priority",
+    "",
+    "P1",
+    "",
+    "## Suggested Task Level",
+    "",
+    "L2",
+    "",
+    "## Intent Binding",
+    "",
+    `- Intent digest: \`${goalProjection.goal_digest}\``,
+    "- Source: original natural-language project request",
+    "- State: CURRENT",
+    "",
+    "## Governance",
+    "",
+    "Codex must derive the governed spec, eval, task, Business Rule Closure, Business Universe Coverage when required, Change Impact Coverage, implementation plan, verification, review, and finish evidence before claiming completion.",
+    "",
+    "This request records intent only. It does not authorize implementation, release, production, paid services, destructive data changes, or other real-world effects.",
+    "",
+  ].join("\n");
+  const queueContent = [
+    "# Work Queue: Initial Product Goal",
+    "",
+    "## Human Decision Summary",
+    "",
+    "Conclusion: The original product goal is the only current task.",
+    "",
+    "Recommended choice: Codex continues the current task through IntentOS.",
+    "",
+    "Can AI continue now: yes, subject to Task Governance and required evidence.",
+    "",
+    "What I need from you: none unless a business fact, product preference, external fact, or exact real-world consent is missing.",
+    "",
+    "What happens if you do nothing: the task remains current; no real-world action occurs.",
+    "",
+    "## Current Task",
+    "",
+    "| Task ID | Title | State | Request / task reference | Intent digest | Last evidence | Notes |",
+    "|---|---|---|---|---|---|---|",
+    `| \`001\` | ${title} | \`CURRENT\` | \`${requestPath}\` | \`${goalProjection.goal_digest}\` | \`${requestPath}\` | Derive the governed task chain from the original user goal. |`,
+    "",
+    "## Work Items",
+    "",
+    "| Task ID | Title | State | Task ref | Intent digest | Resume review | Owner | Notes |",
+    "|---|---|---|---|---|---|---|---|",
+    `| \`001\` | ${title} | \`CURRENT\` | \`${requestPath}\` | \`${goalProjection.goal_digest}\` | \`N/A\` | \`Codex\` | Governed intake awaiting automatic spec/eval/task derivation. |`,
+    "",
+    "## Human Decisions Needed",
+    "",
+    "None.",
+    "",
+    "## Boundary",
+    "",
+    "- This report changes task state: No",
+    "- This report approves implementation: No",
+    "- This report approves target-project writes: No",
+    "- This report approves scope expansion: No",
+    "- This report approves release or production: No",
+    "",
+    "## Outcome",
+    "",
+    "`WORK_QUEUE_RECORDED`",
+    "",
+  ].join("\n");
+  const additions = [
+    inlinePlanAction(requestPath, requestContent, "original goal request card"),
+    inlinePlanAction(queuePath, queueContent, "original goal Work Queue binding"),
+  ];
+  const receiptIndex = plan.actions.findIndex((action) => action.dynamicReceipt);
+  plan.actions.splice(receiptIndex < 0 ? plan.actions.length : receiptIndex, 0, ...additions);
+  for (const action of plan.actions) delete action.id;
+  assignPlanActionIds(plan.actions);
+  plan.receiptActionId = plan.actions.find((action) => action.dynamicReceipt)?.id || null;
+  plan.targetFingerprint = createTargetFingerprint(plan.targetRoot, plan.actions);
+  plan.expectedPreconditions = {
+    targetExists: fs.existsSync(plan.targetRoot),
+    fileHashes: plan.targetFingerprint.fileHashes,
+  };
+  plan.planDigest = planDigest(plan);
+}
+
+function inlinePlanAction(relativePath, content, reason) {
+  const encoded = Buffer.from(content).toString("base64");
+  const digest = sha256Content(content);
+  return {
+    type: "CREATE",
+    path: relativePath,
+    source: null,
+    inlineContentBase64: encoded,
+    reason,
+    willWrite: true,
+    hashBefore: null,
+    sourceHash: digest,
+    expectedHashAfter: digest,
+    executionSupported: true,
+  };
+}
+
+function markdownCell(value) {
+  return String(value || "Initial product goal").replaceAll("|", "\\|").replace(/\s+/g, " ").trim();
+}
+
+function bootstrapActionsFromPlan(plan) {
+  return plan.actions
+    .filter((action) => action.willWrite && !action.dynamicReceipt)
+    .map((action) => {
+      if (action.executionSupported !== true) throw new Error(`Bootstrap plan action ${action.id} is not executable`);
+      let content;
+      if (action.source) {
+        const source = resolveUnderRoot(kitRoot, action.source, `bootstrap source ${action.id}`);
+        if (sha256File(source) !== action.sourceHash) throw new Error(`Bootstrap source changed for ${action.id}`);
+        content = fs.readFileSync(source);
+      } else if (typeof action.inlineContentBase64 === "string") {
+        content = Buffer.from(action.inlineContentBase64, "base64");
+        if (sha256Content(content) !== action.sourceHash) throw new Error(`Bootstrap inline content changed for ${action.id}`);
+      } else {
+        throw new Error(`Bootstrap action ${action.id} has no exact replayable content`);
+      }
+      return { id: action.id, path: action.path, content };
+    });
+}
+
 function printNextSteps() {
   console.log("Next steps:");
   console.log("1. Tell Codex the product goal in plain language.");
@@ -3035,29 +3470,6 @@ function printNextSteps() {
 
 function isIgnorableNewProjectEntry(name) {
   return name === ".DS_Store" || name === ".localized";
-}
-
-function assertDirectInitTargetIsSafe(targetPath, options = {}) {
-  if (options.forceNewProject) return;
-  if (!fs.existsSync(targetPath)) return;
-  const lstat = fs.lstatSync(targetPath);
-  if (lstat.isSymbolicLink()) {
-    console.error(`Target must not be a symlink: ${targetPath}`);
-    process.exit(2);
-  }
-  const stat = fs.statSync(targetPath);
-  if (!stat.isDirectory()) {
-    console.error(`Target exists and is not a directory: ${targetPath}`);
-    console.error("Direct init is only allowed for a missing or empty directory.");
-    process.exit(2);
-  }
-  const meaningfulEntries = fs.readdirSync(targetPath).filter((entry) => !isIgnorableNewProjectEntry(entry));
-  if (meaningfulEntries.length === 0) return;
-  console.error(`Direct init refused because target is not empty: ${targetPath}`);
-  console.error(`Existing entries: ${meaningfulEntries.slice(0, 8).join(", ")}${meaningfulEntries.length > 8 ? ", ..." : ""}`);
-  console.error("Use --dry-run or --write-plan first for existing projects, then review and apply the plan.");
-  console.error("If this is intentionally a new project directory, rerun with --force-new-project.");
-  process.exit(2);
 }
 
 function assertExistingTargetRootIsSafe(targetPath) {
@@ -3084,11 +3496,11 @@ const applyPlanPath = args["apply-plan"];
 const approvalRecordPath = args["approval-record"];
 const readinessReportPath = args["readiness-report"];
 const backupDir = args["backup-dir"] || "";
-const forceNewProject = Boolean(args["force-new-project"]);
+const goal = args.goal || "";
 
 if (!target && !applyPlanPath) {
   console.error("Usage: node scripts/init-project.mjs --starter generic-project --target ../my-project");
-  console.error("       node scripts/init-project.mjs --starter generic-project --target ../my-project --force-new-project");
+  console.error("       node scripts/init-project.mjs --starter generic-project --target ../my-project --goal \"build an appointment app\"");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --dry-run");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --write-plan apply-execution-plans/init-update-plan.json");
@@ -3142,14 +3554,19 @@ if (applyPlanPath) {
     const planRelativePath = requireProjectLocalEvidencePath(plan.targetRoot, fullPlanPath, "execution plan");
     const approvalRelativePath = requireProjectLocalEvidencePath(plan.targetRoot, approvalRecord.fullPath, "approval record");
     const readinessRelativePath = requireProjectLocalEvidencePath(plan.targetRoot, readinessRecord.fullPath, "readiness report");
-    replayApprovedPlan(plan, {
+    const replayContext = {
       planRelativePath,
       approvalRelativePath,
       readinessRelativePath,
       approval: approvalRecord,
       readiness: readinessRecord,
       backupDir: planBackupDir,
-    });
+    };
+    if (plan.operation === "INIT_PROJECT" && plan.arguments?.projectEntryOrigin === "NEW_PROJECT") {
+      replayApprovedNewProjectPlan(plan, replayContext);
+    } else {
+      replayApprovedPlan(plan, replayContext);
+    }
   } catch (error) {
     console.error(error.message);
     process.exit(2);
@@ -3190,6 +3607,7 @@ const commonOptions = {
   baselineLevel,
   standardPacks,
   backupDir,
+  goal,
 };
 
 if (dryRun || writePlanPath) {
@@ -3199,6 +3617,12 @@ if (dryRun || writePlanPath) {
       ...commonOptions,
       update: updateWorkflowAssets,
     });
+    if (plan.operation === "INIT_PROJECT" && plan.arguments?.projectEntryOrigin === "NEW_PROJECT") {
+      if (!String(goal || "").trim()) {
+        throw new Error("New-project plan-first setup requires --goal with the original natural-language product request");
+      }
+      attachInitialGoalToPlan(plan, projectGoalProjection(goal));
+    }
   } catch (error) {
     console.error(`FAIL ${error.message}`);
     process.exit(2);
@@ -3224,5 +3648,32 @@ if (profiles || baselineLevel || standardPacks || industrialPacks || withIndustr
   process.exit(2);
 }
 
-assertDirectInitTargetIsSafe(targetPath, { forceNewProject });
-executeInit(targetPath, starter, commonOptions);
+if (args["force-new-project"]) {
+  console.error("--force-new-project was removed because it bypassed project-entry and rollback trust.");
+  console.error("Use the ordinary init command; IntentOS now derives and runs the controlled new-project setup automatically.");
+  process.exit(2);
+}
+
+const interruptedRecovery = recoverInterruptedBootstrap(targetPath);
+if (!interruptedRecovery.ok) {
+  console.error(`Interrupted project setup could not be recovered: ${(interruptedRecovery.errors || [interruptedRecovery.state]).join("; ")}`);
+  process.exit(2);
+}
+
+const directTopology = inspectTargetTopology(targetPath);
+if (!["ABSENT_LEAF", "EMPTY_DIRECTORY"].includes(directTopology.state)) {
+  console.error(`Direct new-project setup is not allowed for ${directTopology.state}.`);
+  console.error("IntentOS will treat a non-empty target as an existing project and use read-only adoption assessment before any controlled apply.");
+  process.exit(2);
+}
+if (!String(goal || "").trim()) {
+  console.error("IntentOS needs the product goal before creating a project.");
+  console.error("Tell Codex what you want the product to do in plain language; no project files were written.");
+  process.exit(2);
+}
+try {
+  executeControlledNewProjectSetup(targetPath, starter, commonOptions);
+} catch (error) {
+  console.error(`Controlled new-project setup failed: ${error.message}`);
+  process.exit(2);
+}

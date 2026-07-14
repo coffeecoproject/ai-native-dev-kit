@@ -6,7 +6,6 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { projectIdentity } from "./lib/evidence-authority.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import { hasProjectSignals } from "./lib/project-signals.mjs";
 import { buildSoloOperatingModel } from "./lib/solo-operating-model.mjs";
@@ -47,11 +46,14 @@ const state = buildOperatingState();
 
 if (outputFormat === "json") console.log(JSON.stringify(state, null, 2));
 else printHuman(state);
+if (state.outcome === "BLOCKED_BY_SOURCE_FAILURE") process.exitCode = 2;
 
 function buildOperatingState() {
   const workflowNext = runSource("WORKFLOW_NEXT", "scripts/workflow-next.mjs", [
     projectRoot,
     "--json",
+    "--intent",
+    intent || "inspect project state",
   ]);
   const guidance = runSource("WORKFLOW_GUIDANCE", "scripts/resolve-workflow-guidance.mjs", [
     projectRoot,
@@ -69,8 +71,19 @@ function buildOperatingState() {
     ? workflowNext.value.projectStateTags
     : [];
   const projectEntryOrigin = readProjectEntryOrigin(projectRoot);
-  const projectEntry = projectEntryFor(projectState, projectRoot, projectStateTags, projectEntryOrigin);
-  const operation = operationFor(intent, projectEntry);
+  const projectEntry = projectEntryFor(
+    projectState,
+    projectRoot,
+    projectStateTags,
+    projectEntryOrigin,
+    workflowNext.value?.projectFactProjection || null,
+  );
+  let operation = operationFor(intent, projectEntry);
+  const initialEntryTrust = workflowNext.value?.projectEntryTrust || null;
+  if (requiresActiveIntentOSOperation(operation)
+    && initialEntryTrust?.entry_state === "READY_FOR_READ_ONLY_ASSESSMENT") {
+    operation = "ADOPT_PROJECT";
+  }
   const sources = [workflowNext, guidance];
 
   if (intent) addOperationSources(sources, operation);
@@ -83,7 +96,10 @@ function buildOperatingState() {
   const release = sources.find((item) => item.name === "RELEASE_GUIDE")?.value || null;
   const adoption = sources.find((item) => item.name === "ADOPTION_AUTOPILOT")?.value || null;
   const currentGit = gitWorktreeState(projectRoot);
-  const sourceFailure = sources.some((item) => item.readStatus === "FAILED") || currentGit.observationStatus === "FAILED";
+  const projectEntryTrust = workflowNext.value?.projectEntryTrust || null;
+  const projectEntryTrustBlocked = Boolean(projectEntryTrust?.blockers?.length)
+    || !entryAllowsOperation(projectEntryTrust, operation);
+  const sourceFailure = sources.some((item) => item.readStatus === "FAILED") || currentGit.observationStatus === "FAILED" || projectEntryTrustBlocked;
   const dirtyWorktree = currentGit.isDirty
     || projectState === "DIRTY_WORKTREE_PROJECT"
     || projectStateTags.includes("DIRTY_WORKTREE_PROJECT");
@@ -128,6 +144,8 @@ function buildOperatingState() {
     evidenceTrace,
     sourceSystemTrace,
     projectIdentityProjection,
+    projectEntryTrust,
+    projectFactProjection: workflowNext.value?.projectFactProjection || null,
     selectedProfiles: workflowNext.value?.selectedProfiles || [],
   });
   const decisionResponsibility = operatingDecision.decisionResponsibility;
@@ -188,6 +206,28 @@ function buildOperatingState() {
     },
     outcome: operation === "FINISH_TASK" ? operatingState : sourceFailure ? "BLOCKED_BY_SOURCE_FAILURE" : operatingState,
   };
+}
+
+function requiresActiveIntentOSOperation(operation) {
+  return new Set(["CONTINUE_TASK", "RESUME_TASK"]).has(operation);
+}
+
+function isReadOnlyProjectOperation(operation) {
+  return new Set(["CHECK_STATUS", "FINISH_TASK", "PREPARE_RELEASE"]).has(operation);
+}
+
+function entryAllowsOperation(trust, operation) {
+  if (!trust?.entry_state) return false;
+  if (trust.entry_state === "BLOCKED_REPAIR_REQUIRED") return false;
+  if (["DISCUSS_ONLY", "ADOPT_PROJECT"].includes(operation)) return true;
+  if (isReadOnlyProjectOperation(operation)) {
+    return ["READY_FOR_READ_ONLY_ASSESSMENT", "READY_FOR_INTENTOS_OPERATION"].includes(trust.entry_state);
+  }
+  if (operation === "START_PROJECT") {
+    return ["READY_FOR_CONTROLLED_SETUP", "READY_FOR_INTENTOS_OPERATION"].includes(trust.entry_state);
+  }
+  if (requiresActiveIntentOSOperation(operation)) return trust.entry_state === "READY_FOR_INTENTOS_OPERATION";
+  return true;
 }
 
 function addOperationSources(sources, operation) {
@@ -399,7 +439,7 @@ function operationFor(value, projectEntry) {
   if (releaseSignal && implementationSignal) return "CONTINUE_TASK";
   if (/(?:准备|开始|执行|安排|帮我|我要|需要|可以|怎么|如何).{0,16}(?:发布|上线|提交审核)|(?:发布|上线).{0,12}(?:准备|计划|流程|执行|审核)|\b(?:prepare|start|perform|how to|ready for).{0,16}\b(?:release|deployment|publish)\b/.test(text)) return "PREPARE_RELEASE";
   const startSignal = explicitNewProject
-    || /\bbuild.{0,40}from scratch\b|\bi want to build\b|\bstart this project\b|(?:我想|帮我|请).{0,8}(?:创建|搭建|开发|做一个).{0,24}(?:app|应用|网站|系统)(?:\s|$|[，。,.!?！？])/.test(text);
+    || /\bbuild.{0,40}from scratch\b|\bi want to build\b|\bstart this project\b|^\s*(?:please\s+)?(?:build|create|develop|make|start)\s+(?:me\s+)?(?:an?\s+)?[^\n]{0,48}\b(?:app|application|website|site|system|service|tool)\b|(?:我想|帮我|请).{0,8}(?:创建|搭建|开发|做一个).{0,24}(?:app|应用|网站|系统)(?:\s|$|[，。,.!?！？])/.test(text);
   if (startSignal) return existingEntry && !explicitNewProject ? "CONTINUE_TASK" : "START_PROJECT";
   if (projectEntry === "NEW_PROJECT_ENTRY") {
     return fs.existsSync(path.join(projectRoot, ".intentos", "version.json")) ? "CONTINUE_TASK" : "START_PROJECT";
@@ -407,23 +447,27 @@ function operationFor(value, projectEntry) {
   return "CONTINUE_TASK";
 }
 
-function projectEntryFor(projectState, root, tags = [], projectEntryOrigin = "UNKNOWN_PROJECT_ORIGIN") {
-  if (tags.includes("PRODUCTION_GOVERNED_PROJECT")) return "PRODUCTION_SENSITIVE_ENTRY";
+function projectEntryFor(projectState, root, tags = [], projectEntryOrigin = "UNKNOWN_PROJECT_ORIGIN", projectFacts = null) {
+  const lifecycleState = String(projectFacts?.lifecycle?.state || "UNKNOWN");
+  const hasCurrentLifecycleProjection = lifecycleState !== "UNKNOWN";
+  if (lifecycleState === "PRODUCTION_ACTIVE") return "PRODUCTION_SENSITIVE_ENTRY";
   if (projectEntryOrigin === "NEW_PROJECT") return "NEW_PROJECT_ENTRY";
   if (projectEntryOrigin === "EXISTING_PROJECT") {
     if (tags.includes("GOVERNED_EXISTING_PROJECT")) return "GOVERNED_PROJECT_ENTRY";
     return "EXISTING_PROJECT_ENTRY";
   }
+  if (tags.includes("PRODUCTION_GOVERNED_PROJECT") && !hasCurrentLifecycleProjection) return "PRODUCTION_SENSITIVE_ENTRY";
   if (tags.includes("GOVERNED_EXISTING_PROJECT")) return "GOVERNED_PROJECT_ENTRY";
   if (projectState === "NEW_PROJECT" && hasProjectSignals(root)) return "EXISTING_PROJECT_ENTRY";
   const mapping = {
     NEW_PROJECT: "NEW_PROJECT_ENTRY",
+    NEW_PROJECT_TARGET: "NEW_PROJECT_ENTRY",
     BOOTSTRAPPED_PROJECT: "NEW_PROJECT_ENTRY",
     PARTIALLY_BOOTSTRAPPED_PROJECT: "EXISTING_PROJECT_ENTRY",
     EXISTING_PROJECT: "EXISTING_PROJECT_ENTRY",
     EXISTING_LIGHT_PROJECT: "EXISTING_PROJECT_ENTRY",
     EXISTING_GOVERNED_PROJECT: "GOVERNED_PROJECT_ENTRY",
-    PRODUCTION_SENSITIVE_PROJECT: "PRODUCTION_SENSITIVE_ENTRY",
+    PRODUCTION_SENSITIVE_PROJECT: hasCurrentLifecycleProjection ? "GOVERNED_PROJECT_ENTRY" : "PRODUCTION_SENSITIVE_ENTRY",
     DIRTY_WORKTREE_PROJECT: "EXISTING_PROJECT_ENTRY",
     INTENTOS_REPOSITORY: "INTENTOS_SOURCE_ENTRY",
   };
@@ -590,69 +634,50 @@ function lifecyclePhaseFor(operation) {
 
 function buildProjectIdentityProjection(context) {
   const workflow = context.workflowNext.value || {};
-  const guidance = context.guidance.value || {};
-  const evidenceIdentity = projectIdentity(projectRoot);
-  const git = context.currentGit;
+  const facts = workflow.projectFactProjection || {};
+  const evidenceIdentity = facts.project_identity || { kind: "UNKNOWN", fingerprint: "", revision: "" };
   const projectKind = projectKindForEntry(context.projectEntry);
-  const governancePosture = governancePostureFor(context.projectEntry, context.projectStateTags, workflow.governanceSignals);
-  const productionPosture = productionPostureFor(projectKind, governancePosture, context.projectStateTags, workflow.governanceSignals);
-  const worktreePosture = git.observationStatus === "FAILED"
+  const governanceState = String(facts.governance_authority_posture?.state || "UNKNOWN");
+  const governancePosture = projectKind === "NEW_PROJECT"
+    ? "NOT_ESTABLISHED"
+    : projectKind === "INTENTOS_SOURCE"
+      ? "INTENTOS_SOURCE_GOVERNANCE"
+      : governanceState === "DECLARED_STRONG_GOVERNED"
+        ? "PRODUCTION_GOVERNED"
+        : governanceState === "DECLARED_GOVERNED" ? "GOVERNED"
+          : governanceState === "LIGHT" ? "LIGHT_GOVERNANCE" : "UNKNOWN";
+  const lifecycle = facts.lifecycle || { state: "UNKNOWN", confidence: "UNKNOWN" };
+  const productionPosture = lifecycle.state === "PRODUCTION_ACTIVE"
+    ? lifecycle.confidence === "DECLARED" ? "POSSIBLE_PRODUCTION" : "PRODUCTION_SENSITIVE"
+    : projectKind === "NEW_PROJECT" ? "NOT_ESTABLISHED" : projectKind === "INTENTOS_SOURCE" ? "NOT_APPLICABLE" : "NOT_ASSESSED";
+  const git = facts.current_work_continuity?.git || {};
+  const worktreePosture = git.observation_status === "FAILED"
     ? "UNKNOWN"
-    : git.isGitRepository ? (git.isDirty ? "DIRTY" : "CLEAN") : "NON_GIT";
-  const conflicts = projectIdentityConflicts({
-    projectKind,
-    entryState: context.projectEntry,
-    guidanceProjectState: guidance.projectReading?.projectState,
-    governancePosture,
-    productionPosture,
-    evidenceIdentity,
-    git,
-    governanceSignals: workflow.governanceSignals,
-  });
+    : git.mode === "GIT" ? ((git.changed_paths || []).length > 0 ? "DIRTY" : "CLEAN") : "NON_GIT";
+  const conflicts = (facts.conflicts || []).map((item) => item.reason || item.conflict_id).filter(Boolean);
   const projectionStatus = context.sourceFailure
     ? "BLOCKED_BY_SOURCE_READ"
     : projectKind === "UNKNOWN_PROJECT" ? "UNKNOWN"
       : conflicts.length > 0 ? "CONFLICTED" : "CURRENT";
-  const confidence = confidenceForProjection({
-    projectionStatus,
-    projectKind,
-    governancePosture,
-    platformBaselineState: workflow.platformBaselineState,
-  });
+  const confidence = projectionStatus !== "CURRENT" ? "LOW" : facts.projection_digest ? "HIGH" : "LOW";
   const sourceInputs = [
-    ...[context.workflowNext, context.guidance].map(({ name, ref, outcome, readStatus, semanticDigest }) => ({
-      sourceSystem: name,
-      ref,
-      outcome,
-      readStatus,
-      semanticDigest,
-    })),
     {
-      sourceSystem: "EVIDENCE_AUTHORITY",
-      ref: "current:project-identity",
-      outcome: evidenceIdentity.kind,
-      readStatus: git.observationStatus === "FAILED" ? "FAILED" : "CURRENT_RUN",
-      semanticDigest: `sha256:${sha256(JSON.stringify(evidenceIdentity))}`,
-    },
-    {
-      sourceSystem: "LOCAL_GIT_STATE",
-      ref: "current:project-worktree",
-      outcome: worktreePosture,
-      readStatus: "CURRENT_RUN",
-      semanticDigest: `sha256:${sha256(JSON.stringify({
-        isGitRepository: git.isGitRepository,
-        isDirty: git.isDirty,
-        changedFileCount: git.changedFileCount,
-        changedFilesDigest: git.changedFilesDigest,
-        observationStatus: git.observationStatus,
-      }))}`,
+      sourceSystem: "PROJECT_FACT_PROJECTION",
+      ref: "workflow-next:projectFactProjection",
+      outcome: facts.projection_digest ? "CURRENT" : "MISSING",
+      readStatus: facts.projection_digest ? "CURRENT_RUN" : "FAILED",
+      semanticDigest: String(facts.projection_digest || "N/A"),
     },
   ];
+  const authoritySources = facts.authority_inventory?.sources || [];
+  const productionRefs = authoritySources
+    .filter((item) => /release|rollback|production|deploy/i.test(String(item.source_ref || "")))
+    .map((item) => item.source_ref);
   const observedSignals = {
-    governanceSignalCount: arrayValue(workflow.governanceSignals?.basicSignals).length,
-    productionSignalCount: arrayValue(workflow.governanceSignals?.productionSignals).length,
-    governanceRefs: arrayValue(workflow.governanceSignals?.basicSignals).sort().slice(0, 12),
-    productionRefs: arrayValue(workflow.governanceSignals?.productionSignals).sort().slice(0, 12),
+    governanceSignalCount: authoritySources.length,
+    productionSignalCount: productionRefs.length,
+    governanceRefs: authoritySources.map((item) => item.source_ref).sort().slice(0, 12),
+    productionRefs: productionRefs.sort().slice(0, 12),
   };
   const intentosPosture = {
     workflowState: String(workflow.workflowState || "UNKNOWN"),
@@ -670,7 +695,7 @@ function buildProjectIdentityProjection(context) {
     selectedIndustrialPacks: arrayValue(workflow.selectedIndustrialPacks).sort(),
   };
   const digestPayload = {
-    contractVersion: "1.98.1",
+    contractVersion: "1.109.0",
     projectKind,
     entryState: context.projectEntry,
     governancePosture,
@@ -686,7 +711,7 @@ function buildProjectIdentityProjection(context) {
     sourceInputs,
   };
   return {
-    contractVersion: "1.98.1",
+    contractVersion: "1.109.0",
     derivedOnly: "Yes",
     grantsAuthority: "No",
     writesProjectFiles: "No",
@@ -764,11 +789,6 @@ function projectIdentityConflicts(context) {
   }
   if (context.projectKind === "NEW_PROJECT" && arrayValue(context.governanceSignals?.basicSignals).length > 0) {
     conflicts.push("New-project entry conflicts with observed project-owned governance signals");
-  }
-  const guidanceProduction = String(context.guidanceProjectState || "") === "PRODUCTION_SENSITIVE_PROJECT";
-  const projectedProduction = context.productionPosture === "PRODUCTION_SENSITIVE";
-  if (guidanceProduction !== projectedProduction && context.projectKind === "EXISTING_PROJECT") {
-    conflicts.push(`Workflow Guidance production posture (${guidanceProduction ? "sensitive" : "not-sensitive"}) disagrees with observed project production posture (${context.productionPosture})`);
   }
   if (context.productionPosture === "PRODUCTION_SENSITIVE"
     && arrayValue(context.governanceSignals?.productionSignals).length === 0) {

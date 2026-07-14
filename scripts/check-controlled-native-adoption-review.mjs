@@ -242,24 +242,24 @@ function checkStructuredEvidence(content, label, file, evidence) {
 function checkMaturityMatrix(label, maturity, maturityDepth, recommendationClass, outcome, evidence) {
   const matrix = {
     STRONG_GOVERNED_PROJECT: {
-      classes: ["KEEP_PARTIAL_ADOPTION"],
-      outcomes: ["RECOMMEND_STAY_PARTIAL"],
+      classes: ["SELECTED_NATIVE_OVERLAY_PLAN"],
+      outcomes: ["READY_FOR_SELECTED_NATIVE_OVERLAY_PLAN"],
     },
     WEAK_GOVERNANCE_PROJECT: {
-      classes: ["GOVERNANCE_REPAIR_THEN_SELECTED_NATIVE_PLAN"],
-      outcomes: ["RECOMMEND_GOVERNANCE_REPAIR"],
+      classes: ["GOVERNANCE_REPAIR_THEN_SELECTED_OVERLAY_PLAN"],
+      outcomes: ["READY_FOR_GOVERNANCE_REPAIR_AND_OVERLAY_PLAN"],
     },
     MESSY_PRODUCTION_PROJECT: {
-      classes: ["GOVERNANCE_REPAIR_ONLY"],
-      outcomes: ["RECOMMEND_GOVERNANCE_REPAIR"],
+      classes: ["GOVERNANCE_REPAIR_THEN_SELECTED_OVERLAY_PLAN"],
+      outcomes: ["READY_FOR_GOVERNANCE_REPAIR_AND_OVERLAY_PLAN"],
     },
     LIGHT_LOW_RISK_PROJECT: {
-      classes: ["SELECTED_NATIVE_PLAN_ONLY"],
-      outcomes: ["READY_FOR_SELECTED_NATIVE_PLAN_ONLY"],
+      classes: ["SELECTED_NATIVE_OVERLAY_PLAN"],
+      outcomes: ["READY_FOR_SELECTED_NATIVE_OVERLAY_PLAN"],
     },
     UNKNOWN_OR_OWNERLESS_PROJECT: {
-      classes: ["BLOCK_NATIVE_ADOPTION"],
-      outcomes: ["BLOCKED_BY_PROJECT_AUTHORITY"],
+      classes: ["AUTHORITY_RECONCILIATION_THEN_SELECTED_OVERLAY_PLAN"],
+      outcomes: ["READY_FOR_AUTHORITY_RECONCILIATION"],
     },
     DIRTY_OR_UNSAFE_PROJECT: {
       classes: ["BLOCK_NATIVE_ADOPTION"],
@@ -304,11 +304,11 @@ function checkSourceBlockers(label, evidence) {
   }
   if (hasAuthority && !hasDirty) {
     if (evidence.governance_maturity?.state === "UNKNOWN_OR_OWNERLESS_PROJECT"
-      && evidence.adoption_recommendation?.recommendation_class === "BLOCK_NATIVE_ADOPTION"
-      && evidence.outcome === "BLOCKED_BY_PROJECT_AUTHORITY") {
-      pass(`${label} project-authority source blocker drives authority blocked recommendation`);
+      && evidence.adoption_recommendation?.recommendation_class === "AUTHORITY_RECONCILIATION_THEN_SELECTED_OVERLAY_PLAN"
+      && evidence.outcome === "READY_FOR_AUTHORITY_RECONCILIATION") {
+      pass(`${label} project-authority source blocker drives read-only authority reconciliation`);
     } else {
-      fail(`${label} project-authority source blocker must drive UNKNOWN_OR_OWNERLESS_PROJECT and BLOCKED_BY_PROJECT_AUTHORITY`);
+      fail(`${label} project-authority source blocker must drive UNKNOWN_OR_OWNERLESS_PROJECT and READY_FOR_AUTHORITY_RECONCILIATION`);
     }
   }
 }

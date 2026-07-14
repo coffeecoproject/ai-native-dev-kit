@@ -55,6 +55,21 @@
         "release_plan": { "$ref": "#/$defs/sourceSystem" }
       }
     },
+    "same_run_source_chain": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["envelope_id", "envelope_digest", "run_id", "sequence", "evidence_type"],
+        "properties": {
+          "envelope_id": { "type": "string", "minLength": 1 },
+          "envelope_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "run_id": { "type": "string", "minLength": 1 },
+          "sequence": { "type": "integer" },
+          "evidence_type": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "dimensions": {
       "type": "array",
       "minItems": 9,
@@ -97,7 +112,7 @@
               "NO_ACTION"
             ]
           },
-          "human_decision_required": { "const": "Yes" },
+          "human_decision_required": { "enum": ["Yes", "No"] },
           "write_requires_apply_plan": { "const": "Yes" }
         }
       }

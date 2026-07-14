@@ -6,6 +6,8 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { evidenceDigest } from "../scripts/lib/artifact-schema.mjs";
+
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const kitRoot = path.resolve(testDir, "..");
 
@@ -13,15 +15,15 @@ function runNode(args) {
   return spawnSync(process.execPath, args, {
     cwd: kitRoot,
     encoding: "utf8",
-    timeout: 60_000,
+    timeout: 180_000,
     maxBuffer: 1024 * 1024 * 32,
   });
 }
 
-function runWork(root, intent, extraArgs = []) {
+function runWork(root, intent, extraArgs = [], options = {}) {
   const intentArgs = intent ? ["--intent", intent] : [];
   const result = runNode(["scripts/resolve-operating-loop.mjs", root, ...intentArgs, ...extraArgs, "--json"]);
-  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  assert.equal(result.status, options.expectedStatus ?? 0, `${result.stdout}\n${result.stderr}`);
   const report = JSON.parse(result.stdout);
   assert.equal(report.schemaVersion, "1.99.0");
   assert.equal(report.operatingDecision.contractVersion, "1.99.0");
@@ -34,13 +36,15 @@ function runWork(root, intent, extraArgs = []) {
   assert.equal(report.decisionResponsibility.internalRoleSelectionRequiredFromUser, "No");
   assert.equal(report.decisionResponsibility.domainsArePeople, "No");
   assert.match(report.decisionResponsibility.responsibilityDigest, /^sha256:[a-f0-9]{64}$/);
-  assert.equal(report.projectIdentityProjection.contractVersion, "1.98.1");
+  assert.equal(report.projectIdentityProjection.contractVersion, "1.109.0");
   assert.equal(report.projectIdentityProjection.derivedOnly, "Yes");
   assert.equal(report.projectIdentityProjection.grantsAuthority, "No");
   assert.equal(report.projectIdentityProjection.writesProjectFiles, "No");
   assert.match(report.projectIdentityProjection.projectionDigest, /^sha256:[a-f0-9]{64}$/);
-  assert.match(report.projectIdentityProjection.evidenceIdentity.fingerprint, /^sha256:[a-f0-9]{64}$/);
-  assert.ok(report.projectIdentityProjection.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest)));
+  if ((options.expectedStatus ?? 0) === 0) {
+    assert.match(report.projectIdentityProjection.evidenceIdentity.fingerprint, /^sha256:[a-f0-9]{64}$/);
+    assert.ok(report.projectIdentityProjection.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest)));
+  }
   assert.ok(report.humanSummary.projectIdentity);
   assert.equal(report.humanSummary.nextSafeAction, report.operatingDecision.plainAction);
   assert.equal(report.humanSummary.technicalDecisionRequiredFromUser, "No");
@@ -66,7 +70,43 @@ function makeExistingProject(root) {
   fs.writeFileSync(path.join(root, "src/index.js"), "export const ready = true;\n");
 }
 
+let trustedProjectTemplate = "";
+
+test.after(() => {
+  if (trustedProjectTemplate) fs.rmSync(trustedProjectTemplate, { recursive: true, force: true });
+});
+
+function makeTrustedProject(root) {
+  if (!trustedProjectTemplate) {
+    trustedProjectTemplate = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-operating-trusted-template-"));
+    const initialized = spawnSync(process.execPath, [
+      path.join(kitRoot, "scripts/init-project.mjs"),
+      "--target", trustedProjectTemplate,
+      "--starter", "generic-project",
+      "--goal", "build a local test project",
+    ], {
+      cwd: kitRoot,
+      encoding: "utf8",
+      timeout: 180_000,
+      maxBuffer: 1024 * 1024 * 100,
+    });
+    assert.equal(initialized.status, 0, `${initialized.stdout}\n${initialized.stderr}`);
+  }
+
+  fs.cpSync(trustedProjectTemplate, root, { recursive: true, force: true });
+  const receiptFile = path.join(root, ".intentos", "bootstrap-receipt.json");
+  const receipt = JSON.parse(fs.readFileSync(receiptFile, "utf8"));
+  receipt.target_root = fs.realpathSync(root);
+  const { receipt_digest: _digest, receipt_ref: _ref, ...base } = receipt;
+  receipt.receipt_digest = evidenceDigest(base, []);
+  fs.writeFileSync(receiptFile, `${JSON.stringify(receipt, null, 2)}\n`);
+  fs.mkdirSync(path.join(root, "src"), { recursive: true });
+  fs.writeFileSync(path.join(root, "src/index.js"), "export const ready = true;\n");
+}
+
 function makeCurrentWorkQueue(root, taskId = "TASK-001", title = "Current test task") {
+  fs.rmSync(path.join(root, "work-queue"), { recursive: true, force: true });
+  fs.rmSync(path.join(root, "active-work-threads"), { recursive: true, force: true });
   fs.mkdirSync(path.join(root, "work-queue"), { recursive: true });
   fs.writeFileSync(path.join(root, "work-queue/current.md"), [
     "# Work Queue", "", "| Task ID | Title | State | Evidence | Resume Review | Notes |", "|---|---|---|---|---|---|",
@@ -106,13 +146,27 @@ test("new project goal enters the shared operating loop through START_PROJECT", 
   assert.equal(report.boundaries.writesTargetFiles, "No");
 }));
 
-test("existing project normal task uses CONTINUE_TASK without forcing high governance", () => withRoot("intentos-operating-existing-", (root) => {
+test("unbootstrapped existing project normal task enters adoption review", () => withRoot("intentos-operating-existing-", (root) => {
   makeExistingProject(root);
   makeCurrentWorkQueue(root);
   const report = runWork(root, "修改首页按钮文案");
   assert.match(report.projectEntry.state, /EXISTING_PROJECT_ENTRY|GOVERNED_PROJECT_ENTRY/);
   assert.equal(report.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
-  assert.equal(report.projectIdentityProjection.governancePosture, "LIGHT_GOVERNANCE");
+  assert.equal(report.projectIdentityProjection.governancePosture, "GOVERNED");
+  assert.equal(report.projectIdentityProjection.evidenceIdentity.kind, "NON_GIT");
+  assert.equal(report.operatingLoop.operation, "ADOPT_PROJECT");
+  assert.equal(report.operatingDecision.actionCode, "RUN_ADOPTION_REVIEW");
+  assert.equal(report.operatingDecision.materialActionAuthorized, "No");
+  assert.equal(report.operatingDecision.canCodexContinueReadOnly, "Yes");
+}));
+
+test("trusted initialized project normal task uses CONTINUE_TASK without forcing high governance", () => withRoot("intentos-operating-trusted-", (root) => {
+  makeTrustedProject(root);
+  makeCurrentWorkQueue(root);
+  const report = runWork(root, "修改首页按钮文案");
+  assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
+  assert.equal(report.projectIdentityProjection.projectKind, "NEW_PROJECT");
+  assert.equal(report.projectIdentityProjection.governancePosture, "NOT_ESTABLISHED");
   assert.equal(report.projectIdentityProjection.evidenceIdentity.kind, "NON_GIT");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
@@ -137,7 +191,7 @@ test("existing project adoption is a project-entry review and remains read-only"
 }));
 
 test("release preparation remains automatic while real-world consent stays explicit", () => withRoot("intentos-operating-release-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   const report = runWork(root, "准备发布内部测试版本");
   assert.equal(report.operatingLoop.operation, "PREPARE_RELEASE");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_RELEASE_REVIEW");
@@ -149,7 +203,7 @@ test("release preparation remains automatic while real-world consent stays expli
 }));
 
 test("permission task remains a technical responsibility domain instead of a people-selection task", () => withRoot("intentos-operating-permission-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   fs.writeFileSync(
     path.join(root, "src/administrator-permission.js"),
@@ -166,7 +220,10 @@ test("permission task remains a technical responsibility domain instead of a peo
 }));
 
 test("continuation without a durable current Work Queue item stops before implementation review", () => withRoot("intentos-operating-no-queue-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
+  fs.rmSync(path.join(root, "work-queue"), { recursive: true, force: true });
+  fs.rmSync(path.join(root, "tasks"), { recursive: true, force: true });
+  fs.rmSync(path.join(root, "active-work-threads"), { recursive: true, force: true });
   const report = runWork(root, "修改首页按钮文案");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingLoop.state, "NEEDS_WORK_QUEUE");
@@ -174,7 +231,9 @@ test("continuation without a durable current Work Queue item stops before implem
 }));
 
 test("multiple CURRENT Work Queue items fail closed", () => withRoot("intentos-operating-queue-conflict-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
+  fs.rmSync(path.join(root, "work-queue"), { recursive: true, force: true });
+  fs.rmSync(path.join(root, "active-work-threads"), { recursive: true, force: true });
   fs.mkdirSync(path.join(root, "work-queue"), { recursive: true });
   fs.writeFileSync(path.join(root, "work-queue/current.md"), [
     "# Work Queue", "", "| Task ID | Title | State |", "|---|---|---|",
@@ -186,7 +245,7 @@ test("multiple CURRENT Work Queue items fail closed", () => withRoot("intentos-o
 }));
 
 test("a clearly different goal does not silently continue the current task", () => withRoot("intentos-operating-task-switch-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root, "TASK-BOOKING", "完善预约时间校验");
   const switched = runWork(root, "新增财务发票导出功能");
   assert.equal(switched.operatingLoop.operation, "CONTINUE_TASK");
@@ -222,7 +281,7 @@ test("Work Queue preserves canonical task identity and exposes active-thread con
 }));
 
 test("discussion, resume, compound release implementation, and scoped no-database language route explicitly", () => withRoot("intentos-operating-routing-hardening-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   assert.equal(runWork(root, "先沟通一下，不要改代码").operatingLoop.operation, "DISCUSS_ONLY");
   assert.equal(runWork(root, "先看一下这个内容").operatingLoop.operation, "DISCUSS_ONLY");
   assert.equal(runWork(root, "只查看这个方案").operatingLoop.operation, "DISCUSS_ONLY");
@@ -252,7 +311,7 @@ test("Closure cannot authorize DONE from fuzzy intent text without canonical tas
 });
 
 test("BL2 project still permits a genuinely low task classification", () => withRoot("intentos-operating-bl2-low-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   fs.mkdirSync(path.join(root, "docs"), { recursive: true });
   fs.writeFileSync(path.join(root, "docs/baseline-selection.md"), [
     "# Baseline Selection", "", "## Baseline Level", "", "BL2_INDUSTRIAL", "",
@@ -265,13 +324,7 @@ test("BL2 project still permits a genuinely low task classification", () => with
 }));
 
 test("initialized new project continues later tasks instead of restarting project entry", () => withRoot("intentos-operating-initialized-", (root) => {
-  makeExistingProject(root);
-  fs.mkdirSync(path.join(root, ".intentos"), { recursive: true });
-  fs.writeFileSync(path.join(root, ".intentos/version.json"), JSON.stringify({
-    intentOSVersion: "1.95.0",
-    starter: "generic-project",
-    projectEntryOrigin: "NEW_PROJECT",
-  }, null, 2));
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   const report = runWork(root, "继续完成预约规则");
   assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
@@ -280,7 +333,7 @@ test("initialized new project continues later tasks instead of restarting projec
 }));
 
 test("business nouns do not hijack task routing", () => withRoot("intentos-operating-route-conflicts-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   for (const intent of [
     "接入微信支付",
     "新增订单状态字段",
@@ -292,7 +345,7 @@ test("business nouns do not hijack task routing", () => withRoot("intentos-opera
 }));
 
 test("dirty worktree stops before task continuation", () => withRoot("intentos-operating-dirty-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   runGit(root, ["init"]);
   runGit(root, ["config", "user.email", "intentos-test@example.invalid"]);
   runGit(root, ["config", "user.name", "IntentOS Test"]);
@@ -322,7 +375,9 @@ test("controlled plan records existing-project entry origin", () => withRoot("in
   assert.equal(version.projectEntryOrigin, "EXISTING_PROJECT");
   fs.mkdirSync(path.join(root, ".intentos"), { recursive: true });
   fs.writeFileSync(path.join(root, ".intentos/version.json"), `${JSON.stringify(version, null, 2)}\n`);
-  assert.notEqual(runWork(root, "继续完成预约规则").projectEntry.state, "NEW_PROJECT_ENTRY");
+  const blocked = runWork(root, "继续完成预约规则", [], { expectedStatus: 2 });
+  assert.notEqual(blocked.projectEntry.state, "NEW_PROJECT_ENTRY");
+  assert.equal(blocked.outcome, "BLOCKED_BY_SOURCE_FAILURE");
 }));
 
 test("English intent receives an English human summary", () => withRoot("intentos-operating-english-", (root) => {
@@ -337,43 +392,47 @@ test("English intent receives an English human summary", () => withRoot("intento
   assert.doesNotMatch(result.stdout, /当前工作状态|需要你决定/);
 }));
 
-test("production signals override original new-project entry without changing task impact", () => withRoot("intentos-operating-production-origin-", (root) => {
-  makeExistingProject(root);
-  fs.mkdirSync(path.join(root, ".intentos"), { recursive: true });
+test("production vocabulary does not override original new-project entry or task impact", () => withRoot("intentos-operating-production-origin-", (root) => {
+  makeTrustedProject(root);
   fs.mkdirSync(path.join(root, ".github", "workflows"), { recursive: true });
   fs.mkdirSync(path.join(root, "docs", "runbooks"), { recursive: true });
-  fs.writeFileSync(path.join(root, ".intentos/version.json"), JSON.stringify({
-    intentOSVersion: "1.95.0",
-    starter: "generic-project",
-    projectEntryOrigin: "NEW_PROJECT",
-  }, null, 2));
   fs.writeFileSync(path.join(root, ".github/workflows/release.yml"), "name: production release\n");
   fs.writeFileSync(path.join(root, "docs/runbooks/release.md"), "# Production release runbook\n");
   fs.writeFileSync(path.join(root, "Dockerfile"), "FROM scratch\n");
   makeCurrentWorkQueue(root);
   const report = runWork(root, "修正文档中的一个错别字");
-  assert.equal(report.projectEntry.state, "PRODUCTION_SENSITIVE_ENTRY");
-  assert.equal(report.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
-  assert.equal(report.projectIdentityProjection.governancePosture, "PRODUCTION_GOVERNED");
-  assert.equal(report.projectIdentityProjection.productionPosture, "PRODUCTION_SENSITIVE");
+  assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
+  assert.equal(report.projectIdentityProjection.projectKind, "NEW_PROJECT");
+  assert.equal(report.projectIdentityProjection.governancePosture, "NOT_ESTABLISHED");
+  assert.equal(report.projectIdentityProjection.productionPosture, "NOT_ESTABLISHED");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
-  assert.equal(report.operatingLoop.state, "READY_FOR_PROJECT_GOVERNED_WORK_REVIEW");
-  assert.equal(report.operatingDecision.actionCode, "PREPARE_IMPLEMENTATION_REVIEW");
+  assert.equal(report.operatingLoop.state, "READY_FOR_LIGHTWEIGHT_WORK_REVIEW");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW");
 }));
 
 test("controlled plan records new-project entry origin", () => withRoot("intentos-operating-new-plan-origin-", (root) => {
   const target = path.join(root, "new-project");
+  fs.mkdirSync(target);
   const planPath = path.join(target, "apply-execution-plans", "new-project-plan.json");
-  const result = runNode(["scripts/init-project.mjs", "--target", target, "--write-plan", path.relative(target, planPath)]);
+  const goal = "build a governed appointment application";
+  const result = runNode([
+    "scripts/init-project.mjs",
+    "--target", target,
+    "--goal", goal,
+    "--write-plan", path.relative(target, planPath),
+  ]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
   const versionAction = plan.actions.find((item) => item.path === ".intentos/version.json");
   const version = JSON.parse(Buffer.from(versionAction.inlineContentBase64, "base64").toString("utf8"));
+  assert.equal(plan.arguments.projectEntryOrigin, "NEW_PROJECT");
+  assert.equal(plan.arguments.goal, goal);
+  assert.match(plan.arguments.goalDigest, /^sha256:[a-f0-9]{64}$/);
   assert.equal(version.projectEntryOrigin, "NEW_PROJECT");
 }));
 
 test("finish without valid completion evidence cannot report done", () => withRoot("intentos-operating-finish-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   const report = runWork(root, "这个任务做完了吗");
   assert.equal(report.operatingLoop.operation, "FINISH_TASK");
@@ -386,7 +445,7 @@ test("finish without valid completion evidence cannot report done", () => withRo
 test("source failure is visible and blocks the operating state", () => withRoot("intentos-operating-source-fail-", (root) => {
   const targetFile = path.join(root, "not-a-project-directory");
   fs.writeFileSync(targetFile, "not a directory\n");
-  const report = runWork(targetFile, "继续任务");
+  const report = runWork(targetFile, "继续任务", [], { expectedStatus: 2 });
   assert.equal(report.outcome, "BLOCKED_BY_SOURCE_FAILURE");
   assert.equal(report.projectIdentityProjection.projectionStatus, "BLOCKED_BY_SOURCE_READ");
   assert.equal(report.projectIdentityProjection.confidence, "LOW");
@@ -420,7 +479,7 @@ test("missing goal selects one user-input decision", () => withRoot("intentos-op
 }));
 
 test("possible-high task selects read-only risk inspection", () => withRoot("intentos-operating-possible-high-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   const report = runWork(root, "调整预约限制规则");
   assert.equal(report.operatingLoop.taskImpact, "POSSIBLE_HIGH");
@@ -430,7 +489,7 @@ test("possible-high task selects read-only risk inspection", () => withRoot("int
 }));
 
 test("medium task selects targeted implementation-review preparation", () => withRoot("intentos-operating-medium-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   fs.writeFileSync(
     path.join(root, "src/local-panel.js"),
@@ -443,7 +502,7 @@ test("medium task selects targeted implementation-review preparation", () => wit
 }));
 
 test("medium selection behavior pauses for bounded omission-risk inspection", () => withRoot("intentos-operating-medium-inspection-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   const report = runWork(root, "调整局部列表筛选展示");
   assert.equal(report.operatingLoop.taskImpact, "MEDIUM");
@@ -453,7 +512,7 @@ test("medium selection behavior pauses for bounded omission-risk inspection", ()
 }));
 
 test("evidenced medium shared behavior prepares Business Universe before Business Rule", () => withRoot("intentos-operating-medium-universe-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   fs.writeFileSync(
     path.join(root, "src/member-guest-list.js"),
@@ -466,7 +525,7 @@ test("evidenced medium shared behavior prepares Business Universe before Busines
 }));
 
 test("high task selects the first authoritative governance prerequisite", () => withRoot("intentos-operating-high-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   fs.writeFileSync(
     path.join(root, "src/administrator-permission.js"),
@@ -480,7 +539,7 @@ test("high task selects the first authoritative governance prerequisite", () => 
 }));
 
 test("external policy facts block only the dependent claim and never become a technical-choice prompt", () => withRoot("intentos-operating-external-fact-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root, "TASK-TAX", "实现税务发票规则");
   const report = runWork(root, "实现税务发票规则并满足当地合规要求");
   assert.equal(report.decisionResponsibility.userResponsibilityClass, "EXTERNAL_FACT_NEEDED");
@@ -491,7 +550,7 @@ test("external policy facts block only the dependent claim and never become a te
 }));
 
 test("zero-experience solo model never requires multiple internal people", () => withRoot("intentos-operating-solo-roles-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   makeCurrentWorkQueue(root, "TASK-SAFE-RELEASE", "升级权限数据并准备发布");
   const report = runWork(root, "升级权限数据并准备正式发布");
   assert.deepEqual(report.decisionResponsibility.responsibilityDomains.sort(), ["ACCESS_CONTROL", "DATA_SAFETY", "ENGINEERING", "RELEASE_SAFETY"].sort());
@@ -501,7 +560,7 @@ test("zero-experience solo model never requires multiple internal people", () =>
 }));
 
 test("real-world effects are expressed as consent to impact, not approval of a technical strategy", () => withRoot("intentos-operating-real-world-consent-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   const report = runWork(root, "现在部署到生产环境并向真实用户发送通知");
   assert.equal(report.operatingLoop.operation, "PREPARE_RELEASE");
   assert.equal(report.decisionResponsibility.userResponsibilityClass, "REAL_WORLD_CONSENT_NEEDED");
@@ -526,7 +585,7 @@ test("legacy closure cannot report completion without strict Completion Evidence
 });
 
 test("decision digest is stable across repeated reads with unchanged semantic inputs", () => withRoot("intentos-operating-digest-", (root) => {
-  makeExistingProject(root);
+  makeTrustedProject(root);
   const first = runWork(root, "修正文档中的一个错别字");
   const second = runWork(root, "修正文档中的一个错别字");
   assert.equal(first.operatingDecision.decisionDigest, second.operatingDecision.decisionDigest);

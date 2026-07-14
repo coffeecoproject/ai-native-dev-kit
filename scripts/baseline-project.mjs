@@ -34,6 +34,20 @@ if (!new Set(["human", "json"]).has(outputFormat)) {
 
 const projectRoot = path.resolve(process.cwd(), String(args.target || args._[0] || "."));
 const workflow = runWorkflowNext(projectRoot);
+if (workflow.sourceExitCode !== 0 || workflow.projectEntryTrust?.entry_state === "BLOCKED_REPAIR_REQUIRED") {
+  const blocked = {
+    reportType: "BASELINE_RECOMMENDATION",
+    readOnly: true,
+    outcome: "BLOCKED_BY_PROJECT_ENTRY_TRUST",
+    projectRoot,
+    sourceExitCode: workflow.sourceExitCode,
+    error: workflow.error || workflow.projectEntryTrust?.blockers?.join(", ") || "project entry trust is blocked",
+    canAiWriteNow: "No",
+  };
+  if (outputFormat === "json") console.log(JSON.stringify(blocked, null, 2));
+  else console.error(`FAIL ${blocked.error}`);
+  process.exit(2);
+}
 const recommendation = buildRecommendation(projectRoot, workflow);
 
 if (args["write-plan"]) {
@@ -54,7 +68,7 @@ if (args["write-plan"]) {
   fs.writeFileSync(planPath, `${JSON.stringify(plan, null, 2)}\n`);
   recommendation.planWritten = {
     path: planPath,
-    writesTargetProject: "No",
+    writesTargetProject: "Yes",
     applyCommand: "N/A - proposal only; convert selected actions into an init-project controlled execution plan",
   };
 }
@@ -66,13 +80,14 @@ if (outputFormat === "json") {
 }
 
 function runWorkflowNext(targetRoot) {
-  const result = spawnSync(process.execPath, ["scripts/workflow-next.mjs", targetRoot, "--json"], {
+  const result = spawnSync(process.execPath, ["scripts/workflow-next.mjs", targetRoot, "--json", "--intent", "derive the project baseline safely"], {
     cwd: kitRoot,
     encoding: "utf8",
   });
   if (result.status !== 0) {
     return {
       status: "UNAVAILABLE",
+      sourceExitCode: result.status ?? 1,
       error: result.stderr || result.stdout || "workflow-next failed",
       projectRoot: targetRoot,
       projectState: fs.existsSync(targetRoot) ? "UNKNOWN" : "TARGET_MISSING",
@@ -80,10 +95,11 @@ function runWorkflowNext(targetRoot) {
     };
   }
   try {
-    return JSON.parse(result.stdout);
+    return { ...JSON.parse(result.stdout), sourceExitCode: 0 };
   } catch (error) {
     return {
       status: "UNPARSEABLE",
+      sourceExitCode: result.status ?? 1,
       error: error.message,
       projectRoot: targetRoot,
       projectState: fs.existsSync(targetRoot) ? "UNKNOWN" : "TARGET_MISSING",
@@ -136,6 +152,13 @@ function buildRecommendation(targetRoot, workflow) {
 }
 
 function classify(workflow, tags) {
+  const trust = workflow.projectEntryTrust;
+  const facts = workflow.projectFactProjection;
+  if (trust?.entry_state === "BLOCKED_REPAIR_REQUIRED") return "ENTRY_TRUST_BLOCKED";
+  if (["ABSENT_LEAF", "EMPTY_DIRECTORY"].includes(trust?.target_topology?.state)) return "NEW_PROJECT";
+  if (["INSTALLED_CURRENT", "BRIDGE_CURRENT"].includes(trust?.project_identity?.state)) return workflow.projectState === "INTENTOS_REPOSITORY" ? "INTENTOS_REPOSITORY" : "ALREADY_BOOTSTRAPPED_PROJECT";
+  if (["UNATTRIBUTED_CHANGES", "CURRENT_CONFLICTED"].includes(facts?.current_work_continuity?.state)) return "DIRTY_WORKTREE_PROJECT";
+  if (facts?.governance_authority_posture?.state === "DECLARED_STRONG_GOVERNED") return "GOVERNED_EXISTING_PROJECT";
   if (workflow.projectState === "TARGET_MISSING") return "UNKNOWN_NEEDS_DISCUSSION";
   if (workflow.projectState === "INTENTOS_REPOSITORY") return "INTENTOS_REPOSITORY";
   if (tags.has("DIRTY_WORKTREE_PROJECT")) return "DIRTY_WORKTREE_PROJECT";

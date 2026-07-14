@@ -59,30 +59,39 @@ Execution bootstrap intent allows workflow and governance asset setup only. Do n
 
 When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.
 
-For bootstrap work, first use `.intentos/prompts/bootstrap-agent.md` when present, then run:
+Before routing ordinary work, resolve the target topology, original goal,
+project identity, shared project facts, current work, and effective Guidance
+Authority through `.intentos/core/project-entry-adoption-trust.md`.
+
+For bootstrap work, first use `.intentos/prompts/bootstrap-agent.md` when
+present, then run the project-local entry with the original goal:
 
 ```bash
-node scripts/start-project.mjs .
+node scripts/workflow-next.mjs . --intent "<original goal>"
 ```
 
-Use `workflow-next` as the lower-level state detector when needed. Follow the reported `NEXT_ACTION`. A migration report may be applied only after its bounded plan, authority comparison, rollback, and controlled-readiness checks pass; do not ask the user to approve its technical contents.
-
-If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not write target files. Create or update real adoption evidence first:
+For a safe absent leaf or empty directory, use the ordinary controlled
+initializer. It derives the exact action graph, preserves the original goal,
+writes through one rollback-capable transaction, persists the receipt, and
+verifies a project-local cold start before reporting activation:
 
 ```bash
-node scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-project-readonly
-node scripts/check-real-adoption-trial.mjs .
+node scripts/init-project.mjs --starter <derived-starter> --target <target> --goal "<original goal>"
 ```
 
-Real adoption reports are not permission to run `init-project`, update workflow assets, edit `AGENTS.md`, or add `.intentos/`.
+For a non-empty project, never use blank-project initialization or a direct
+update. Continue read-only through Native Migration, Existing Rule
+Reconciliation, Governance Convergence, Controlled Native Adoption Review, and
+Adoption Assurance. These resolvers may exchange one strict same-run evidence
+chain without asking the user to carry files between commands. Any later write
+must replay one exact reviewed plan with readiness, rollback, receipt, and
+behavioral activation evidence.
 
-After adoption classification, use baseline setup when project-specific engineering or environment rules are not clear:
-
-```bash
-node scripts/cli.mjs baseline .
-```
-
-`baseline` is read-only by default and must report `Can AI write now: No`. Do not write baseline docs until a reviewed `baseline-project --write-plan` is applied.
+Copied assets, marker headings, or a successful process exit do not prove
+activation. `VERIFIED_ACTIVE` requires an exact verified apply receipt, a fresh
+project-local cold start, and a read-only Work Queue and Task Governance route.
+Do not ask the user to approve internal action IDs, migration depth, baseline,
+or evidence mechanics.
 
 ## Beginner Entry
 

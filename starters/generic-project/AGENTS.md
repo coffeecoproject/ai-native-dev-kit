@@ -48,13 +48,29 @@ Execution bootstrap intent allows workflow and governance asset setup only. Do n
 
 When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.
 
-For bootstrap work, first use `.intentos/prompts/bootstrap-agent.md` when present, then run:
+Before routing ordinary work, resolve target topology, the original goal,
+project identity, shared project facts, current work, and effective Guidance
+Authority through `.intentos/core/project-entry-adoption-trust.md`.
+
+For bootstrap work, first use `.intentos/prompts/bootstrap-agent.md` when
+present, then run the project-local entry with the original goal:
 
 ```bash
-node scripts/workflow-next.mjs .
+node scripts/workflow-next.mjs . --intent "<original goal>"
 ```
 
-Follow the reported `NEXT_ACTION`. Apply a migration report only after bounded-plan, authority, rollback, and controlled-readiness checks pass; do not ask the user to approve technical contents.
+For a safe absent leaf or empty directory, use the controlled initializer with
+the starter derived by Codex. For a non-empty project, never use blank-project
+initialization: continue read-only through Native Migration, rule
+reconciliation, convergence, adoption review, and assurance in one strict
+same-run chain. Any later write must replay one exact reviewed plan with
+readiness, rollback, receipt, and behavioral-activation evidence.
+
+Copied files or a successful process exit do not prove activation.
+`VERIFIED_ACTIVE` requires an exact verified apply receipt, a fresh
+project-local cold start, and a read-only Work Queue and Task Governance route.
+Do not ask the user to approve migration depth, baseline, action IDs, or
+evidence mechanics.
 
 ## Beginner Entry
 

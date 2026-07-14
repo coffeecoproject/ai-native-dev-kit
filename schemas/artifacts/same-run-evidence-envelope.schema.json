@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/same-run-evidence-envelope.schema.json",
+  "title": "Same-Run Evidence Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_type", "envelope_id", "run_id", "sequence",
+    "created_at", "expires_at", "evidence_type", "producer",
+    "producer_schema_version", "project_binding", "task_ref", "intent_digest",
+    "goal_digest", "project_fact_digest", "guidance_digest",
+    "authority_inventory_digest", "source_revision", "sources", "payload",
+    "payload_digest", "checker_result", "invalidation_conditions",
+    "persistence_status", "durable_authority", "authorizes_apply",
+    "authorizes_activation", "envelope_digest"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.109.0" },
+    "artifact_type": { "const": "same_run_evidence_envelope" },
+    "envelope_id": { "type": "string", "pattern": "^same-run:[a-zA-Z0-9._:-]+$" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "sequence": { "type": "integer" },
+    "created_at": { "type": "string", "minLength": 1 },
+    "expires_at": { "type": "string", "minLength": 1 },
+    "evidence_type": { "type": "string", "minLength": 1 },
+    "producer": { "type": "string", "minLength": 1 },
+    "producer_schema_version": { "type": "string", "minLength": 1 },
+    "project_binding": { "type": "object", "minProperties": 1 },
+    "task_ref": { "type": "string", "minLength": 1 },
+    "intent_digest": { "$ref": "#/$defs/digestOrNA" },
+    "goal_digest": { "$ref": "#/$defs/digestOrNA" },
+    "project_fact_digest": { "$ref": "#/$defs/digestOrNA" },
+    "guidance_digest": { "$ref": "#/$defs/digestOrNA" },
+    "authority_inventory_digest": { "$ref": "#/$defs/digestOrNA" },
+    "source_revision": { "type": "string", "minLength": 1 },
+    "sources": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "payload": {},
+    "payload_digest": { "$ref": "#/$defs/digest" },
+    "checker_result": { "const": "PASS" },
+    "invalidation_conditions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "persistence_status": { "const": "EPHEMERAL" },
+    "durable_authority": { "const": "No" },
+    "authorizes_apply": { "const": "No" },
+    "authorizes_activation": { "const": "No" },
+    "envelope_digest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "digestOrNA": { "type": "string", "pattern": "^(?:N/A|sha256:[a-f0-9]{64})$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "digest", "checker", "result"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "$ref": "#/$defs/digest" },
+        "checker": { "type": "string", "minLength": 1 },
+        "result": { "const": "PASS" }
+      }
+    }
+  }
+}

@@ -5,6 +5,12 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
+import {
+  consumeSameRunEvidenceEnvelope,
+  readSameRunEnvelopeFromEnvironment,
+  sameRunBindingFromTrust,
+} from "./lib/same-run-evidence-envelope.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -40,9 +46,21 @@ if (outputFormat === "json") {
 }
 
 function buildReport(root, options) {
+  const entryTrust = resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: path.resolve(scriptDir, ".."),
+    goal: options.intent,
+  });
   const workflowNext = resolveSource("Workflow Next", "workflow-next.mjs", root, ["--json"]);
-  const nativeMigration = resolveSource("Native Migration", "resolve-native-migration.mjs", root, ["--json"]);
-  const ruleReconciliation = resolveSource("Existing Rule Reconciliation", "resolve-existing-rule-reconciliation.mjs", root, ["--auto-native", "--json"]);
+  const nativeEnvelope = readSameRunEnvelopeFromEnvironment("native_migration");
+  const reconciliationEnvelope = readSameRunEnvelopeFromEnvironment("existing_rule_reconciliation");
+  const sameRunMode = Boolean(nativeEnvelope || reconciliationEnvelope);
+  const nativeMigration = nativeEnvelope
+    ? resolveEnvelopeSource("Native Migration", nativeEnvelope, "native_migration", "scripts/resolve-native-migration.mjs", entryTrust, 1, nativeEnvelope.run_id)
+    : sameRunMode ? missingEnvelopeSource("Native Migration", "native_migration") : resolveSource("Native Migration", "resolve-native-migration.mjs", root, ["--json"]);
+  const ruleReconciliation = reconciliationEnvelope
+    ? resolveEnvelopeSource("Existing Rule Reconciliation", reconciliationEnvelope, "existing_rule_reconciliation", "scripts/resolve-existing-rule-reconciliation.mjs", entryTrust, 2, nativeEnvelope?.run_id || reconciliationEnvelope.run_id)
+    : sameRunMode ? missingEnvelopeSource("Existing Rule Reconciliation", "existing_rule_reconciliation") : resolveSource("Existing Rule Reconciliation", "resolve-existing-rule-reconciliation.mjs", root, ["--auto-native", "--json"]);
   const releasePlan = resolveSource("Release Plan", "resolve-release-plan.mjs", root, ["--intent", options.intent, "--json"]);
 
   const nativeEvidence = nativeMigration.data?.structuredEvidence || {};
@@ -51,7 +69,7 @@ function buildReport(root, options) {
   const projectState = projectStateFor(nativeEvidence, ruleReconciliation.data, workflowNext.data);
   const coverage = reconciliationEvidence.rule_reconciliation_coverage || {};
   const omittedRules = Number.isInteger(coverage.omitted_rules) ? coverage.omitted_rules : 0;
-  const dirty = projectState === "DIRTY_WORKTREE_PROJECT" || hasDirtySignal(workflowNext.data);
+  const dirty = entryTrust?.project_fact_projection?.current_work_continuity?.state === "CURRENT_CONFLICTED";
   const sourceSystems = [workflowNext, nativeMigration, ruleReconciliation, releasePlan];
   const blocked = blockedReasons({ dirty, omittedRules, releaseEvidence, reconciliationEvidence, sourceSystems });
   const convergenceState = convergenceStateFor({ dirty, omittedRules, blocked, projectState });
@@ -94,6 +112,15 @@ function buildReport(root, options) {
     },
     outcome: convergenceState,
   };
+  structuredEvidence.same_run_source_chain = [nativeEnvelope, reconciliationEnvelope]
+    .filter(Boolean)
+    .map((envelope) => ({
+      envelope_id: envelope.envelope_id,
+      envelope_digest: envelope.envelope_digest,
+      run_id: envelope.run_id,
+      sequence: envelope.sequence,
+      evidence_type: envelope.evidence_type,
+    }));
 
   return {
     reportType: "GOVERNANCE_CONVERGENCE_REPORT",
@@ -126,6 +153,54 @@ function buildReport(root, options) {
   };
 }
 
+function missingEnvelopeSource(name, evidenceType) {
+  return {
+    name,
+    status: "BLOCKED",
+    ref: `same-run:${evidenceType}:missing`,
+    contribution: `same-run chain is incomplete: ${evidenceType} envelope is missing`,
+    data: null,
+  };
+}
+
+function resolveEnvelopeSource(name, envelope, evidenceType, producer, entryTrust, sequence, runId) {
+  const binding = sameRunBindingFromTrust(entryTrust);
+  try {
+    const parsed = consumeSameRunEvidenceEnvelope(envelope, {
+      evidenceType,
+      producer,
+      sequence,
+      runId,
+      projectBinding: binding.projectBinding,
+      taskRef: binding.taskRef,
+      intentDigest: binding.goalDigest,
+      goalDigest: binding.goalDigest,
+      projectFactDigest: binding.projectFactDigest,
+      guidanceDigest: binding.guidanceDigest,
+      authorityInventoryDigest: binding.authorityInventoryDigest,
+      sourceRevision: binding.sourceRevision,
+    });
+    return {
+      name,
+      status: sourceStatusFor(name, parsed),
+      ref: envelope.envelope_id,
+      contribution: sourceContribution(name, parsed),
+      data: parsed,
+      envelope_digest: envelope.envelope_digest,
+      run_id: envelope.run_id,
+      sequence: envelope.sequence,
+    };
+  } catch (error) {
+    return {
+      name,
+      status: "BLOCKED",
+      ref: envelope?.envelope_id || `same-run:${evidenceType}:invalid`,
+      contribution: `same-run source rejected: ${error.message}`,
+      data: null,
+    };
+  }
+}
+
 function resolveSource(name, script, root, extraArgs) {
   const result = spawnSync(process.execPath, [
     path.join(scriptDir, script),
@@ -134,6 +209,7 @@ function resolveSource(name, script, root, extraArgs) {
   ], {
     cwd: path.resolve(scriptDir, ".."),
     encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 50,
   });
   const parsed = parseJson(result.stdout);
   const ok = result.status === 0 && parsed;
@@ -248,7 +324,8 @@ function blockedReasons(context) {
   if (context.dirty) blocked.push("dirty worktree");
   if (context.omittedRules > 0) blocked.push("omitted extracted rules");
   for (const source of context.sourceSystems || []) {
-    if (source.status === "BLOCKED" || source.status === "NEEDS_INPUT") {
+    const releaseScopedPending = source.name === "Release Plan" && source.status === "NEEDS_INPUT";
+    if (!releaseScopedPending && (source.status === "BLOCKED" || source.status === "NEEDS_INPUT")) {
       blocked.push(`upstream source requires input: ${source.name}`);
     }
   }
@@ -272,14 +349,14 @@ function convergenceStateFor({ dirty, omittedRules, blocked, projectState }) {
 
 function dimensionsFor({ dirty, omittedRules, projectState, reconciliationEvidence }) {
   const blockedByRules = omittedRules > 0;
-  const dirtyRecommendation = dirty ? "BLOCKED_NEEDS_OWNER" : null;
+  const dirtyRecommendation = dirty ? "MERGE_AFTER_REVIEW" : null;
   const hasEngineering = JSON.stringify(reconciliationEvidence || {}).includes("ENGINEERING_BASELINE");
   const releaseOwned = /PRODUCTION|GOVERNED/.test(projectState);
   return [
     dim("workflow", dirty ? "dirty worktree" : "old workflow present", "IntentOS daily workflow", dirtyRecommendation || "MERGE_AFTER_REVIEW"),
     dim("baseline", hasEngineering ? "engineering baseline exists" : "baseline needs mapping", "best available baseline rule", blockedByRules ? "BLOCKED_BY_RULE_COVERAGE" : "KEEP_EXISTING_STRICTER"),
     dim("audit", "pre-IntentOS history exists", "convergence anchor then IntentOS artifacts", "MAP_TO_INTENTOS_ARTIFACT"),
-    dim("release", releaseOwned ? "release / production rules project-owned" : "release ownership unknown", "project-owned release with IntentOS view", releaseOwned ? "KEEP_PROJECT_OWNED" : "BLOCKED_NEEDS_OWNER"),
+    dim("release", releaseOwned ? "release / production rules project-owned" : "release not yet assessed", "project-owned release with IntentOS view", "KEEP_PROJECT_OWNED"),
     dim("ci_hooks", "existing CI / hook guards may exist", "compare before mutation", "KEEP_PROJECT_OWNED"),
     dim("documents", "docs need source-of-truth mapping", "document lifecycle map", "MERGE_AFTER_REVIEW"),
     dim("work_queue", "old TODOs / interrupted work may exist", "IntentOS Work Queue", "MAP_TO_INTENTOS_ARTIFACT"),
@@ -294,32 +371,32 @@ function dim(dimension, currentState, targetState, recommendation) {
     current_state: currentState,
     target_state: targetState,
     recommendation,
-    human_decision_required: "Yes",
+    human_decision_required: "No",
     write_requires_apply_plan: "Yes",
   };
 }
 
 function nextSafeStepFor(state) {
   if (state === "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE") {
-    return "classify current dirty worktree before convergence apply planning";
+    return "Codex maps current-work ownership and blocks only overlapping apply actions";
   }
   if (state === "CONVERGENCE_BLOCKED_BY_RULE_COVERAGE") {
-    return "review omitted extracted rules before Unified Apply Plan";
+    return "Codex continues bounded rule inventory before Unified Apply Plan";
   }
   if (state === "CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY") {
-    return "confirm project owners for protected authority before apply planning";
+    return "Codex preserves protected authority and continues evidence-based mapping before apply planning";
   }
   if (state === "CONVERGENCE_BLOCKED_BY_UPSTREAM_EVIDENCE") {
     return "resolve upstream source-system evidence before convergence apply planning";
   }
-  return "review convergence report before Unified Apply Plan";
+  return "Codex validates convergence evidence before Unified Apply Plan";
 }
 
 function protectedAuthorityRows() {
   return [
-    { surface: "release / production", owner: "HUMAN_OR_EXTERNAL_SYSTEM", handling: "Keep project-owned SOP and release owner." },
+    { surface: "release / production", owner: "PROJECT_OR_EXTERNAL_AUTHORITY", handling: "Keep project-owned SOP; ask the user only for exact real-world consent when execution is ready." },
     { surface: "CI / hooks", owner: "PROJECT_OWNED", handling: "Compare and plan before mutation." },
-    { surface: "data / permission / compliance", owner: "PROJECT_OWNED", handling: "Block until owner confirms." },
+    { surface: "data / permission / compliance", owner: "PROJECT_OWNED", handling: "Preserve project rules; request only a missing business or external fact." },
   ];
 }
 

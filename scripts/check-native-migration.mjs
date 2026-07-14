@@ -160,9 +160,10 @@ function checkNativeMigrationPlans() {
   for (const file of files) {
     const content = fs.readFileSync(file, "utf8");
     const label = rel(file);
-    if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
+    const claimSurface = reportClaimSurface(content);
+    if (containsSecretLikeValue(claimSurface)) fail(`${label} contains secret-like content outside quoted project evidence`);
     for (const pattern of forbiddenClaims) {
-      if (pattern.test(content)) fail(`${label} contains forbidden native migration claim: ${pattern.source}`);
+      if (pattern.test(claimSurface)) fail(`${label} contains forbidden native migration claim: ${pattern.source}`);
     }
     if (!content.includes("I have switched to IntentOS Native-First Migration Planning mode.")) {
       fail(`${label} must start by switching into Native-First Migration Planning mode`);
@@ -327,8 +328,8 @@ function checkRuleClassification(content, label, structuredEvidence) {
     else fail(`${rowLabel} missing risk surfaces`);
     if (isConcrete(targetAction)) pass(`${rowLabel} records target action`);
     else fail(`${rowLabel} missing target action`);
-    if (humanDecisionRequired === "Yes") pass(`${rowLabel} requires human decision`);
-    else fail(`${rowLabel} must require human decision`);
+    if (["Yes", "No"].includes(humanDecisionRequired)) pass(`${rowLabel} records whether a bounded user decision is required`);
+    else fail(`${rowLabel} must record human decision required as Yes or No`);
     if (confidence) {
       if (allowedConfidence.has(confidence)) pass(`${rowLabel} records valid confidence`);
       else fail(`${rowLabel} has invalid confidence: ${confidence}`);
@@ -571,8 +572,9 @@ function validateStructuredRule(item, label) {
   else fail(`${rowLabel} invalid rule class: ${item?.rule_class || "<empty>"}`);
   if (allowedConfidence.has(item?.confidence)) pass(`${rowLabel} has valid confidence`);
   else fail(`${rowLabel} invalid confidence: ${item?.confidence || "<empty>"}`);
-  if (item?.human_decision_required === "Yes") pass(`${rowLabel} requires human decision`);
-  else fail(`${rowLabel} must require human decision`);
+  if (["Yes", "No"].includes(item?.human_decision_required)) pass(`${rowLabel} records whether a bounded user decision is required`);
+  else fail(`${rowLabel} must record human decision required as Yes or No`);
+  if (containsSecretLikeValue(String(item?.source_excerpt || ""))) fail(`${rowLabel} source excerpt contains an unredacted secret-like value`);
   if ((item?.rule_class === "BUSINESS_FACT" || item?.rule_class === "PRODUCTION_CONTROL")
     && /\b(replace|remove|drop)\b/i.test(`${item?.preserve_or_replace || ""} ${item?.target_action || ""}`)) {
     fail(`${rowLabel} must not replace business or production authority`);
@@ -645,8 +647,24 @@ function lineRangeParts(value) {
 }
 
 function fencedJson(body) {
-  const match = body.match(/```json\s*([\s\S]*?)```/i);
+  const match = body.match(/```json[^\S\r\n]*\r?\n([\s\S]*?)\r?\n```(?:\r?\n|$)/i);
   return match?.[1]?.trim() || "";
+}
+
+function reportClaimSurface(content) {
+  return removeReportSection(removeReportSection(removeReportSection(
+    content,
+    "Extracted Rule Classification",
+  ), "Rule Extraction Coverage"), "Machine-Readable Evidence");
+}
+
+function removeReportSection(content, heading) {
+  const marker = `## ${heading}`;
+  const start = content.indexOf(marker);
+  if (start < 0) return content;
+  const after = content.indexOf("\n", start);
+  const next = after < 0 ? -1 : content.indexOf("\n## ", after);
+  return `${content.slice(0, start)}${next < 0 ? "" : content.slice(next + 1)}`;
 }
 
 function checkProposedActions(content, label, structuredEvidence) {

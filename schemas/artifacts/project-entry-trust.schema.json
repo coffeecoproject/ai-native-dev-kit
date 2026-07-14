@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/project-entry-trust.schema.json",
+  "title": "Project Entry Trust",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact_type", "target_topology", "goal_projection", "project_identity", "project_fact_projection", "guidance_authority", "entry_state", "blockers", "allowed_operation", "user_technical_choice_required", "boundaries", "entry_trust_digest"],
+  "properties": {
+    "schema_version": { "const": "1.109.0" },
+    "artifact_type": { "const": "project_entry_trust" },
+    "target_topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "requested_path", "canonical_target", "nearest_existing_ancestor", "ancestor_identity", "unresolved_segments", "state", "reason", "topology_digest"],
+      "properties": {
+        "schema_version": { "const": "1.109.0" },
+        "requested_path": { "type": "string", "minLength": 1 },
+        "canonical_target": { "type": "string", "minLength": 1 },
+        "nearest_existing_ancestor": { "type": "string" },
+        "ancestor_identity": { "type": ["object", "null"] },
+        "unresolved_segments": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "state": { "enum": ["ABSENT_LEAF", "EMPTY_DIRECTORY", "NONEMPTY_DIRECTORY", "NON_DIRECTORY", "UNSAFE"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "topology_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "goal_projection": { "type": "object", "minProperties": 9 },
+    "project_identity": {
+      "type": "object",
+      "required": ["state", "form", "canonical_root", "source_version", "identity_ref"],
+      "properties": {
+        "state": { "enum": ["UNBOOTSTRAPPED", "CONFLICTED", "INSTALLED_CURRENT", "BRIDGE_CURRENT"] },
+        "form": { "enum": ["NONE", "SOURCE", "INSTALLED", "BRIDGE"] },
+        "canonical_root": { "type": "string", "minLength": 1 },
+        "source_version": { "type": "string", "minLength": 1 },
+        "identity_ref": { "type": "string", "minLength": 1 },
+        "repository_identity": { "type": "object" },
+        "evidence_refs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "project_fact_projection": { "type": "object", "minProperties": 10 },
+    "guidance_authority": {
+      "type": "object",
+      "required": ["state", "source", "binding", "graph_digest", "active_path_count", "missing_paths", "guidance_digest"],
+      "properties": {
+        "state": { "enum": ["CURRENT", "INVALID"] },
+        "source": { "enum": ["PROJECT_INSTALLED", "INTENTOS_SOURCE"] },
+        "binding": { "type": ["object", "null"] },
+        "graph_digest": { "type": "string" },
+        "active_path_count": { "type": "integer" },
+        "missing_paths": { "type": "array", "items": { "type": "string" } },
+        "invalid_nodes": { "type": "array", "items": { "type": "object" } },
+        "cycles": { "type": "array", "items": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } } },
+        "guidance_digest": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    },
+    "entry_state": { "enum": ["BLOCKED_REPAIR_REQUIRED", "READY_FOR_CONTROLLED_SETUP", "READY_FOR_INTENTOS_OPERATION", "READY_FOR_READ_ONLY_ASSESSMENT"] },
+    "blockers": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "allowed_operation": { "enum": ["READ_ONLY_REPAIR", "READ_ONLY_ASSESSMENT", "CONTROLLED_SETUP_OR_ADOPTION_REVIEW", "ROUTINE_INTENTOS_OPERATION"] },
+    "user_technical_choice_required": { "const": "No" },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["writes_target_files", "authorizes_apply", "authorizes_release_or_production", "proves_activation"],
+      "properties": {
+        "writes_target_files": { "const": "No" },
+        "authorizes_apply": { "const": "No" },
+        "authorizes_release_or_production": { "const": "No" },
+        "proves_activation": { "const": "No" }
+      }
+    },
+    "entry_trust_digest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+  }
+}

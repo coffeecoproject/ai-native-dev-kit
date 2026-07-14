@@ -248,7 +248,7 @@ function classifyProject(workflow, git, signals) {
       why: "Existing governance or baseline assets were detected.",
     };
   }
-  if (workflow.projectState === "NEW_PROJECT" || workflow.projectState === "TARGET_MISSING") {
+  if (["NEW_PROJECT", "NEW_PROJECT_TARGET", "TARGET_MISSING"].includes(workflow.projectState)) {
     return {
       label: "New empty project",
       internal: "NEW_EMPTY_PROJECT",

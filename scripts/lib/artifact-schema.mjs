@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..", "..");
 const trustedArtifactSchemaDigests = {
-  "schemas/artifacts/adoption-assurance.schema.json": "sha256:5afc832e7a3dbb502fbb4c338badcd2ef15f8703f7d4bc0aad365dca1917d355",
+  "schemas/artifacts/adoption-assurance.schema.json": "sha256:5b712eb73b62f2c9cf47b0fe724f2d9ecadcc557c9e6c8f77055d027319176bc",
   "schemas/artifacts/apply-execution-receipt.schema.json": "sha256:850c8523e0618381a97142aa3647851faa1cbcc04f2b2725b21ef8dd41dc547b",
   "schemas/artifacts/approval-record.schema.json": "sha256:f0037bb2bf6402b6e57e2bbdd29542f4ab834d35bd2ea0979cc5872a491cd26b",
   "schemas/artifacts/business-rule-closure.schema.json": "sha256:ca65aabb46d8b56162c0a51c1aba3a5142affa81bf20b02cfc7518851d8aeac9",
@@ -16,18 +16,21 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/change-impact-coverage.schema.json": "sha256:74fd33e09d583b94417a577ea46276d7d985baef7158c3e51b4955893e08fdee",
   "schemas/artifacts/completion-evidence.schema.json": "sha256:594e0bbf96f5dbe2584924ffd19a13b55f1d317425ec9d935ec5d17271813ebd",
   "schemas/artifacts/controlled-apply-readiness.schema.json": "sha256:3656d706351810a3fc335f1896681f1fd88837cd3c64b2dae4c5daca4786063d",
-  "schemas/artifacts/controlled-native-adoption-review.schema.json": "sha256:b627a57d8b6d1d7be3073b0ffd7957f8af5d60b35e7dc408464313eda65ca14c",
+  "schemas/artifacts/controlled-native-adoption-review.schema.json": "sha256:f26121fceb31f381402c355af52b10bd1493c9e0321ac8c7c96500839fda539b",
   "schemas/artifacts/eval.schema.json": "sha256:fb926d3be8f7ad2d3ac2a646bdcf5ca2af26f7cd80461513bf8a860ae2b75416",
   "schemas/artifacts/execution-assurance.schema.json": "sha256:6168005965db80bd7ba90d08e732ea273558429f677ab5fae563b926ea27c6bc",
   "schemas/artifacts/existing-project-adoption-autopilot.schema.json": "sha256:a8d535d4a84b0d97ca1f8a73ea0e4a8db9ab80d226a1616e544dfaab235d17af",
-  "schemas/artifacts/existing-rule-reconciliation.schema.json": "sha256:84184ca5a057c5678872a030111d9d8c83da5e9212931d97ff7cb05632de5d37",
+  "schemas/artifacts/existing-rule-reconciliation.schema.json": "sha256:3635a38b1e055d64142461bbc6a5a8bdf04fb2419650dd73d750006e344fdbdf",
   "schemas/artifacts/goal-card.schema.json": "sha256:1ff608263461e0c4939c410441537edd0bcaeb0841857e6234dcd4963f55d4dd",
-  "schemas/artifacts/governance-convergence.schema.json": "sha256:0326e03e1917b86998721e1cee502c184eaf3bfc8cf06ff50204cda0d417cfa6",
+  "schemas/artifacts/governance-convergence.schema.json": "sha256:e7ef33a9fb4be745bccb644cf38d0f647d06018c1d070e72713eb6653e73bf57",
   "schemas/artifacts/low-risk-apply-candidate.schema.json": "sha256:6c6f64f687995bad99311732bceed926d2810b19f868fb9c4b0f8b53f5562b9f",
-  "schemas/artifacts/native-migration-plan.schema.json": "sha256:38cee2775d4ddb56bfa71545ad2c811013b71edbfbe6ef6704094b6d4a5d860d",
+  "schemas/artifacts/native-migration-plan.schema.json": "sha256:16848409604cb6c2b8e0b53bb2e5c8332c2b73e1d18881216b99e613487fb6ac",
   "schemas/artifacts/plan-review.schema.json": "sha256:6923d6f8399413b4790ca471fb3691fe2ba96e417f8768930b73c57e771a49cb",
   "schemas/artifacts/preflight.schema.json": "sha256:d0c928569a2d8c6a4776df78307b310a4c7420e56b5bb89964367f69a251f353",
   "schemas/artifacts/product-completeness-evidence.schema.json": "sha256:71da81e0c9202d4b8b15c409b1d957e2741219dd064301b83fbdea8750c2c7c2",
+  "schemas/artifacts/project-entry-trust.schema.json": "sha256:63a571df190fb50e70814fc38bcd079b51824753e54706261322fbc9e0087211",
+  "schemas/artifacts/project-entry-calibration.schema.json": "sha256:6d66db878b95e4b6e8dee55e97a61d7030b6d1ab9c47c73cc3f06f2541e60fc2",
+  "schemas/artifacts/project-fact-projection.schema.json": "sha256:a27e995302d177659466b44f3b2d609cebdac863d2f9d1617d8a220f2b2623d4",
   "schemas/artifacts/release-approval-record.schema.json": "sha256:321014436d4b00a48e1d48f39699facb1e16cffe9bd500c207c64ac0e0a4e832",
   "schemas/artifacts/release-channel-policy.schema.json": "sha256:755cb9093a51a1ff8a1ccb83831822072225c6c91364631f2c8a0b0168310224",
   "schemas/artifacts/release-evidence-gate.schema.json": "sha256:b8e5587acf41ee321edf96f3c9240b585a2b45514fbfd23178ed75677efbe2c6",
@@ -41,6 +44,7 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/review-loop-report.schema.json": "sha256:2b6b97889061d9018327a0b164c9541c6214788841f2cddc075befb85df0d4d3",
   "schemas/artifacts/runtime-hygiene.schema.json": "sha256:f2ef0a6e9cfaa87bae95249874cccd04612195dc4382449e849ee83f23ae6a9e",
   "schemas/artifacts/spec.schema.json": "sha256:0052829a51f2ca0aa6da86fc3f66bb605801c8f32e0e4fb411ee206278dd7e57",
+  "schemas/artifacts/same-run-evidence-envelope.schema.json": "sha256:b4e5a5a3a3b83fd7a3040dcb1955fe44e93d553e9762f72a87ca596ea7f2fada",
   "schemas/artifacts/subagent-run-plan.schema.json": "sha256:f17e70305b6d4245233fa094f6e657dc67d16c13da6decd93d10955b7173d354",
   "schemas/artifacts/task-governance.schema.json": "sha256:22a0d540cf3106f41decf0f610ed534fd0592df5f56c7bb4f3bf923968187688",
   "schemas/artifacts/task.schema.json": "sha256:6e30ca37ab7251a7c1bfd20ce13c387e573b800273b6d45852aaf9a560b5f67c",
@@ -51,6 +55,7 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/verification-runtime-lifecycle-plan.schema.json": "sha256:5728eeebb3dd7d35d794c36b7cce5fe0377a34b1cc7d32fcc19276a11c1b8aff",
   "schemas/artifacts/verification-runtime-plan.schema.json": "sha256:8e20158e122c2eaa632f8e24221d65594bebaf0dbe5c9350e8e7ade9c01ac6cd",
   "schemas/artifacts/work-queue-takeover.schema.json": "sha256:0d6c56331085c61c308b9e24cef243ff50febd74f436787d409d867707a9a538",
+  "schemas/artifacts/behavioral-adoption-activation.schema.json": "sha256:c4cdbce4d20961eabe550ebdf5b1e33d1b4ef400916398b811eaadd0b3572972",
 };
 
 export function loadSchema(projectRoot, relativePath) {

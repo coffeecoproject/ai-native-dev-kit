@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.108.0`
+`1.109.0`
 
 ## Project Version File
 
@@ -17,6 +17,10 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.109.0` hardens project entry and behavior-complete adoption with one
+  project-fact projection, exact same-run evidence binding, atomic new-project
+  setup, current-work preservation, and project-local activation proof.
 
 - `1.108.0` conditionally requires evidence-bound Business Universe Coverage
   when a task can omit business categories, entry paths, filters, or

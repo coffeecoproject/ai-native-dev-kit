@@ -230,8 +230,8 @@ function checkDimensions(content, label) {
     });
     if (allowedRecommendations.has(recommendation)) pass(`${label} ${dimension} recommendation is allowed`);
     else fail(`${label} ${dimension} recommendation invalid: ${recommendation || "<empty>"}`);
-    if (humanDecision === "Yes") pass(`${label} ${dimension} requires human decision`);
-    else fail(`${label} ${dimension} must require human decision`);
+    if (["Yes", "No"].includes(humanDecision)) pass(`${label} ${dimension} declares whether a user decision is required`);
+    else fail(`${label} ${dimension} must declare human decision as Yes or No`);
     if (applyPlan === "Yes") pass(`${label} ${dimension} requires apply plan before write`);
     else fail(`${label} ${dimension} must require apply plan before write`);
   }
@@ -389,8 +389,8 @@ function validateStructuredDimensions(parsed, label) {
     }
     if (allowedRecommendations.has(item?.recommendation)) pass(`${rowLabel} recommendation is allowed`);
     else fail(`${rowLabel} recommendation invalid`);
-    if (item?.human_decision_required === "Yes") pass(`${rowLabel} requires human decision`);
-    else fail(`${rowLabel} must require human decision`);
+    if (["Yes", "No"].includes(item?.human_decision_required)) pass(`${rowLabel} declares whether a user decision is required`);
+    else fail(`${rowLabel} must declare human decision as Yes or No`);
     if (item?.write_requires_apply_plan === "Yes") pass(`${rowLabel} requires apply plan before write`);
     else fail(`${rowLabel} must require apply plan before write`);
   }
@@ -470,8 +470,9 @@ function checkStateAndOutcome(content, label, evidence, summary, markdownDimensi
       }
     }
     const sourceSystems = evidence.source_systems || {};
-    const upstreamNeedsInput = Object.values(sourceSystems)
-      .some((source) => source?.status === "NEEDS_INPUT" || source?.status === "BLOCKED");
+    const upstreamNeedsInput = Object.entries(sourceSystems)
+      .some(([name, source]) => source?.status === "BLOCKED"
+        || (source?.status === "NEEDS_INPUT" && name !== "release_plan"));
     if (upstreamNeedsInput) {
       if (/upstream source requires input/i.test(blockedText)) {
         pass(`${label} upstream source input requirement is recorded`);

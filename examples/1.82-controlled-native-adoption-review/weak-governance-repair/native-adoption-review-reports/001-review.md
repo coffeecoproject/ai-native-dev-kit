@@ -6,8 +6,8 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
 
 | Field | Value |
 | --- | --- |
-| Project maturity | This project has governance gaps. A repair plan should come before deeper adoption. |
-| Recommendation | Let Codex prepare a low-risk governance repair plan first. |
+| Project maturity | This project has governance gaps. Codex should repair them inside the selected adoption plan. |
+| Recommendation | Codex will prepare governance repairs and a behavior-complete overlay as one bounded plan. |
 | Codex can write now | `No` |
 | Native apply allowed | `No` |
 | Full adoption claim | `No` |
@@ -29,34 +29,32 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
 
 | Source | Role | Authority | Status |
 | --- | --- | --- | --- |
-| `existing_project_adoption_autopilot` | user-facing summary | `derived_view` | `BLOCKED` |
 | `native_migration` | native migration source evidence | `source_evidence` | `BLOCKED` |
 | `existing_rule_reconciliation` | maturity evidence | `source_evidence` | `BLOCKED` |
 | `governance_convergence` | daily workflow convergence evidence | `source_evidence` | `BLOCKED` |
-| `adoption_assurance` | adoption assurance evidence | `source_evidence` | `BLOCKED` |
 | `project_signals` | filesystem governance signals | `project_signal` | `RECORDED` |
 
 ## Recommended Actions
 
-- Prepare a low-risk governance repair plan before any deeper adoption proposal. (plan_only)
+- Prepare one bounded plan that repairs missing governance and then activates the selected IntentOS overlay. (plan_only)
 
 ## Blocked Actions
 
 - Do not install IntentOS assets.: 1.82 is review-only and cannot apply native assets.
-- Do not change code, release, CI, production, secrets, data, or provider state.: Those actions require separate plans, owners, and approval.
-- Do not claim full adoption.: The current recommendation is RECOMMEND_GOVERNANCE_REPAIR, not applied adoption evidence.
+- Do not change code, release, CI, production, secrets, data, or provider state.: Those actions require a bounded plan, current project evidence, and exact real-world consent when an external effect is ready.
+- Do not claim full adoption.: The current recommendation is READY_FOR_GOVERNANCE_REPAIR_AND_OVERLAY_PLAN, not applied adoption evidence.
 
 ## Human Decisions
 
-- Let Codex prepare a low-risk governance repair plan first. Should Codex prepare that plan?
+- No technical decision is required from the user. Codex continues the safe internal review and planning route.
 
 ## Risk / Verification / Rollback
 
 | Field | Value |
 | --- | --- |
-| Risk summary | Governance gaps should be repaired before any deeper adoption plan. |
+| Risk summary | Governance gaps must be repaired before their dependent overlay actions can apply. |
 | Verification required | Re-run this review after any plan is prepared and before any apply step. |
-| Rollback plan required | Any future write must include a separate rollback or restore plan before approval. |
+| Rollback plan required | Any future write must include a separate rollback or restore plan before controlled apply. |
 
 ## Boundaries
 
@@ -78,7 +76,7 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
   "intent": "review deeper IntentOS adoption",
   "intent_digest": "sha256:70b82208f6e25c57bbfa1523b6c4df7344e6774be83c4b686f8247af44099c5a",
   "review_ref": "native-adoption-review-reports/001-review.md",
-  "review_digest": "sha256:fee93fa91b6e297f1aeebc16ddb673e77cdfdb814fe31a8e693aa76b6218ddb3",
+  "review_digest": "sha256:f69efadc4381ba96399679ff88cb54ba7c6b7146790172c1d9fef1cbf95f027f",
   "governance_maturity": {
     "state": "WEAK_GOVERNANCE_PROJECT",
     "confidence": "medium",
@@ -95,22 +93,22 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
       "work queue"
     ],
     "production_sensitivity": "no",
-    "recommended_adoption_depth": "GOVERNANCE_REPAIR_THEN_SELECTED_NATIVE_PLAN"
+    "recommended_adoption_depth": "GOVERNANCE_REPAIR_THEN_SELECTED_OVERLAY_PLAN"
   },
   "adoption_recommendation": {
-    "state": "RECOMMEND_GOVERNANCE_REPAIR",
-    "current_adoption_state": "BLOCKED_BY_UNSAFE_PROJECT_STATE",
-    "recommendation_class": "GOVERNANCE_REPAIR_THEN_SELECTED_NATIVE_PLAN",
-    "recommended_user_choice": "Let Codex prepare a low-risk governance repair plan first.",
+    "state": "READY_FOR_GOVERNANCE_REPAIR_AND_OVERLAY_PLAN",
+    "current_adoption_state": "READ_ONLY_ADOPTION_REVIEWED",
+    "recommendation_class": "GOVERNANCE_REPAIR_THEN_SELECTED_OVERLAY_PLAN",
+    "recommended_user_choice": "Codex will prepare governance repairs and a behavior-complete overlay as one bounded plan.",
     "safe_to_apply_now": false,
     "native_apply_allowed": false,
-    "reason": "Governance gaps should be repaired before any deeper adoption plan."
+    "reason": "Governance gaps must be repaired before their dependent overlay actions can apply."
   },
   "recommended_actions": [
     {
       "id": "CNAR-REPAIR-001",
-      "plain_summary": "Prepare a low-risk governance repair plan before any deeper adoption proposal.",
-      "risk": "low",
+      "plain_summary": "Prepare one bounded plan that repairs missing governance and then activates the selected IntentOS overlay.",
+      "risk": "medium",
       "execution": "plan_only"
     }
   ],
@@ -123,34 +121,22 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
     {
       "id": "CNAR-B002",
       "plain_summary": "Do not change code, release, CI, production, secrets, data, or provider state.",
-      "reason": "Those actions require separate plans, owners, and approval."
+      "reason": "Those actions require a bounded plan, current project evidence, and exact real-world consent when an external effect is ready."
     },
     {
       "id": "CNAR-B003",
       "plain_summary": "Do not claim full adoption.",
-      "reason": "The current recommendation is RECOMMEND_GOVERNANCE_REPAIR, not applied adoption evidence."
+      "reason": "The current recommendation is READY_FOR_GOVERNANCE_REPAIR_AND_OVERLAY_PLAN, not applied adoption evidence."
     }
   ],
   "human_decisions": [
     {
-      "decision": "prepare_plan_only_next_step",
-      "plain_question": "Let Codex prepare a low-risk governance repair plan first. Should Codex prepare that plan?",
+      "decision": "NO_USER_ACTION",
+      "plain_question": "No technical decision is required from the user. Codex continues the safe internal review and planning route.",
       "required_now": "No"
     }
   ],
   "source_chain": [
-    {
-      "name": "existing_project_adoption_autopilot",
-      "role": "user-facing summary",
-      "authority": "derived_view",
-      "status": "BLOCKED",
-      "summary": "state=BLOCKED_BY_UNSAFE_PROJECT_STATE",
-      "ref": "resolver:resolve-existing-project-adoption-autopilot.mjs",
-      "digest": "sha256:8d0af15c35d1bffb14799d88b72b195ab01fc0da9d69a3722dda9d866a37b9f3",
-      "source_outcome": "BLOCKED_BY_UNSAFE_PROJECT_STATE",
-      "current_project_match": "No",
-      "blocker_class": "dirty_or_unsafe"
-    },
     {
       "name": "native_migration",
       "role": "native migration source evidence",
@@ -158,22 +144,22 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
       "status": "BLOCKED",
       "summary": "project=DIRTY_WORKTREE_PROJECT",
       "ref": "resolver:resolve-native-migration.mjs",
-      "digest": "sha256:f4875b916c9574585781de029180e2c55e23a23fbe3fadf80a2226ea84747dd8",
+      "digest": "sha256:c5c07f804d7397e23d53cb388ce3b423b367f096c70cd6c582978d64cc65b367",
       "source_outcome": "DIRTY_WORKTREE_PROJECT",
-      "current_project_match": "No",
-      "blocker_class": "dirty_or_unsafe"
+      "current_project_match": "Yes",
+      "blocker_class": "none"
     },
     {
       "name": "existing_rule_reconciliation",
       "role": "maturity evidence",
       "authority": "source_evidence",
       "status": "BLOCKED",
-      "summary": "recommendation=BLOCKED_BY_DIRTY_WORKTREE; omitted=0",
+      "summary": "recommendation=SELECTED_NATIVE_ADOPTION; omitted=2",
       "ref": "resolver:resolve-existing-rule-reconciliation.mjs",
-      "digest": "sha256:526aadefcce4c6473354e03d801b40197209bb9610b0dbb5c94889282d23201e",
-      "source_outcome": "BLOCKED_BY_DIRTY_WORKTREE",
-      "current_project_match": "No",
-      "blocker_class": "dirty_or_unsafe"
+      "digest": "sha256:3867723133370bfef14330f0f34ef72e1db9659f746ce2d7da52c3d3e01a4cc5",
+      "source_outcome": "SELECTED_NATIVE_ADOPTION",
+      "current_project_match": "Yes",
+      "blocker_class": "none"
     },
     {
       "name": "governance_convergence",
@@ -182,22 +168,10 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
       "status": "BLOCKED",
       "summary": "state=CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE",
       "ref": "resolver:resolve-governance-convergence.mjs",
-      "digest": "sha256:b399442ef36bd777467ab24c6159a410e8d501185d9c02a964ebecdd50aebdd7",
+      "digest": "sha256:b30001276cc4be83a867a74b7f13c5a5dfefdd90fa94faa57e01aedc8ac5f5bc",
       "source_outcome": "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE",
-      "current_project_match": "No",
-      "blocker_class": "dirty_or_unsafe"
-    },
-    {
-      "name": "adoption_assurance",
-      "role": "adoption assurance evidence",
-      "authority": "source_evidence",
-      "status": "BLOCKED",
-      "summary": "state=BLOCKED_BY_PROJECT_AUTHORITY",
-      "ref": "resolver:resolve-adoption-assurance.mjs",
-      "digest": "sha256:dc9a5f7cf5ca72471bec75f585c959c82ae387f71214bae41888b785d55cda59",
-      "source_outcome": "BLOCKED_BY_PROJECT_AUTHORITY",
-      "current_project_match": "No",
-      "blocker_class": "dirty_or_unsafe"
+      "current_project_match": "Yes",
+      "blocker_class": "none"
     },
     {
       "name": "project_signals",
@@ -213,9 +187,9 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
     }
   ],
   "risk_verification_rollback": {
-    "risk_summary": "Governance gaps should be repaired before any deeper adoption plan.",
+    "risk_summary": "Governance gaps must be repaired before their dependent overlay actions can apply.",
     "verification_required": "Re-run this review after any plan is prepared and before any apply step.",
-    "rollback_plan_required": "Any future write must include a separate rollback or restore plan before approval."
+    "rollback_plan_required": "Any future write must include a separate rollback or restore plan before controlled apply."
   },
   "boundaries": {
     "writes_target_files": "No",
@@ -226,10 +200,10 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
     "approves_release_or_production": "No",
     "full_adoption_claim": "No"
   },
-  "outcome": "RECOMMEND_GOVERNANCE_REPAIR"
+  "outcome": "READY_FOR_GOVERNANCE_REPAIR_AND_OVERLAY_PLAN"
 }
 ```
 
 ## Outcome
 
-`RECOMMEND_GOVERNANCE_REPAIR`
+`READY_FOR_GOVERNANCE_REPAIR_AND_OVERLAY_PLAN`

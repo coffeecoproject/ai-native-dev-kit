@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/project-fact-projection.schema.json",
+  "title": "Project Fact Projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_type", "target_topology_digest", "goal_projection",
+    "project_identity", "lifecycle", "authority_inventory",
+    "governance_authority_posture", "platform_surfaces", "behavioral_adoption",
+    "release_readiness", "real_world_effect", "repository_evidence_mode",
+    "current_work_continuity", "conflicts", "projection_digest"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.109.0" },
+    "artifact_type": { "const": "project_fact_projection" },
+    "target_topology_digest": { "$ref": "#/$defs/digest" },
+    "goal_projection": { "$ref": "#/$defs/goal" },
+    "project_identity": { "type": "object", "minProperties": 4 },
+    "lifecycle": { "$ref": "#/$defs/stateEvidence" },
+    "authority_inventory": { "$ref": "#/$defs/inventory" },
+    "governance_authority_posture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "confidence", "evidence_kinds", "effectiveness_claimed"],
+      "properties": {
+        "state": { "enum": ["LIGHT", "DECLARED_GOVERNED", "DECLARED_STRONG_GOVERNED"] },
+        "confidence": { "enum": ["LOW", "OBSERVED"] },
+        "evidence_kinds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "effectiveness_claimed": { "const": "No" }
+      }
+    },
+    "platform_surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/platform" }
+    },
+    "behavioral_adoption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "identity_form", "entry_refs", "activation_claimed"],
+      "properties": {
+        "state": { "enum": ["NOT_ADOPTED", "READ_ONLY_ASSESSED", "APPLY_PLANNED", "APPLIED_PENDING_VERIFICATION", "VERIFIED_ACTIVE", "BLOCKED"] },
+        "identity_form": { "enum": ["NONE", "BRIDGE", "INSTALLED"] },
+        "entry_refs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "activation_claimed": { "enum": ["Yes", "No"] }
+      }
+    },
+    "release_readiness": { "$ref": "#/$defs/stateEvidence" },
+    "real_world_effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "consent_required"],
+      "properties": {
+        "state": { "enum": ["NONE", "REVERSIBLE_PROJECT_LOCAL"] },
+        "consent_required": { "const": "No" }
+      }
+    },
+    "repository_evidence_mode": { "enum": ["GIT_BOUND", "CONTENT_DIGEST_BOUND", "UNKNOWN"] },
+    "current_work_continuity": { "$ref": "#/$defs/continuity" },
+    "conflicts": { "type": "array", "items": { "$ref": "#/$defs/conflict" } },
+    "projection_digest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "original_goal", "execution_intent", "assumptions", "unresolved_business_facts", "unresolved_external_facts", "technical_decisions", "user_technical_choice_required", "goal_digest"],
+      "properties": {
+        "schema_version": { "const": "1.109.0" },
+        "original_goal": { "type": "string", "minLength": 1 },
+        "execution_intent": { "enum": ["READ_ONLY", "REVERSIBLE_SETUP_REQUESTED", "TASK_EXECUTION_REQUESTED"] },
+        "assumptions": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "unresolved_business_facts": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "unresolved_external_facts": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "technical_decisions": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "user_technical_choice_required": { "const": "No" },
+        "goal_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "stateEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "confidence", "evidence_refs"],
+      "properties": {
+        "state": { "type": "string", "minLength": 1 },
+        "confidence": { "type": "string", "minLength": 1 },
+        "evidence_refs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "state", "confidence", "evidence_refs"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "state": { "enum": ["IN_PROGRESS", "UNKNOWN"] },
+        "confidence": { "enum": ["OBSERVED", "UNKNOWN"] },
+        "evidence_refs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["complete", "total_sources", "accounted_sources", "unresolved_sources", "page_size", "pages", "sources", "inventory_digest"],
+      "properties": {
+        "complete": { "enum": ["Yes", "No"] },
+        "total_sources": { "type": "integer" },
+        "accounted_sources": { "type": "integer" },
+        "unresolved_sources": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "page_size": { "type": "integer" },
+        "pages": { "type": "array", "items": { "type": "object", "minProperties": 3 } },
+        "sources": { "type": "array", "items": { "type": "object", "minProperties": 5 } },
+        "inventory_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "continuity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "state", "queue_candidates", "current_task_refs", "git", "write_overlap_state", "concurrent_change_state", "continuity_digest"],
+      "properties": {
+        "schema_version": { "const": "1.109.0" },
+        "state": { "enum": ["CURRENT_CONFLICTED", "CURRENT_MAPPED", "UNATTRIBUTED_CHANGES", "NO_CURRENT_WORK"] },
+        "queue_candidates": { "type": "array", "items": { "type": "object", "minProperties": 3 } },
+        "current_task_refs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "git": { "type": "object", "minProperties": 5 },
+        "write_overlap_state": { "const": "NOT_EVALUATED" },
+        "concurrent_change_state": { "const": "NOT_EVALUATED" },
+        "continuity_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conflict_id", "affected_scope", "dependent_actions", "state", "reason"],
+      "properties": {
+        "conflict_id": { "type": "string", "minLength": 1 },
+        "affected_scope": { "type": "string", "minLength": 1 },
+        "dependent_actions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "state": { "const": "BLOCKING" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

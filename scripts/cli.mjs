@@ -374,6 +374,7 @@ const commandRegistry = {
     description: "Recommend engineering and environment baseline setup without writing by default.",
     script: "scripts/baseline-project.mjs",
     writes: false,
+    writeFlags: ["--write-plan"],
     buildArgs: (args) => withDefaultTarget(args),
   },
   "baseline-installation": {
@@ -1091,7 +1092,8 @@ function runCommand(name, command, args, options) {
     printDisplayCommand(command.script, builtArgs);
     return { status: 0 };
   }
-  if (command.writes || builtArgs.includes("--out")) {
+  if (command.writes || builtArgs.includes("--out") || (command.writeFlags || []).some((flag) => builtArgs.includes(flag))) {
+    console.log(`Operation class: ${operationClassFor(command, builtArgs)}`);
     console.log(`Underlying command: ${displayCommand(command.script, builtArgs)}`);
   }
   return runScript(command.script, builtArgs, { showCommand: false, commandName: name });
@@ -1158,6 +1160,8 @@ function dryRunDoctor(args) {
 
 function shouldStopDoctorAtExistingProjectDiagnosis(report) {
   if (!report || typeof report !== "object") return false;
+  if (report.projectEntryTrust?.entry_state === "READY_FOR_READ_ONLY_ASSESSMENT"
+    && report.projectEntryTrust?.project_identity?.state === "UNBOOTSTRAPPED") return true;
   const tags = new Set(Array.isArray(report.projectStateTags) ? report.projectStateTags : []);
   const governedExisting = tags.has("GOVERNED_EXISTING_PROJECT")
     || tags.has("PRODUCTION_GOVERNED_PROJECT")
@@ -1169,6 +1173,17 @@ function shouldStopDoctorAtExistingProjectDiagnosis(report) {
     && governedExisting
     && (adoptionMode === "READ_ONLY" || adoptionMode === "GUARDED")
     && (migrationDepth === "ADAPTER_ONLY" || migrationDepth === "PLAN_REQUIRED");
+}
+
+function operationClassFor(command, args) {
+  if (command.script === "scripts/init-project.mjs") {
+    return args.includes("--apply-plan") || (!args.includes("--dry-run") && !args.includes("--write-plan"))
+      ? "TARGET_APPLY"
+      : "PLAN_WRITE";
+  }
+  if (command.writes) return "TARGET_APPLY";
+  if (args.includes("--out") || (command.writeFlags || []).some((flag) => args.includes(flag))) return "PLAN_WRITE";
+  return "READ_ONLY";
 }
 
 function parseJsonOrNull(text) {

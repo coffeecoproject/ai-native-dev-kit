@@ -255,11 +255,11 @@ Rationale: baseline-aware maintained-project default; task governance may raise 
 
 Stop before production, secrets, permissions, payment, migrations, regulated data, or irreversible operations without project evidence and approval.
 
-## Required Project Docs
+## Required Project Records
 
-- [x] \`docs/project-profile.md\`
-- [x] \`docs/baseline-selection.md\`
-- [x] \`docs/baseline-evidence.md\`
+- [x] Project profile
+- [x] Baseline selection
+- [x] Baseline evidence
 
 ## Open Assumptions
 
@@ -332,7 +332,7 @@ Approval scope: exact baseline selection bound to the approved IntentOS initiali
 export function renderBaselineEvidence(config) {
   return `# Baseline Evidence
 
-## Human Decision Summary
+## Decision Summary
 
 Conclusion: selected baseline configuration is installed through an exact controlled plan.
 
@@ -340,17 +340,17 @@ Recommended choice: Accept the selected baseline and continue with project-speci
 
 Can AI continue now: limited
 
-What I need from you: only unresolved business, data, release, or high-risk decisions when they become material.
+User input boundary: only an unavailable business fact, external fact, product preference, or consent to a prepared real-world effect when it becomes material.
 
 ## Human Summary
 
 One-sentence conclusion: IntentOS baseline assets are configured; product and production evidence still belong to the project.
 
-## Decision Needed
+## Input Boundary
 
-Does baseline evidence need human confirmation before AI continues: ${config.evidencePending ? "Yes" : "No"}
+Technical input from the user before Codex continues: No
 
-Decision: ${config.evidencePending ? "selected packs remain pending until required project evidence is recorded." : "technical baseline installation may continue; high-risk project decisions remain separate."}
+Decision: ${config.evidencePending ? "selected packs remain pending while Codex gathers required project evidence." : "technical baseline installation may continue; concrete real-world effects remain separately consent-gated."}
 
 ## Next Safe Step
 
@@ -360,7 +360,7 @@ Next action: complete product, engineering, environment, and business onboarding
 
 Draft status: ${config.evidencePending ? "PENDING_EVIDENCE" : "CONFIRMED"}
 
-Human decision status: ${config.evidencePending ? "PENDING_EVIDENCE" : "CONFIRMED"}
+User input status: NOT_NEEDED_FOR_TECHNICAL_BASELINE
 
 ## Evidence Index
 

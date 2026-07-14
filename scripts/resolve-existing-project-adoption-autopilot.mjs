@@ -109,13 +109,42 @@ function buildReport(root) {
 }
 
 function resolveSources(root) {
-  return [
-    resolveSource("workflow_next", "workflow-next.mjs", root, ["--json"]),
-    resolveSource("native_migration", "resolve-native-migration.mjs", root, ["--json"]),
-    resolveSource("existing_rule_reconciliation", "resolve-existing-rule-reconciliation.mjs", root, ["--auto-native", "--json"]),
-    resolveSource("governance_convergence", "resolve-governance-convergence.mjs", root, ["--json", "--intent", intent]),
-    resolveSource("adoption_assurance", "resolve-adoption-assurance.mjs", root, ["--json", "--intent", intent]),
-  ];
+  const assurance = resolveSource("adoption_assurance", "resolve-adoption-assurance.mjs", root, ["--json", "--intent", intent]);
+  if (!assurance.parsed) return [assurance];
+
+  const sameRunSources = assurance.parsed.sourceSystems
+    || assurance.parsed.structuredEvidence?.source_systems
+    || {};
+  const projected = [
+    "workflow_next",
+    "native_migration",
+    "existing_rule_reconciliation",
+    "governance_convergence",
+  ].map((name) => projectedAssuranceSource(name, sameRunSources[name]));
+  return [...projected, assurance];
+}
+
+function projectedAssuranceSource(name, source) {
+  if (!source) {
+    return {
+      name,
+      status: "FAILED",
+      summary: `${name} is missing from the current Adoption Assurance source chain`,
+      authorityBlock: "No",
+      parsed: null,
+    };
+  }
+  const rawStatus = String(source.status || "BLOCKED");
+  const strictFailure = /strict checker failed|invalid evidence|unavailable/i.test(String(source.contribution || ""));
+  return {
+    name,
+    status: strictFailure || rawStatus === "FAILED"
+      ? "FAILED"
+      : rawStatus === "RECORDED" ? "RECORDED" : "NEEDS_REVIEW",
+    summary: normalizeLine(source.contribution || source.ref || `${name} recorded`),
+    authorityBlock: source.authority_block === "Yes" ? "Yes" : "No",
+    parsed: null,
+  };
 }
 
 function resolveSource(name, script, root, extraArgs) {
@@ -153,13 +182,13 @@ function resolveSource(name, script, root, extraArgs) {
 }
 
 function sourceStatusFor(name, parsed) {
-  if (hasDirtyState(parsed)) return "BLOCKED";
   if (name === "workflow_next") {
     return parsed.mustStopForHuman === "yes" ? "NEEDS_REVIEW" : "RECORDED";
   }
   if (name === "native_migration") {
     const state = parsed.projectState?.state || parsed.structuredEvidence?.project_state || parsed.outcome || "";
-    if (/DIRTY|BLOCKED/i.test(String(state))) return "BLOCKED";
+    if (/BLOCKED/i.test(String(state))) return "BLOCKED";
+    if (/DIRTY/i.test(String(state))) return "NEEDS_REVIEW";
     if (/PRODUCTION|GOVERNED/i.test(String(state))) return "NEEDS_REVIEW";
     return "RECORDED";
   }
@@ -220,18 +249,29 @@ function projectClassificationFor(root, exists, sources) {
   if (fs.existsSync(path.join(root, "intentos-manifest.json")) && fs.existsSync(path.join(root, "core", "workflow.md"))) {
     return "INTENTOS_SOURCE_REPOSITORY";
   }
+  const assurance = sources.find((source) => source.name === "adoption_assurance")?.parsed;
+  const assuranceSignals = assurance?.targetProjectState || {};
+  if (assuranceSignals.dirtyWorktree === "Yes") return "DIRTY_WORKTREE_PROJECT";
+  if (assuranceSignals.productionSensitive === "Yes") return "PRODUCTION_SENSITIVE_PROJECT";
+  if (assuranceSignals.hasAiRules
+    || assuranceSignals.hasEngineeringBaseline
+    || assuranceSignals.hasEnvironmentBaseline
+    || assuranceSignals.hasReleaseRollback
+    || assuranceSignals.hasCiHooks) {
+    return "EXISTING_GOVERNED_PROJECT";
+  }
   const native = sources.find((source) => source.name === "native_migration")?.parsed;
   const state = native?.projectState?.state || native?.structuredEvidence?.project_state || "";
   if (/DIRTY/.test(state)) return "DIRTY_WORKTREE_PROJECT";
   if (/PRODUCTION/.test(state)) return "PRODUCTION_SENSITIVE_PROJECT";
   if (/GOVERNED/.test(state)) return "EXISTING_GOVERNED_PROJECT";
   if (/LIGHT/.test(state)) return "EXISTING_LIGHT_PROJECT";
-  return "UNKNOWN_EXISTING_PROJECT";
+  return "EXISTING_LIGHT_PROJECT";
 }
 
 function adoptionStateFor(exists, classification, sources) {
   if (!exists) return "BLOCKED_BY_PROJECT_NOT_FOUND";
-  if (classification === "DIRTY_WORKTREE_PROJECT" || sources.some((source) => source.status === "BLOCKED")) {
+  if (sources.some((source) => source.status === "BLOCKED")) {
     return "BLOCKED_BY_UNSAFE_PROJECT_STATE";
   }
   if (sources.some((source) => source.status === "FAILED")) return "FAILED_INVALID_EVIDENCE";

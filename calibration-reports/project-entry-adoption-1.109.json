@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.109.0",
+  "artifact_type": "project_entry_calibration",
+  "report_ref": "calibration-reports/project-entry-adoption-1.109.json",
+  "report_digest": "sha256:8dca90f4428804c46addd686f444a05e70297ab645d75be102c60731ee30c410",
+  "source_revision": "4bc48a0a47f28b0967cc9313d957863390815564",
+  "source_before_digest": "sha256:f41be022e93cbcd3798a42a5e14bf46db6ff08a8cdc926ef358cfcac148c4129",
+  "source_after_digest": "sha256:f41be022e93cbcd3798a42a5e14bf46db6ff08a8cdc926ef358cfcac148c4129",
+  "source_unchanged": "Yes",
+  "observation_scope": "PRE_IMPLEMENTATION_BASELINE",
+  "fixtures": [
+    {
+      "fixture_id": "blank-target",
+      "condition": "ABSENT_TARGET",
+      "observation_dimensions": ["TARGET_TOPOLOGY", "PROJECT_IDENTITY", "ENTRY_CONSISTENCY", "ADOPTION_ROUTE"],
+      "repository_state": {
+        "target_topology": "ABSENT_LEAF",
+        "repository_mode": "NOT_PRESENT",
+        "current_work": "NONE",
+        "governance_posture": "NONE"
+      },
+      "command_results": [
+        {
+          "command_id": "start-json",
+          "command": "node scripts/cli.mjs start <fixture> --json",
+          "exit_code": 0,
+          "output_digest": "sha256:6e1c840257eb018ca452caa6f3878fea6dc48db919a7adb3e48096f7fb484e4f",
+          "observation_state": "BASELINE_RECORDED"
+        }
+      ],
+      "target_before_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "target_after_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "target_unchanged": "Yes",
+      "expected_assertions": [
+        "All public entries use one absent-target topology and setup decision.",
+        "Read-only discovery does not create the target leaf."
+      ],
+      "sensitive_or_project_specific_data": "No"
+    },
+    {
+      "fixture_id": "light-existing",
+      "condition": "LIGHT_EXISTING",
+      "observation_dimensions": ["PROJECT_IDENTITY", "GUIDANCE_AUTHORITY", "GOVERNANCE_AUTHORITY", "ENTRY_CONSISTENCY", "ADOPTION_ROUTE"],
+      "repository_state": {
+        "target_topology": "NONEMPTY_DIRECTORY",
+        "repository_mode": "GIT",
+        "current_work": "NONE",
+        "governance_posture": "LIGHT"
+      },
+      "command_results": [
+        {
+          "command_id": "start-json",
+          "command": "node scripts/cli.mjs start <fixture> --json",
+          "exit_code": 0,
+          "output_digest": "sha256:0e1ba34cf042bab3f336f9b126f686706f142f4d51c8ed748dde988294af01dc",
+          "observation_state": "BASELINE_RECORDED"
+        }
+      ],
+      "target_before_digest": "sha256:f858d7976d26501c41691cde942905ac82e15b805dede22f6037d6d675a4134f",
+      "target_after_digest": "sha256:f858d7976d26501c41691cde942905ac82e15b805dede22f6037d6d675a4134f",
+      "target_unchanged": "Yes",
+      "expected_assertions": [
+        "Missing IntentOS identity remains separate from light project governance.",
+        "Codex derives a behavior-complete adoption recommendation without a technical menu."
+      ],
+      "sensitive_or_project_specific_data": "No"
+    },
+    {
+      "fixture_id": "strong-governed",
+      "condition": "STRONG_GOVERNED",
+      "observation_dimensions": ["PROJECT_IDENTITY", "GUIDANCE_AUTHORITY", "GOVERNANCE_AUTHORITY", "ENTRY_CONSISTENCY", "ADOPTION_ROUTE"],
+      "repository_state": {
+        "target_topology": "NONEMPTY_DIRECTORY",
+        "repository_mode": "GIT",
+        "current_work": "NONE",
+        "governance_posture": "STRONG"
+      },
+      "command_results": [
+        {
+          "command_id": "start-json",
+          "command": "node scripts/cli.mjs start <fixture> --json",
+          "exit_code": 0,
+          "output_digest": "sha256:1e96ddd91f1b7f9baefaba293720cc2ec9f02257e028075c8e60560adc53e0c2",
+          "observation_state": "BASELINE_RECORDED"
+        }
+      ],
+      "target_before_digest": "sha256:a45e3d8f70eaa5e44ac6a53fe0fbfbb4e87fadd9140ee62ee11b145979a62335",
+      "target_after_digest": "sha256:a45e3d8f70eaa5e44ac6a53fe0fbfbb4e87fadd9140ee62ee11b145979a62335",
+      "target_unchanged": "Yes",
+      "expected_assertions": [
+        "Strong project authority is preserved and fully inventoried.",
+        "Strong governance does not permanently force adapter-only behavior."
+      ],
+      "sensitive_or_project_specific_data": "No"
+    },
+    {
+      "fixture_id": "current-work",
+      "condition": "CURRENT_WORK_PRESENT",
+      "observation_dimensions": ["PROJECT_IDENTITY", "GOVERNANCE_AUTHORITY", "CURRENT_WORK", "ENTRY_CONSISTENCY", "ADOPTION_ROUTE"],
+      "repository_state": {
+        "target_topology": "NONEMPTY_DIRECTORY",
+        "repository_mode": "GIT",
+        "current_work": "PRESENT",
+        "governance_posture": "STRONG"
+      },
+      "command_results": [
+        {
+          "command_id": "start-json",
+          "command": "node scripts/cli.mjs start <fixture> --json",
+          "exit_code": 0,
+          "output_digest": "sha256:2443630b50593151f208e0b911d523388a6d6559c883c70ba2463829208dc120",
+          "observation_state": "BASELINE_RECORDED"
+        }
+      ],
+      "target_before_digest": "sha256:bbac82708bad0ed7b51a536d4f454d4d5d1d95203aac55d535db7d13b90426e2",
+      "target_after_digest": "sha256:bbac82708bad0ed7b51a536d4f454d4d5d1d95203aac55d535db7d13b90426e2",
+      "target_unchanged": "Yes",
+      "expected_assertions": [
+        "Read-only assessment preserves the current task and dirty work.",
+        "Only overlapping unsafe writes are blocked during controlled adoption."
+      ],
+      "sensitive_or_project_specific_data": "No"
+    }
+  ],
+  "boundaries": {
+    "writes_target_files": "No",
+    "imports_project_specific_facts": "No",
+    "authorizes_implementation": "No",
+    "authorizes_adoption_apply": "No",
+    "proves_acceptance": "No"
+  },
+  "outcome": "CALIBRATION_BASELINE_RECORDED"
+}

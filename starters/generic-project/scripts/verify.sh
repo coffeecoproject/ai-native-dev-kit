@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+node scripts/workflow-next.mjs . --json --intent "verify the current project safely" >/dev/null
+node scripts/resolve-work-queue.mjs . --json >/dev/null
+node scripts/resolve-task-governance.mjs . --json --intent "verify the current project safely" >/dev/null
+
 if [ -f package.json ]; then
   if command -v corepack >/dev/null 2>&1 && [ -f pnpm-lock.yaml ]; then
     corepack pnpm lint
@@ -29,6 +33,6 @@ elif [ -f pyproject.toml ]; then
 elif [ -f go.mod ]; then
   go test ./...
 else
-  echo "No known stack manifest found. Update scripts/verify.sh for this project stack."
-  exit 1
+  echo "IntentOS project-entry, Work Queue, and Task Governance checks passed."
+  echo "No product stack exists yet, so stack-specific verification is not applicable."
 fi

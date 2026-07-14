@@ -385,6 +385,7 @@ function checkStructuredSimulation(parsed, label) {
   const allowed = new Set([
     "SIMULATION_NOT_RUN",
     "SIMULATION_PASSED",
+    "SIMULATION_READ_ONLY_PASSED",
     "SIMULATION_PARTIAL",
     "SIMULATION_FAILED",
     "SIMULATION_BLOCKED",
@@ -490,6 +491,22 @@ function checkEvidenceRefs(parsed, label) {
     } else if (value.startsWith("simulation:")) {
       if (parsed.simulation?.id === value) pass(`${label} resolves simulation evidence ${value}`);
       else fail(`${label} unresolved simulation evidence ${value}`);
+    } else if (value.startsWith("same-run:")) {
+      const separator = value.indexOf("#");
+      const envelopeId = separator >= 0 ? value.slice(0, separator) : value;
+      const envelopeDigest = separator >= 0 ? value.slice(separator + 1) : "";
+      const envelopes = Array.isArray(parsed.same_run_evidence?.envelopes)
+        ? parsed.same_run_evidence.envelopes
+        : [];
+      const exactEnvelope = envelopes.find((envelope) => (
+        envelope?.envelope_id === envelopeId
+        && envelope?.envelope_digest === envelopeDigest
+      ));
+      if (exactEnvelope && /^sha256:[a-f0-9]{64}$/.test(envelopeDigest)) {
+        pass(`${label} resolves exact same-run evidence ${value}`);
+      } else {
+        fail(`${label} unresolved same-run evidence ${value}`);
+      }
     } else if (value === "human-decision:no-target-writes") {
       const applyChain = (Array.isArray(parsed.surfaces) ? parsed.surfaces : []).find((item) => item.surface === "apply_chain");
       if (parsed.boundary?.writes_target_files === "No" && applyChain?.status === "NOT_APPLICABLE_WITH_REASON") {

@@ -7,6 +7,12 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
+import {
+  consumeSameRunEvidenceEnvelope,
+  readSameRunEnvelopeFromEnvironment,
+  sameRunBindingFromTrust,
+} from "./lib/same-run-evidence-envelope.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -44,8 +50,13 @@ if (outputFormat === "json") {
 
 function buildReport(root) {
   const signals = collectSignals(root);
-  const sources = resolveSources(root);
-  const maturity = maturityFor(signals, sources);
+  const entryTrust = resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: kitRoot,
+    goal: intent,
+  });
+  const sources = resolveSources(root, entryTrust);
+  const maturity = maturityFor(signals, sources, entryTrust);
   const recommendation = recommendationFor(maturity, signals, sources);
   const reviewRef = outputPath
     ? path.relative(root, outputPath).replaceAll(path.sep, "/")
@@ -118,18 +129,92 @@ function collectSignals(root) {
   };
 }
 
-function resolveSources(root) {
+function resolveSources(root, entryTrust) {
+  const envelopes = {
+    native_migration: readSameRunEnvelopeFromEnvironment("native_migration"),
+    existing_rule_reconciliation: readSameRunEnvelopeFromEnvironment("existing_rule_reconciliation"),
+    governance_convergence: readSameRunEnvelopeFromEnvironment("governance_convergence"),
+  };
+  const sameRunMode = Object.values(envelopes).some(Boolean);
+  const expectedRunId = envelopes.governance_convergence?.run_id || envelopes.native_migration?.run_id;
+  if (sameRunMode && envelopes.governance_convergence && !envelopes.native_migration && !envelopes.existing_rule_reconciliation) {
+    return [
+      resolveEnvelopeOrSource("governance_convergence", "bound same-run adoption source chain", "source_evidence", "resolve-governance-convergence.mjs", root, ["--json", "--intent", intent], entryTrust, 3, expectedRunId, true, envelopes.governance_convergence),
+      projectSignalSource(root, entryTrust),
+    ];
+  }
   return [
-    resolveSource("existing_project_adoption_autopilot", "user-facing summary", "derived_view", "resolve-existing-project-adoption-autopilot.mjs", root, ["--json", "--intent", intent]),
-    resolveSource("native_migration", "native migration source evidence", "source_evidence", "resolve-native-migration.mjs", root, ["--json"]),
-    resolveSource("existing_rule_reconciliation", "maturity evidence", "source_evidence", "resolve-existing-rule-reconciliation.mjs", root, ["--auto-native", "--json"]),
-    resolveSource("governance_convergence", "daily workflow convergence evidence", "source_evidence", "resolve-governance-convergence.mjs", root, ["--json", "--intent", intent]),
-    resolveSource("adoption_assurance", "adoption assurance evidence", "source_evidence", "resolve-adoption-assurance.mjs", root, ["--json", "--intent", intent]),
-    projectSignalSource(root),
+    resolveEnvelopeOrSource("native_migration", "native migration source evidence", "source_evidence", "resolve-native-migration.mjs", root, ["--json"], entryTrust, 1, expectedRunId, sameRunMode, envelopes.native_migration),
+    resolveEnvelopeOrSource("existing_rule_reconciliation", "maturity evidence", "source_evidence", "resolve-existing-rule-reconciliation.mjs", root, ["--auto-native", "--json"], entryTrust, 2, expectedRunId, sameRunMode, envelopes.existing_rule_reconciliation),
+    resolveEnvelopeOrSource("governance_convergence", "daily workflow convergence evidence", "source_evidence", "resolve-governance-convergence.mjs", root, ["--json", "--intent", intent], entryTrust, 3, expectedRunId, sameRunMode, envelopes.governance_convergence),
+    projectSignalSource(root, entryTrust),
   ];
 }
 
-function resolveSource(name, role, authority, script, root, extraArgs) {
+function resolveEnvelopeOrSource(name, role, authority, script, root, extraArgs, entryTrust, sequence, runId, sameRunMode, suppliedEnvelope) {
+  const envelope = suppliedEnvelope || null;
+  if (sameRunMode && !envelope) {
+    return {
+      name,
+      role,
+      authority,
+      status: "BLOCKED",
+      summary: `same-run chain is incomplete: ${name} envelope is missing`,
+      ref: `same-run:${name}:missing`,
+      digest: digest(`missing:${name}`),
+      source_outcome: "INCOMPLETE_SAME_RUN_EVIDENCE",
+      current_project_match: "Unknown",
+      blocker_class: "unavailable",
+    };
+  }
+  if (!envelope) return resolveSource(name, role, authority, script, root, extraArgs, entryTrust);
+  const binding = sameRunBindingFromTrust(entryTrust);
+  try {
+    const parsed = consumeSameRunEvidenceEnvelope(envelope, {
+      evidenceType: name,
+      producer: `scripts/${script}`,
+      sequence,
+      runId,
+      projectBinding: binding.projectBinding,
+      taskRef: binding.taskRef,
+      intentDigest: binding.goalDigest,
+      goalDigest: binding.goalDigest,
+      projectFactDigest: binding.projectFactDigest,
+      guidanceDigest: binding.guidanceDigest,
+      authorityInventoryDigest: binding.authorityInventoryDigest,
+      sourceRevision: binding.sourceRevision,
+    });
+    const summary = sourceSummaryFor(name, parsed);
+    const blockerClass = sourceBlockerClassFor(name, parsed, summary, true, entryTrust);
+    return {
+      name,
+      role,
+      authority,
+      status: sourceStatusFor(name, parsed),
+      summary,
+      ref: envelope.envelope_id,
+      digest: envelope.envelope_digest,
+      source_outcome: sourceOutcomeFor(name, parsed),
+      current_project_match: currentProjectMatchFor(root, blockerClass, true),
+      blocker_class: blockerClass,
+    };
+  } catch (error) {
+    return {
+      name,
+      role,
+      authority,
+      status: "BLOCKED",
+      summary: `same-run source rejected: ${error.message}`,
+      ref: envelope?.envelope_id || `same-run:${name}:invalid`,
+      digest: envelope?.envelope_digest || digest("invalid-envelope"),
+      source_outcome: "INVALID_SAME_RUN_EVIDENCE",
+      current_project_match: "Unknown",
+      blocker_class: "unavailable",
+    };
+  }
+}
+
+function resolveSource(name, role, authority, script, root, extraArgs, entryTrust) {
   const result = spawnSync(process.execPath, [path.join(scriptDir, script), root, ...extraArgs], {
     cwd: kitRoot,
     encoding: "utf8",
@@ -139,7 +224,7 @@ function resolveSource(name, role, authority, script, root, extraArgs) {
   const ok = result.status === 0 && parsed;
   const summary = ok ? sourceSummaryFor(name, parsed) : normalizeLine(result.stderr || result.stdout || `${name} unavailable`);
   const outcome = ok ? sourceOutcomeFor(name, parsed) : "UNAVAILABLE";
-  const blockerClass = sourceBlockerClassFor(name, parsed, summary, ok);
+  const blockerClass = sourceBlockerClassFor(name, parsed, summary, ok, entryTrust);
   return {
     name,
     role,
@@ -162,8 +247,9 @@ function currentProjectMatchFor(root, blockerClass, ok) {
   return "Yes";
 }
 
-function projectSignalSource(root) {
+function projectSignalSource(root, entryTrust) {
   const signals = collectSignals(root);
+  const currentWorkConflicted = entryTrust?.project_fact_projection?.current_work_continuity?.state === "CURRENT_CONFLICTED";
   const present = [
     signals.hasAgents ? "agents" : "",
     signals.hasCi ? "ci" : "",
@@ -176,13 +262,15 @@ function projectSignalSource(root) {
     name: "project_signals",
     role: "filesystem governance signals",
     authority: "project_signal",
-    status: !signals.exists || signals.dirty ? "BLOCKED" : "RECORDED",
+    status: !signals.exists || currentWorkConflicted ? "BLOCKED" : "RECORDED",
     summary: signals.exists ? `present=${present.join(",") || "basic project only"}; dirty=${signals.dirty ? "yes" : "no"}` : "target project not found",
     ref: "project:filesystem-signals",
     digest: digest(JSON.stringify(signals)),
-    source_outcome: signals.exists ? (signals.dirty ? "DIRTY_WORKTREE_PROJECT" : "PROJECT_SIGNALS_RECORDED") : "TARGET_PROJECT_NOT_FOUND",
+    source_outcome: signals.exists
+      ? (currentWorkConflicted ? "CURRENT_WORK_CONFLICTED" : signals.dirty ? "DIRTY_WORKTREE_MAPPED" : "PROJECT_SIGNALS_RECORDED")
+      : "TARGET_PROJECT_NOT_FOUND",
     current_project_match: signals.exists ? "Yes" : "No",
-    blocker_class: !signals.exists ? "project_authority" : signals.dirty ? "dirty_or_unsafe" : "none",
+    blocker_class: !signals.exists ? "project_authority" : currentWorkConflicted ? "dirty_or_unsafe" : "none",
   };
 }
 
@@ -235,17 +323,21 @@ function sourceOutcomeFor(name, parsed) {
   return parsed.outcome || parsed.reportType || "RECORDED";
 }
 
-function sourceBlockerClassFor(name, parsed, summary, ok) {
+function sourceBlockerClassFor(name, parsed, summary, ok, entryTrust) {
   if (!ok) return "unavailable";
   const text = `${summary}\n${JSON.stringify(parsed)}`;
-  if (/DIRTY_WORKTREE_PROJECT|dirty worktree/i.test(text)) return "dirty_or_unsafe";
+  if (/DIRTY_WORKTREE_PROJECT|dirty worktree/i.test(text)) {
+    return entryTrust?.project_fact_projection?.current_work_continuity?.state === "CURRENT_CONFLICTED"
+      ? "dirty_or_unsafe"
+      : "none";
+  }
   if (/BLOCKED_BY_PROJECT_AUTHORITY|BLOCKED_NEEDS_OWNER|NEEDS_OWNER|authority boundary|owner/i.test(text)) return "project_authority";
   if (/BLOCKED_BY_RULE_COVERAGE|omitted=\d*[1-9]\d*|omitted_rules"\s*:\s*[1-9]\d*/i.test(text)) return "rule_coverage";
   if (/NEEDS_REVIEW|NEEDS_INPUT|CONVERGENCE_BLOCKED/i.test(text)) return "needs_input";
   return "none";
 }
 
-function maturityFor(signals, sources) {
+function maturityFor(signals, sources, entryTrust) {
   const present = [];
   const missing = [];
   const add = (flag, label) => (flag ? present : missing).push(label);
@@ -268,8 +360,8 @@ function maturityFor(signals, sources) {
   const productionSensitivity = signals.productionSensitive ? "yes" : lowRiskEvidence ? "no" : "unknown";
   let state = "WEAK_GOVERNANCE_PROJECT";
   if (!signals.exists) state = "UNKNOWN_OR_OWNERLESS_PROJECT";
-  else if (signals.dirty) state = "DIRTY_OR_UNSAFE_PROJECT";
-  else if (targetHardBlocker?.blocker_class === "dirty_or_unsafe") state = "DIRTY_OR_UNSAFE_PROJECT";
+  else if (targetHardBlocker?.blocker_class === "dirty_or_unsafe"
+    && entryTrust?.project_fact_projection?.current_work_continuity?.state === "CURRENT_CONFLICTED") state = "DIRTY_OR_UNSAFE_PROJECT";
   else if (targetHardBlocker?.blocker_class === "project_authority") state = "UNKNOWN_OR_OWNERLESS_PROJECT";
   else if (signals.productionSensitive && missing.length >= 3) state = "MESSY_PRODUCTION_PROJECT";
   else if (present.length >= 6 && signals.hasRelease && signals.hasCi) state = "STRONG_GOVERNED_PROJECT";
@@ -294,11 +386,10 @@ function targetBlockingSourceFor(sources) {
 }
 
 function adoptionDepthFor(state) {
-  if (state === "STRONG_GOVERNED_PROJECT") return "KEEP_PARTIAL_ADOPTION";
-  if (state === "MESSY_PRODUCTION_PROJECT") return "GOVERNANCE_REPAIR_ONLY";
-  if (state === "LIGHT_LOW_RISK_PROJECT") return "SELECTED_NATIVE_PLAN_ONLY";
-  if (state === "DIRTY_OR_UNSAFE_PROJECT" || state === "UNKNOWN_OR_OWNERLESS_PROJECT") return "BLOCK_NATIVE_ADOPTION";
-  return "GOVERNANCE_REPAIR_THEN_SELECTED_NATIVE_PLAN";
+  if (state === "STRONG_GOVERNED_PROJECT" || state === "LIGHT_LOW_RISK_PROJECT") return "SELECTED_NATIVE_OVERLAY_PLAN";
+  if (state === "MESSY_PRODUCTION_PROJECT" || state === "WEAK_GOVERNANCE_PROJECT") return "GOVERNANCE_REPAIR_THEN_SELECTED_OVERLAY_PLAN";
+  if (state === "UNKNOWN_OR_OWNERLESS_PROJECT") return "AUTHORITY_RECONCILIATION_THEN_SELECTED_OVERLAY_PLAN";
+  return "BLOCK_NATIVE_ADOPTION";
 }
 
 function recommendationFor(maturity, signals, sources) {
@@ -307,18 +398,18 @@ function recommendationFor(maturity, signals, sources) {
     return recommendation("BLOCKED_BY_UNSAFE_PROJECT_STATE", currentAdoption, "BLOCK_NATIVE_ADOPTION", "Resolve the unsafe project state before deeper adoption review.", "The project state is unsafe for deeper adoption planning.");
   }
   if (maturity.state === "UNKNOWN_OR_OWNERLESS_PROJECT") {
-    return recommendation("BLOCKED_BY_PROJECT_AUTHORITY", currentAdoption, "BLOCK_NATIVE_ADOPTION", "Confirm the project owner or authority boundary before deeper adoption.", "Project authority is unknown.");
+    return recommendation("READY_FOR_AUTHORITY_RECONCILIATION", currentAdoption, "AUTHORITY_RECONCILIATION_THEN_SELECTED_OVERLAY_PLAN", "Codex will map project authority before preparing the selected overlay.", "Project authority is incomplete, so only the dependent apply actions remain blocked.");
   }
   if (maturity.state === "STRONG_GOVERNED_PROJECT") {
-    return recommendation("RECOMMEND_STAY_PARTIAL", currentAdoption, "KEEP_PARTIAL_ADOPTION", "Keep the current safe IntentOS working mode.", "Existing governance appears stronger than a generic native asset install.");
+    return recommendation("READY_FOR_SELECTED_NATIVE_OVERLAY_PLAN", currentAdoption, "SELECTED_NATIVE_OVERLAY_PLAN", "Codex will preserve stronger project rules and prepare the smallest behavior-complete overlay.", "Strong governance is mapped authority, not a reason to remain adapter-only.");
   }
   if (maturity.state === "MESSY_PRODUCTION_PROJECT") {
-    return recommendation("RECOMMEND_GOVERNANCE_REPAIR", currentAdoption, "GOVERNANCE_REPAIR_ONLY", "Let Codex prepare a governance repair plan without touching code or release settings.", "Production sensitivity and missing governance signals make deeper adoption unsafe.");
+    return recommendation("READY_FOR_GOVERNANCE_REPAIR_AND_OVERLAY_PLAN", currentAdoption, "GOVERNANCE_REPAIR_THEN_SELECTED_OVERLAY_PLAN", "Codex will repair missing governance in the plan and then prepare a selected overlay.", "Production-sensitive gaps require stricter planning but do not create a permanent adapter-only state.");
   }
   if (maturity.state === "LIGHT_LOW_RISK_PROJECT") {
-    return recommendation("READY_FOR_SELECTED_NATIVE_PLAN_ONLY", currentAdoption, "SELECTED_NATIVE_PLAN_ONLY", "Let Codex prepare a deeper adoption plan only.", "The project looks light enough for plan-only deeper adoption review.");
+    return recommendation("READY_FOR_SELECTED_NATIVE_OVERLAY_PLAN", currentAdoption, "SELECTED_NATIVE_OVERLAY_PLAN", "Codex will prepare the smallest behavior-complete overlay.", "The project is light enough for a bounded selected overlay plan.");
   }
-  return recommendation("RECOMMEND_GOVERNANCE_REPAIR", currentAdoption, "GOVERNANCE_REPAIR_THEN_SELECTED_NATIVE_PLAN", "Let Codex prepare a low-risk governance repair plan first.", "Governance gaps should be repaired before any deeper adoption plan.");
+  return recommendation("READY_FOR_GOVERNANCE_REPAIR_AND_OVERLAY_PLAN", currentAdoption, "GOVERNANCE_REPAIR_THEN_SELECTED_OVERLAY_PLAN", "Codex will prepare governance repairs and a behavior-complete overlay as one bounded plan.", "Governance gaps must be repaired before their dependent overlay actions can apply.");
 }
 
 function recommendation(state, currentAdoption, recommendationClass, userChoice, reason) {
@@ -340,14 +431,14 @@ function currentAdoptionStateFor(sources) {
 }
 
 function recommendedActionsFor(recommendationValue, maturity) {
-  if (recommendationValue.recommendation_class === "KEEP_PARTIAL_ADOPTION") {
-    return [{ id: "CNAR-KEEP-001", plain_summary: "Keep IntentOS as a planning and review method for the next task.", risk: "low", execution: "review_only" }];
+  if (recommendationValue.recommendation_class === "SELECTED_NATIVE_OVERLAY_PLAN") {
+    return [{ id: "CNAR-PLAN-001", plain_summary: "Prepare the smallest project-local overlay that makes IntentOS the verified daily workflow while preserving stronger project authority.", risk: maturity.production_sensitivity === "yes" ? "medium" : "low", execution: "plan_only" }];
   }
-  if (recommendationValue.recommendation_class === "GOVERNANCE_REPAIR_ONLY") {
-    return [{ id: "CNAR-REPAIR-001", plain_summary: "Prepare a governance repair plan for workflow, verification, documents, and ownership gaps.", risk: "medium", execution: "plan_only" }];
+  if (recommendationValue.recommendation_class === "GOVERNANCE_REPAIR_THEN_SELECTED_OVERLAY_PLAN") {
+    return [{ id: "CNAR-REPAIR-001", plain_summary: "Prepare one bounded plan that repairs missing governance and then activates the selected IntentOS overlay.", risk: "medium", execution: "plan_only" }];
   }
-  if (recommendationValue.recommendation_class === "SELECTED_NATIVE_PLAN_ONLY") {
-    return [{ id: "CNAR-PLAN-001", plain_summary: "Prepare a selected deeper adoption plan without applying files.", risk: "low", execution: "plan_only" }];
+  if (recommendationValue.recommendation_class === "AUTHORITY_RECONCILIATION_THEN_SELECTED_OVERLAY_PLAN") {
+    return [{ id: "CNAR-AUTH-001", plain_summary: "Complete project-authority reconciliation before preparing dependent overlay actions.", risk: "medium", execution: "review_only" }];
   }
   if (recommendationValue.recommendation_class === "BLOCK_NATIVE_ADOPTION") {
     return [{ id: "CNAR-BLOCK-001", plain_summary: "Continue read-only analysis until the blocking project state is resolved.", risk: "high", execution: "review_only" }];
@@ -358,26 +449,24 @@ function recommendedActionsFor(recommendationValue, maturity) {
 function blockedActionsFor(recommendationValue) {
   return [
     { id: "CNAR-B001", plain_summary: "Do not install IntentOS assets.", reason: "1.82 is review-only and cannot apply native assets." },
-    { id: "CNAR-B002", plain_summary: "Do not change code, release, CI, production, secrets, data, or provider state.", reason: "Those actions require separate plans, owners, and approval." },
+    { id: "CNAR-B002", plain_summary: "Do not change code, release, CI, production, secrets, data, or provider state.", reason: "Those actions require a bounded plan, current project evidence, and exact real-world consent when an external effect is ready." },
     { id: "CNAR-B003", plain_summary: "Do not claim full adoption.", reason: `The current recommendation is ${recommendationValue.state}, not applied adoption evidence.` },
   ];
 }
 
 function humanDecisionsFor(recommendationValue) {
-  if (recommendationValue.recommendation_class === "KEEP_PARTIAL_ADOPTION") {
-    return [{ decision: "accept_stay_partial", plain_question: "I recommend keeping the current safe working mode. Should Codex continue using that for planning and review?", required_now: "No" }];
-  }
-  if (recommendationValue.recommendation_class === "BLOCK_NATIVE_ADOPTION") {
-    return [{ decision: "resolve_blocker_first", plain_question: "The project needs its blocking state or owner boundary resolved before deeper adoption. Should Codex keep this read-only?", required_now: "Yes" }];
-  }
-  return [{ decision: "prepare_plan_only_next_step", plain_question: `${recommendationValue.recommended_user_choice} Should Codex prepare that plan?`, required_now: "No" }];
+  return [{
+    decision: "NO_USER_ACTION",
+    plain_question: "No technical decision is required from the user. Codex continues the safe internal review and planning route.",
+    required_now: "No",
+  }];
 }
 
 function riskVerificationRollbackFor(recommendationValue, maturity) {
   return {
     risk_summary: recommendationValue.reason,
     verification_required: "Re-run this review after any plan is prepared and before any apply step.",
-    rollback_plan_required: "Any future write must include a separate rollback or restore plan before approval.",
+    rollback_plan_required: "Any future write must include a separate rollback or restore plan before controlled apply.",
   };
 }
 
@@ -472,11 +561,11 @@ ${JSON.stringify(e, null, 2)}
 }
 
 function plainMaturityFor(state) {
-  if (state === "STRONG_GOVERNED_PROJECT") return "This project already has strong governance. Keeping IntentOS as a safe planning and review layer is likely best.";
-  if (state === "WEAK_GOVERNANCE_PROJECT") return "This project has governance gaps. A repair plan should come before deeper adoption.";
-  if (state === "MESSY_PRODUCTION_PROJECT") return "This project may be production-sensitive and incomplete. Repair governance first without touching runtime or release.";
-  if (state === "LIGHT_LOW_RISK_PROJECT") return "This looks like a light, lower-risk project. A deeper adoption plan can be prepared, but not applied.";
-  if (state === "UNKNOWN_OR_OWNERLESS_PROJECT") return "The project owner or authority boundary is unclear.";
+  if (state === "STRONG_GOVERNED_PROJECT") return "This project has strong governance. IntentOS should preserve it and add only the verified daily-workflow overlay.";
+  if (state === "WEAK_GOVERNANCE_PROJECT") return "This project has governance gaps. Codex should repair them inside the selected adoption plan.";
+  if (state === "MESSY_PRODUCTION_PROJECT") return "This project may be production-sensitive and incomplete. Codex must prepare stricter repairs before dependent writes.";
+  if (state === "LIGHT_LOW_RISK_PROJECT") return "This project can use a small selected overlay after bounded review.";
+  if (state === "UNKNOWN_OR_OWNERLESS_PROJECT") return "Project authority must be mapped from evidence before dependent overlay actions are prepared.";
   return "The project state is unsafe for deeper adoption work.";
 }
 

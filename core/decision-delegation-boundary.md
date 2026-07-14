@@ -188,9 +188,9 @@ When a decision boundary matters, Codex should report:
 
 ## Relationship To Existing Workflow
 
-- `core/output-protocol.md` defines how the decision is presented.
+- The Output Protocol defines how the decision is presented.
 - `core/conversation-drift-control.md` decides whether a new message changes the current task.
-- `core/guided-delivery-loop.md` keeps the delivery thread moving after a decision.
+- The Guided Delivery Loop keeps the delivery thread moving after a decision.
 - `templates/guided-decision-summary.md` records a human-readable decision input.
 - `templates/active-work-thread.md` records mainline and parking-lot state when the conversation is broad or drifting.
 

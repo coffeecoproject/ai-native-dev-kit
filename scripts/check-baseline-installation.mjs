@@ -4,11 +4,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { loadVerifiedBootstrapReceipt } from "./lib/bootstrap-transaction.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { normalizeBaselineLevel } from "./lib/baseline-selection.mjs";
 import { assertInsideRoot, assertNoSymlinkInPath } from "./lib/path-safety.mjs";
-import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "require-selection", "allow-pending-receipt"]);
@@ -25,6 +26,7 @@ const allowPendingReceipt = Boolean(args["allow-pending-receipt"]);
 const checks = [];
 let failed = false;
 let pending = false;
+let bootstrapReceiptIssue = "";
 
 function record(status, message) {
   checks.push({ status, message });
@@ -175,18 +177,57 @@ function matchingVerifiedReceipt(selection) {
   return null;
 }
 
+function matchingVerifiedBootstrapReceipt(selection) {
+  const loaded = loadVerifiedBootstrapReceipt(projectRoot);
+  const reject = (reason) => {
+    bootstrapReceiptIssue = reason;
+    return null;
+  };
+  if (!loaded.ok || !loaded.receipt) return reject((loaded.errors || ["bootstrap receipt is unavailable"]).join("; "));
+  const receipt = loaded.receipt;
+  const receiptFile = path.join(projectRoot, loaded.ref);
+  const resolvedPlan = resolveAuthoritativeEvidenceReference(projectRoot, receiptFile, receipt.plan_ref);
+  if (!resolvedPlan.ok) return reject(`bootstrap plan is unresolved: ${resolvedPlan.error}`);
+  let plan;
+  try {
+    plan = JSON.parse(fs.readFileSync(resolvedPlan.file, "utf8"));
+  } catch {
+    return reject("bootstrap plan is not valid JSON");
+  }
+  const currentPlanDigest = evidenceDigest(plan, ["planDigest"]);
+  if (plan.planDigest !== currentPlanDigest || receipt.plan_digest !== currentPlanDigest) return reject("bootstrap plan digest is stale or mismatched");
+  if (plan.operation !== "INIT_PROJECT" || plan.arguments?.projectEntryOrigin !== "NEW_PROJECT") return reject("bootstrap plan does not describe a new-project initialization");
+  if (!planMatchesSelection(plan, selection)) return reject("bootstrap plan baseline selection does not match installed selection");
+
+  const expectedActions = (plan.actions || []).filter((action) => action.willWrite && !action.dynamicReceipt);
+  const expectedIds = expectedActions.map((action) => action.id).sort();
+  const receiptIds = [...(receipt.exact_action_ids || [])].sort();
+  if (JSON.stringify(expectedIds) !== JSON.stringify(receiptIds)) return reject("bootstrap receipt action IDs do not match the exact plan");
+  const planById = new Map(expectedActions.map((action) => [action.id, action]));
+  for (const observed of receipt.actions || []) {
+    const action = planById.get(observed.id);
+    if (!action || action.path !== observed.path || observed.result !== "APPLIED") return reject(`bootstrap receipt action ${observed.id || "<missing>"} does not match the exact plan`);
+    const target = resolveAuthoritativeEvidenceReference(projectRoot, receiptFile, action.path);
+    if (!target.ok) return reject(`bootstrap action ${action.id} target is unresolved: ${target.error}`);
+    const currentHash = canonicalFileDigest(target.file);
+    if (currentHash !== observed.hash_after || currentHash !== action.expectedHashAfter) return reject(`bootstrap action ${action.id} target hash is stale or mismatched`);
+  }
+  if ((receipt.actions || []).length !== expectedActions.length) return reject("bootstrap receipt action count does not match the exact plan");
+  return { receiptRel: loaded.ref, planRel: resolvedPlan.relativePath };
+}
+
 function checkReceiptBinding(selection) {
   if (allowPendingReceipt) {
     wait("baseline structure is installed; Apply Receipt validation is delegated to the calling receipt checker");
     return;
   }
-  const match = matchingVerifiedReceipt(selection);
+  const match = matchingVerifiedReceipt(selection) || matchingVerifiedBootstrapReceipt(selection);
   if (match) {
     pass(`baseline installation is bound to verified apply receipt: ${match.receiptRel}`);
     pass(`verified apply receipt binds exact baseline plan: ${match.planRel}`);
     return;
   }
-  fail("no valid current-project Apply Receipt binds the exact installed baseline selection and current target hashes");
+  fail(`no valid current-project Apply Receipt binds the exact installed baseline selection and current target hashes${bootstrapReceiptIssue ? `; bootstrap receipt: ${bootstrapReceiptIssue}` : ""}`);
 }
 
 const selectionRel = "docs/baseline-selection.md";

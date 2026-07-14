@@ -1,0 +1,28 @@
+id: evidence:109-full-verify
+evidence_type: COMMAND_OUTPUT
+result_state: PASSED
+command: npm run verify
+owner: Codex
+environment: isolated release candidate /private/tmp/intentos-109-release.kFA0qD
+ran_at: 2026-07-15T05:01:54+08:00
+exit_code: 0
+ran_after_change: Yes
+current_task_match: Yes
+covers_obligations: verify:user-flow-regression-smoke-existing-critical-flow-still-works-af, verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders, verify:test-coverage-regression-smoke-task-specific-verification-exists
+failure_reason: N/A
+limitations: Repository verification and generated-project smoke evidence; no release, provider, production, or real-world effect was executed.
+
+Actual result:
+
+- command exit code: 0
+- IntentOS self-check: passed
+- focused Project Entry suite: 38 passed, 0 failed
+- generated-project initialization and exact workflow update: passed
+- new-project bootstrap receipt copy and tamper rejection: passed
+- existing-project plan-first adoption and activation: passed
+- backup, source drift, target drift, and governance-preservation cases: passed
+
+The full output was captured during the final isolated candidate run at
+`/private/tmp/intentos-109-final-verify.log`. This committed summary records the
+task-bound result without treating the temporary local path as durable release
+authority.

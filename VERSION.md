@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.108.0`
+Current version: `1.109.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,23 @@ Current version: `1.108.0`
 
 ## Current Release
 
-`1.108.0`
+`1.109.0`
 
 Includes:
+
+- Project Entry and Behavior-Complete Adoption Trust Hardcut `1.109.0`: all
+  public entry consumers share one path-safe target topology, project identity,
+  project-fact projection, effective Guidance Authority view, original goal,
+  and current-work continuity record.
+- New-project setup is an atomic, recoverable transaction with an exact action
+  graph, rollback, project-local receipt, generated-project cold start, and
+  first ordinary task route. Existing-project adoption uses one strict
+  same-run evidence chain and preserves stronger project authority without
+  delegating technical migration choices to the zero-experience user.
+- Legacy assets, dirty work, platform conflicts, release readiness, and
+  behavioral adoption remain orthogonal. Only overlapping unsafe writes block;
+  no entry, report, or successful file copy authorizes production or proves
+  product correctness.
 
 - Business Universe Coverage `1.108.0`: conditionally derives task-relevant
   categories, participants, origins, processing paths, lifecycle branches,

@@ -57,6 +57,34 @@
       "additionalProperties": { "$ref": "#/$defs/sourceSystem" },
       "minProperties": 1
     },
+    "same_run_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "task_ref", "persistence_status", "durable_authority", "authorizes_apply", "authorizes_activation", "envelopes"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 },
+        "task_ref": { "type": "string", "pattern": "^task:[a-f0-9]{64}$" },
+        "persistence_status": { "const": "EPHEMERAL" },
+        "durable_authority": { "const": "No" },
+        "authorizes_apply": { "const": "No" },
+        "authorizes_activation": { "const": "No" },
+        "envelopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["evidence_type", "envelope_id", "envelope_digest", "sequence", "producer"],
+            "properties": {
+              "evidence_type": { "type": "string", "minLength": 1 },
+              "envelope_id": { "type": "string", "minLength": 1 },
+              "envelope_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+              "sequence": { "type": "integer" },
+              "producer": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
     "simulation": {
       "type": "object",
       "additionalProperties": false,
@@ -67,6 +95,7 @@
           "enum": [
             "SIMULATION_NOT_RUN",
             "SIMULATION_PASSED",
+            "SIMULATION_READ_ONLY_PASSED",
             "SIMULATION_PARTIAL",
             "SIMULATION_FAILED",
             "SIMULATION_BLOCKED"
@@ -81,6 +110,13 @@
         "steps": {
           "type": "array",
           "items": { "$ref": "#/$defs/simulationStep" }
+        },
+        "behavioral_activation_state": {
+          "enum": ["VERIFIED_ACTIVE", "READ_ONLY_SIMULATION_PASSED", "BLOCKED"]
+        },
+        "blockers": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
         }
       }
     },

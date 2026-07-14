@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..");
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format"]);
+const knownFlags = new Set(["json", "format", "intent"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
@@ -27,7 +27,9 @@ if (!allowedFormats.has(outputFormat)) {
   process.exit(1);
 }
 
-const workflowNext = runNode(["scripts/workflow-next.mjs", projectRoot, "--json"]);
+const workflowNextArgs = ["scripts/workflow-next.mjs", projectRoot, "--json"];
+if (args.intent) workflowNextArgs.push("--intent", String(args.intent));
+const workflowNext = runNode(workflowNextArgs);
 if (workflowNext.status !== 0) {
   console.error("FAIL start could not inspect project state with workflow-next.");
   process.stderr.write(workflowNext.stderr || workflowNext.stdout || "");
@@ -51,11 +53,15 @@ if (outputFormat === "json") {
 } else {
   printRecommendation(recommendation);
 }
+if (coreCheck.status === "FAIL" || workflow.projectEntryTrust?.entry_state === "BLOCKED_REPAIR_REQUIRED") {
+  process.exitCode = 2;
+}
 
 function runNode(scriptArgs) {
   return spawnSync(process.execPath, scriptArgs, {
     cwd: kitRoot,
     encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
   });
 }
 
@@ -122,6 +128,23 @@ function buildRecommendation(workflow, coreCheck) {
 }
 
 function classifyProject(workflow) {
+  const trust = workflow.projectEntryTrust;
+  const facts = workflow.projectFactProjection;
+  if (trust?.entry_state === "BLOCKED_REPAIR_REQUIRED") {
+    return { projectType: "ENTRY_TRUST_BLOCKED", riskLevel: "high", adoptionMode: "read-only-repair", canAiWriteNow: "No", confidence: "high" };
+  }
+  if (trust?.target_topology?.state === "ABSENT_LEAF" || trust?.target_topology?.state === "EMPTY_DIRECTORY") {
+    return { projectType: "NEW_PROJECT", riskLevel: "low", adoptionMode: "controlled-setup", canAiWriteNow: "No", confidence: "high" };
+  }
+  if (trust?.project_identity?.state === "INSTALLED_CURRENT" || trust?.project_identity?.state === "BRIDGE_CURRENT") {
+    return { projectType: workflow.projectState === "INTENTOS_REPOSITORY" ? "INTENTOS_REPOSITORY" : "ALREADY_BOOTSTRAPPED_PROJECT", riskLevel: "medium", adoptionMode: "doctor-then-next-task", canAiWriteNow: "No", confidence: "high" };
+  }
+  if (facts?.current_work_continuity?.state === "UNATTRIBUTED_CHANGES" || facts?.current_work_continuity?.state === "CURRENT_CONFLICTED") {
+    return { projectType: "DIRTY_WORKTREE_PROJECT", riskLevel: "high", adoptionMode: "read-only-first", canAiWriteNow: "No", confidence: "high" };
+  }
+  if (facts?.governance_authority_posture?.state === "DECLARED_STRONG_GOVERNED") {
+    return { projectType: "GOVERNED_EXISTING_PROJECT", riskLevel: "medium-high", adoptionMode: "behavior-complete-adoption-review", canAiWriteNow: "No", confidence: "high" };
+  }
   const tags = new Set(workflow.projectStateTags || []);
 
   if (workflow.projectState === "TARGET_MISSING") {

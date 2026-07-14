@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -7,11 +8,12 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["report", "task", "base", "cached", "json"]);
+const knownFlags = new Set(["report", "task", "base", "cached", "json", "pre-implementation-manifest"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const reportArg = args.report ? normalizePath(String(args.report)) : null;
+const preImplementationManifest = Boolean(args["pre-implementation-manifest"]);
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -36,6 +38,9 @@ if (reports.length === 0) {
 }
 
 const liveChangedFiles = liveDiffFiles();
+if ((args.cached || args.base) && liveChangedFiles.length === 0) {
+  fail(`git ${args.cached ? "cached" : "base"} diff is empty; exact changed-file verification cannot pass`);
+}
 for (const report of reports) checkReport(report, liveChangedFiles);
 
 emitAndExit();
@@ -47,7 +52,9 @@ function checkReport(file, liveFiles) {
   }
   const content = fs.readFileSync(file, "utf8");
   const label = rel(file);
-  for (const section of ["Task Ref", "Boundary Level", "Intended Scope", "Actual Changed Files", "Boundary Result", "Claim Boundary"]) {
+  const requiredSections = ["Task Ref", "Boundary Level", "Intended Scope", "Boundary Result", "Claim Boundary"];
+  if (!preImplementationManifest) requiredSections.splice(3, 0, "Actual Changed Files");
+  for (const section of requiredSections) {
     if (meaningful(sectionBody(content, section))) pass(`${label} includes ${section}`);
     else fail(`${label} missing meaningful ${section}`);
   }
@@ -58,14 +65,18 @@ function checkReport(file, liveFiles) {
   }
 
   const intended = sectionBody(content, "Intended Scope") || "";
-  const allowedPaths = listAfterLabel(intended, "Allowed paths");
-  const forbiddenPaths = listAfterLabel(intended, "Forbidden paths");
+  const allowedPaths = preImplementationManifest
+    ? codeBlockPaths(intended, /^Allowed\b/i)
+    : listAfterLabel(intended, "Allowed paths");
+  const forbiddenPaths = preImplementationManifest
+    ? codeBlockPaths(intended, /^Forbidden paths\b/i)
+    : listAfterLabel(intended, "Forbidden paths");
   const forbiddenTypes = listAfterLabel(intended, "Forbidden change types");
   const changedRows = parseTable(sectionBody(content, "Actual Changed Files"));
   const changedFiles = changedRows.map((row) => stripMarkdown(row.file || "")).filter((value) => value && !isPlaceholder(value));
   const disposition = firstCodeOrText(sectionBody(content, "Boundary Result"));
 
-  if (changedFiles.length === 0) fail(`${label} must list actual changed files`);
+  if (!preImplementationManifest && changedFiles.length === 0) fail(`${label} must list actual changed files`);
   for (const changedFile of changedFiles) {
     if (matchesAny(changedFile, forbiddenPaths)) fail(`${label} changed forbidden path: ${changedFile}`);
     if (allowedPaths.length > 0 && !matchesAny(changedFile, allowedPaths)) fail(`${label} changed file outside allowed paths: ${changedFile}`);
@@ -86,7 +97,7 @@ function checkReport(file, liveFiles) {
 
   const outOfScopeRows = parseTable(sectionBody(content, "Out-of-Scope Changes"));
   const meaningfulOutOfScope = outOfScopeRows.some((row) => Object.values(row).some((value) => value && !isPlaceholder(value)));
-  if (meaningfulOutOfScope && disposition === "PASS") {
+  if (!preImplementationManifest && meaningfulOutOfScope && disposition === "PASS") {
     fail(`${label} cannot mark PASS when out-of-scope changes are listed`);
   }
 
@@ -95,11 +106,61 @@ function checkReport(file, liveFiles) {
     if (!/Status:\s*Approved/i.test(approval)) fail(`${label} CB3 requires approved Human Approval`);
   }
 
+  if (preImplementationManifest) {
+    checkPlanBinding(content, label);
+    if (allowedPaths.length === 0) fail(`${label} pre-implementation manifest has no allowed paths`);
+    else pass(`${label} pre-implementation manifest declares ${allowedPaths.length} allowed paths`);
+    if (disposition !== "PASS") fail(`${label} pre-implementation manifest must have PASS disposition`);
+    else pass(`${label} pre-implementation manifest disposition is PASS`);
+  }
+
   if (liveFiles.length > 0) {
     for (const liveFile of liveFiles) {
       if (!changedFiles.includes(liveFile)) fail(`${label} missing live changed file from report: ${liveFile}`);
     }
   }
+}
+
+function checkPlanBinding(content, label) {
+  const body = sectionBody(content, "Plan Binding") || "";
+  const planRef = body.match(/Plan:\s*`([^`]+)`/i)?.[1] || "";
+  const recorded = body.match(/Plan digest:\s*`?(sha256:[a-f0-9]{64})`?/i)?.[1] || "";
+  if (!planRef || !recorded) {
+    fail(`${label} pre-implementation manifest is missing exact plan binding`);
+    return;
+  }
+  const planFile = path.join(projectRoot, normalizePath(planRef));
+  if (!fs.existsSync(planFile)) {
+    fail(`${label} bound plan does not exist: ${planRef}`);
+    return;
+  }
+  const actual = `sha256:${crypto.createHash("sha256").update(fs.readFileSync(planFile)).digest("hex")}`;
+  if (actual !== recorded) fail(`${label} plan digest mismatch: expected ${recorded}, observed ${actual}`);
+  else pass(`${label} binds the current plan digest`);
+}
+
+function codeBlockPaths(body, headingPattern) {
+  const lines = String(body || "").split("\n");
+  const output = [];
+  let selected = false;
+  let fenced = false;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!fenced && headingPattern.test(line)) {
+      selected = true;
+      continue;
+    }
+    if (!fenced && selected && /^(?:Allowed|Forbidden)\b/i.test(line)) {
+      selected = headingPattern.test(line);
+      continue;
+    }
+    if (line === "```text" || line === "```") {
+      if (selected) fenced = !fenced;
+      continue;
+    }
+    if (selected && fenced && line && !isPlaceholder(line)) output.push(normalizePath(line));
+  }
+  return [...new Set(output)];
 }
 
 function liveDiffFiles() {
@@ -212,4 +273,3 @@ function emitAndExit() {
     console.log("Change boundary check passed.");
   }
 }
-

@@ -5,6 +5,13 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
+import {
+  consumeSameRunEvidenceEnvelope,
+  readSameRunEnvelopeFromEnvironment,
+  sameRunBindingFromTrust,
+} from "./lib/same-run-evidence-envelope.mjs";
+import { loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "intent", "auto-native"]);
@@ -13,7 +20,6 @@ const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const MAX_RECONCILED_RULES = 20;
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -35,26 +41,49 @@ if (outputFormat === "json") {
 } else {
   printHuman(report);
 }
+if (report.outcome === "BLOCKED") process.exitCode = 1;
 
 function buildReport(root, options) {
-  let nativePlans = readNativeMigrationPlans(root);
+  const entryTrust = resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: path.resolve(__dirname, ".."),
+    goal: options.intent || "reconcile existing project rules",
+  });
+  const sameRunNative = readSameRunEnvelopeFromEnvironment("native_migration");
+  let nativePlans = sameRunNative
+    ? [nativePlanFromEnvelope(sameRunNative, entryTrust)]
+    : readNativeMigrationPlans(root, entryTrust);
+  const persistedNativePlanCount = sameRunNative ? 0 : nativeMigrationPlanCount(root);
+  const stalePersistedNativeEvidence = persistedNativePlanCount > 0 && nativePlans.length === 0;
   if (nativePlans.length === 0 && options.autoNative) {
     nativePlans = generateNativeMigrationPlans(root);
   }
   const rules = nativePlans.flatMap((plan) => plan.rules.map((rule) => ({ ...rule, planPath: plan.path })));
-  const ruleReconciliationCoverage = buildRuleReconciliationCoverage(rules);
+  const ruleReconciliationCoverage = buildRuleReconciliationCoverage(rules, nativePlans);
   const items = buildReconciliationItems(rules);
   const protectedConstraints = buildProtectedConstraints(items);
   const releaseProductionGaps = buildReleaseProductionGaps(items);
   const conflicts = buildConflicts(items);
   const proposedNextSteps = [
-    "Review Existing Rule Reconciliation Report",
-    "Prepare Unified Apply Plan only after human approval",
+    "Codex validates Existing Rule Reconciliation evidence",
+    "Codex prepares the bounded Unified Apply Plan when the selected route is technically ready",
     "Record Controlled Apply Readiness",
-    "Record Approval Record",
-    "Apply approved governance-file edits only",
+    "Record Approval Record from the original adoption request or exact real-world consent when required",
+    "Apply only the bounded governance-file actions represented by the reviewed plan",
   ];
-  const nativeAdoptionDecision = nativeAdoptionDecisionFor(nativePlans, rules, items, ruleReconciliationCoverage);
+  const nativeAdoptionDecision = stalePersistedNativeEvidence && !options.autoNative
+    ? nativeDecision({
+      recommendation: "BLOCKED_NEEDS_OWNER",
+      migrationDepth: "READ_ONLY_DIAGNOSIS",
+      confidence: "HIGH",
+      defaultPath: "regenerate Native Migration evidence for the current project, task, Guidance, and revision",
+      preserve: ["existing project rules", "stale evidence for audit only"],
+      merge: [],
+      replace: [],
+      blocked: ["rule reconciliation completion", "selected native adoption", "apply-plan recommendation"],
+      humanConfirmation: "NO_USER_ACTION: Codex regenerates current project-bound migration evidence before continuing.",
+    })
+    : nativeAdoptionDecisionFor(nativePlans, rules, items, ruleReconciliationCoverage);
   const canRecommendApplyPlan = nativeAdoptionDecision.recommendation.startsWith("BLOCKED")
     ? "NoUntilBlockResolved"
     : "Yes";
@@ -109,13 +138,52 @@ function buildReport(root, options) {
     },
     outcome,
   };
+  report.sameRunSource = sameRunNative ? {
+    mode: "SAME_RUN_ENVELOPE",
+    envelope_id: sameRunNative.envelope_id,
+    envelope_digest: sameRunNative.envelope_digest,
+    run_id: sameRunNative.run_id,
+    sequence: sameRunNative.sequence,
+  } : { mode: "PERSISTED_OR_GENERATED_SOURCE" };
   report.structuredEvidence = structuredEvidenceFor(report);
   return report;
 }
 
-function readNativeMigrationPlans(root) {
+function nativePlanFromEnvelope(envelope, entryTrust) {
+  const binding = sameRunBindingFromTrust(entryTrust);
+  const payload = consumeSameRunEvidenceEnvelope(envelope, {
+    evidenceType: "native_migration",
+    producer: "scripts/resolve-native-migration.mjs",
+    sequence: 1,
+    projectBinding: binding.projectBinding,
+    taskRef: binding.taskRef,
+    intentDigest: binding.goalDigest,
+    goalDigest: binding.goalDigest,
+    projectFactDigest: binding.projectFactDigest,
+    guidanceDigest: binding.guidanceDigest,
+    authorityInventoryDigest: binding.authorityInventoryDigest,
+    sourceRevision: binding.sourceRevision,
+  });
+  const evidence = payload?.structuredEvidence;
+  if (!evidence || !Array.isArray(evidence.rule_classifications)) {
+    throw new Error("same-run native migration payload is missing strict structured evidence");
+  }
+  return {
+    path: envelope.envelope_id,
+    generated: true,
+    sameRun: true,
+    evidence,
+    nativeReport: payload,
+    rules: evidence.rule_classifications,
+  };
+}
+
+function readNativeMigrationPlans(root, entryTrust) {
   const dir = path.join(root, "native-migration-plans");
   if (!fs.existsSync(dir)) return [];
+  const binding = sameRunBindingFromTrust(entryTrust);
+  const schema = loadSchema(root, "schemas/artifacts/native-migration-plan.schema.json");
+  if (!schema) return [];
   return walkMarkdown(dir)
     .map((file) => {
       const content = fs.readFileSync(file, "utf8");
@@ -126,7 +194,23 @@ function readNativeMigrationPlans(root) {
         rules: Array.isArray(evidence?.rule_classifications) ? evidence.rule_classifications : [],
       };
     })
-    .filter((plan) => plan.evidence);
+    .filter((plan) => plan.evidence)
+    .filter((plan) => validateSchema(plan.evidence, schema, { label: plan.path }).ok)
+    .filter((plan) => persistedNativeBindingMatches(plan.evidence, binding));
+}
+
+function nativeMigrationPlanCount(root) {
+  const dir = path.join(root, "native-migration-plans");
+  return fs.existsSync(dir) && fs.statSync(dir).isDirectory() ? walkMarkdown(dir).length : 0;
+}
+
+function persistedNativeBindingMatches(evidence, binding) {
+  return JSON.stringify(evidence.project_binding || null) === JSON.stringify(binding.projectBinding)
+    && evidence.goal_digest === binding.goalDigest
+    && evidence.project_fact_digest === binding.projectFactDigest
+    && evidence.guidance_digest === binding.guidanceDigest
+    && evidence.authority_inventory_digest === binding.authorityInventoryDigest
+    && evidence.source_revision === binding.sourceRevision;
 }
 
 function generateNativeMigrationPlans(root) {
@@ -179,15 +263,15 @@ function nativeAdoptionDecisionFor(nativePlans, rules, items, coverage) {
 
   if (generatedState === "DIRTY_WORKTREE_PROJECT") {
     return nativeDecision({
-      recommendation: "BLOCKED_BY_DIRTY_WORKTREE",
-      migrationDepth: "READ_ONLY_DIAGNOSIS",
-      confidence: "HIGH",
-      defaultPath: "stop and classify existing worktree changes before migration planning",
+      recommendation: hasActionableUnknown ? "DOCS_BRIDGE" : "SELECTED_NATIVE_ADOPTION",
+      migrationDepth: hasActionableUnknown ? "DOCS_BRIDGE" : "DOCS_BRIDGE_THEN_SELECTED_ASSETS",
+      confidence: "MEDIUM",
+      defaultPath: "continue read-only reconciliation and prepare only actions that do not overlap current work",
       preserve: ["current uncommitted work", "existing project rules"],
-      merge: [],
+      merge: hasEngineering ? ["engineering baseline", "environment baseline"] : ["project context docs"],
       replace: [],
-      blocked: ["workflow asset writes", "governance replacement", "task execution"],
-      humanConfirmation: "Confirm how to handle the current worktree before Codex prepares any apply plan.",
+      blocked: ["writes with unknown ownership", "actions overlapping current work", "production execution"],
+      humanConfirmation: "NO_USER_ACTION: Codex derives change ownership and blocks only unsafe overlapping writes.",
     });
   }
 
@@ -201,7 +285,7 @@ function nativeAdoptionDecisionFor(nativePlans, rules, items, coverage) {
       merge: [],
       replace: [],
       blocked: ["native adoption apply plan"],
-      humanConfirmation: "Allow Codex to generate native migration evidence in read-only mode first.",
+      humanConfirmation: "NO_USER_ACTION: Codex generates native migration evidence in read-only mode first.",
     });
   }
 
@@ -215,21 +299,21 @@ function nativeAdoptionDecisionFor(nativePlans, rules, items, coverage) {
       merge: [],
       replace: [],
       blocked: ["selected native adoption", "governance apply plan until omitted rules are reviewed"],
-      humanConfirmation: "Confirm review of omitted extracted rules before Codex prepares any selected native adoption apply plan.",
+      humanConfirmation: "NO_USER_ACTION: Codex continues bounded inventory pages until every extracted rule is reconciled.",
     });
   }
 
   if (hasActionableUnknown) {
     return nativeDecision({
-      recommendation: "BLOCKED_NEEDS_OWNER",
+      recommendation: "DOCS_BRIDGE",
       migrationDepth: "DOCS_BRIDGE",
       confidence: "LOW",
-      defaultPath: "classify unknown rule authority before selected native adoption",
+      defaultPath: "preserve unknown-authority rules and continue Codex-owned authority classification before replacement",
       preserve: ["unknown-authority project rules", "business and production rules"],
       merge: hasEngineering ? ["engineering baseline"] : [],
       replace: [],
       blocked: ["governance replacement for unknown-authority rules"],
-      humanConfirmation: "Confirm the owner for unknown-authority rules before Codex prepares an apply plan.",
+      humanConfirmation: "NO_USER_ACTION: Codex preserves unknown rules and continues evidence-based authority classification.",
     });
   }
 
@@ -248,7 +332,7 @@ function nativeAdoptionDecisionFor(nativePlans, rules, items, coverage) {
     merge: hasEngineering ? ["engineering baseline", "environment baseline"] : ["project context docs"],
     replace: ["old AI workflow routing after approval"],
     blocked: ["production execution", "secrets", "CI/hook mutation without approval"],
-    humanConfirmation: "Allow Codex to prepare a reviewable apply plan for the recommended migration path.",
+    humanConfirmation: "NO_USER_ACTION: the original adoption request authorizes Codex to prepare the reversible project-local plan; exact real-world effects still require consent.",
   });
 }
 
@@ -294,17 +378,23 @@ function parseFencedJson(content) {
   }
 }
 
-function buildRuleReconciliationCoverage(rules) {
-  const totalExtractedRules = rules.length;
-  const reconciledRules = totalExtractedRules === 0 ? 0 : Math.min(totalExtractedRules, MAX_RECONCILED_RULES);
-  const omittedRules = Math.max(0, totalExtractedRules - reconciledRules);
+function buildRuleReconciliationCoverage(rules, nativePlans) {
+  const extractionRows = nativePlans.flatMap((plan) => plan.evidence?.rule_extraction_coverage || []);
+  const unclassifiedBlocks = extractionRows.reduce((sum, item) => sum + (item.unclassified_blocks?.length || 0), 0);
+  const skippedBlocks = extractionRows.reduce((sum, item) => sum + (item.skipped_blocks?.length || 0), 0);
+  const lowSignalBlocks = extractionRows.reduce((sum, item) => sum + (item.low_signal_blocks?.length || 0), 0);
+  const extractedBySource = extractionRows.reduce((sum, item) => sum + Number(item.rules_extracted || 0), 0);
+  const reconciledRules = rules.length;
+  const unresolvedBlocks = unclassifiedBlocks + skippedBlocks + lowSignalBlocks;
+  const omittedRules = Math.max(0, extractedBySource - rules.length) + unresolvedBlocks;
+  const totalExtractedRules = rules.length + omittedRules;
   return {
     totalExtractedRules,
     reconciledRules,
     omittedRules,
     truncationWarning: omittedRules > 0
-      ? `Only first ${MAX_RECONCILED_RULES} extracted rules were reconciled; ${omittedRules} rule(s) were omitted.`
-      : "None",
+      ? `Only first ${reconciledRules} of ${totalExtractedRules} extracted rules were reconciled; ${unclassifiedBlocks} unclassified, ${skippedBlocks} skipped, and ${lowSignalBlocks} low-signal blocks remain unresolved.`
+      : "None; every extracted rule and parser block is represented in this reconciliation.",
     blocksSelectedNativeAdoption: omittedRules > 0 ? "Yes" : "No",
   };
 }
@@ -318,19 +408,19 @@ function buildReconciliationItems(rules) {
         intentOsReferenceRef: "native-migration-plan",
         surface: "UNKNOWN_AUTHORITY",
         surfaceAuthority: "PROJECT_OWNED",
-        allowedOutcomes: ["NEEDS_HUMAN_DECISION", "NO_EXISTING_RULE", "UNKNOWN_AUTHORITY"],
-        outcome: "NEEDS_HUMAN_DECISION",
-        reason: "No Native Migration rule classifications were found; reconciliation requires classified existing rules first.",
+        allowedOutcomes: ["NO_EXISTING_RULE", "UNKNOWN_AUTHORITY"],
+        outcome: "NO_EXISTING_RULE",
+        reason: "No Native Migration rule classifications were found; Codex must generate and validate classified existing rules first.",
         riskSurfaces: ["workflow"],
-        humanDecisionRequired: "Yes",
+        humanDecisionRequired: "No",
         requiresApplyChain: "Yes",
         canReplaceExistingRule: "No",
-        targetAction: "prepare Native Migration Plan before reconciliation",
+        targetAction: "Codex prepares Native Migration Plan before reconciliation",
       },
     ];
   }
 
-  return rules.slice(0, MAX_RECONCILED_RULES).map((rule, index) => {
+  return rules.map((rule, index) => {
     const itemId = `RR-${String(index + 1).padStart(3, "0")}`;
     const surface = surfaceForRule(rule);
     if (surface === "RELEASE_PRODUCTION" || surface === "PRODUCTION_CONTROL") {
@@ -343,7 +433,7 @@ function buildReconciliationItems(rules) {
         outcome: "KEEP_EXISTING",
         reason: "Existing release / production rules remain project-owned; IntentOS may only record gaps or conflicts.",
         riskSurfaces: ["release", "production"],
-        targetAction: "keep existing SOP; map gaps through release guide or handoff after approval",
+        targetAction: "keep existing SOP; Codex maps gaps through release guide or handoff without changing production authority",
         surfaceAuthority: "HUMAN_OR_EXTERNAL",
       });
     }
@@ -357,7 +447,7 @@ function buildReconciliationItems(rules) {
         outcome: "KEEP_EXISTING",
         reason: "Business, permission, security, privacy, compliance, data, finance, tax, legal, HR, payment, migration, and provider-state rules remain project-owned.",
         riskSurfaces: protectedRiskSurfaces(rule),
-        targetAction: "keep existing protected constraint or ask owner before apply plan",
+        targetAction: "keep existing protected constraint; request only a missing business or external fact when project evidence cannot resolve it",
         surfaceAuthority: "PROJECT_OWNED",
       });
     }
@@ -377,20 +467,22 @@ function buildReconciliationItems(rules) {
         preservedExistingTerms: merge ? [rule.source_excerpt || "existing engineering rule"] : [],
         addedIntentosTerms: merge ? ["evidence wording", "apply-plan before writes"] : [],
         riskSurfaces: ["engineering"],
-        targetAction: merge ? "prepare apply-plan after approval" : "keep existing engineering baseline",
+        targetAction: merge ? "Codex prepares bounded apply plan while preserving existing terms" : "keep existing engineering baseline",
         surfaceAuthority: "PROJECT_OWNED",
       });
     }
     return item({
       itemId,
       rule,
-      surface: "UNKNOWN_AUTHORITY",
+      surface,
       intentOsReferenceRef: "native-migration:classification-review",
-      allowedOutcomes: ["NEEDS_HUMAN_DECISION", "UNKNOWN_AUTHORITY"],
-      outcome: "NEEDS_HUMAN_DECISION",
-      reason: "Rule authority is unclear; owner must classify before reconciliation.",
+      allowedOutcomes: ["KEEP_EXISTING", "UNKNOWN_AUTHORITY"],
+      outcome: surface === "WORKFLOW_RULE" ? "KEEP_EXISTING" : "UNKNOWN_AUTHORITY",
+      reason: surface === "WORKFLOW_RULE"
+        ? "Existing workflow rule remains effective while Codex maps it to the IntentOS operating model."
+        : "Rule authority is not yet proven; Codex preserves it and continues evidence-based classification.",
       riskSurfaces: ["workflow"],
-      targetAction: "ask human to classify authority before apply plan",
+      targetAction: "preserve the rule; Codex continues classification and keeps any later replacement inside a bounded apply plan",
       surfaceAuthority: "PROJECT_OWNED",
     });
   });
@@ -410,7 +502,7 @@ function item(input) {
     preservedExistingTerms: input.preservedExistingTerms || [],
     addedIntentosTerms: input.addedIntentosTerms || [],
     riskSurfaces: input.riskSurfaces,
-    humanDecisionRequired: "Yes",
+    humanDecisionRequired: "No",
     requiresApplyChain: "Yes",
     canReplaceExistingRule: "No",
     targetAction: input.targetAction,
@@ -419,6 +511,10 @@ function item(input) {
 
 function surfaceForRule(rule) {
   const source = `${rule.rule_class || ""} ${rule.source_excerpt || ""} ${rule.risk_surfaces || ""}`;
+  if (rule.rule_class === "WORKFLOW_RULE"
+    || /\b(workflow|review loop|work queue|task governance|verification|closure|IntentOS)\b|工作流|任务队列|审查|验收/i.test(source)) {
+    return "WORKFLOW_RULE";
+  }
   if (rule.rule_class === "PRODUCTION_CONTROL" || /\b(release|rollback|deploy|production|incident|secret|provider|migration)\b|生产|上线|发布|回滚|事故|密钥|生产配置/i.test(source)) {
     return "RELEASE_PRODUCTION";
   }
@@ -446,10 +542,10 @@ function buildProtectedConstraints(items) {
     .map((item) => ({
       item_id: item.itemId,
       surface: item.riskSurfaces.join(", "),
-      owner: "project owner",
+      owner: "project authority source",
       authority: "PROJECT_OWNED",
-      human_decision_required: "Yes",
-      handling: "keep existing or ask owner before apply plan",
+      human_decision_required: "No",
+      handling: "keep existing; request only a missing business or external fact when project evidence cannot resolve it",
     }));
 }
 
@@ -473,8 +569,8 @@ function buildConflicts(items) {
       conflict_id: item.itemId.replace(/^RR-/, "C-"),
       item_id: item.itemId,
       decision_needed: item.reason,
-      owner: "human",
-      status: "Pending",
+      owner: item.humanDecisionRequired === "Yes" ? "user" : "Codex",
+      status: item.humanDecisionRequired === "Yes" ? "Pending" : "Internal classification pending",
     }));
 }
 
@@ -588,7 +684,7 @@ function printHuman(report) {
     ["Approves Implementation", code("No")],
     ["Approves Release Or Production", code("No")],
     ["Requires Apply Plan Before File Change", code("Yes")],
-    ["Recommended Next Step", "Review recommendations, then prepare a Unified Apply Plan only if approved."],
+    ["Recommended Next Step", "Codex validates the recommendation and prepares a bounded Unified Apply Plan when technically ready."],
   ]);
   console.log("");
   console.log("## Input Evidence");
@@ -643,7 +739,7 @@ function printHuman(report) {
   console.log("");
   printTable(["Conflict ID", "Decision Needed", "Owner", "Status"], report.conflicts.length
     ? report.conflicts.map((item) => [code(item.conflict_id), item.decision_needed, item.owner, item.status])
-    : [["None", "No conflict recorded", "human", "N/A"]]);
+    : [["None", "No conflict recorded", "Codex", "N/A"]]);
   console.log("");
   console.log("## IntentOS Adoption Recommendation");
   console.log("");

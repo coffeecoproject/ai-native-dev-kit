@@ -32,6 +32,12 @@
     "business_authority": { "type": "string", "enum": ["PROJECT_OWNED"] },
     "production_authority": { "type": "string", "enum": ["HUMAN_OR_EXTERNAL_SYSTEM"] },
     "requires_human_approval_before_apply": { "type": "string", "enum": ["Yes"] },
+    "project_binding": { "type": "object" },
+    "goal_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "project_fact_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "guidance_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "authority_inventory_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "source_revision": { "type": "string", "minLength": 1 },
     "rule_extraction_coverage": {
       "type": "array",
       "items": {
@@ -94,7 +100,7 @@
           "reason": { "type": "string" },
           "risk_surfaces": { "type": "string" },
           "target_action": { "type": "string" },
-          "human_decision_required": { "type": "string", "enum": ["Yes"] },
+          "human_decision_required": { "type": "string", "enum": ["Yes", "No"] },
           "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] }
         }
       }

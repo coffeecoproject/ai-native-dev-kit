@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(moduleDir, "../..");
 
-export const REVIEW_CONTEXT_VERSION = "1.108.0";
+export const REVIEW_CONTEXT_VERSION = "1.109.0";
 export const CURRENT_OPERATING_MODEL = "ZERO_EXPERIENCE_SOLO_DEVELOPER";
 export const USER_DECISION_CLASSES = Object.freeze([
   "NO_USER_ACTION",
@@ -167,6 +167,10 @@ export function effectiveGuidanceGraph(
     const from = nodes.get(fromPath);
     const absolute = path.join(resolvedRoot, from.path);
     if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) continue;
+    // Registry JSON contains asset paths as metadata, not user-facing guidance
+    // references. Expanding those values would incorrectly promote current plans
+    // and release evidence into the active guidance graph.
+    if (path.extname(from.path).toLowerCase() === ".json") continue;
     for (const reference of guidanceReferences(fs.readFileSync(absolute, "utf8"))) {
       const source = sourcePathForGuidanceReference(reference);
       const allowed = prefixes.some((prefix) => source.startsWith(prefix));
@@ -184,11 +188,53 @@ export function effectiveGuidanceGraph(
     }
   }
 
+  const materializedNodes = [...nodes.values()].map((node) => {
+    const absolute = path.join(resolvedRoot, node.path);
+    if (!fs.existsSync(absolute)) return { ...node, file_state: "MISSING", content_digest: "N/A" };
+    const stat = fs.lstatSync(absolute);
+    if (stat.isSymbolicLink()) return { ...node, file_state: "UNSAFE_SYMLINK", content_digest: "N/A" };
+    if (!stat.isFile()) return { ...node, file_state: "NOT_REGULAR_FILE", content_digest: "N/A" };
+    return {
+      ...node,
+      file_state: "CURRENT",
+      content_digest: `sha256:${createHash("sha256").update(fs.readFileSync(absolute)).digest("hex")}`,
+    };
+  });
+  const cycles = guidanceCycles(materializedNodes, edges);
   return {
-    nodes: [...nodes.values()],
+    nodes: materializedNodes,
     edges,
-    activePaths: [...nodes.keys()],
+    activePaths: materializedNodes.map((node) => node.path),
+    cycles,
   };
+}
+
+function guidanceCycles(nodes, edges) {
+  const known = new Set(nodes.map((node) => node.path));
+  const graph = new Map([...known].map((value) => [value, []]));
+  for (const edge of edges) {
+    if (edge.active && known.has(edge.from) && known.has(edge.to)) graph.get(edge.from).push(edge.to);
+  }
+  const visiting = new Set();
+  const visited = new Set();
+  const stack = [];
+  const cycles = [];
+  const visit = (node) => {
+    if (visiting.has(node)) {
+      const start = stack.indexOf(node);
+      cycles.push([...stack.slice(start), node]);
+      return;
+    }
+    if (visited.has(node)) return;
+    visiting.add(node);
+    stack.push(node);
+    for (const next of graph.get(node) || []) visit(next);
+    stack.pop();
+    visiting.delete(node);
+    visited.add(node);
+  };
+  for (const node of known) visit(node);
+  return cycles;
 }
 
 function canonicalGuidanceSource(value, authority, options = {}) {

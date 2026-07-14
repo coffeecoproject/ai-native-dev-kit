@@ -11,7 +11,9 @@ import { walkFiles as walkProjectFiles } from "./lib/project-signals.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 import { evidenceDigest, extractMachineReadableEvidence, validateSchema } from "./lib/artifact-schema.mjs";
 import { initExecutableActions } from "./lib/adoption-apply-chain.mjs";
+import { loadVerifiedBootstrapReceipt } from "./lib/bootstrap-transaction.mjs";
 import { createEvidenceAuthorityBinding, projectIdentity } from "./lib/evidence-authority.mjs";
+import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import {
   loadReviewContextAuthority,
@@ -1626,7 +1628,10 @@ function checkManifestProtocol() {
     }
 
     const target = path.join(tempRoot, "target-project");
-    const init = runNode(["scripts/init-project.mjs", "--starter", "generic-project", "--target", target]);
+    const init = runNode([
+      "scripts/init-project.mjs", "--starter", "generic-project", "--target", target,
+      "--goal", "create a generic project for manifest authority verification",
+    ]);
     if (init.status !== 0) {
       fail(`manifest authoritative generated target init failed: ${init.stderr || init.stdout}`);
       return;
@@ -1647,15 +1652,19 @@ function checkManifestProtocol() {
     }
 
     const targetNext = runNode([path.join(target, "scripts", "workflow-next.mjs"), target, "--json"]);
-    if (targetNext.status === 0) {
+    try {
       const nextResult = JSON.parse(targetNext.stdout);
-      if ((nextResult.missingWorkflowAssets || []).includes("fake/manifest-target-required.md")) {
-        pass("workflow-next reads workflow readiness paths from manifest");
+      const readsManifestPath = (nextResult.missingWorkflowAssets || []).includes("fake/manifest-target-required.md");
+      const failsClosed = targetNext.status !== 0
+        && nextResult.nextAction === "REPAIR_PROJECT_ENTRY_TRUST"
+        && nextResult.canWriteWorkflowAssets === "no";
+      if (readsManifestPath && failsClosed) {
+        pass("workflow-next reads manifest readiness paths and rejects a tampered installed identity");
       } else {
-        fail(`workflow-next missingWorkflowAssets must include manifest-added path: ${targetNext.stdout}`);
+        fail(`workflow-next must report the manifest path and fail closed on identity drift: ${targetNext.stdout}`);
       }
-    } else {
-      fail(`workflow-next manifest target check failed: ${targetNext.stderr || targetNext.stdout}`);
+    } catch (error) {
+      fail(`workflow-next manifest target check returned invalid JSON: ${error.message}; ${targetNext.stderr || targetNext.stdout}`);
     }
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
@@ -2535,7 +2544,10 @@ function checkCliFrontDoor() {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-cli-"));
   try {
     const target = path.join(tempRoot, "project");
-    const init = runNode(["scripts/cli.mjs", "init", "--starter", "generic-project", "--target", target]);
+    const init = runNode([
+      "scripts/cli.mjs", "init", "--starter", "generic-project", "--target", target,
+      "--goal", "create a generic project for CLI initialization verification",
+    ]);
     if (init.status !== 0) {
       fail(`CLI init failed: ${init.stderr || init.stdout}`);
       return;
@@ -3169,9 +3181,9 @@ function checkGovernanceHardeningDriftGuardProtocol() {
 
   const initProject = read("scripts/init-project.mjs");
   for (const marker of [
-    "assertDirectInitTargetIsSafe",
-    "--force-new-project",
-    "Direct init refused",
+    "requireTrustedProjectEntry",
+    "executeBootstrapTransaction",
+    "--force-new-project was removed",
   ]) {
     if (initProject.includes(marker)) pass(`init-project includes hardening marker ${marker}`);
     else fail(`init-project missing hardening marker ${marker}`);
@@ -5627,7 +5639,9 @@ function hasCompleteGovernanceConvergenceEvidence(parsed) {
       && typeof evidence.contribution === "string";
   });
   const blocked = Array.isArray(parsed.structuredEvidence?.blocked) ? parsed.structuredEvidence.blocked : [];
-  const sourceStatuses = requiredSources.map((source) => sourceSystems[source]?.status);
+  const sourceStatuses = requiredSources
+    .filter((source) => source !== "release_plan")
+    .map((source) => sourceSystems[source]?.status);
   const needsUpstreamBlock = sourceStatuses.some((status) => status === "BLOCKED" || status === "NEEDS_INPUT");
   const recordsUpstreamBlock = blocked.some((reason) => reason.includes("upstream source requires input"));
   return hasAllDimensions && hasAllSources && (!needsUpstreamBlock || recordsUpstreamBlock);
@@ -6471,8 +6485,8 @@ function checkTaskGovernanceProtocol() {
   }
 
   const sourceCheck = runNode(["scripts/check-task-governance.mjs", ".", "--allow-empty"]);
-  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("task governance check skipped by explicit --allow-empty")) {
-    pass("1.83 task governance checker passes source repo with explicit allow-empty");
+  if (sourceCheck.status === 0) {
+    pass("1.83 task governance checker passes source repo with existing evidence or explicit empty allowance");
   } else {
     fail(`1.83 task governance source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
   }
@@ -6485,7 +6499,7 @@ function checkTaskGovernanceProtocol() {
   }
 
   const cliChecker = runNode(["scripts/cli.mjs", "task-governance-check", ".", "--allow-empty"]);
-  if (cliChecker.status === 0 && cliChecker.stdout.includes("task governance check skipped by explicit --allow-empty")) {
+  if (cliChecker.status === 0) {
     pass("CLI task-governance-check delegates to checker");
   } else {
     fail(`CLI task-governance-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
@@ -10681,6 +10695,8 @@ function checkSafetyEvidenceHardeningProtocol() {
       "scripts/init-project.mjs",
       "--target",
       target,
+      "--goal",
+      "create a project for apply-plan digest hardening verification",
       "--write-plan",
       path.relative(target, writePlanPath),
     ]);
@@ -10719,6 +10735,8 @@ function checkSafetyEvidenceHardeningProtocol() {
         "scripts/init-project.mjs",
         "--target",
         caseTarget,
+        "--goal",
+        `create a project for ${name} approval validation`,
         "--write-plan",
         path.relative(caseTarget, casePlanPath),
       ]);
@@ -10777,12 +10795,20 @@ function checkSafetyEvidenceHardeningProtocol() {
     fs.mkdirSync(path.join(symlinkTarget, "scripts"), { recursive: true });
     fs.writeFileSync(symlinkEscape, "outside");
     fs.symlinkSync(symlinkEscape, path.join(symlinkTarget, "scripts", "check-ai-workflow.mjs"));
-    const symlinkUpdate = runNode([
+    const symlinkPlanPath = path.join(symlinkTarget, "apply-execution-plans", "symlink-update-plan.json");
+    const symlinkPlan = runNode([
       "scripts/init-project.mjs",
       "--target",
       symlinkTarget,
-      "--force-new-project",
+      "--update-workflow-assets",
+      "--goal",
+      "adopt IntentOS while verifying symlink write boundaries",
+      "--write-plan",
+      path.relative(symlinkTarget, symlinkPlanPath),
     ]);
+    const symlinkUpdate = symlinkPlan.status === 0
+      ? runNode(approvedInitProjectApplyArgs(symlinkPlanPath))
+      : symlinkPlan;
     const symlinkUpdateOutput = `${symlinkUpdate.stdout}\n${symlinkUpdate.stderr}`;
     if (symlinkUpdate.status !== 0 && symlinkUpdateOutput.includes("symlink")) {
       pass("init-project refuses workflow asset write through symlink path");
@@ -15003,6 +15029,8 @@ function checkGeneratedProjectE2E() {
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     target,
+    "--goal",
+    "create a generated project for end-to-end IntentOS verification",
   ]);
   if (initResult.status !== 0) {
     fail(`generated project init failed: ${initResult.stderr || initResult.stdout}`);
@@ -15913,6 +15941,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     target,
     "--update-workflow-assets",
+    "--goal",
+    "enable the selected industrial pack in the generated project",
     "--industrial-packs",
     "web-app-industrial",
     "--write-plan",
@@ -16157,33 +16187,68 @@ function checkGeneratedProjectE2E() {
 
   const truncatedRuleTarget = path.join(tempRoot, "truncated-rule-project");
   fs.mkdirSync(path.join(truncatedRuleTarget, "native-migration-plans"), { recursive: true });
-  const truncatedRules = Array.from({ length: 21 }, (_, index) => ({
-    rule_id: `R-${String(index + 1).padStart(3, "0")}`,
-    rule_class: "ENGINEERING_BASELINE",
-    source_excerpt: `Project enum rule ${index + 1}`,
-    authority: "project baseline",
-    risk_surfaces: ["engineering"],
-  }));
+  fs.writeFileSync(path.join(truncatedRuleTarget, ".gitignore"), "native-migration-plans/\n");
+  fs.writeFileSync(path.join(truncatedRuleTarget, "AGENTS.md"), [
+    "# Project Rules",
+    "",
+    "- Database status fields must use project-defined enum types.",
+    "",
+  ].join("\n"));
+  const truncatedGitInit = spawnSync("git", ["-C", truncatedRuleTarget, "init", "-q"], { encoding: "utf8" });
+  const truncatedGitAdd = spawnSync("git", ["-C", truncatedRuleTarget, "add", "."], { encoding: "utf8" });
+  const truncatedGitCommit = spawnSync("git", [
+    "-C",
+    truncatedRuleTarget,
+    "-c",
+    "user.name=IntentOS Self Check",
+    "-c",
+    "user.email=intentos@example.invalid",
+    "commit",
+    "-qm",
+    "fixture",
+  ], { encoding: "utf8" });
+  if ([truncatedGitInit, truncatedGitAdd, truncatedGitCommit].some((result) => result.status !== 0)) {
+    fail("truncated existing rule reconciliation fixture Git initialization failed");
+    return;
+  }
+  const truncatedIntent = "Adopt this existing project while preserving all extracted rules";
+  const currentNativeMigration = runNode([
+    path.join(kitRoot, "scripts", "resolve-native-migration.mjs"),
+    truncatedRuleTarget,
+    "--intent",
+    truncatedIntent,
+    "--json",
+  ]);
+  if (currentNativeMigration.status !== 0) {
+    fail(`truncated existing rule reconciliation fixture migration failed: ${currentNativeMigration.stderr || currentNativeMigration.stdout}`);
+    return;
+  }
+  const truncatedEvidence = JSON.parse(currentNativeMigration.stdout).structuredEvidence;
+  if (!Array.isArray(truncatedEvidence?.rule_classifications)
+    || truncatedEvidence.rule_classifications.length === 0
+    || !Array.isArray(truncatedEvidence.rule_extraction_coverage)
+    || truncatedEvidence.rule_extraction_coverage.length === 0) {
+    fail("truncated existing rule reconciliation fixture did not produce current structured evidence");
+    return;
+  }
+  truncatedEvidence.rule_extraction_coverage[0].rules_extracted = truncatedEvidence.rule_classifications.length + 1;
   fs.writeFileSync(path.join(truncatedRuleTarget, "native-migration-plans", "001-many-rules.md"), [
     "# Native Migration Plan",
     "",
     "```json",
-    JSON.stringify({
-      schema_version: "1.62.0",
-      artifact_type: "native_migration_plan",
-      project_state: "EXISTING_GOVERNED_PROJECT",
-      rule_classifications: truncatedRules,
-    }, null, 2),
+    JSON.stringify(truncatedEvidence, null, 2),
     "```",
     "",
   ].join("\n"));
   const truncatedReconcile = runNode([
     path.join(kitRoot, "scripts", "resolve-existing-rule-reconciliation.mjs"),
     truncatedRuleTarget,
+    "--intent",
+    truncatedIntent,
     "--json",
   ]);
-  if (truncatedReconcile.status !== 0) {
-    fail(`truncated existing rule reconciliation should resolve: ${truncatedReconcile.stderr || truncatedReconcile.stdout}`);
+  if (truncatedReconcile.status !== 1) {
+    fail(`truncated existing rule reconciliation should fail closed: ${truncatedReconcile.stderr || truncatedReconcile.stdout}`);
     return;
   }
   try {
@@ -16209,6 +16274,8 @@ function checkGeneratedProjectE2E() {
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     dirtyReadyTarget,
+    "--goal",
+    "create a project for dirty production-state routing verification",
   ]);
   if (dirtyReadyInit.status !== 0) {
     fail(`dirty ready production project init failed: ${dirtyReadyInit.stderr || dirtyReadyInit.stdout}`);
@@ -16243,23 +16310,26 @@ function checkGeneratedProjectE2E() {
     path.join(kitRoot, "scripts", "workflow-next.mjs"),
     dirtyReadyTarget,
   ]);
-  if (dirtyReadyNext.status !== 0
-    || !dirtyReadyNext.stdout.includes("NEXT_ACTION: REVIEW_DIRTY_WORKTREE")
+  if (dirtyReadyNext.status !== 2
+    || !dirtyReadyNext.stdout.includes("NEXT_ACTION: REPAIR_PROJECT_ENTRY_TRUST")
     || !dirtyReadyNext.stdout.includes("ADOPTION_MODE: GUARDED")
     || !dirtyReadyNext.stdout.includes("CAN_WRITE_WORKFLOW_ASSETS: no")
-    || !dirtyReadyNext.stdout.includes("MUST_STOP_FOR_HUMAN: yes")
+    || !dirtyReadyNext.stdout.includes("MUST_STOP_FOR_HUMAN: no")
     || !dirtyReadyNext.stdout.includes("PRODUCTION_GOVERNED_PROJECT")
-    || !dirtyReadyNext.stdout.includes("DIRTY_WORKTREE_PROJECT")) {
-    fail(`dirty ready project should stop before task execution: ${dirtyReadyNext.stderr || dirtyReadyNext.stdout}`);
+    || !dirtyReadyNext.stdout.includes("DIRTY_WORKTREE_PROJECT")
+    || !dirtyReadyNext.stdout.includes("PROJECT_FACT_GLOBAL_CONFLICT")) {
+    fail(`dirty ready project should repair entry trust before task execution: ${dirtyReadyNext.stderr || dirtyReadyNext.stdout}`);
     return;
   }
-  pass("dirty ready project workflow-next stops before task execution");
+  pass("dirty ready project workflow-next repairs entry trust before task execution");
 
   const dirtyUpdateTarget = path.join(tempRoot, "dirty-workflow-update-project");
   const dirtyUpdateInit = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     dirtyUpdateTarget,
+    "--goal",
+    "create a project for dirty workflow-update routing verification",
   ]);
   if (dirtyUpdateInit.status !== 0) {
     fail(`dirty workflow update project init failed: ${dirtyUpdateInit.stderr || dirtyUpdateInit.stdout}`);
@@ -16271,15 +16341,16 @@ function checkGeneratedProjectE2E() {
     path.join(kitRoot, "scripts", "workflow-next.mjs"),
     dirtyUpdateTarget,
   ]);
-  if (dirtyUpdateNext.status !== 0
-    || !dirtyUpdateNext.stdout.includes("NEXT_ACTION: REVIEW_DIRTY_WORKTREE")
+  if (dirtyUpdateNext.status !== 2
+    || !dirtyUpdateNext.stdout.includes("NEXT_ACTION: REPAIR_PROJECT_ENTRY_TRUST")
     || !dirtyUpdateNext.stdout.includes("CAN_WRITE_WORKFLOW_ASSETS: no")
-    || !dirtyUpdateNext.stdout.includes("MUST_STOP_FOR_HUMAN: yes")
-    || !dirtyUpdateNext.stdout.includes("DIRTY_WORKTREE_PROJECT")) {
-    fail(`dirty workflow update project should stop before recommending update: ${dirtyUpdateNext.stderr || dirtyUpdateNext.stdout}`);
+    || !dirtyUpdateNext.stdout.includes("MUST_STOP_FOR_HUMAN: no")
+    || !dirtyUpdateNext.stdout.includes("DIRTY_WORKTREE_PROJECT")
+    || !dirtyUpdateNext.stdout.includes("PROJECT_IDENTITY_CONFLICTED")) {
+    fail(`dirty workflow update project should repair entry trust before recommending update: ${dirtyUpdateNext.stderr || dirtyUpdateNext.stdout}`);
     return;
   }
-  pass("dirty workflow update project stops before workflow asset update");
+  pass("dirty workflow update project repairs entry trust before workflow asset update");
 
   const partialExistingTarget = path.join(tempRoot, "partial-existing-project");
   fs.mkdirSync(path.join(partialExistingTarget, ".intentos"), { recursive: true });
@@ -16289,12 +16360,15 @@ function checkGeneratedProjectE2E() {
     partialExistingTarget,
   ]);
   if (partialExistingNext.status !== 0
-    || !partialExistingNext.stdout.includes("NEXT_ACTION: RUN_WORKFLOW_ASSET_UPDATE")
+    || !partialExistingNext.stdout.includes("NEXT_ACTION: RUN_ADOPTION_ASSESSMENT")
+    || !partialExistingNext.stdout.includes("INTENTOS_OPERATING_MODE: ACTIVE")
+    || !partialExistingNext.stdout.includes("CAN_WRITE_WORKFLOW_ASSETS: no")
+    || !partialExistingNext.stdout.includes("MUST_STOP_FOR_HUMAN: no")
     || !partialExistingNext.stdout.includes("--update-workflow-assets --write-plan apply-execution-plans/intentos-workflow-update-plan.json")) {
-    fail(`partial existing workflow update should recommend plan-first command: ${partialExistingNext.stderr || partialExistingNext.stdout}`);
+    fail(`partial existing project should enter adoption assessment before the plan-first command: ${partialExistingNext.stderr || partialExistingNext.stdout}`);
     return;
   }
-  pass("partial existing project workflow-next recommends plan-first workflow update");
+  pass("partial existing project workflow-next enters adoption assessment before plan-first workflow update");
 
   const onboardingO0Check = runNode([
     path.join(target, "scripts", "check-project-onboarding.mjs"),
@@ -16365,11 +16439,11 @@ function checkGeneratedProjectE2E() {
     fail(`generated project new workflow item failed: ${generatedRequest.stderr || generatedRequest.stdout}`);
     return;
   }
-  if (!fs.existsSync(path.join(target, "requests", "001-generated-check.md"))) {
+  if (!fs.existsSync(path.join(target, "requests", "002-generated-check.md"))) {
     fail("generated project new workflow item did not create request");
     return;
   }
-  const generatedRequestPath = path.join(target, "requests", "001-generated-check.md");
+  const generatedRequestPath = path.join(target, "requests", "002-generated-check.md");
   const generatedRequestContent = fs.readFileSync(generatedRequestPath, "utf8");
   if (!generatedRequestContent.startsWith("---\n") || !generatedRequestContent.includes("artifact_type: request")) {
     fail("generated project new workflow item did not add request frontmatter");
@@ -16485,7 +16559,7 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project workflow artifact check rejects unknown options");
 
-  fs.unlinkSync(path.join(target, "requests", "001-generated-check.md"));
+  fs.unlinkSync(path.join(target, "requests", "002-generated-check.md"));
 
   const exampleCopies = [
     ["examples/web-internal-admin-first-slice/request-card.md", "requests/001-admin-work-item-list.md"],
@@ -17020,6 +17094,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     target,
     "--update-workflow-assets",
+    "--goal",
+    "refresh the generated project workflow assets",
     "--write-plan",
     path.relative(target, generatedUpdatePlanPath),
   ]);
@@ -17300,9 +17376,12 @@ function checkGeneratedProjectE2E() {
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     nonEmptyInitTarget,
+    "--goal",
+    "create a project without overwriting existing content",
   ]);
   if (directNonEmptyInit.status !== 2
-    || !`${directNonEmptyInit.stdout}\n${directNonEmptyInit.stderr}`.includes("Direct init refused")
+    || !`${directNonEmptyInit.stdout}\n${directNonEmptyInit.stderr}`.includes("Direct new-project setup is not allowed for NONEMPTY_DIRECTORY")
+    || !`${directNonEmptyInit.stdout}\n${directNonEmptyInit.stderr}`.includes("read-only adoption assessment")
     || fs.existsSync(path.join(nonEmptyInitTarget, ".intentos", "version.json"))) {
     fail(`direct init must reject non-empty targets: ${directNonEmptyInit.stderr || directNonEmptyInit.stdout}`);
     return;
@@ -17313,18 +17392,24 @@ function checkGeneratedProjectE2E() {
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     nonEmptyInitTarget,
+    "--goal",
+    "create a project while preserving the explicitly declared existing seed content",
     "--force-new-project",
   ]);
-  if (forceInit.status !== 0 || !fs.existsSync(path.join(nonEmptyInitTarget, ".intentos", "version.json"))) {
-    fail(`direct init force flag should initialize intentionally non-empty new target: ${forceInit.stderr || forceInit.stdout}`);
+  if (forceInit.status === 0
+    || !`${forceInit.stdout}\n${forceInit.stderr}`.includes("force-new-project was removed")
+    || fs.existsSync(path.join(nonEmptyInitTarget, ".intentos", "version.json"))) {
+    fail(`removed force-new-project flag must not bypass existing-project adoption: ${forceInit.stderr || forceInit.stdout}`);
     return;
   }
-  pass("direct init allows non-empty target only with explicit force flag");
+  pass("removed force-new-project flag cannot bypass existing-project adoption");
 
   const dryRunResult = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     dryRunTarget,
+    "--goal",
+    "create a project through a dry-run preview",
     "--dry-run",
   ]);
   if (dryRunResult.status !== 0 || !dryRunResult.stdout.includes('"operation": "INIT_PROJECT"')) {
@@ -17344,6 +17429,8 @@ function checkGeneratedProjectE2E() {
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     planOnlyTarget,
+    "--goal",
+    "create a project through a reviewed controlled apply plan",
     "--write-plan",
     path.relative(planOnlyTarget, planOnlyPath),
   ]);
@@ -17375,41 +17462,37 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("init write-plan/apply-plan initializes target after reviewable plan");
-  const receiptCheck = runNode([
-    path.join(kitRoot, "scripts", "check-apply-execution-receipt.mjs"),
-    planOnlyTarget,
-    "--require-structured-evidence",
-  ]);
-  if (receiptCheck.status !== 0 || !receiptCheck.stdout.includes("Apply Execution Receipt check passed")) {
-    fail(`1.92 applied init receipt did not verify: ${receiptCheck.stderr || receiptCheck.stdout}`);
+  const bootstrapReceiptCheck = loadVerifiedBootstrapReceipt(planOnlyTarget);
+  if (!bootstrapReceiptCheck.ok) {
+    fail(`1.109 applied new-project bootstrap receipt did not verify: ${bootstrapReceiptCheck.errors.join("; ")}`);
     return;
   }
-  pass("1.92 exact plan replay produces a valid project-bound receipt");
+  pass("1.109 exact new-project plan replay produces a valid project-bound bootstrap receipt");
   const copiedReceiptTarget = path.join(tempRoot, "copied-receipt-project");
-  fs.mkdirSync(copiedReceiptTarget, { recursive: true });
-  fs.cpSync(path.join(planOnlyTarget, "apply-receipts"), path.join(copiedReceiptTarget, "apply-receipts"), { recursive: true });
-  const copiedReceiptCheck = runNode([
-    path.join(kitRoot, "scripts", "check-apply-execution-receipt.mjs"),
-    copiedReceiptTarget,
-    "--require-structured-evidence",
-  ]);
-  if (copiedReceiptCheck.status === 0 || !`${copiedReceiptCheck.stdout}\n${copiedReceiptCheck.stderr}`.includes("belongs to another project")) {
-    fail(`1.92 receipt checker must reject evidence copied from another project: ${copiedReceiptCheck.stderr || copiedReceiptCheck.stdout}`);
+  fs.mkdirSync(path.join(copiedReceiptTarget, ".intentos"), { recursive: true });
+  fs.copyFileSync(
+    path.join(planOnlyTarget, ".intentos", "bootstrap-receipt.json"),
+    path.join(copiedReceiptTarget, ".intentos", "bootstrap-receipt.json"),
+  );
+  const copiedReceiptCheck = loadVerifiedBootstrapReceipt(copiedReceiptTarget);
+  if (copiedReceiptCheck.ok || !copiedReceiptCheck.errors.some((error) => error.includes("canonical project root"))) {
+    fail(`1.109 bootstrap receipt validator must reject evidence copied from another project: ${copiedReceiptCheck.errors.join("; ")}`);
     return;
   }
-  pass("1.92 receipt checker rejects evidence copied from another project");
-  const staleReceiptTarget = path.join(planOnlyTarget, "docs", "project-onboarding.md");
+  pass("1.109 bootstrap receipt validator rejects evidence copied from another project");
+  const staleReceiptTarget = path.join(planOnlyTarget, "AGENTS.md");
   fs.appendFileSync(staleReceiptTarget, "\nReceipt stale mutation.\n");
-  const staleReceiptCheck = runNode([
-    path.join(kitRoot, "scripts", "check-apply-execution-receipt.mjs"),
-    planOnlyTarget,
-    "--require-structured-evidence",
-  ]);
-  if (staleReceiptCheck.status === 0 || !`${staleReceiptCheck.stdout}\n${staleReceiptCheck.stderr}`.includes("stale or mismatched")) {
-    fail(`1.92 receipt checker must reject post-apply target drift: ${staleReceiptCheck.stderr || staleReceiptCheck.stdout}`);
+  const staleEntryTrust = resolveProjectEntryTrust({
+    projectRoot: planOnlyTarget,
+    sourceRoot: kitRoot,
+    goal: "continue the controlled project",
+  });
+  if (staleEntryTrust.project_identity?.state !== "CONFLICTED"
+    || !staleEntryTrust.blockers.includes("PROJECT_IDENTITY_CONFLICTED")) {
+    fail(`1.109 project entry trust must reject post-bootstrap managed-asset drift: ${JSON.stringify(staleEntryTrust)}`);
     return;
   }
-  pass("1.92 receipt checker rejects post-apply target drift");
+  pass("1.109 project entry trust rejects post-bootstrap managed-asset drift");
 
   const sourceDriftTarget = path.join(tempRoot, "source-drift-project");
   const sourceDriftPlanPath = path.join(sourceDriftTarget, "apply-execution-plans", "source-drift-init.json");
@@ -17418,6 +17501,8 @@ function checkGeneratedProjectE2E() {
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     sourceDriftTarget,
+    "--goal",
+    "create a project with source-drift protection",
     "--write-plan",
     path.relative(sourceDriftTarget, sourceDriftPlanPath),
   ]);
@@ -17451,6 +17536,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     stalePlanTarget,
     "--update-workflow-assets",
+    "--goal",
+    "refresh workflow assets with stale-plan protection",
     "--write-plan",
     path.relative(stalePlanTarget, stalePlanPath),
   ]);
@@ -17471,6 +17558,8 @@ function checkGeneratedProjectE2E() {
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     backupTarget,
+    "--goal",
+    "create a project for managed-asset backup verification",
   ]);
   if (backupInit.status !== 0) {
     fail(`backup target init failed: ${backupInit.stderr || backupInit.stdout}`);
@@ -17484,6 +17573,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     backupTarget,
     "--update-workflow-assets",
+    "--goal",
+    "refresh workflow assets while preserving a rollback backup",
     "--backup-dir",
     backupDir,
     "--write-plan",
@@ -17514,6 +17605,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     legacyTarget,
     "--update-workflow-assets",
+    "--goal",
+    "adopt IntentOS workflow assets into an existing governed project",
   ]);
   if (legacyDirectUpdateResult.status !== 2 || !`${legacyDirectUpdateResult.stdout}\n${legacyDirectUpdateResult.stderr}`.includes("plan-first")) {
     fail(`legacy project direct workflow update was not blocked: ${legacyDirectUpdateResult.stderr || legacyDirectUpdateResult.stdout}`);
@@ -17525,6 +17618,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     legacyTarget,
     "--update-workflow-assets",
+    "--goal",
+    "adopt IntentOS workflow assets while preserving existing project authority",
     "--apply-agent-governance",
     "--write-plan",
     path.relative(legacyTarget, legacyPlanPath),
@@ -17589,6 +17684,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     legacyTarget,
     "--update-workflow-assets",
+    "--goal",
+    "update the existing collaboration guidance through a controlled plan",
     "--apply-agent-governance",
   ]);
   if (legacyAgentsApply.status !== 2 || !`${legacyAgentsApply.stdout}\n${legacyAgentsApply.stderr}`.includes("plan-first")) {
@@ -17611,6 +17708,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     legacyNoAgentsTarget,
     "--update-workflow-assets",
+    "--goal",
+    "adopt IntentOS workflow guidance into an existing project without AGENTS",
     "--write-plan",
     path.relative(legacyNoAgentsTarget, legacyNoAgentsPlanPath),
   ]);
@@ -17662,6 +17761,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     legacyCustomPrTarget,
     "--update-workflow-assets",
+    "--goal",
+    "adopt IntentOS while preserving the existing pull request template",
     "--write-plan",
     path.relative(legacyCustomPrTarget, legacyCustomPrPlanPath),
   ]);
@@ -17691,6 +17792,8 @@ function checkGeneratedProjectE2E() {
     "--target",
     legacyCustomPrTarget,
     "--update-workflow-assets",
+    "--goal",
+    "review a controlled pull request template governance update",
     "--apply-pr-template-governance",
   ]);
   if (legacyCustomPrApply.status !== 2 || !`${legacyCustomPrApply.stdout}\n${legacyCustomPrApply.stderr}`.includes("plan-first")) {
@@ -18134,6 +18237,7 @@ function checkBaselineManifestPublicEntryConsolidationProtocol() {
   const bl2Plan = path.join(bl2Root, "apply-execution-plans", `intentos-1.94-bl2-${Date.now()}.json`);
   const bl2Check = runNode([
     "scripts/init-project.mjs", "--starter", "codex-web-app", "--target", bl2Root,
+    "--goal", "create a web project for BL2 baseline validation",
     "--profiles", "web-app", "--baseline-level", "BL2_INDUSTRIAL", "--write-plan", path.relative(bl2Root, bl2Plan),
   ]);
   if (bl2Check.status !== 0 && `${bl2Check.stdout}\n${bl2Check.stderr}`.includes("requires at least one concrete selected industrial pack")) {
@@ -18170,6 +18274,7 @@ function checkBaselineManifestPublicEntryConsolidationProtocol() {
   const installPlan = path.join(installRoot, "apply-execution-plans", `intentos-1.94-install-${Date.now()}.json`);
   const planResult = runNode([
     "scripts/init-project.mjs", "--starter", "codex-web-app", "--target", installRoot,
+    "--goal", "create a web project for controlled baseline installation validation",
     "--profiles", "web-app", "--baseline-level", "BL1_STANDARD", "--write-plan", path.relative(installRoot, installPlan),
   ]);
   if (planResult.status !== 0) {
@@ -18263,7 +18368,7 @@ function checkOperatingModelConsolidationProtocol() {
   }
 
   const tests = runNode(["--test", "tests/operating-model.test.mjs"]);
-  if (tests.status === 0 && tests.stdout.includes("pass 36") && tests.stdout.includes("fail 0")) {
+  if (tests.status === 0 && tests.stdout.includes("pass 37") && tests.stdout.includes("fail 0")) {
     pass("1.95 Operating Model and current decision-contract regression tests");
   } else {
     fail(`1.95 Operating Model tests failed: ${tests.stderr || tests.stdout}`);
@@ -18395,7 +18500,7 @@ function checkProjectIdentityProjectionProtocol() {
     const actualIdentity = projectIdentity(kitRoot);
     if (operating.status === 0
       && parsed.schemaVersion === "1.99.0"
-      && projection?.contractVersion === "1.98.1"
+      && projection?.contractVersion === "1.109.0"
       && projection?.projectKind === "INTENTOS_SOURCE"
       && projection?.governancePosture === "INTENTOS_SOURCE_GOVERNANCE"
       && projection?.evidenceIdentity?.fingerprint === actualIdentity.fingerprint
@@ -18689,6 +18794,7 @@ function checkBusinessUniverseCoverageProtocol() {
       path.join(kitRoot, "scripts/init-project.mjs"),
       "--target", target,
       "--starter", starter,
+      "--goal", `create a ${starter} project for business universe distribution verification`,
     ]);
     if (init.status !== 0) {
       fail(`1.108 ${starter} initialization failed: ${init.stderr || init.stdout}`);
@@ -18710,6 +18816,7 @@ function checkBusinessUniverseCoverageProtocol() {
       path.join(kitRoot, "scripts/init-project.mjs"),
       "--target", target,
       "--starter", "generic-project",
+      "--goal", `create a ${profile} project for business universe routing verification`,
     ]);
     if (init.status !== 0) {
       fail(`1.108 ${profile} generated profile fixture initialization failed: ${init.stderr || init.stdout}`);
@@ -18774,7 +18881,10 @@ function checkExecutionAuthorityConsumerHardcutProtocol() {
   else fail(`1.100 execution and distribution trust regressions failed: ${focused.stderr || focused.stdout}`);
 
   const target = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.100-atomic-"));
-  const init = runNode([path.join(kitRoot, "scripts/init-project.mjs"), "--target", target]);
+  const init = runNode([
+    path.join(kitRoot, "scripts/init-project.mjs"), "--target", target,
+    "--goal", "create a project for atomic apply rollback verification",
+  ]);
   if (init.status !== 0) {
     fail(`1.100 atomic rollback fixture init failed: ${init.stderr || init.stdout}`);
     return;
@@ -18791,6 +18901,7 @@ function checkExecutionAuthorityConsumerHardcutProtocol() {
     path.join(kitRoot, "scripts/init-project.mjs"),
     "--target", target,
     "--update-workflow-assets",
+    "--goal", "refresh workflow assets for atomic apply rollback verification",
     "--backup-dir", ".intentos/backups/atomic-rollback",
     "--write-plan", "apply-execution-plans/atomic-update.json",
   ]);
@@ -18898,7 +19009,10 @@ function checkReleaseExecutionTopologyProtocol() {
   else fail("1.105 strict topology was bypassed by allow-empty");
 
   const target = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.105-generated-"));
-  const init = runNode([path.join(kitRoot, "scripts/init-project.mjs"), "--target", target, "--starter", "generic-project"]);
+  const init = runNode([
+    path.join(kitRoot, "scripts/init-project.mjs"), "--target", target, "--starter", "generic-project",
+    "--goal", "create a generic project for release topology validation",
+  ]);
   if (init.status !== 0) {
     fail(`1.105 generated project initialization failed: ${init.stderr || init.stdout}`);
     return;

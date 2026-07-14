@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.108.0`.
+Current release: `1.109.0`.
 
-Release record: [releases/1.108.0/release-record.md](releases/1.108.0/release-record.md).
+Release record: [releases/1.109.0/release-record.md](releases/1.109.0/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
@@ -52,6 +52,16 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.109.0 hardcuts project entry and adoption trust. One natural-language goal
+now drives one shared target topology, project identity, fact projection,
+effective guidance view, and current-work record across public entry points.
+Blank targets use an atomic setup transaction with recovery and a verified
+project-local receipt; existing projects use one strict same-run adoption chain
+without asking the user to choose migration depth or technical governance.
+Dirty work blocks only overlapping unsafe writes, and a generated project must
+cold-start IntentOS and route its first ordinary task before activation can be
+claimed.
 
 1.108.0 adds conditional Business Universe Coverage. When project evidence
 shows omission risk across related categories, origins, processing paths,
