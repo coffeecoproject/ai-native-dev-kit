@@ -16,6 +16,7 @@ import {
   runtimeTrustBindingsAgree,
   validateRuntimeTrustBinding,
 } from "./lib/verification-runtime-consumer.mjs";
+import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
@@ -56,8 +57,8 @@ const strictRequested = requireStructuredEvidence || requireEvidenceRefs || requ
   || requireWorkQueue || strictTaskConsumer || requirePlanReview
   || requireEvidenceAuthority || requireRuntimeTrust || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
-const currentSchemaVersion = "1.108.0";
-const readableSchemaVersions = new Set(["1.74.0", "1.104.0", currentSchemaVersion]);
+const currentSchemaVersion = "1.110.0";
+const readableSchemaVersions = new Set(["1.74.0", "1.104.0", "1.108.0", currentSchemaVersion]);
 const schemaPath = "schemas/artifacts/execution-assurance.schema.json";
 const businessUniverseSchema = loadSchema(projectRoot, "schemas/artifacts/business-universe-coverage.schema.json");
 const testEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/test-evidence.schema.json");
@@ -319,9 +320,13 @@ function checkStructuredEvidence(content, label, file) {
   }
   if (readableSchemaVersions.has(parsed.schema_version)) pass(`${label} evidence schema_version is readable`);
   else fail(`${label} evidence schema_version must be one of ${[...readableSchemaVersions].join(", ")}`);
-  if (parsed.schema_version === currentSchemaVersion) requireSection(content, "Business Universe Assurance", label);
+  if (parsed.schema_version === currentSchemaVersion) {
+    requireSection(content, "Business Universe Assurance", label);
+    requireSection(content, "Control Effectiveness Binding", label);
+  }
   checkRuntimeTrust(label, file, parsed);
   checkBusinessUniverseAssurance(label, file, parsed);
+  checkControlEffectiveness(label, file, parsed);
   if (parsed.artifact_type === "execution_assurance_report") pass(`${label} evidence artifact_type is execution_assurance_report`);
   else fail(`${label} evidence artifact_type invalid`);
   checkEvidenceAuthority(label, file, parsed);
@@ -421,7 +426,7 @@ function checkRuntimeTrust(label, file, evidence) {
 }
 
 function checkBusinessUniverseAssurance(label, file, evidence) {
-  if (evidence.schema_version !== "1.108.0") return;
+  if (!["1.108.0", "1.110.0"].includes(evidence.schema_version)) return;
   const binding = evidence.business_universe_binding;
   const assuranceRows = Array.isArray(evidence.scenario_assurance_map) ? evidence.scenario_assurance_map : [];
   if (!binding) {
@@ -562,6 +567,41 @@ function checkBusinessUniverseAssurance(label, file, evidence) {
     && (binding.coverage_mapping_status !== "COMPLETE"
       || assuranceRows.some((item) => item.assurance_state !== "ASSURED"))) {
     fail(`${label} VERIFIED_DONE requires every Business Universe scenario to be ASSURED`);
+  }
+}
+
+function checkControlEffectiveness(label, file, evidence) {
+  if (evidence.schema_version !== "1.110.0") return;
+  const binding = evidence.control_effectiveness_binding;
+  if (!binding) {
+    fail(`${label} schema 1.110.0 requires Control Effectiveness binding`);
+    return;
+  }
+  const validation = validateControlEffectivenessBinding(projectRoot, binding, {
+    required: binding.requirement === "REQUIRED",
+    allowBlocked: evidence.assurance_state !== "VERIFIED_DONE",
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+  });
+  if (validation.ok) pass(`${label} Control Effectiveness binding is current and valid`);
+  else validation.errors.forEach((error) => fail(`${label} ${error}`));
+  const source = (evidence.source_systems || []).find((item) => item.name === "test_evidence" && item.status === "RECORDED");
+  if (!source || !isFileEvidenceRef(source.ref)) {
+    if (binding.status === "BLOCKED" && evidence.assurance_state !== "VERIFIED_DONE") {
+      pass(`${label} missing current-task Test Evidence remains an explicit blocked Control Effectiveness result`);
+    } else {
+      fail(`${label} Control Effectiveness requires current-task Test Evidence source`);
+    }
+  } else {
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, file, source.ref, { markdownOnly: true });
+    const extracted = resolved.ok ? extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8")) : null;
+    const upstream = extracted?.ok ? extracted.value?.control_effectiveness_binding : null;
+    if (upstream && JSON.stringify(upstream) === JSON.stringify(binding)) pass(`${label} Control Effectiveness exactly matches Test Evidence`);
+    else fail(`${label} Control Effectiveness must exactly preserve current-task Test Evidence`);
+  }
+  if (binding.requirement === "REQUIRED" && binding.status !== "VERIFIED" && evidence.assurance_state === "VERIFIED_DONE") {
+    fail(`${label} required unverified Control Effectiveness cannot support VERIFIED_DONE`);
   }
 }
 

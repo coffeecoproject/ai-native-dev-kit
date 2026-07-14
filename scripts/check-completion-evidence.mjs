@@ -22,6 +22,7 @@ import {
   validateRuntimeTrustBinding,
 } from "./lib/verification-runtime-consumer.mjs";
 import { resolveBoundBusinessUniverse } from "./lib/business-universe.mjs";
+import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
@@ -233,12 +234,16 @@ function checkReport(file) {
   }
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
-  if (evidence.schema_version === "1.108.0") {
+  if (["1.108.0", "1.110.0"].includes(evidence.schema_version)) {
     if (hasSection(content, "Business Universe Completion")) pass(`${label} includes Business Universe Completion`);
     else fail(`${label} missing section Business Universe Completion`);
   }
-  if (requireRuntimeTrust && !["1.104.0", "1.108.0"].includes(evidence.schema_version)) {
-    fail(`${label} --require-runtime-trust requires Completion Evidence schema 1.104.0 or 1.108.0`);
+  if (evidence.schema_version === "1.110.0") {
+    if (hasSection(content, "Control Effectiveness Completion")) pass(`${label} includes Control Effectiveness Completion`);
+    else fail(`${label} missing section Control Effectiveness Completion`);
+  }
+  if (requireRuntimeTrust && !["1.104.0", "1.108.0", "1.110.0"].includes(evidence.schema_version)) {
+    fail(`${label} --require-runtime-trust requires Completion Evidence schema 1.104.0, 1.108.0, or 1.110.0`);
   }
   reports.push({
     ref: `artifact:${path.relative(projectRoot, file).split(path.sep).join("/")}`,
@@ -312,16 +317,18 @@ function checkStructuredEvidence(label, file, evidence) {
     "check:source-digest-consistency",
     "check:intent-consistency",
     "check:source-chain-binding",
-    ...((requireRuntimeTrust || ["1.104.0", "1.108.0"].includes(evidence.schema_version))
+    ...((requireRuntimeTrust || ["1.104.0", "1.108.0", "1.110.0"].includes(evidence.schema_version))
       ? ["check:runtime-trust", "check:runtime-consumer-agreement"]
       : []),
-    ...(evidence.schema_version === "1.108.0" ? ["check:business-universe"] : []),
+    ...(["1.108.0", "1.110.0"].includes(evidence.schema_version) ? ["check:business-universe"] : []),
+    ...(evidence.schema_version === "1.110.0" ? ["check:control-effectiveness"] : []),
   ]) {
     if (checksById.has(id)) pass(`${label} includes gate check ${id}`);
     else fail(`${label} missing gate check ${id}`);
   }
   checkCrossSourceBinding(label, evidence, sourceRecords);
   checkRuntimeTrust(label, file, evidence, sourceRecords);
+  checkControlEffectiveness(label, file, evidence, sourceRecords);
   checkTaskEntryBinding({
     content: "",
     evidence,
@@ -365,7 +372,7 @@ function checkStructuredEvidence(label, file, evidence) {
 }
 
 function checkRuntimeTrust(label, file, evidence, sourceRecords) {
-  if (!requireRuntimeTrust && evidence.schema_version !== "1.108.0") return;
+  if (!requireRuntimeTrust && !["1.108.0", "1.110.0"].includes(evidence.schema_version)) return;
   const verificationPlan = sourceRecords.get("verification_plan");
   const testBinding = sourceRecords.get("test_evidence")?.evidence?.runtime_trust_binding;
   const executionBinding = sourceRecords.get("execution_assurance")?.evidence?.runtime_trust_binding;
@@ -401,6 +408,45 @@ function checkRuntimeTrust(label, file, evidence, sourceRecords) {
   else agreement.errors.forEach((error) => fail(`${label} ${error}`));
   if (runtimeRequired && evidence.completion_state === "COMPLETION_EVIDENCE_READY" && evidence.runtime_trust_binding.status !== "VERIFIED") {
     fail(`${label} COMPLETION_EVIDENCE_READY requires verified Runtime Trust`);
+  }
+}
+
+function checkControlEffectiveness(label, file, evidence, sourceRecords) {
+  if (evidence.schema_version !== "1.110.0") return;
+  const binding = evidence.control_effectiveness_binding;
+  const verificationPlan = sourceRecords.get("verification_plan")?.evidence;
+  const verificationBinding = verificationPlan?.control_effectiveness_binding;
+  const testBinding = sourceRecords.get("test_evidence")?.evidence?.control_effectiveness_binding;
+  const executionBinding = sourceRecords.get("execution_assurance")?.evidence?.control_effectiveness_binding;
+  const legacyProjection = binding
+    && !verificationBinding
+    && verificationPlan?.schema_version !== "1.110.0"
+    && binding.requirement === "NOT_REQUIRED"
+    && binding.status === "NOT_REQUIRED"
+    && JSON.stringify(testBinding) === JSON.stringify(binding)
+    && JSON.stringify(executionBinding) === JSON.stringify(binding);
+  const upstream = [verificationBinding, testBinding, executionBinding];
+  if (legacyProjection) {
+    pass(`${label} trusted pre-1.110 Verification Plan is projected through matching non-required current consumers`);
+  } else if (!binding || upstream.some((item) => !item)) {
+    fail(`${label} every completion consumer must carry Control Effectiveness binding`);
+    return;
+  } else {
+    const exact = upstream.every((item) => JSON.stringify(item) === JSON.stringify(binding));
+    if (exact) pass(`${label} all completion consumers bind the exact same Control Effectiveness decision`);
+    else fail(`${label} completion consumers disagree on Control Effectiveness report, digest, claims, or state`);
+  }
+  const validation = validateControlEffectivenessBinding(projectRoot, binding, {
+    required: binding.requirement === "REQUIRED",
+    allowBlocked: evidence.completion_state !== "COMPLETION_EVIDENCE_READY",
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+  });
+  if (validation.ok) pass(`${label} Control Effectiveness binding is current and valid at completion`);
+  else validation.errors.forEach((error) => fail(`${label} ${error}`));
+  if (binding.requirement === "REQUIRED" && binding.status !== "VERIFIED" && evidence.completion_state === "COMPLETION_EVIDENCE_READY") {
+    fail(`${label} required unverified Control Effectiveness cannot support COMPLETION_EVIDENCE_READY`);
   }
 }
 
@@ -544,7 +590,7 @@ function checkCrossSourceBinding(label, completionEvidence, sourceRecords) {
 }
 
 function checkBusinessUniverseCompletionBinding(label, completionEvidence, brc, vp, te, ea) {
-  if (completionEvidence.schema_version !== "1.108.0") return;
+  if (!["1.108.0", "1.110.0"].includes(completionEvidence.schema_version)) return;
   const universe = resolveBoundBusinessUniverse(projectRoot, brc.file, brc.evidence);
   const completionBinding = completionEvidence.business_universe_binding;
   const completionRows = Array.isArray(completionEvidence.scenario_completion_map)

@@ -23,6 +23,8 @@ jobs:
         run: node scripts/check-verification-runtime-lifecycle.mjs . --allow-empty
       - name: Check verification run manifests
         run: node scripts/check-verification-run-manifest.mjs . --allow-empty
+      - name: Check control effectiveness evidence when recorded
+        run: node scripts/check-control-effectiveness.mjs . --allow-empty
       - name: Check strict runtime completion consumers when runtime evidence exists
         shell: bash
         run: |

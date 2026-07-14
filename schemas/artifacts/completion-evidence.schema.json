@@ -23,7 +23,7 @@
   ],
   "properties": {
     "schema_version": {
-      "enum": ["1.78.0", "1.104.0", "1.108.0"]
+      "enum": ["1.78.0", "1.104.0", "1.108.0", "1.110.0"]
     },
     "artifact_type": {
       "const": "completion_evidence_gate"
@@ -215,6 +215,9 @@
     "business_universe_binding": {
       "$ref": "#/$defs/businessUniverseBinding"
     },
+    "control_effectiveness_binding": {
+      "$ref": "#/$defs/controlEffectivenessBinding"
+    },
     "scenario_completion_map": {
       "type": "array",
       "items": { "$ref": "#/$defs/scenarioCompletion" }
@@ -362,9 +365,31 @@
     {
       "if": { "properties": { "schema_version": { "const": "1.108.0" } } },
       "then": { "required": ["business_universe_binding", "scenario_completion_map", "runtime_trust_binding", "authority_binding"] }
+    },
+    {
+      "if": { "properties": { "schema_version": { "const": "1.110.0" } } },
+      "then": { "required": ["business_universe_binding", "scenario_completion_map", "runtime_trust_binding", "control_effectiveness_binding", "authority_binding"] }
     }
   ],
   "$defs": {
+    "controlEffectivenessBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirement", "status", "report_ref", "report_digest", "required_claim_ids", "assessment_outcome", "current_project_match", "current_task_match", "current_intent_match", "checker", "reason"],
+      "properties": {
+        "requirement": { "enum": ["REQUIRED", "NOT_REQUIRED"] },
+        "status": { "enum": ["VERIFIED", "BLOCKED", "NOT_REQUIRED"] },
+        "report_ref": { "type": "string", "minLength": 1 },
+        "report_digest": { "type": "string", "minLength": 1 },
+        "required_claim_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "assessment_outcome": { "enum": ["CONTROL_PROVEN_EFFECTIVE", "CONTROL_PROVEN_PARTIAL", "CONTROL_NOT_PROVEN", "CONTROL_INVALID", "NOT_APPLICABLE_WITH_REASON"] },
+        "current_project_match": { "enum": ["Yes", "No", "N/A"] },
+        "current_task_match": { "enum": ["Yes", "No", "N/A"] },
+        "current_intent_match": { "enum": ["Yes", "No", "N/A"] },
+        "checker": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
     "businessUniverseBinding": {
       "type": "object",
       "additionalProperties": false,

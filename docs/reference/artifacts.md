@@ -2,6 +2,13 @@
 
 Artifacts make AI work auditable without forcing every task into the heaviest process.
 
+`control-effectiveness-reports/*.md` is an internal, claim-scoped evidence
+source used only when a current adoption or task conclusion relies on a
+technical control. It records whether the exact implementation, scope,
+semantics, freshness, failure capability, result integrity, and operational
+safety are proven. It never authorizes implementation, apply, release,
+production, or final completion.
+
 Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0-lightweight-path.md` when the task is a prototype, small tool, or low-risk local change.
 
 ## Core Task Artifacts

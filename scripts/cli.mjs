@@ -94,6 +94,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "control-effectiveness": {
+    description: "Assess the bounded effectiveness evidence for controls relied on by the current task or adoption claim.",
+    script: "scripts/resolve-control-effectiveness.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "control-effectiveness-check": {
+    description: "Check Control Effectiveness reports for exact identity, scope, semantic, failure-capability, and safety evidence.",
+    script: "scripts/check-control-effectiveness.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "impact-coverage": {
     description: "Map affected surfaces for a change so Codex does not complete only one layer.",
     script: "scripts/resolve-change-impact-coverage.mjs",

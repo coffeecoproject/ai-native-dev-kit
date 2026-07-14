@@ -73,6 +73,7 @@ const typeMap = {
   "debt-knowledge-handoff-report": { dir: "debt-handoff-reports", template: "debt-knowledge-handoff-report.md", defaultName: "debt-handoff" },
   "execution-closure-report": { dir: "execution-closures", template: "execution-closure-report.md", defaultName: "execution-closure" },
   "user-decision-card": { dir: "decision-briefs", template: "user-decision-card.md", defaultName: "user-decision" },
+  "control-effectiveness-report": { dir: "control-effectiveness-reports", template: "control-effectiveness-report.md", defaultName: "control-effectiveness" },
 };
 
 const aliases = {
@@ -293,6 +294,9 @@ const aliases = {
   "commit-readiness": "execution-closure-report",
   "user-decision": "user-decision-card",
   "decision-card-user": "user-decision-card",
+  "control-effectiveness": "control-effectiveness-report",
+  "control-proof": "control-effectiveness-report",
+  "control-effectiveness-report": "control-effectiveness-report",
 };
 
 function parseArgs(argv) {
@@ -368,6 +372,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type debt-knowledge-handoff-report --name interrupted-task");
   console.error("  node scripts/new-workflow-item.mjs --type execution-closure-report --name task-closure");
   console.error("  node scripts/new-workflow-item.mjs --type user-decision-card --name first-decision");
+  console.error("  node scripts/new-workflow-item.mjs --type control-effectiveness-report --name current-control-claim");
 }
 
 function fail(message) {

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.109.0`
+Current version: `1.110.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,20 @@ Current version: `1.109.0`
 
 ## Current Release
 
-`1.109.0`
+`1.110.0`
 
 Includes:
+
+- Control Effectiveness `1.110.0`: IntentOS-native and project-native checks,
+  gates, policies, tests, and workflows cannot support a strict claim merely
+  because they exist, run, or report PASS. Each relied-on claim now requires
+  current evidence for implementation identity, semantic match, scope,
+  freshness, failure capability, result integrity, and operational safety.
+- Control proof is conditional and claim-scoped. It propagates through task,
+  review, verification, execution, completion, adoption, and convergence
+  consumers without becoming another public workflow or final completion
+  authority. Project ownership and stricter wording remain distinct from
+  proven effectiveness.
 
 - Project Entry and Behavior-Complete Adoption Trust Hardcut `1.109.0`: all
   public entry consumers share one path-safe target topology, project identity,

@@ -334,10 +334,10 @@ function checkStructuredEvidence(content, label) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} structured evidence includes ${field}`);
     else fail(`${label} structured evidence missing ${field}`);
   }
-  if (parsed.schema_version === "1.69.2") pass(`${label} structured evidence schema version is 1.69.2`);
-  else fail(`${label} structured evidence schema version must be 1.69.2`);
-  if (parsed.evidence_profile === "existing-rule-reconciliation-1.69.2") pass(`${label} structured evidence profile is 1.69.2`);
-  else fail(`${label} structured evidence profile must be existing-rule-reconciliation-1.69.2`);
+  if (["1.69.2", "1.110.0"].includes(parsed.schema_version)) pass(`${label} structured evidence schema version is readable`);
+  else fail(`${label} structured evidence schema version must be 1.69.2 or 1.110.0`);
+  if (["existing-rule-reconciliation-1.69.2", "existing-rule-reconciliation-1.110.0"].includes(parsed.evidence_profile)) pass(`${label} structured evidence profile is readable`);
+  else fail(`${label} structured evidence profile is not supported`);
   if (parsed.artifact_type === "existing_rule_reconciliation_report") pass(`${label} structured artifact type is valid`);
   else fail(`${label} structured artifact type invalid`);
   if (parsed.report_type === "EXISTING_RULE_RECONCILIATION") pass(`${label} structured report type is valid`);
@@ -496,6 +496,14 @@ function validateStructuredItem(item, label) {
   ]) {
     if (Array.isArray(item?.[field]) ? item[field].length >= 0 : isConcrete(item?.[field])) pass(`${rowLabel} includes ${field}`);
     else fail(`${rowLabel} missing ${field}`);
+  }
+  if (item?.control_effectiveness_required === "Yes") {
+    if (Array.isArray(item.control_claim_refs) && item.control_claim_refs.length > 0) pass(`${rowLabel} control-backed rule records bounded claim refs`);
+    else fail(`${rowLabel} control-backed rule requires at least one control claim ref`);
+  } else if (item?.control_effectiveness_required === "No" && Array.isArray(item.control_claim_refs) && item.control_claim_refs.length === 0) {
+    pass(`${rowLabel} non-control rule does not fabricate effectiveness claims`);
+  } else if (item?.control_effectiveness_required !== undefined || item?.control_claim_refs !== undefined) {
+    fail(`${rowLabel} Control Effectiveness routing is inconsistent`);
   }
   if (generalOutcomes.has(item?.outcome)) pass(`${rowLabel} has allowed outcome`);
   else fail(`${rowLabel} invalid outcome ${item?.outcome || "<empty>"}`);

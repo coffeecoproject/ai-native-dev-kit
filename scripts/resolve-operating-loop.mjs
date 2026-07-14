@@ -284,6 +284,23 @@ function addOperationSources(sources, operation) {
         "--require-ready",
       ]));
     }
+    const controlRouting = sources.find((item) => item.name === "TASK_GOVERNANCE")?.value
+      ?.structuredEvidence?.control_effectiveness_routing;
+    if (controlRouting?.required === "Yes") {
+      const controlArgs = [
+        projectRoot,
+        "--json",
+        "--require-report",
+        "--require-structured-evidence",
+        "--require-effective",
+      ];
+      if (effectiveTaskRef) controlArgs.push("--task-ref", effectiveTaskRef);
+      if (currentQueueTask?.intentDigest) controlArgs.push("--intent-digest", currentQueueTask.intentDigest);
+      if (controlRouting.required_claim_ids?.length > 0) {
+        controlArgs.push("--required-claims", controlRouting.required_claim_ids.join(","));
+      }
+      sources.push(runGateSource("CONTROL_EFFECTIVENESS_CHECK", "scripts/check-control-effectiveness.mjs", controlArgs));
+    }
     const impact = sources.find((item) => item.name === "TASK_GOVERNANCE")?.value
       ?.structuredEvidence?.impact_classification?.task_impact || "POSSIBLE_HIGH";
     const planReviewRequired = new Set(["MEDIUM", "POSSIBLE_HIGH", "HIGH"]).has(impact);
@@ -904,6 +921,7 @@ function actionForTaskBlocker(blockers) {
   if (/adoption review/.test(joined)) return action("RESOLVE_ADOPTION_BLOCKER", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "ADOPTION_BLOCKS_TASK_GOVERNANCE", true);
   if (/omission-risk inspection/.test(joined)) return action("INSPECT_BUSINESS_UNIVERSE_RISK", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "BUSINESS_UNIVERSE_INSPECTION_REQUIRED", true);
   if (/business universe coverage/.test(joined)) return action("PREPARE_BUSINESS_UNIVERSE_COVERAGE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
+  if (/control effectiveness|control proof|control enforcement/.test(joined)) return action("PREPARE_CONTROL_EFFECTIVENESS", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "CONTROL_EFFECTIVENESS_REQUIRED", true);
   if (/business rule/.test(joined)) return action("PREPARE_BUSINESS_RULE_CLOSURE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
   if (/affected-surface|surface map/.test(joined)) return action("PREPARE_CHANGE_IMPACT_COVERAGE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
   if (/execution plan/.test(joined)) return action("PREPARE_EXECUTION_PLAN", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
@@ -969,6 +987,7 @@ function reasonFor(actionCode, blockers) {
     RESOLVE_ADOPTION_BLOCKER: `Task Governance is blocked by adoption state: ${firstBlocker}.`,
     INSPECT_BUSINESS_UNIVERSE_RISK: `Task Governance requires a bounded omission-risk inspection: ${firstBlocker}.`,
     PREPARE_BUSINESS_UNIVERSE_COVERAGE: `Task Governance requires evidence-backed Business Universe Coverage: ${firstBlocker}.`,
+    PREPARE_CONTROL_EFFECTIVENESS: `Task Governance relies on a control whose bounded enforcement proof is incomplete: ${firstBlocker}.`,
     PREPARE_BUSINESS_RULE_CLOSURE: `Task Governance requires business-rule clarification: ${firstBlocker}.`,
     PREPARE_CHANGE_IMPACT_COVERAGE: `Task Governance requires an affected-surface map: ${firstBlocker}.`,
     PREPARE_EXECUTION_PLAN: `Task Governance requires a durable execution plan: ${firstBlocker}.`,
@@ -1000,6 +1019,7 @@ function plainActionFor(actionCode, language = "en") {
     RESOLVE_ADOPTION_BLOCKER: "Codex 先解释并处理当前项目接入阻断，不改项目资产。",
     INSPECT_BUSINESS_UNIVERSE_RISK: "Codex 先只读核对相关业务类别、来源和路径是否可能遗漏，不需要你判断技术范围。",
     PREPARE_BUSINESS_UNIVERSE_COVERAGE: "Codex 先把相关业务类别、生命周期、真实路径和验证义务核对完整，再进入后续审查。",
+    PREPARE_CONTROL_EFFECTIVENESS: "Codex 先验证当前任务依赖的检查或门禁是否真的覆盖并拦住对应问题，再继续实现或收口。",
     PREPARE_BUSINESS_RULE_CLOSURE: "Codex 先把业务规则、例外和完成条件梳理完整，再进入实现审查。",
     PREPARE_CHANGE_IMPACT_COVERAGE: "Codex 先补齐前端、后端、数据和运行面的影响范围，再进入实现审查。",
     PREPARE_EXECUTION_PLAN: "Codex 先准备完整执行计划，再进入实现审查。",
@@ -1027,6 +1047,7 @@ function plainActionFor(actionCode, language = "en") {
     RESOLVE_ADOPTION_BLOCKER: "Codex should explain and resolve the adoption blocker without changing project assets.",
     INSPECT_BUSINESS_UNIVERSE_RISK: "Codex should inspect task-relevant business classes, origins, and paths for omission risk without asking the user to judge technical scope.",
     PREPARE_BUSINESS_UNIVERSE_COVERAGE: "Codex should bind the relevant business classes, lifecycle paths, provenance, and verification duties before downstream review.",
+    PREPARE_CONTROL_EFFECTIVENESS: "Codex should prove that each relied-on check or gate covers and blocks its exact claim before implementation or close-out continues.",
     PREPARE_BUSINESS_RULE_CLOSURE: "Codex should clarify business rules, exceptions, and completion conditions before implementation review.",
     PREPARE_CHANGE_IMPACT_COVERAGE: "Codex should map frontend, backend, data, and runtime impact before implementation review.",
     PREPARE_EXECUTION_PLAN: "Codex should prepare the complete execution plan before implementation review.",
@@ -1082,6 +1103,7 @@ function relationFor(name, operation) {
   if (name === "WORKFLOW_NEXT") return "PROJECT_ENTRY_STATE_INPUT";
   if (name === "WORKFLOW_GUIDANCE") return "PROJECT_AND_ROUTE_INPUT";
   if (name === "TASK_GOVERNANCE") return "TASK_IMPACT_INPUT";
+  if (name === "CONTROL_EFFECTIVENESS_CHECK") return "CONTROL_EFFECTIVENESS_INPUT";
   if (name === "USER_DELIVERY_CONSOLE") return "STATUS_INPUT";
   if (name === "UNIFIED_CLOSURE") return "CLOSURE_INPUT";
   if (name === "RELEASE_GUIDE") return "RELEASE_INPUT";

@@ -31,6 +31,8 @@ exact evidence work. Ordinary users should not choose among them.
 | `node scripts/cli.mjs business-rule-check <project>` | Check recorded Business Rule Closure Cards | No |
 | `node scripts/cli.mjs business-universe <project> --intent "<goal>"` | Maintainer view for the conditional scenario/lifecycle/path scan selected internally by Task Governance; an interrupted bounded scan can continue from a trusted prior report with `--resume-from` | No by default; writes only the requested report file with `--out` when coverage is required |
 | `node scripts/cli.mjs business-universe-check <project>` | Check recorded Business Universe Coverage evidence and fail closed when strict current-task coverage is required | No |
+| `node scripts/cli.mjs control-effectiveness <project> --intent "<goal>"` | Prepare a read-only, deliberately non-authorizing assessment for exact control claims relied on by the current scope | No |
+| `node scripts/cli.mjs control-effectiveness-check <project>` | Validate recorded claim effectiveness without executing a control or evidence-provided command | No |
 | `node scripts/cli.mjs impact-coverage <project> --intent "<change>"` | Map affected surfaces for a business-rule or product-behavior change before it is treated as complete | No |
 | `node scripts/cli.mjs impact-coverage <project> --intent "<change>" --business-rule-ref <ref>` | Map affected surfaces while carrying a prior Business Rule Closure reference | No |
 | `node scripts/cli.mjs impact-coverage <project> --intent "<change>" --from-git-diff` | Map affected surfaces using read-only git changed-file signals | No |

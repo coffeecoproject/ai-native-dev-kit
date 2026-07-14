@@ -10,6 +10,7 @@ import { extractMachineReadableEvidence, loadSchema, validateEvidenceBlock, vali
 import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 import { validatePlanReviewSourceEvidence } from "./lib/plan-review-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -202,6 +203,7 @@ function checkStructuredEvidence(content, label, file, evidence) {
   checkPlanIdentity(label, file, evidence);
   checkTaskGovernance(label, evidence);
   checkBusinessUniverseBinding(label, file, evidence);
+  checkControlEffectivenessBinding(label, file, evidence);
   checkSkipRules(label, evidence);
   checkReviewSurfaces(label, evidence);
   checkSourceChain(label, evidence);
@@ -218,7 +220,7 @@ function checkStructuredEvidence(content, label, file, evidence) {
 
 function checkBusinessUniverseBinding(label, reportFile, evidence) {
   const binding = evidence.business_universe_binding;
-  if (evidence.schema_version !== "1.108.0") return;
+  if (!["1.108.0", "1.110.0"].includes(evidence.schema_version)) return;
   if (!binding) {
     fail(`${label} 1.108 plan review requires business_universe_binding`);
     return;
@@ -321,6 +323,36 @@ function checkBusinessUniverseBinding(label, reportFile, evidence) {
     pass(`${label} source_chain preserves Business Universe binding`);
   } else {
     fail(`${label} source_chain must include the exact Business Universe report and file digest`);
+  }
+}
+
+function checkControlEffectivenessBinding(label, reportFile, evidence) {
+  if (evidence.schema_version !== "1.110.0") return;
+  if (!sectionBody(fs.readFileSync(reportFile, "utf8"), "Control Effectiveness Binding")) {
+    fail(`${label} 1.110 plan review missing Control Effectiveness Binding section`);
+  }
+  const required = evidence.control_effectiveness_binding?.requirement === "REQUIRED";
+  const validation = validateControlEffectivenessBinding(projectRoot, evidence.control_effectiveness_binding, {
+    required,
+    fromFile: reportFile,
+    taskRef: evidence.task_ref,
+  });
+  if (validation.ok) pass(`${label} Control Effectiveness binding is exact, current, and strict`);
+  else validation.errors.forEach((error) => fail(`${label} ${error}`));
+  const chain = (evidence.source_chain || []).find((item) => item.source_kind === "control_effectiveness");
+  if (!required && !chain) {
+    pass(`${label} source_chain does not fabricate non-required Control Effectiveness evidence`);
+  } else if (required
+    && chain
+    && chain.source_ref === evidence.control_effectiveness_binding.report_ref
+    && chain.source_digest === evidence.control_effectiveness_binding.report_digest
+    && chain.source_state === evidence.control_effectiveness_binding.assessment_outcome) {
+    pass(`${label} source_chain preserves the exact required Control Effectiveness binding`);
+  } else {
+    fail(`${label} source_chain must contain exactly the required Control Effectiveness evidence`);
+  }
+  if (required && evidence.control_effectiveness_binding.status !== "VERIFIED" && evidence.plan_review_state === "PLAN_REVIEW_PASSED") {
+    fail(`${label} cannot pass Plan Review while a relied-on control is unproven`);
   }
 }
 

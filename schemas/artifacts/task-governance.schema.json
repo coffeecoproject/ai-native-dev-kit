@@ -27,7 +27,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "enum": ["1.83.0", "1.83.1", "1.83.2", "1.83.3", "1.108.0"] },
+    "schema_version": { "enum": ["1.83.0", "1.83.1", "1.83.2", "1.83.3", "1.108.0", "1.110.0"] },
     "artifact_type": { "const": "task_governance" },
     "intent": { "type": "string", "minLength": 1 },
     "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
@@ -251,6 +251,67 @@
         "technical_terms_required_from_user": { "const": "No" }
       }
     },
+    "control_effectiveness_routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "routing_result",
+        "reason_codes",
+        "control_candidates",
+        "required_claim_ids",
+        "not_required_reason",
+        "technical_inspection_reason",
+        "technical_terms_required_from_user"
+      ],
+      "properties": {
+        "required": { "enum": ["Yes", "No", "Unknown"] },
+        "routing_result": { "enum": ["REQUIRED_WITH_EVIDENCE", "TECHNICAL_INSPECTION_REQUIRED", "NOT_REQUIRED_WITH_REASON"] },
+        "reason_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "IMPLEMENTATION_UNRESOLVED",
+              "REVISION_MISMATCH",
+              "ENVIRONMENT_MISMATCH",
+              "EVIDENCE_STALE",
+              "EVIDENCE_IDENTITY_INCOMPLETE",
+              "SCAN_SCOPE_INCOMPLETE",
+              "EXCLUSION_UNPROVEN",
+              "SEMANTIC_MISMATCH",
+              "FAILURE_CAPABILITY_UNPROVEN",
+              "RESULT_INTEGRITY_UNPROVEN",
+              "UNSAFE_PROBE",
+              "CONTROL_EXECUTION_FAILED",
+              "PROJECT_AUTHORITY_BLOCK",
+              "TECHNICAL_INVESTIGATION_REQUIRED"
+            ]
+          }
+        },
+        "control_candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["control_id", "claim_id", "origin", "implementation_ref", "consumer", "summary", "category"],
+            "properties": {
+              "control_id": { "type": "string", "minLength": 1 },
+              "claim_id": { "type": "string", "minLength": 1 },
+              "origin": { "enum": ["INTENTOS_NATIVE", "PROJECT_NATIVE"] },
+              "implementation_ref": { "type": "string", "minLength": 1 },
+              "consumer": { "type": "string", "minLength": 1 },
+              "summary": { "type": "string", "minLength": 1 },
+              "category": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "required_claim_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "not_required_reason": { "type": "string" },
+        "technical_inspection_reason": { "type": "string" },
+        "technical_terms_required_from_user": { "const": "No" }
+      }
+    },
     "required_before_implementation_review": {
       "type": "object",
       "additionalProperties": false,
@@ -266,6 +327,7 @@
         "scope_check_required": { "enum": ["Yes", "No"] },
         "short_plan_required": { "enum": ["Yes", "No"] },
         "business_universe_coverage_required": { "enum": ["Yes", "No", "Unknown"] },
+        "control_effectiveness_required": { "enum": ["Yes", "No", "Unknown"] },
         "business_rule_closure_required": { "enum": ["Yes", "No"] },
         "change_impact_coverage_required": { "enum": ["Yes", "No"] },
         "execution_plan_required": { "enum": ["Yes", "No"] },
@@ -467,6 +529,22 @@
         "properties": {
           "required_before_implementation_review": {
             "required": ["business_universe_coverage_required"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": { "const": "1.110.0" }
+        },
+        "required": ["schema_version"]
+      },
+      "then": {
+        "required": ["business_universe_routing", "control_effectiveness_routing"],
+        "properties": {
+          "required_before_implementation_review": {
+            "required": ["business_universe_coverage_required", "control_effectiveness_required"]
           }
         }
       }

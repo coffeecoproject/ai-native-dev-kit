@@ -18,17 +18,18 @@ import {
   sourceRowFromEnvelope,
   validateSameRunEvidenceEnvelope,
 } from "./lib/same-run-evidence-envelope.mjs";
+import { resolveCurrentControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 const kitRoot = path.resolve(scriptDir, "..");
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "out"]);
+const knownFlags = new Set(["json", "format", "intent", "control-effectiveness", "out"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
-const schemaVersion = "1.71.3";
+const schemaVersion = "1.110.0";
 const simulationTask = "Add a required field validation to a non-production example flow.";
 
 if (unknown.length > 0) {
@@ -65,7 +66,15 @@ function buildReport(root, options) {
   const sources = resolveSources(root, options);
   const sameRunEvidence = sameRunEvidenceFor(sources._sameRun);
   const simulation = simulationFor(root, signals);
-  const surfaces = surfacesFor(root, signals, sources, simulation);
+  const entryBinding = sameRunBindingFromTrust(entryTrust);
+  const controlEffectiveness = resolveCurrentControlEffectivenessBinding(root, {
+    required: true,
+    reportRef: String(args["control-effectiveness"] || ""),
+    taskRef: entryBinding.taskRef,
+    intentDigest: entryBinding.goalDigest,
+    requiredClaimIds: [],
+  });
+  const surfaces = surfacesFor(root, signals, sources, simulation, controlEffectiveness);
   const dirty = entryTrust?.project_fact_projection?.current_work_continuity?.state === "CURRENT_CONFLICTED";
   const pendingDecisions = pendingDecisionsFor(surfaces, dirty, sources);
   const assuranceState = assuranceStateFor({ surfaces, simulation, dirty, sources });
@@ -85,6 +94,7 @@ function buildReport(root, options) {
     surfaces,
     evidence_refs: evidenceRefs,
     source_systems: sources,
+    control_effectiveness_binding: controlEffectiveness,
     same_run_evidence: sameRunEvidence,
     simulation,
     pending_decisions: pendingDecisions,
@@ -302,7 +312,7 @@ function runSameRunProducer(options) {
       source: {
         name: options.name,
         status: "BLOCKED",
-        ref: options.script,
+        ref: `generated:${options.name}`,
         contribution: normalizeLine(diagnostic),
         authority_block: "No",
       },
@@ -550,13 +560,13 @@ function sourceContribution(name, parsed) {
   return parsed.outcome || parsed.nextAction || parsed.projectState || parsed.reportType || "recorded";
 }
 
-function surfacesFor(root, signals, sources, simulation) {
+function surfacesFor(root, signals, sources, simulation, controlEffectiveness) {
   const hasConvergence = sources.governance_convergence.status === "RECORDED";
   const hasReconciliation = sources.existing_rule_reconciliation.status === "RECORDED";
   const hasMigration = sources.native_migration.status === "RECORDED";
   const applyChain = applyChainStateFor(root, signals);
   return [
-    surface("workflow_entry", signals.intentOsOperatingMode === "ACTIVE" ? "VERIFIED" : "MAPPED", "checker:workflow-next", "IntentOS route is available without granting hidden write authority."),
+    surface("workflow_entry", signals.intentOsOperatingMode === "ACTIVE" && controlEffectiveness.status === "VERIFIED" ? "VERIFIED" : signals.intentOsOperatingMode === "ACTIVE" ? "PRESENT_UNVERIFIED" : "MAPPED", "checker:workflow-next", "IntentOS route is available without granting hidden write authority.", controlEffectiveness),
     surface("ai_rules_agents", signals.hasAiRules ? "MAPPED" : "PENDING_APPLY", signals.hasAiRules ? "file:AGENTS.md" : "checker:native-migration", signals.hasAiRules ? "Existing AI rules are preserved or mapped." : "AI rule merge remains pending."),
     surface("engineering_baseline", signals.hasEngineeringBaseline || hasReconciliation ? "MAPPED" : "MISSING", hasReconciliation ? "checker:reconcile-rules" : "checker:baseline", "Existing vs IntentOS engineering baseline comparison must be recorded."),
     surface("environment_baseline", signals.hasEnvironmentBaseline || hasReconciliation ? "MAPPED" : "MISSING", hasReconciliation ? "checker:reconcile-rules" : "checker:baseline", "Environment baseline comparison must be recorded."),
@@ -567,12 +577,22 @@ function surfacesFor(root, signals, sources, simulation) {
     surface("ai_logs_audit", signals.hasAiLogs || hasConvergence ? "MAPPED" : "PENDING_APPLY", "checker:convergence", "AI logs are governance notes only, not routine command logs."),
     surface("risk_authority", "PROJECT_OWNED", "checker:native-migration", hasMigration || hasConvergence ? "Protected authority remains project-owned and mapped." : "Protected authority remains project-owned while Codex continues evidence mapping."),
     surface("apply_chain", applyChain.status, applyChain.evidence, applyChain.notes),
-    surface("simulation_task", simulation.state === "SIMULATION_PASSED" ? "VERIFIED" : "MISSING", simulation.id, "Read-only synthetic task routing must pass before full adoption can be claimed."),
+    surface("simulation_task", simulation.state === "SIMULATION_PASSED" && controlEffectiveness.status === "VERIFIED" ? "VERIFIED" : simulation.state === "SIMULATION_PASSED" ? "PRESENT_UNVERIFIED" : "MISSING", simulation.id, "Read-only synthetic task routing must pass before full adoption can be claimed.", controlEffectiveness),
   ];
 }
 
-function surface(surfaceName, status, evidence, notes) {
-  return { surface: surfaceName, status, evidence, notes };
+function surface(surfaceName, status, evidence, notes, controlBinding = null) {
+  const required = Boolean(controlBinding);
+  return {
+    surface: surfaceName,
+    status,
+    evidence,
+    notes,
+    control_effectiveness_required: required ? "Yes" : "No",
+    control_claim_refs: required ? [...controlBinding.required_claim_ids] : [],
+    control_effectiveness_ref: required ? controlBinding.report_ref : "N/A",
+    control_effectiveness_state: required ? controlBinding.assessment_outcome : "NOT_APPLICABLE_WITH_REASON",
+  };
 }
 
 function applyChainStateFor(root, signals) {

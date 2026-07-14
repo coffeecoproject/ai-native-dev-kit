@@ -10,6 +10,10 @@ import {
   coverageVerificationProjection,
   resolveBoundBusinessUniverse,
 } from "./lib/business-universe.mjs";
+import {
+  deriveControlEffectivenessRouting,
+  resolveCurrentControlEffectivenessBinding,
+} from "./lib/control-effectiveness.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -21,6 +25,7 @@ const knownFlags = new Set([
   "project-level",
   "platform",
   "change-kind",
+  "control-effectiveness",
   "out",
 ]);
 const unknown = unknownOptions(args, knownFlags);
@@ -35,6 +40,7 @@ const platformProfiles = String(args.platform || "")
   .map((item) => item.trim().toLowerCase())
   .filter(Boolean);
 const changeKind = String(args["change-kind"] || "").trim().toUpperCase();
+const controlEffectivenessArg = String(args["control-effectiveness"] || "").trim();
 const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
 
 if (unknown.length > 0) {
@@ -81,12 +87,22 @@ function buildReport(root, userIntent) {
     : inferPlatforms(root, resolvedIntent);
   const taskRef = taskRefFor(resolvedIntent, businessRule.evidence, impact.evidence);
   const intentDigest = businessRule.evidence?.source_request_digest || digest(resolvedIntent);
+  const controlRouting = deriveControlEffectivenessRouting({ projectRoot: root, intent: resolvedIntent, taskImpact: "MEDIUM" });
+  const controlEffectivenessBinding = resolveCurrentControlEffectivenessBinding(root, {
+    required: controlRouting.required === "Yes",
+    reason: controlRouting.not_required_reason,
+    reportRef: controlEffectivenessArg || undefined,
+    taskRef,
+    intentDigest,
+    requiredClaimIds: controlRouting.required_claim_ids || [],
+    fromFile: outputPath,
+  });
   const planSlug = slugify(resolvedIntent);
   const verificationPlanRef = verificationPlanRefForOutput(root, outputPath, planSlug);
   const surfaces = impact.evidence?.affected_surface_map?.length
     ? impact.evidence.affected_surface_map
     : inferredSurfacesFor(resolvedIntent, effectiveChangeKind, effectivePlatformProfiles);
-  const sourceSystems = sourceSystemsFor(businessRule, impact, businessUniverse);
+  const sourceSystems = sourceSystemsFor(businessRule, impact, businessUniverse, controlEffectivenessBinding);
   const riskDomains = riskDomainsFor(resolvedIntent, businessRule.evidence, impact.evidence, surfaces);
   const obligations = obligationsFor({
     surfaces,
@@ -116,10 +132,11 @@ function buildReport(root, userIntent) {
     surfaces,
     obligations,
     manualVerification,
+    controlEffectivenessBinding,
   });
   const boundaries = boundariesFor();
   const structuredBase = {
-    schema_version: "1.108.0",
+    schema_version: "1.110.0",
     artifact_type: "verification_plan",
     task_ref: taskRef,
     intent: resolvedIntent,
@@ -130,6 +147,7 @@ function buildReport(root, userIntent) {
     business_rule_digest: businessRule.evidence?.business_rule_digest || "not provided",
     business_rule_state: businessRule.evidence?.state || "not provided",
     business_universe_binding: universeBinding,
+    control_effectiveness_binding: controlEffectivenessBinding,
     impact_ref: impactRef || "not provided",
     impact_digest: impact.evidence?.impact_digest || "not provided",
     source_systems: sourceSystems,
@@ -163,7 +181,7 @@ function buildReport(root, userIntent) {
 
   return {
     reportType: "VERIFICATION_PLAN",
-    schemaVersion: "1.108.0",
+    schemaVersion: "1.110.0",
     generatedBy: "scripts/resolve-verification-plan.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -383,7 +401,7 @@ function notApplicableFor(surfaces) {
     }));
 }
 
-function stateFor({ effectiveChangeKind, businessRule, impact, businessUniverse, universeBinding, surfaces, obligations }) {
+function stateFor({ effectiveChangeKind, businessRule, impact, businessUniverse, universeBinding, surfaces, obligations, controlEffectivenessBinding }) {
   if (effectiveChangeKind === "BUSINESS_RULE") {
     if (!businessRule.ref) return "NEEDS_BUSINESS_RULE_CLOSURE";
     if (businessRule.evidence?.state !== "READY_FOR_IMPACT_COVERAGE") return "NEEDS_BUSINESS_RULE_CLOSURE";
@@ -395,12 +413,13 @@ function stateFor({ effectiveChangeKind, businessRule, impact, businessUniverse,
     || businessUniverse.evidence.outcome !== "COVERAGE_READY"
     || universeBinding.coverage_mapping_status !== "COMPLETE"
     || !universeConsumerBindingsMatch(universeBinding, impact.evidence?.business_universe_binding))) return "BLOCKED_BY_UNCLEAR_TEST_SCOPE";
+  if (controlEffectivenessBinding.requirement === "REQUIRED" && controlEffectivenessBinding.status !== "VERIFIED") return "BLOCKED_BY_UNCLEAR_TEST_SCOPE";
   if (surfaces.some((surface) => surface.status === "NEEDS_HUMAN_DECISION")) return "NEEDS_DOMAIN_OWNER";
   if (obligations.length === 0) return "BLOCKED_BY_UNCLEAR_TEST_SCOPE";
   return "VERIFICATION_PLAN_READY";
 }
 
-function sourceSystemsFor(businessRule, impact, businessUniverse) {
+function sourceSystemsFor(businessRule, impact, businessUniverse, controlEffectivenessBinding) {
   const systems = [];
   if (businessRule.ref) {
     systems.push({
@@ -429,6 +448,13 @@ function sourceSystemsFor(businessRule, impact, businessUniverse) {
       digest: businessUniverse.binding?.business_universe_digest || "not provided",
     });
   }
+  systems.push({
+    name: "control_effectiveness",
+    status: controlEffectivenessBinding.status === "VERIFIED" ? "RECORDED" : controlEffectivenessBinding.requirement === "NOT_REQUIRED" ? "NOT_PROVIDED" : "UNRESOLVED",
+    ref: controlEffectivenessBinding.report_ref,
+    source_outcome: controlEffectivenessBinding.assessment_outcome,
+    digest: controlEffectivenessBinding.report_digest,
+  });
   return systems;
 }
 
@@ -690,6 +716,14 @@ ${report.humanSummary}
 | Source | Status | Ref | Outcome | Digest |
 |---|---|---|---|---|
 ${report.sourceSystems.length > 0 ? report.sourceSystems.map((item) => `| \`${item.name}\` | \`${item.status}\` | \`${item.ref}\` | \`${item.source_outcome}\` | \`${item.digest}\` |`).join("\n") : "| `none` | `NOT_RECORDED` | `not provided` | `not provided` | `not provided` |"}
+
+## Control Effectiveness Binding
+
+- Requirement: \`${report.structuredEvidence.control_effectiveness_binding.requirement}\`
+- Status: \`${report.structuredEvidence.control_effectiveness_binding.status}\`
+- Report: \`${report.structuredEvidence.control_effectiveness_binding.report_ref}\`
+- Required claims: ${report.structuredEvidence.control_effectiveness_binding.required_claim_ids.map((item) => `\`${item}\``).join(", ") || "N/A"}
+- Reason: ${report.structuredEvidence.control_effectiveness_binding.reason}
 
 ## Verification Plan Identity
 

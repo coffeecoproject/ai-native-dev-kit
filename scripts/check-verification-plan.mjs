@@ -14,6 +14,7 @@ import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 import { resolveBoundBusinessUniverse } from "./lib/business-universe.mjs";
+import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -258,6 +259,7 @@ function checkStructuredEvidence(label, file, evidence, markdown) {
   const businessRule = checkBusinessRuleBinding(label, file, evidence);
   const impact = checkImpactBinding(label, file, evidence);
   checkBusinessUniverseBinding(label, file, evidence, businessRule, impact);
+  checkControlEffectivenessBinding(label, file, evidence);
   checkSourceChainConsistency(label, evidence, impact);
   checkTaskBinding(label, evidence, businessRule, impact);
   checkObligations(label, evidence);
@@ -294,7 +296,7 @@ function checkBusinessUniverseBinding(label, verificationFile, evidence, busines
   if (!businessRule) return;
   const binding = evidence.business_universe_binding;
   const businessRuleBinding = businessRule.business_universe_binding;
-  if (evidence.schema_version !== "1.108.0") {
+  if (!["1.108.0", "1.110.0"].includes(evidence.schema_version)) {
     return;
   }
   if (!binding) {
@@ -419,6 +421,28 @@ function checkBusinessUniverseBinding(label, verificationFile, evidence, busines
     } else if (scenario.required_proof_strength === "EXTERNAL_FACT_PROOF") {
       fail(`${label} external-fact scenario ${scenarioId} must remain externally bound`);
     }
+  }
+}
+
+function checkControlEffectivenessBinding(label, file, evidence) {
+  if (evidence.schema_version !== "1.110.0") return;
+  const binding = evidence.control_effectiveness_binding;
+  const validation = validateControlEffectivenessBinding(projectRoot, binding, {
+    required: binding?.requirement === "REQUIRED",
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+  });
+  if (validation.ok) pass(`${label} Control Effectiveness binding is exact and current`);
+  else validation.errors.forEach((error) => fail(`${label} ${error}`));
+  const source = (evidence.source_systems || []).find((item) => item.name === "control_effectiveness");
+  if (source
+    && source.ref === binding.report_ref
+    && source.digest === binding.report_digest
+    && source.source_outcome === binding.assessment_outcome) pass(`${label} source systems preserve Control Effectiveness binding`);
+  else fail(`${label} source systems must preserve the exact Control Effectiveness binding`);
+  if (binding.requirement === "REQUIRED" && binding.status !== "VERIFIED" && evidence.verification_state === "VERIFICATION_PLAN_READY") {
+    fail(`${label} cannot be ready while a relied-on control is unproven`);
   }
 }
 

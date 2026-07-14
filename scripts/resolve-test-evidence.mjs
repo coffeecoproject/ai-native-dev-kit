@@ -11,6 +11,7 @@ import {
   runtimeBindingMarkdown,
   runtimeEvidenceItems,
 } from "./lib/verification-runtime-consumer.mjs";
+import { controlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -92,6 +93,7 @@ function buildReport(root) {
   ];
   const coverageMap = coverageMapFor(requiredObligations, evidenceItems);
   const universeBinding = testEvidenceUniverseBindingFor(planEvidence?.business_universe_binding);
+  const controlBinding = testEvidenceControlBindingFor(planEvidence?.control_effectiveness_binding);
   const scenarioCoverageMap = scenarioCoverageMapFor(universeBinding, requiredObligations, coverageMap);
   const controls = testQualityControlsFor(planEvidence, evidenceItems, coverageMap);
   const manual = manualVerificationFor(planEvidence, evidenceItems);
@@ -105,10 +107,11 @@ function buildReport(root) {
     verificationPlan,
     runtimeTrustRequired,
     runtimeTrust.binding,
+    controlBinding,
   );
   const boundaries = boundariesFor();
   const structuredBase = {
-    schema_version: "1.108.0",
+    schema_version: "1.110.0",
     artifact_type: "test_evidence",
     task_ref: taskRef,
     intent: resolvedIntent,
@@ -120,6 +123,7 @@ function buildReport(root) {
     verification_plan_state: planEvidence?.verification_state || "not provided",
     source_systems: sourceSystems,
     runtime_trust_binding: runtimeTrust.binding,
+    control_effectiveness_binding: controlBinding,
     authority_binding: createEvidenceAuthorityBinding(root, {
       taskRef,
       intentDigest,
@@ -147,7 +151,7 @@ function buildReport(root) {
   };
   return {
     reportType: "TEST_EVIDENCE_REPORT",
-    schemaVersion: "1.108.0",
+    schemaVersion: "1.110.0",
     generatedBy: "scripts/resolve-test-evidence.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -192,7 +196,7 @@ function sourceSystemsFor(verificationPlan) {
     });
   }
   for (const source of verificationPlan.evidence?.source_systems || []) {
-    if (["business_rule_closure", "business_universe_coverage", "change_impact_coverage"].includes(source.name)) {
+    if (["business_rule_closure", "business_universe_coverage", "control_effectiveness", "change_impact_coverage"].includes(source.name)) {
       systems.push({
         name: source.name,
         status: source.status,
@@ -438,7 +442,9 @@ function knownGapsFor(requiredObligations, coverageMap) {
   return gaps;
 }
 
-function stateFor(requiredObligations, coverageMap, scenarioCoverageMap, universeBinding, evidenceItems, verificationPlan, runtimeTrustRequired, runtimeTrustBinding) {
+function stateFor(requiredObligations, coverageMap, scenarioCoverageMap, universeBinding, evidenceItems, verificationPlan, runtimeTrustRequired, runtimeTrustBinding, controlBinding) {
+  if (controlBinding?.requirement === "REQUIRED" && controlBinding.status !== "VERIFIED") return "TEST_EVIDENCE_BLOCKED";
+  if (controlBinding?.requirement === "NOT_REQUIRED" && controlBinding.status !== "NOT_REQUIRED") return "TEST_EVIDENCE_BLOCKED";
   if (runtimeTrustRequired && runtimeTrustBinding?.status !== "VERIFIED") return "TEST_EVIDENCE_BLOCKED";
   if (!runtimeTrustRequired && runtimeTrustBinding?.status !== "NOT_REQUIRED") return "TEST_EVIDENCE_BLOCKED";
   if (!verificationPlan.ref || !verificationPlan.evidence) return "TEST_EVIDENCE_BLOCKED";
@@ -452,6 +458,14 @@ function stateFor(requiredObligations, coverageMap, scenarioCoverageMap, univers
     return "TEST_EVIDENCE_WAIVED_WITH_DECISION";
   }
   return "TEST_EVIDENCE_PARTIAL";
+}
+
+function testEvidenceControlBindingFor(binding) {
+  if (!binding) return controlEffectivenessBinding({
+    required: false,
+    reason: "The referenced pre-1.110 Verification Plan predates Control Effectiveness routing; no control-backed completion claim is inferred.",
+  });
+  return JSON.parse(JSON.stringify(binding));
 }
 
 function existingProjectMappingFor(ref) {
@@ -545,6 +559,16 @@ ${evidence.source_systems.length > 0 ? evidence.source_systems.map((item) => `| 
 ## Runtime Trust Binding
 
 ${runtimeBindingMarkdown(evidence.runtime_trust_binding)}
+
+## Control Effectiveness Binding
+
+- Requirement: \`${evidence.control_effectiveness_binding.requirement}\`
+- Status: \`${evidence.control_effectiveness_binding.status}\`
+- Report: \`${evidence.control_effectiveness_binding.report_ref}\`
+- Report digest: \`${evidence.control_effectiveness_binding.report_digest}\`
+- Required claims: ${evidence.control_effectiveness_binding.required_claim_ids.map((item) => `\`${item}\``).join(", ") || "N/A"}
+- Assessment outcome: \`${evidence.control_effectiveness_binding.assessment_outcome}\`
+- Reason: ${evidence.control_effectiveness_binding.reason}
 
 ## Business Universe Scenario Coverage
 

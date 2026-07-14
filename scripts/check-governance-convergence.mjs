@@ -331,8 +331,8 @@ function checkStructuredEvidence(content, label) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} structured evidence includes ${field}`);
     else fail(`${label} structured evidence missing ${field}`);
   }
-  if (parsed.schema_version === "1.70.1") pass(`${label} structured evidence schema version is 1.70.1`);
-  else fail(`${label} structured evidence schema version must be 1.70.1`);
+  if (["1.70.1", "1.110.0"].includes(parsed.schema_version)) pass(`${label} structured evidence schema version is readable`);
+  else fail(`${label} structured evidence schema version must be 1.70.1 or 1.110.0`);
   if (parsed.artifact_type === "governance_convergence_report") pass(`${label} structured artifact type is valid`);
   else fail(`${label} structured artifact type invalid`);
   if (parsed.intentos_operating_mode === "ACTIVE") pass(`${label} structured operating mode is active`);
@@ -393,6 +393,24 @@ function validateStructuredDimensions(parsed, label) {
     else fail(`${rowLabel} must declare human decision as Yes or No`);
     if (item?.write_requires_apply_plan === "Yes") pass(`${rowLabel} requires apply plan before write`);
     else fail(`${rowLabel} must require apply plan before write`);
+    if (parsed.schema_version === "1.110.0") {
+      if (item.control_effectiveness_required === "Yes") {
+        if (item.control_effectiveness_state === "CONTROL_PROVEN_EFFECTIVE" && isConcrete(item.control_effectiveness_ref) && item.control_effectiveness_ref !== "N/A") {
+          pass(`${rowLabel} required Control Effectiveness is proven by an exact report ref`);
+        } else if (item.control_effectiveness_state !== "CONTROL_PROVEN_EFFECTIVE" && item.recommendation !== "KEEP_EXISTING_STRICTER") {
+          pass(`${rowLabel} unresolved Control Effectiveness remains visible and cannot support a stricter-control claim`);
+        } else {
+          fail(`${rowLabel} required Control Effectiveness must be CONTROL_PROVEN_EFFECTIVE with a report ref`);
+        }
+      } else if (item.control_effectiveness_required === "No" && item.control_effectiveness_ref === "N/A" && item.control_effectiveness_state === "NOT_APPLICABLE_WITH_REASON") {
+        pass(`${rowLabel} unrelated control proof does not block this dimension`);
+      } else {
+        fail(`${rowLabel} Control Effectiveness routing is inconsistent`);
+      }
+      if (item.recommendation === "KEEP_EXISTING_STRICTER" && item.control_effectiveness_state !== "CONTROL_PROVEN_EFFECTIVE") {
+        fail(`${rowLabel} KEEP_EXISTING_STRICTER requires proven effective enforcement, not stronger wording`);
+      }
+    }
   }
   for (const dimension of requiredDimensions) {
     if (seen.has(dimension)) pass(`${label} structured evidence includes ${dimension} dimension`);

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.109.0",
+  "schemaVersion": "1.110.0",
   "artifactType": "review_context_authority",
   "contractId": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
   "currentVersionSource": "VERSION.md",
@@ -45,56 +45,58 @@
         "README.md",
         "README.zh-CN.md",
         "VERSION.md",
-        "core/zero-experience-solo-operating-model.md",
-        "core/review-context-authority.md",
-        "core/review-context-authority.json",
-        "core/baseline-pack-system.md",
-        "core/guided-baseline-selection.md",
-        "core/engineering-baseline.md",
-        "core/review-loop.md",
-        "core/context-governance.md",
-        "core/goal-mode.md",
-        "core/output-protocol.md",
-        "core/outcome-baseline.md",
-        "core/product-baseline.md",
         "core/assumption-register.md",
+        "core/baseline-pack-system.md",
+        "core/baseline-state.md",
+        "core/business-universe-coverage.md",
+        "core/context-governance.md",
+        "core/control-effectiveness.md",
         "core/decision-delegation-boundary.md",
+        "core/engineering-baseline.md",
+        "core/glossary.md",
+        "core/goal-mode.md",
+        "core/guided-baseline-selection.md",
         "core/guided-delivery-loop.md",
-        "core/safe-launch.md",
+        "core/outcome-baseline.md",
+        "core/output-protocol.md",
+        "core/product-baseline.md",
+        "core/project-entry-adoption-trust.md",
         "core/release-execution-topology.md",
         "core/release-topology-consumer-binding.md",
         "core/release-topology-migration.md",
+        "core/review-context-authority.json",
+        "core/review-context-authority.md",
+        "core/review-loop.md",
+        "core/safe-launch.md",
         "core/subagent-orchestration.md",
-        "core/baseline-state.md",
-        "core/business-universe-coverage.md",
-        "core/project-entry-adoption-trust.md",
-        "core/glossary.md",
+        "core/zero-experience-solo-operating-model.md",
         "docs/README.md",
-        "docs/first-hour.md",
-        "docs/quickstart.md",
-        "docs/source-only-adoption.md",
-        "docs/start-here.md",
-        "docs/operating-model.md",
         "docs/baseline-state.md",
         "docs/business-universe-coverage.md",
-        "docs/project-entry-adoption-trust.md",
-        "docs/guided-baseline-selection-entry.md",
         "docs/codex-usage.md",
-        "docs/mental-model.md",
-        "docs/product-baseline.md",
-        "docs/release-execution-topology.md",
-        "docs/release-topology-consumer-binding.md",
-        "docs/release-topology-migration.md",
+        "docs/control-effectiveness.md",
+        "docs/first-hour.md",
+        "docs/guided-baseline-selection-entry.md",
         "docs/guided-delivery-baseline.md",
+        "docs/mental-model.md",
+        "docs/operating-model.md",
+        "docs/plans/control-effectiveness-1.110-plan.md",
+        "docs/product-baseline.md",
+        "docs/project-entry-adoption-trust.md",
+        "docs/quickstart.md",
         "docs/reference/artifacts.md",
         "docs/reference/checkers.md",
         "docs/reference/scripts.md",
-        "docs/plans/project-entry-adoption-trust-hardcut-1.109-plan.md",
+        "docs/release-execution-topology.md",
+        "docs/release-topology-consumer-binding.md",
+        "docs/release-topology-migration.md",
+        "docs/source-only-adoption.md",
+        "docs/start-here.md",
         "prompts/reviewer-agent.md",
-        "templates/gpt-review-prompt.md",
-        "releases/1.109.0/release-record.md",
-        "releases/1.109.0/known-limitations.md",
-        "releases/1.109.0/self-check-report.md"
+        "releases/1.110.0/known-limitations.md",
+        "releases/1.110.0/release-record.md",
+        "releases/1.110.0/self-check-report.md",
+        "templates/gpt-review-prompt.md"
       ],
       "prefixes": [
         "scripts/",
@@ -136,78 +138,272 @@
     }
   ],
   "activeGuidance": [
-    { "source": "README.md" },
-    { "source": "README.zh-CN.md" },
-    { "source": "docs/README.md" },
-    { "source": "docs/first-hour.md" },
-    { "source": "docs/quickstart.md" },
-    { "source": "docs/source-only-adoption.md" },
-    { "source": "core/zero-experience-solo-operating-model.md", "installed": ".intentos/core/zero-experience-solo-operating-model.md" },
-    { "source": "core/review-context-authority.md", "installed": ".intentos/core/review-context-authority.md" },
-    { "source": "core/baseline-pack-system.md", "installed": ".intentos/core/baseline-pack-system.md" },
-    { "source": "core/guided-baseline-selection.md", "installed": ".intentos/core/guided-baseline-selection.md" },
-    { "source": "core/engineering-baseline.md", "installed": ".intentos/core/engineering-baseline.md" },
-    { "source": "core/review-loop.md", "installed": ".intentos/core/review-loop.md" },
-    { "source": "core/context-governance.md", "installed": ".intentos/core/context-governance.md" },
-    { "source": "core/goal-mode.md", "installed": ".intentos/core/goal-mode.md" },
-    { "source": "core/output-protocol.md", "installed": ".intentos/core/output-protocol.md" },
-    { "source": "core/outcome-baseline.md", "installed": ".intentos/core/outcome-baseline.md" },
-    { "source": "core/product-baseline.md", "installed": ".intentos/core/product-baseline.md" },
-    { "source": "core/assumption-register.md", "installed": ".intentos/core/assumption-register.md" },
-    { "source": "core/decision-delegation-boundary.md", "installed": ".intentos/core/decision-delegation-boundary.md" },
-    { "source": "core/guided-delivery-loop.md", "installed": ".intentos/core/guided-delivery-loop.md" },
-    { "source": "core/safe-launch.md", "installed": ".intentos/core/safe-launch.md" },
-    { "source": "core/release-execution-topology.md", "installed": ".intentos/core/release-execution-topology.md" },
-    { "source": "core/release-topology-consumer-binding.md", "installed": ".intentos/core/release-topology-consumer-binding.md" },
-    { "source": "core/release-topology-migration.md", "installed": ".intentos/core/release-topology-migration.md" },
-    { "source": "core/subagent-orchestration.md", "installed": ".intentos/core/subagent-orchestration.md" },
-    { "source": "core/baseline-state.md", "installed": ".intentos/core/baseline-state.md" },
-    { "source": "core/business-universe-coverage.md", "installed": ".intentos/core/business-universe-coverage.md" },
-    { "source": "core/project-entry-adoption-trust.md", "installed": ".intentos/core/project-entry-adoption-trust.md" },
-    { "source": "core/glossary.md", "installed": ".intentos/core/glossary.md" },
-    { "source": "docs/start-here.md" },
-    { "source": "docs/operating-model.md", "installed": ".intentos/docs/operating-model.md" },
-    { "source": "docs/baseline-state.md", "installed": ".intentos/docs/baseline-state.md" },
-    { "source": "docs/business-universe-coverage.md", "installed": ".intentos/docs/business-universe-coverage.md" },
-    { "source": "docs/project-entry-adoption-trust.md", "installed": ".intentos/docs/project-entry-adoption-trust.md" },
-    { "source": "docs/guided-baseline-selection-entry.md", "installed": ".intentos/docs/guided-baseline-selection-entry.md" },
-    { "source": "docs/codex-usage.md" },
-    { "source": "docs/mental-model.md" },
-    { "source": "docs/product-baseline.md", "installed": ".intentos/docs/product-baseline.md" },
-    { "source": "docs/release-execution-topology.md", "installed": ".intentos/docs/release-execution-topology.md" },
-    { "source": "docs/release-topology-consumer-binding.md", "installed": ".intentos/docs/release-topology-consumer-binding.md" },
-    { "source": "docs/release-topology-migration.md", "installed": ".intentos/docs/release-topology-migration.md" },
-    { "source": "docs/guided-delivery-baseline.md", "installed": ".intentos/docs/guided-delivery-baseline.md" },
-    { "source": "docs/reference/artifacts.md" },
-    { "source": "docs/reference/checkers.md" },
-    { "source": "docs/reference/scripts.md" },
-    { "source": "prompts/reviewer-agent.md", "installed": ".intentos/prompts/reviewer-agent.md" },
-    { "source": "templates/gpt-review-prompt.md", "installed": ".intentos/templates/gpt-review-prompt.md" },
-    { "source": "platforms/codex/AGENTS.template.md", "installed": "AGENTS.md" },
-    { "source": "platforms/codex/quickstart.md" },
-    { "source": "platforms/codex/skill/SKILL.md" },
-    { "source": "scripts/start-project.mjs", "installed": "scripts/start-project.mjs" },
-    { "source": "scripts/workflow-next.mjs", "installed": "scripts/workflow-next.mjs" },
-    { "source": "scripts/baseline-project.mjs", "installed": "scripts/baseline-project.mjs" },
-    { "source": "scripts/resolve-baseline-packs.mjs", "installed": "scripts/resolve-baseline-packs.mjs" },
-    { "source": "scripts/resolve-guided-baseline-selection.mjs", "installed": "scripts/resolve-guided-baseline-selection.mjs" },
-    { "source": "scripts/resolve-standard-baseline.mjs", "installed": "scripts/resolve-standard-baseline.mjs" },
-    { "source": "starters/generic-project/AGENTS.md" },
-    { "source": "starters/generic-project/README.md" },
-    { "source": "starters/generic-project/docs/engineering-baseline.md" },
-    { "source": "starters/generic-project/docs/risk-policy.md" },
-    { "source": "starters/codex-web-app/AGENTS.md" },
-    { "source": "starters/codex-web-app/README.md" },
-    { "source": "starters/codex-web-app/docs/engineering-baseline.md" },
-    { "source": "starters/codex-web-app/docs/risk-policy.md" },
-    { "source": "starters/codex-ios-app/AGENTS.md" },
-    { "source": "starters/codex-ios-app/README.md" },
-    { "source": "starters/codex-ios-app/docs/engineering-baseline.md" },
-    { "source": "starters/codex-ios-app/docs/risk-policy.md" },
-    { "source": "starters/codex-android-app/AGENTS.md" },
-    { "source": "starters/codex-android-app/README.md" },
-    { "source": "starters/codex-android-app/docs/engineering-baseline.md" },
-    { "source": "starters/codex-android-app/docs/risk-policy.md" }
+    {
+      "source": "core/assumption-register.md",
+      "installed": ".intentos/core/assumption-register.md"
+    },
+    {
+      "source": "core/baseline-pack-system.md",
+      "installed": ".intentos/core/baseline-pack-system.md"
+    },
+    {
+      "source": "core/baseline-state.md",
+      "installed": ".intentos/core/baseline-state.md"
+    },
+    {
+      "source": "core/business-universe-coverage.md",
+      "installed": ".intentos/core/business-universe-coverage.md"
+    },
+    {
+      "source": "core/context-governance.md",
+      "installed": ".intentos/core/context-governance.md"
+    },
+    {
+      "source": "core/control-effectiveness.md",
+      "installed": ".intentos/core/control-effectiveness.md"
+    },
+    {
+      "source": "core/decision-delegation-boundary.md",
+      "installed": ".intentos/core/decision-delegation-boundary.md"
+    },
+    {
+      "source": "core/engineering-baseline.md",
+      "installed": ".intentos/core/engineering-baseline.md"
+    },
+    {
+      "source": "core/glossary.md",
+      "installed": ".intentos/core/glossary.md"
+    },
+    {
+      "source": "core/goal-mode.md",
+      "installed": ".intentos/core/goal-mode.md"
+    },
+    {
+      "source": "core/guided-baseline-selection.md",
+      "installed": ".intentos/core/guided-baseline-selection.md"
+    },
+    {
+      "source": "core/guided-delivery-loop.md",
+      "installed": ".intentos/core/guided-delivery-loop.md"
+    },
+    {
+      "source": "core/outcome-baseline.md",
+      "installed": ".intentos/core/outcome-baseline.md"
+    },
+    {
+      "source": "core/output-protocol.md",
+      "installed": ".intentos/core/output-protocol.md"
+    },
+    {
+      "source": "core/product-baseline.md",
+      "installed": ".intentos/core/product-baseline.md"
+    },
+    {
+      "source": "core/project-entry-adoption-trust.md",
+      "installed": ".intentos/core/project-entry-adoption-trust.md"
+    },
+    {
+      "source": "core/release-execution-topology.md",
+      "installed": ".intentos/core/release-execution-topology.md"
+    },
+    {
+      "source": "core/release-topology-consumer-binding.md",
+      "installed": ".intentos/core/release-topology-consumer-binding.md"
+    },
+    {
+      "source": "core/release-topology-migration.md",
+      "installed": ".intentos/core/release-topology-migration.md"
+    },
+    {
+      "source": "core/review-context-authority.md",
+      "installed": ".intentos/core/review-context-authority.md"
+    },
+    {
+      "source": "core/review-loop.md",
+      "installed": ".intentos/core/review-loop.md"
+    },
+    {
+      "source": "core/safe-launch.md",
+      "installed": ".intentos/core/safe-launch.md"
+    },
+    {
+      "source": "core/subagent-orchestration.md",
+      "installed": ".intentos/core/subagent-orchestration.md"
+    },
+    {
+      "source": "core/zero-experience-solo-operating-model.md",
+      "installed": ".intentos/core/zero-experience-solo-operating-model.md"
+    },
+    {
+      "source": "docs/baseline-state.md",
+      "installed": ".intentos/docs/baseline-state.md"
+    },
+    {
+      "source": "docs/business-universe-coverage.md",
+      "installed": ".intentos/docs/business-universe-coverage.md"
+    },
+    {
+      "source": "docs/codex-usage.md"
+    },
+    {
+      "source": "docs/control-effectiveness.md",
+      "installed": ".intentos/docs/control-effectiveness.md"
+    },
+    {
+      "source": "docs/first-hour.md"
+    },
+    {
+      "source": "docs/guided-baseline-selection-entry.md",
+      "installed": ".intentos/docs/guided-baseline-selection-entry.md"
+    },
+    {
+      "source": "docs/guided-delivery-baseline.md",
+      "installed": ".intentos/docs/guided-delivery-baseline.md"
+    },
+    {
+      "source": "docs/mental-model.md"
+    },
+    {
+      "source": "docs/operating-model.md",
+      "installed": ".intentos/docs/operating-model.md"
+    },
+    {
+      "source": "docs/product-baseline.md",
+      "installed": ".intentos/docs/product-baseline.md"
+    },
+    {
+      "source": "docs/project-entry-adoption-trust.md",
+      "installed": ".intentos/docs/project-entry-adoption-trust.md"
+    },
+    {
+      "source": "docs/quickstart.md"
+    },
+    {
+      "source": "docs/README.md"
+    },
+    {
+      "source": "docs/reference/artifacts.md"
+    },
+    {
+      "source": "docs/reference/checkers.md"
+    },
+    {
+      "source": "docs/reference/scripts.md"
+    },
+    {
+      "source": "docs/release-execution-topology.md",
+      "installed": ".intentos/docs/release-execution-topology.md"
+    },
+    {
+      "source": "docs/release-topology-consumer-binding.md",
+      "installed": ".intentos/docs/release-topology-consumer-binding.md"
+    },
+    {
+      "source": "docs/release-topology-migration.md",
+      "installed": ".intentos/docs/release-topology-migration.md"
+    },
+    {
+      "source": "docs/source-only-adoption.md"
+    },
+    {
+      "source": "docs/start-here.md"
+    },
+    {
+      "source": "platforms/codex/AGENTS.template.md",
+      "installed": "AGENTS.md"
+    },
+    {
+      "source": "platforms/codex/quickstart.md"
+    },
+    {
+      "source": "platforms/codex/skill/SKILL.md"
+    },
+    {
+      "source": "prompts/reviewer-agent.md",
+      "installed": ".intentos/prompts/reviewer-agent.md"
+    },
+    {
+      "source": "README.md"
+    },
+    {
+      "source": "README.zh-CN.md"
+    },
+    {
+      "source": "scripts/baseline-project.mjs",
+      "installed": "scripts/baseline-project.mjs"
+    },
+    {
+      "source": "scripts/resolve-baseline-packs.mjs",
+      "installed": "scripts/resolve-baseline-packs.mjs"
+    },
+    {
+      "source": "scripts/resolve-guided-baseline-selection.mjs",
+      "installed": "scripts/resolve-guided-baseline-selection.mjs"
+    },
+    {
+      "source": "scripts/resolve-standard-baseline.mjs",
+      "installed": "scripts/resolve-standard-baseline.mjs"
+    },
+    {
+      "source": "scripts/start-project.mjs",
+      "installed": "scripts/start-project.mjs"
+    },
+    {
+      "source": "scripts/workflow-next.mjs",
+      "installed": "scripts/workflow-next.mjs"
+    },
+    {
+      "source": "starters/codex-android-app/AGENTS.md"
+    },
+    {
+      "source": "starters/codex-android-app/docs/engineering-baseline.md"
+    },
+    {
+      "source": "starters/codex-android-app/docs/risk-policy.md"
+    },
+    {
+      "source": "starters/codex-android-app/README.md"
+    },
+    {
+      "source": "starters/codex-ios-app/AGENTS.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/engineering-baseline.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/risk-policy.md"
+    },
+    {
+      "source": "starters/codex-ios-app/README.md"
+    },
+    {
+      "source": "starters/codex-web-app/AGENTS.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/engineering-baseline.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/risk-policy.md"
+    },
+    {
+      "source": "starters/codex-web-app/README.md"
+    },
+    {
+      "source": "starters/generic-project/AGENTS.md"
+    },
+    {
+      "source": "starters/generic-project/docs/engineering-baseline.md"
+    },
+    {
+      "source": "starters/generic-project/docs/risk-policy.md"
+    },
+    {
+      "source": "starters/generic-project/README.md"
+    },
+    {
+      "source": "templates/gpt-review-prompt.md",
+      "installed": ".intentos/templates/gpt-review-prompt.md"
+    }
   ],
   "activeGuidanceFamilies": [
     {
@@ -234,8 +430,15 @@
     "platforms/codex/"
   ],
   "reviewBinding": {
-    "artifactTypes": ["review_packet", "gpt_review_prompt"],
-    "requiredFields": ["contract_id", "context_version", "context_digest"],
+    "artifactTypes": [
+      "review_packet",
+      "gpt_review_prompt"
+    ],
+    "requiredFields": [
+      "contract_id",
+      "context_version",
+      "context_digest"
+    ],
     "legacyMissingBinding": "COMPATIBILITY_ONLY"
   },
   "compatibilityFields": {

@@ -12,6 +12,7 @@ import {
   resolveAuthoritativeEvidenceReference,
 } from "./lib/evidence-authority.mjs";
 import { resolveRuntimeTrustBinding, runtimeBindingMarkdown } from "./lib/verification-runtime-consumer.mjs";
+import { controlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -20,7 +21,7 @@ const knownFlags = new Set(["json", "format", "intent", "task", "kind", "base", 
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const schemaVersion = "1.108.0";
+const schemaVersion = "1.110.0";
 const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
 
 if (unknown.length > 0) {
@@ -90,6 +91,7 @@ function buildReport(root, options) {
     });
   }
   const businessUniverse = businessUniverseAssuranceFor(root, sourceSystems, options);
+  const controlEffectiveness = controlEffectivenessAssuranceFor(root, sourceSystems, options);
   const state = chooseState({
     executionKind,
     actualDiff,
@@ -101,6 +103,7 @@ function buildReport(root, options) {
     review,
     runtimeTrustBinding: runtimeTrust.binding,
     businessUniverse,
+    controlEffectiveness,
   });
   const canClaimDone = state === "VERIFIED_DONE" ? "Yes" : "No";
   const safeNextStep = nextStepFor(state);
@@ -135,6 +138,7 @@ function buildReport(root, options) {
     source_systems: sourceSystems,
     runtime_trust_binding: runtimeTrust.binding,
     business_universe_binding: businessUniverse.binding,
+    control_effectiveness_binding: controlEffectiveness.binding,
     scenario_assurance_map: businessUniverse.scenarios,
     pending_human_decisions: pendingDecisionsFor(state),
     forbidden_claims: [],
@@ -385,6 +389,21 @@ function runtimeTrustRequiredFor(root, sourceSystems, options) {
       .some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF");
 }
 
+function controlEffectivenessAssuranceFor(root, sourceSystems, options) {
+  const fallback = controlEffectivenessBinding({
+    required: true,
+    reason: "Current-task Test Evidence does not provide a Control Effectiveness decision.",
+  });
+  const source = sourceSystems.find((item) => item.name === "test_evidence" && item.status === "RECORDED");
+  if (!source) return { binding: fallback };
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", source.ref, { markdownOnly: true });
+  if (!resolved.ok) return { binding: fallback };
+  const evidence = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  if (!evidence || evidence.task_ref !== options.task || evidence.intent_digest !== digest(options.intent)) return { binding: fallback };
+  if (!evidence.control_effectiveness_binding) return { binding: fallback };
+  return { binding: JSON.parse(JSON.stringify(evidence.control_effectiveness_binding)) };
+}
+
 function extractMachineReadableEvidence(content) {
   const match = String(content || "").match(/```json\s*([\s\S]*?)```/i);
   if (!match) return null;
@@ -473,7 +492,13 @@ function buildReview(root, executionKind, sourceSystems) {
   };
 }
 
-function chooseState({ executionKind, actualDiff, sourceSystems, patchAssessment, completionContract, plannedImpactMap, evidenceBindings, review, runtimeTrustBinding, businessUniverse }) {
+function chooseState({ executionKind, actualDiff, sourceSystems, patchAssessment, completionContract, plannedImpactMap, evidenceBindings, review, runtimeTrustBinding, businessUniverse, controlEffectiveness }) {
+  if (controlEffectiveness.binding.requirement === "REQUIRED" && controlEffectiveness.binding.status !== "VERIFIED") {
+    return "BLOCKED_BY_MISSING_EVIDENCE";
+  }
+  if (controlEffectiveness.binding.requirement === "NOT_REQUIRED" && controlEffectiveness.binding.status !== "NOT_REQUIRED") {
+    return "BLOCKED_BY_MISSING_EVIDENCE";
+  }
   if (runtimeTrustBinding?.requirement === "REQUIRED" && runtimeTrustBinding.status !== "VERIFIED") {
     return "BLOCKED_BY_MISSING_EVIDENCE";
   }
@@ -648,6 +673,15 @@ function humanReportText(report) {
   push("## Runtime Trust Binding");
   push("");
   push(runtimeBindingMarkdown(evidence.runtime_trust_binding));
+
+  push("## Control Effectiveness Binding");
+  push("");
+  push(`- Requirement: \`${evidence.control_effectiveness_binding.requirement}\``);
+  push(`- Status: \`${evidence.control_effectiveness_binding.status}\``);
+  push(`- Report: \`${evidence.control_effectiveness_binding.report_ref}\``);
+  push(`- Report digest: \`${evidence.control_effectiveness_binding.report_digest}\``);
+  push(`- Assessment outcome: \`${evidence.control_effectiveness_binding.assessment_outcome}\``);
+  push(`- Reason: ${evidence.control_effectiveness_binding.reason}`);
   push("");
   push("## Business Universe Assurance");
   push("");

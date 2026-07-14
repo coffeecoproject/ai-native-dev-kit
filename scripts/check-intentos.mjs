@@ -5791,10 +5791,13 @@ function checkAdoptionExecutionAssuranceProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "ADOPTION_ASSURANCE_REPORT"
         && parsed.readOnly === true
-        && parsed.schemaVersion === "1.71.3"
+        && parsed.schemaVersion === "1.110.0"
         && parsed.humanSummary?.canCodexWriteNow === "No"
         && parsed.structuredEvidence?.artifact_type === "adoption_assurance_report"
+        && parsed.structuredEvidence?.schema_version === "1.110.0"
         && parsed.structuredEvidence?.can_codex_write_now === "No"
+        && parsed.structuredEvidence?.control_effectiveness_binding?.requirement === "REQUIRED"
+        && parsed.structuredEvidence?.control_effectiveness_binding?.status === "BLOCKED"
         && hasCompleteAdoptionAssuranceEvidence(parsed)) {
         pass("1.71 adoption assurance resolver JSON includes safe evidence fields");
       } else {
@@ -7195,9 +7198,9 @@ function checkExecutionAssuranceChainProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "EXECUTION_ASSURANCE"
         && parsed.readOnly === true
-        && parsed.schemaVersion === "1.108.0"
+        && parsed.schemaVersion === "1.110.0"
         && parsed.structuredEvidence?.artifact_type === "execution_assurance_report"
-        && parsed.structuredEvidence?.schema_version === "1.108.0"
+        && parsed.structuredEvidence?.schema_version === "1.110.0"
         && parsed.structuredEvidence?.can_codex_write_now === "No"
         && parsed.structuredEvidence?.completion_contract
         && parsed.structuredEvidence?.planned_impact_map
@@ -7206,6 +7209,8 @@ function checkExecutionAssuranceChainProtocol() {
         && parsed.structuredEvidence?.runtime_trust_binding?.requirement === "NOT_REQUIRED"
         && parsed.structuredEvidence?.runtime_trust_binding?.status === "NOT_REQUIRED"
         && parsed.structuredEvidence?.business_universe_binding?.coverage_mapping_status === "BLOCKED"
+        && parsed.structuredEvidence?.control_effectiveness_binding?.requirement === "REQUIRED"
+        && parsed.structuredEvidence?.control_effectiveness_binding?.status === "BLOCKED"
         && parsed.structuredEvidence?.boundary?.approves_commit_or_push === "No") {
         pass("1.72-1.74 execution assurance resolver JSON includes safe evidence fields");
       } else {
@@ -9562,14 +9567,16 @@ function checkTestEvidenceBindingProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "TEST_EVIDENCE_REPORT"
-        && parsed.schemaVersion === "1.108.0"
+        && parsed.schemaVersion === "1.110.0"
         && parsed.structuredEvidence?.artifact_type === "test_evidence"
-        && parsed.structuredEvidence?.schema_version === "1.108.0"
+        && parsed.structuredEvidence?.schema_version === "1.110.0"
         && parsed.structuredEvidence?.test_evidence_digest
         && parsed.structuredEvidence?.runtime_trust_binding?.requirement === "NOT_REQUIRED"
         && parsed.structuredEvidence?.runtime_trust_binding?.status === "NOT_REQUIRED"
         && parsed.structuredEvidence?.business_universe_binding?.required === "No"
         && parsed.structuredEvidence?.business_universe_binding?.routing_result === "NOT_REQUIRED_WITH_REASON"
+        && parsed.structuredEvidence?.control_effectiveness_binding?.requirement === "NOT_REQUIRED"
+        && parsed.structuredEvidence?.control_effectiveness_binding?.status === "NOT_REQUIRED"
         && parsed.structuredEvidence?.scenario_coverage_map?.length === 0
         && parsed.structuredEvidence?.evidence_items?.every((item) => item.exit_code === 0 && item.failure_reason === "not recorded")
         && parsed.structuredEvidence?.source_systems?.some((item) => item.name === "verification_plan")
@@ -9832,14 +9839,16 @@ function checkCompletionEvidenceGateProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "COMPLETION_EVIDENCE_GATE"
-        && parsed.schemaVersion === "1.108.0"
+        && parsed.schemaVersion === "1.110.0"
         && parsed.structuredEvidence?.artifact_type === "completion_evidence_gate"
-        && parsed.structuredEvidence?.schema_version === "1.108.0"
+        && parsed.structuredEvidence?.schema_version === "1.110.0"
         && parsed.structuredEvidence?.completion_state === "BLOCKED_BY_BUSINESS_UNIVERSE"
         && parsed.structuredEvidence?.can_claim_complete === "No"
         && parsed.structuredEvidence?.runtime_trust_binding?.requirement === "NOT_REQUIRED"
         && parsed.structuredEvidence?.runtime_trust_binding?.status === "NOT_REQUIRED"
         && parsed.structuredEvidence?.business_universe_binding?.coverage_mapping_status === "BLOCKED"
+        && parsed.structuredEvidence?.control_effectiveness_binding?.requirement === "REQUIRED"
+        && parsed.structuredEvidence?.control_effectiveness_binding?.status === "BLOCKED"
         && parsed.structuredEvidence?.source_chain?.length === 4
         && parsed.structuredEvidence?.source_chain?.every((item) => typeof item.intent_digest === "string" && item.intent_digest.startsWith("sha256:"))
         && parsed.structuredEvidence?.gate_checks?.some((item) => item.id === "check:business-universe" && item.status === "FAIL")
@@ -19194,6 +19203,94 @@ function checkVerificationRuntimeTrustProtocol() {
   }
 }
 
+function checkControlEffectivenessProtocol() {
+  const assets = [
+    "core/control-effectiveness.md",
+    "docs/control-effectiveness.md",
+    "docs/plans/control-effectiveness-1.110-plan.md",
+    "checklists/control-effectiveness-review.md",
+    "prompts/control-effectiveness-agent.md",
+    "templates/control-effectiveness-report.md",
+    "schemas/artifacts/control-effectiveness.schema.json",
+    "scripts/lib/control-effectiveness.mjs",
+    "scripts/resolve-control-effectiveness.mjs",
+    "scripts/check-control-effectiveness.mjs",
+    "tests/control-effectiveness.test.mjs",
+    "tests/control-effectiveness-consumer-chain.test.mjs",
+    "tests/control-effectiveness-adoption.test.mjs",
+    "control-effectiveness-reports/.gitkeep",
+    "releases/1.110.0/release-record.md",
+    "releases/1.110.0/known-limitations.md",
+    "releases/1.110.0/self-check-report.md",
+  ];
+  for (const file of assets) {
+    if (exists(file)) pass(`1.110 control effectiveness asset exists: ${file}`);
+    else fail(`1.110 control effectiveness asset missing: ${file}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const command of ["control-effectiveness", "control-effectiveness-check"]) {
+    if (cli.includes(`\"${command}\"`)) pass(`1.110 advanced CLI exposes ${command}`);
+    else fail(`1.110 advanced CLI missing ${command}`);
+  }
+  if (cli.includes("work:") && !cli.match(/work:[\s\S]{0,500}control-effectiveness/)) {
+    pass("1.110 keeps Control Effectiveness behind the existing public work entry");
+  } else {
+    fail("1.110 must not add Control Effectiveness as an ordinary-user workflow choice");
+  }
+
+  const focused = runNode([
+    "--test",
+    "tests/control-effectiveness.test.mjs",
+    "tests/control-effectiveness-consumer-chain.test.mjs",
+    "tests/control-effectiveness-adoption.test.mjs",
+  ]);
+  if (focused.status === 0) pass("1.110 control effectiveness and consumer-chain regressions");
+  else fail(`1.110 control effectiveness regressions failed: ${focused.stderr || focused.stdout}`);
+
+  const compatibilityEmpty = runNode(["scripts/check-control-effectiveness.mjs", ".", "--allow-empty"]);
+  if (compatibilityEmpty.status === 0) pass("1.110 explicit non-strict empty state remains readable");
+  else fail(`1.110 compatibility empty-state check failed: ${compatibilityEmpty.stderr || compatibilityEmpty.stdout}`);
+  const strictEmpty = runNode(["scripts/check-control-effectiveness.mjs", ".", "--allow-empty", "--require-effective"]);
+  if (strictEmpty.status !== 0) pass("1.110 strict effectiveness cannot be bypassed by allow-empty");
+  else fail("1.110 strict effectiveness was bypassed by allow-empty");
+
+  const generatedAssets = [
+    ".intentos/core/control-effectiveness.md",
+    ".intentos/docs/control-effectiveness.md",
+    ".intentos/checklists/control-effectiveness-review.md",
+    ".intentos/prompts/control-effectiveness-agent.md",
+    ".intentos/templates/control-effectiveness-report.md",
+    ".intentos/schemas/artifacts/control-effectiveness.schema.json",
+    "scripts/lib/control-effectiveness.mjs",
+    "scripts/resolve-control-effectiveness.mjs",
+    "scripts/check-control-effectiveness.mjs",
+    "control-effectiveness-reports/.gitkeep",
+  ];
+  for (const starter of ["generic-project", "codex-web-app", "codex-ios-app", "codex-android-app"]) {
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), `intentos-1.110-${starter}-`));
+    const init = runNode([
+      path.join(kitRoot, "scripts/init-project.mjs"),
+      "--target", target,
+      "--starter", starter,
+      "--goal", "build a bounded appointment product",
+    ]);
+    if (init.status !== 0) {
+      fail(`1.110 ${starter} initialization failed: ${init.stderr || init.stdout}`);
+      continue;
+    }
+    const missing = generatedAssets.filter((file) => !fs.existsSync(path.join(target, file)));
+    if (missing.length === 0) pass(`1.110 ${starter} distributes complete Control Effectiveness assets`);
+    else fail(`1.110 ${starter} is missing generated assets: ${missing.join(", ")}`);
+    const installed = spawnSync(process.execPath, [path.join(target, "scripts/check-control-effectiveness.mjs"), target, "--allow-empty"], {
+      cwd: target,
+      encoding: "utf8",
+    });
+    if (installed.status === 0) pass(`1.110 ${starter} installed checker runs without source checkout dependencies`);
+    else fail(`1.110 ${starter} installed checker failed: ${installed.stderr || installed.stdout}`);
+  }
+}
+
 checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
@@ -19273,6 +19370,7 @@ checkReviewContextAuthorityProtocol();
 checkActiveGuidanceSemanticHardcutProtocol();
 checkActiveGuidanceDistributionCloseoutProtocol();
 checkBusinessUniverseCoverageProtocol();
+checkControlEffectivenessProtocol();
 checkZeroExperienceSoloOperatingModelProtocol();
 checkExecutionAuthorityConsumerHardcutProtocol();
 checkReleaseExecutionTopologyProtocol();

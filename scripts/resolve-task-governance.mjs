@@ -6,6 +6,7 @@ import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest } from "./lib/artifact-schema.mjs";
 import { deriveBusinessUniverseRouting } from "./lib/business-universe.mjs";
+import { deriveControlEffectivenessRouting } from "./lib/control-effectiveness.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "intent", "out", "task-kind"]);
@@ -56,15 +57,20 @@ function buildReport() {
     taskKind: classification.task_kind,
     preflight: businessUniverseRouting.preflight,
   });
-  const requiredBeforeImplementation = requirementsBeforeImplementation(classification.task_impact, businessUniverseRouting);
-  const requiredBeforeCompletion = requirementsBeforeCompletion(classification.task_impact, businessUniverseRouting);
+  const controlEffectivenessRouting = deriveControlEffectivenessRouting({
+    intent,
+    projectRoot,
+    taskImpact: classification.task_impact,
+  });
+  const requiredBeforeImplementation = requirementsBeforeImplementation(classification.task_impact, businessUniverseRouting, controlEffectivenessRouting);
+  const requiredBeforeCompletion = requirementsBeforeCompletion(classification.task_impact, businessUniverseRouting, controlEffectivenessRouting);
   const existingProjectMapping = existingProjectMappingFor(classification.task_impact);
-  const blockedBy = blockersFor(classification.task_impact, adoptionReview, requiredBeforeImplementation, requiredBeforeCompletion, existingProjectMapping, businessUniverseRouting);
+  const blockedBy = blockersFor(classification.task_impact, adoptionReview, requiredBeforeImplementation, requiredBeforeCompletion, existingProjectMapping, businessUniverseRouting, controlEffectivenessRouting);
   const taskGovernanceRef = outputPath
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "task-governance-reports/generated.md";
   const baseEvidence = {
-    schema_version: "1.108.0",
+    schema_version: "1.110.0",
     artifact_type: "task_governance",
     intent,
     intent_digest: digest(intent),
@@ -75,10 +81,11 @@ function buildReport() {
     adoption_review: adoptionReview,
     impact_classification: classification,
     business_universe_routing: businessUniverseRouting,
+    control_effectiveness_routing: controlEffectivenessRouting,
     required_before_implementation_review: requiredBeforeImplementation,
     required_before_completion_claim: requiredBeforeCompletion,
-    review_policy: reviewPolicyFor(classification.task_impact, businessUniverseRouting),
-    source_chain: sourceChainFor(intent, classification, adoptionReview),
+    review_policy: reviewPolicyFor(classification.task_impact, businessUniverseRouting, controlEffectivenessRouting),
+    source_chain: sourceChainFor(intent, classification, adoptionReview, controlEffectivenessRouting),
     existing_project_mapping: existingProjectMapping,
     readiness: {
       governance_prerequisites_satisfied: blockedBy.length === 0 ? "Yes" : "No",
@@ -102,7 +109,7 @@ function buildReport() {
   };
   return {
     reportType: "TASK_GOVERNANCE",
-    schemaVersion: "1.108.0",
+    schemaVersion: "1.110.0",
     generatedBy: "scripts/resolve-task-governance.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -116,6 +123,7 @@ function buildReport() {
     },
     impactClassification: classification,
     businessUniverseRouting,
+    controlEffectivenessRouting,
     requiredBeforeImplementation,
     requiredBeforeCompletion,
     reviewPolicy: structuredEvidence.review_policy,
@@ -210,14 +218,16 @@ function stabilizeClassification(classification, routing) {
   };
 }
 
-function requirementsBeforeImplementation(impact, businessUniverseRouting) {
+function requirementsBeforeImplementation(impact, businessUniverseRouting, controlEffectivenessRouting) {
   const universeRequired = businessUniverseRouting.required;
   const universeChainRequired = universeRequired === "Yes" ? "Yes" : "No";
+  const controlRequired = controlEffectivenessRouting.required;
   if (impact === "LOW") {
     return {
       scope_check_required: "Yes",
       short_plan_required: "No",
       business_universe_coverage_required: universeRequired,
+      control_effectiveness_required: controlRequired,
       business_rule_closure_required: universeChainRequired,
       change_impact_coverage_required: universeChainRequired,
       execution_plan_required: "No",
@@ -229,6 +239,7 @@ function requirementsBeforeImplementation(impact, businessUniverseRouting) {
       scope_check_required: "Yes",
       short_plan_required: "Yes",
       business_universe_coverage_required: universeRequired,
+      control_effectiveness_required: controlRequired,
       business_rule_closure_required: universeChainRequired,
       change_impact_coverage_required: universeChainRequired,
       execution_plan_required: "No",
@@ -240,6 +251,7 @@ function requirementsBeforeImplementation(impact, businessUniverseRouting) {
       scope_check_required: "Yes",
       short_plan_required: "Yes",
       business_universe_coverage_required: universeRequired,
+      control_effectiveness_required: controlRequired,
       business_rule_closure_required: universeChainRequired,
       change_impact_coverage_required: universeChainRequired,
       execution_plan_required: "No",
@@ -250,6 +262,7 @@ function requirementsBeforeImplementation(impact, businessUniverseRouting) {
     scope_check_required: "Yes",
     short_plan_required: "No",
     business_universe_coverage_required: universeRequired,
+    control_effectiveness_required: controlRequired,
     business_rule_closure_required: "Yes",
     change_impact_coverage_required: "Yes",
     execution_plan_required: "Yes",
@@ -257,8 +270,8 @@ function requirementsBeforeImplementation(impact, businessUniverseRouting) {
   };
 }
 
-function requirementsBeforeCompletion(impact, businessUniverseRouting) {
-  if (impact === "HIGH" || businessUniverseRouting.required === "Yes") {
+function requirementsBeforeCompletion(impact, businessUniverseRouting, controlEffectivenessRouting) {
+  if (impact === "HIGH" || businessUniverseRouting.required === "Yes" || controlEffectivenessRouting.required === "Yes") {
     return {
       test_evidence_required: "Yes",
       execution_assurance_required: "Yes",
@@ -272,7 +285,8 @@ function requirementsBeforeCompletion(impact, businessUniverseRouting) {
   };
 }
 
-function reviewPolicyFor(impact, businessUniverseRouting) {
+function reviewPolicyFor(impact, businessUniverseRouting, controlEffectivenessRouting) {
+  const controlCoverage = controlEffectivenessRouting.required === "Yes" ? ["control effectiveness"] : [];
   if (impact === "LOW") {
     return {
       review_level: "LIGHTWEIGHT",
@@ -284,6 +298,7 @@ function reviewPolicyFor(impact, businessUniverseRouting) {
         "excluded high-impact surfaces",
         "minimal verification or explicit reason",
         "unrelated edits check",
+        ...controlCoverage,
       ],
       review_source: "codex_self_check",
       skip_full_review_reason: "LOW tasks use lightweight review only because no high-impact surface is detected.",
@@ -302,6 +317,7 @@ function reviewPolicyFor(impact, businessUniverseRouting) {
         "short plan",
         "bounded impact surface",
         ...coverage,
+        ...controlCoverage,
         "excluded high-impact surfaces",
         "targeted verification",
         "unrelated edits check",
@@ -324,6 +340,7 @@ function reviewPolicyFor(impact, businessUniverseRouting) {
         "high-impact surface decision",
         "upgrade or downgrade rationale",
         ...coverage,
+        ...controlCoverage,
       ],
       review_source: "human_or_read_only_inspection",
       skip_full_review_reason: "POSSIBLE_HIGH tasks cannot skip full review until clarification proves the task is not high impact.",
@@ -331,6 +348,7 @@ function reviewPolicyFor(impact, businessUniverseRouting) {
   }
   const fullCoverage = [
     ...(businessUniverseRouting.required === "Yes" ? ["business universe coverage"] : []),
+    ...controlCoverage,
     "business rule closure",
     "change impact coverage",
     "execution plan",
@@ -350,12 +368,14 @@ function reviewPolicyFor(impact, businessUniverseRouting) {
   };
 }
 
-function blockersFor(impact, adoptionReview, beforeImplementation, beforeCompletion, existingProjectMapping = [], businessUniverseRouting = {}) {
+function blockersFor(impact, adoptionReview, beforeImplementation, beforeCompletion, existingProjectMapping = [], businessUniverseRouting = {}, controlEffectivenessRouting = {}) {
   const blocked = [];
   if (adoptionReview.blocks_task_governance === "Yes") blocked.push("blocked by current adoption review source");
   if (impact === "POSSIBLE_HIGH") blocked.push("needs clarification or read-only inspection before implementation");
   if (businessUniverseRouting.required === "Yes") blocked.push("missing evidence-backed Business Universe Coverage");
   if (businessUniverseRouting.routing_result === "TECHNICAL_INSPECTION_REQUIRED") blocked.push("Codex must continue read-only omission-risk inspection");
+  if (controlEffectivenessRouting.required === "Yes") blocked.push("missing current effective proof for a relied-on technical control");
+  if (controlEffectivenessRouting.routing_result === "TECHNICAL_INSPECTION_REQUIRED") blocked.push("Codex must continue read-only control dependency inspection");
   if (businessUniverseRouting.required === "Yes") {
     blocked.push("missing Business Rule Closure mapped to coverage scenarios");
     blocked.push("missing Change Impact Coverage mapped to coverage scenarios");
@@ -381,8 +401,8 @@ function hasMatchedProjectNativeBehavior(mappings, behavior) {
     && mapping.project_native_task_match === "Yes");
 }
 
-function sourceChainFor(value, classification, adoptionReview) {
-  return [
+function sourceChainFor(value, classification, adoptionReview, controlEffectivenessRouting) {
+  const sources = [
     {
       name: "task_intent",
       status: "READY",
@@ -402,6 +422,16 @@ function sourceChainFor(value, classification, adoptionReview) {
       not_applicable_reason: adoptionReview.state === "N/A" ? "No current Controlled Native Adoption Review report was found." : "",
     },
   ];
+  sources.push({
+    name: "control_effectiveness",
+    status: controlEffectivenessRouting.required === "Yes" ? "MISSING" : controlEffectivenessRouting.required === "Unknown" ? "BLOCKED" : "NOT_APPLICABLE",
+    ref: "control-effectiveness-reports/current-task.md",
+    digest: "not provided",
+    state: controlEffectivenessRouting.routing_result,
+    current_task_match: controlEffectivenessRouting.required === "No" ? "N/A" : "Unknown",
+    not_applicable_reason: controlEffectivenessRouting.not_required_reason,
+  });
+  return sources;
 }
 
 function adoptionReviewFor(root) {
@@ -582,6 +612,18 @@ ${excludedRows}
 | Technical inspection reason | ${evidence.business_universe_routing.technical_inspection_reason || "N/A"} |
 | Technical terms required from user | \`${evidence.business_universe_routing.technical_terms_required_from_user}\` |
 
+## Control Effectiveness Routing
+
+| Field | Value |
+| --- | --- |
+| Required | \`${evidence.control_effectiveness_routing.required}\` |
+| Routing result | \`${evidence.control_effectiveness_routing.routing_result}\` |
+| Candidate controls | ${evidence.control_effectiveness_routing.control_candidates.map((item) => `\`${item.control_id}\``).join(", ") || "none"} |
+| Required claims | ${evidence.control_effectiveness_routing.required_claim_ids.map((item) => `\`${item}\``).join(", ") || "none"} |
+| Not-required reason | ${evidence.control_effectiveness_routing.not_required_reason || "N/A"} |
+| Technical inspection reason | ${evidence.control_effectiveness_routing.technical_inspection_reason || "N/A"} |
+| Technical terms required from user | \`${evidence.control_effectiveness_routing.technical_terms_required_from_user}\` |
+
 ## Required Before Implementation Review
 
 | Requirement | Required |
@@ -589,6 +631,7 @@ ${excludedRows}
 | Scope check | \`${evidence.required_before_implementation_review.scope_check_required}\` |
 | Short plan | \`${evidence.required_before_implementation_review.short_plan_required}\` |
 | Business Universe Coverage | \`${evidence.required_before_implementation_review.business_universe_coverage_required}\` |
+| Control Effectiveness | \`${evidence.required_before_implementation_review.control_effectiveness_required}\` |
 | Business Rule Closure | \`${evidence.required_before_implementation_review.business_rule_closure_required}\` |
 | Change Impact Coverage | \`${evidence.required_before_implementation_review.change_impact_coverage_required}\` |
 | Execution Plan | \`${evidence.required_before_implementation_review.execution_plan_required}\` |
@@ -644,7 +687,7 @@ ${sourceRows}
 | Ready for implementation review | \`${evidence.readiness.ready_for_implementation_review}\` |
 | Implementation authorized by this report | \`${evidence.readiness.implementation_authorized_by_this_report}\` |
 | Can claim done | \`${evidence.readiness.can_claim_done}\` |
-| Blocked by | ${evidence.readiness.blocked_by.join("; ") || "none"} |
+| Blocked by | ${evidence.readiness.blocked_by.length > 0 ? evidence.user_prompt.plain_next_step : "none"} |
 
 ## Boundaries
 

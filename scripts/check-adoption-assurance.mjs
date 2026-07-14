@@ -320,8 +320,8 @@ function checkStructuredEvidence(content, label) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} evidence includes ${field}`);
     else fail(`${label} evidence missing ${field}`);
   }
-  if (parsed.schema_version === "1.71.3") pass(`${label} evidence schema_version is 1.71.3`);
-  else fail(`${label} evidence schema_version must be 1.71.3`);
+  if (["1.71.3", "1.110.0"].includes(parsed.schema_version)) pass(`${label} evidence schema_version is readable`);
+  else fail(`${label} evidence schema_version must be 1.71.3 or 1.110.0`);
   if (parsed.artifact_type === "adoption_assurance_report") pass(`${label} evidence artifact_type is adoption_assurance_report`);
   else fail(`${label} evidence artifact_type invalid`);
   if (allowedStates.has(parsed.assurance_state)) pass(`${label} evidence assurance_state is allowed`);
@@ -346,6 +346,26 @@ function checkStructuredSurfaces(parsed, label) {
     seen.add(item.surface);
     if (allowedSurfaceStatuses.has(item.status)) pass(`${label} evidence ${item.surface} status is allowed`);
     else fail(`${label} evidence ${item.surface || "<unknown>"} status invalid`);
+    if (parsed.schema_version === "1.110.0") {
+      if (item.control_effectiveness_required === "Yes") {
+        if (Array.isArray(item.control_claim_refs) && item.control_claim_refs.length > 0
+          && item.control_effectiveness_state === "CONTROL_PROVEN_EFFECTIVE"
+          && item.control_effectiveness_ref !== "N/A") {
+          pass(`${label} evidence ${item.surface} binds effective current control proof`);
+        } else if (item.status !== "VERIFIED") {
+          pass(`${label} evidence ${item.surface} remains unverified while control proof is unavailable`);
+        } else {
+          fail(`${label} VERIFIED surface ${item.surface} requires effective current control proof`);
+        }
+      } else if (item.control_effectiveness_required === "No"
+        && (item.control_claim_refs || []).length === 0
+        && item.control_effectiveness_ref === "N/A"
+        && item.control_effectiveness_state === "NOT_APPLICABLE_WITH_REASON") {
+        pass(`${label} unrelated control gaps do not block ${item.surface}`);
+      } else {
+        fail(`${label} evidence ${item.surface} Control Effectiveness routing is inconsistent`);
+      }
+    }
     if (item.status === "NOT_APPLICABLE_WITH_REASON" && !String(item.notes || "").trim()) {
       fail(`${label} evidence ${item.surface} NOT_APPLICABLE_WITH_REASON must include reason`);
     }

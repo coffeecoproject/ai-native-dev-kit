@@ -6,6 +6,7 @@ import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import { resolveCurrentControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -16,6 +17,7 @@ const knownFlags = new Set([
   "plan",
   "task-governance",
   "business-universe",
+  "control-effectiveness",
   "business-rule",
   "impact",
   "verification-plan",
@@ -32,6 +34,7 @@ const intent = String(args.intent || "review implementation plan before coding")
 const planArg = args.plan ? String(args.plan) : "";
 const taskGovernanceArg = args["task-governance"] ? String(args["task-governance"]) : "";
 const businessUniverseArg = args["business-universe"] ? String(args["business-universe"]) : "";
+const controlEffectivenessArg = args["control-effectiveness"] ? String(args["control-effectiveness"]) : "";
 const businessRuleArg = args["business-rule"] ? String(args["business-rule"]) : "";
 const impactArg = args.impact ? String(args.impact) : "";
 const verificationPlanArg = args["verification-plan"] ? String(args["verification-plan"]) : "";
@@ -86,17 +89,21 @@ function buildReport() {
   const findings = findingsFor(classification, plan, surfaces);
   const planScenarioReviews = planScenarioReviewsFor(businessUniverse, plan.content, surfaces);
   const businessUniverseBinding = businessUniverseBindingFor(businessUniverse, planScenarioReviews);
+  const controlEffectivenessBinding = controlEffectivenessFor(taskGovernance);
   const sourceAuthority = sourceAuthorityFor(classification, surfaces, taskGovernance, businessUniverse);
-  const state = stateFor(classification, plan, findings, businessUniverse, businessUniverseBinding, sourceAuthority);
+  const state = stateFor(classification, plan, findings, businessUniverse, businessUniverseBinding, controlEffectivenessBinding, sourceAuthority);
   const prerequisiteSatisfied = state === "PLAN_REVIEW_PASSED" ? "Yes" : "No";
   const planReviewRef = outputPath
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "plan-review-reports/generated.md";
   const sourceChain = sourceChainFor(sourceAuthority);
+  if (controlEffectivenessBinding.requirement === "REQUIRED") {
+    sourceChain.push(controlEffectivenessSource(controlEffectivenessBinding));
+  }
   const subagent = subagentRoutingFor(classification, surfaces, state);
   const skip = skipReviewFor(classification, state);
   const baseEvidence = {
-    schema_version: "1.108.0",
+    schema_version: "1.110.0",
     artifact_type: "plan_review",
     plan_review_ref: planReviewRef,
     plan_review_digest: "",
@@ -106,6 +113,7 @@ function buildReport() {
     review_surface_analysis: reviewSurfaceAnalysisFor(classification, plan, sourceAuthority.reviewSurface),
     task_governance: taskGovernance,
     business_universe_binding: businessUniverseBinding,
+    control_effectiveness_binding: controlEffectivenessBinding,
     plan_scenario_reviews: planScenarioReviews,
     source_chain: sourceChain,
     plan_ref: plan.ref,
@@ -149,7 +157,7 @@ function buildReport() {
   };
   return {
     reportType: "PLAN_REVIEW",
-    schemaVersion: "1.108.0",
+    schemaVersion: "1.110.0",
     generatedBy: "scripts/resolve-plan-review.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -277,6 +285,14 @@ function taskGovernanceFor(classification) {
       value: resolved.evidence.business_universe_routing || null,
       enumerable: false,
     });
+    Object.defineProperty(result, "_controlEffectivenessRouting", {
+      value: resolved.evidence.control_effectiveness_routing || null,
+      enumerable: false,
+    });
+    Object.defineProperty(result, "_intentDigest", {
+      value: resolved.evidence.intent_digest || "",
+      enumerable: false,
+    });
     Object.defineProperty(result, "_artifact", { value: resolved, enumerable: false });
     return result;
   }
@@ -288,6 +304,34 @@ function taskGovernanceFor(classification) {
     plan_review_required: classification.plan_review_required,
     current_task_match: "Yes",
   };
+}
+
+function controlEffectivenessFor(taskGovernance) {
+  const routing = taskGovernance._controlEffectivenessRouting;
+  if (!routing || routing.required === "No") {
+    return resolveCurrentControlEffectivenessBinding(projectRoot, {
+      required: false,
+      reason: routing?.not_required_reason || "No strict plan claim currently relies on a technical control.",
+    });
+  }
+  if (routing.required !== "Yes") {
+    return resolveCurrentControlEffectivenessBinding(projectRoot, {
+      required: true,
+      reportRef: controlEffectivenessArg || "artifact:control-effectiveness-reports/unresolved.md",
+      taskRef: taskGovernance.task_ref,
+      intentDigest: taskGovernance._intentDigest,
+      requiredClaimIds: routing.required_claim_ids || [],
+      fromFile: outputPath,
+    });
+  }
+  return resolveCurrentControlEffectivenessBinding(projectRoot, {
+    required: true,
+    reportRef: controlEffectivenessArg || undefined,
+    taskRef: taskGovernance.task_ref,
+    intentDigest: taskGovernance._intentDigest,
+    requiredClaimIds: routing.required_claim_ids || [],
+    fromFile: outputPath,
+  });
 }
 
 function businessUniverseFor(taskGovernance) {
@@ -573,7 +617,7 @@ function findingsFor(classification, plan, surfaces) {
   return findings;
 }
 
-function stateFor(classification, plan, findings, businessUniverse, businessUniverseBinding, sourceAuthority) {
+function stateFor(classification, plan, findings, businessUniverse, businessUniverseBinding, controlEffectivenessBinding, sourceAuthority) {
   if (classification.task_impact === "LOW" && classification.plan_review_required === "No" && !plan.exists) return "NO_PLAN_REQUIRED";
   if (classification.plan_review_required === "Yes" && !plan.exists) return "PLAN_REQUIRED";
   if (businessUniverse.required === "Unknown") return "BLOCKED_BY_INCOMPLETE_REVIEW";
@@ -584,6 +628,7 @@ function stateFor(classification, plan, findings, businessUniverse, businessUniv
     businessUniverseBinding.provenance_review_status,
   ].some((status) => status !== "COMPLETE")) return "BLOCKED_BY_INCOMPLETE_REVIEW";
   if (businessUniverse.challengerRequired && businessUniverse.challengerStatus !== "PASSED") return "BLOCKED_BY_INCOMPLETE_REVIEW";
+  if (controlEffectivenessBinding.requirement === "REQUIRED" && controlEffectivenessBinding.status !== "VERIFIED") return "BLOCKED_BY_INCOMPLETE_REVIEW";
   if (sourceAuthority.missingRequired.length > 0) return "BLOCKED_BY_INCOMPLETE_REVIEW";
   if (plan.content.includes("STALE_PLAN_MARKER")) return "BLOCKED_BY_STALE_PLAN";
   if (findings.some((item) => ["P0", "P1"].includes(item.severity) && item.resolved !== "Yes")) return "PLAN_REVISION_REQUIRED";
@@ -643,6 +688,19 @@ function sourceChainFor(sourceAuthority) {
       contradicts_plan: "No",
     }];
   });
+}
+
+function controlEffectivenessSource(binding) {
+  return {
+    source_kind: "control_effectiveness",
+    source_ref: binding.report_ref,
+    source_digest: binding.report_digest,
+    source_state: binding.assessment_outcome,
+    current_task_match: binding.current_task_match === "Yes" ? "Yes" : binding.current_task_match === "N/A" ? "N/A" : "Unknown",
+    project_native_equivalent: "No",
+    owner: "codex",
+    contradicts_plan: binding.status === "BLOCKED" ? "Yes" : "No",
+  };
 }
 
 function artifactState(value) {
@@ -776,6 +834,18 @@ function humanReportText(report) {
     `| Provenance review | ${evidence.business_universe_binding.provenance_review_status} |`,
     `| Challenger required | ${evidence.business_universe_binding.challenger_required} |`,
     `| Challenger status | ${evidence.business_universe_binding.challenger_status} |`,
+    "",
+    "## Control Effectiveness Binding",
+    "",
+    "| Field | Value |",
+    "| --- | --- |",
+    `| Requirement | ${evidence.control_effectiveness_binding.requirement} |`,
+    `| Status | ${evidence.control_effectiveness_binding.status} |`,
+    `| Report ref | ${evidence.control_effectiveness_binding.report_ref} |`,
+    `| Report digest | ${evidence.control_effectiveness_binding.report_digest} |`,
+    `| Required claims | ${evidence.control_effectiveness_binding.required_claim_ids.join(", ") || "N/A"} |`,
+    `| Assessment outcome | ${evidence.control_effectiveness_binding.assessment_outcome} |`,
+    `| Reason | ${evidence.control_effectiveness_binding.reason} |`,
     "",
     "## Business Universe Scenario Reviews",
     "",

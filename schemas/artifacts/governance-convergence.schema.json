@@ -22,7 +22,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "const": "1.70.1" },
+    "schema_version": { "enum": ["1.70.1", "1.110.0"] },
     "artifact_type": { "const": "governance_convergence_report" },
     "project_state": { "type": "string", "minLength": 1 },
     "intentos_operating_mode": { "const": "ACTIVE" },
@@ -114,6 +114,9 @@
           },
           "human_decision_required": { "enum": ["Yes", "No"] },
           "write_requires_apply_plan": { "const": "Yes" }
+          ,"control_effectiveness_required": { "enum": ["Yes", "No"] }
+          ,"control_effectiveness_ref": { "type": "string", "minLength": 1 }
+          ,"control_effectiveness_state": { "enum": ["CONTROL_PROVEN_EFFECTIVE", "CONTROL_PROVEN_PARTIAL", "CONTROL_NOT_PROVEN", "CONTROL_INVALID", "NOT_APPLICABLE_WITH_REASON"] }
         }
       }
     },
@@ -200,5 +203,17 @@
         "contribution": { "type": "string", "minLength": 1 }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "schema_version": { "const": "1.110.0" } } },
+      "then": {
+        "properties": {
+          "dimensions": {
+            "items": { "required": ["control_effectiveness_required", "control_effectiveness_ref", "control_effectiveness_state"] }
+          }
+        }
+      }
+    }
+  ]
 }

@@ -93,7 +93,7 @@ function buildReport(root, options) {
     : conflicts.length > 0 ? "NEEDS_HUMAN_DECISION" : "RECONCILIATION_RECORDED";
   const report = {
     reportType: "EXISTING_RULE_RECONCILIATION",
-    schemaVersion: "1.69.2",
+    schemaVersion: "1.110.0",
     generatedBy: "scripts/resolve-existing-rule-reconciliation.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -416,6 +416,8 @@ function buildReconciliationItems(rules) {
         requiresApplyChain: "Yes",
         canReplaceExistingRule: "No",
         targetAction: "Codex prepares Native Migration Plan before reconciliation",
+        controlEffectivenessRequired: "No",
+        controlClaimRefs: [],
       },
     ];
   }
@@ -489,6 +491,8 @@ function buildReconciliationItems(rules) {
 }
 
 function item(input) {
+  const controlRequired = /(?:workflow|review|verification|closure|gate|check|test|ci|hook|release|rollback|migration|permission|security|audit)|(?:工作流|审查|验证|门禁|检查|测试|发布|回滚|迁移|权限|安全|审计)/i
+    .test(`${input.rule.source_excerpt || ""} ${input.surface || ""}`);
   return {
     itemId: input.itemId,
     existingRuleRef: `native-migration:${input.rule.rule_id || input.itemId}`,
@@ -506,6 +510,8 @@ function item(input) {
     requiresApplyChain: "Yes",
     canReplaceExistingRule: "No",
     targetAction: input.targetAction,
+    controlEffectivenessRequired: controlRequired ? "Yes" : "No",
+    controlClaimRefs: controlRequired ? [`claim:existing-rule-${String(input.rule.rule_id || input.itemId).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`] : [],
   };
 }
 
@@ -596,8 +602,8 @@ function referenceSummary(item) {
 
 function structuredEvidenceFor(report) {
   return {
-    schema_version: "1.69.2",
-    evidence_profile: "existing-rule-reconciliation-1.69.2",
+    schema_version: "1.110.0",
+    evidence_profile: "existing-rule-reconciliation-1.110.0",
     artifact_type: "existing_rule_reconciliation_report",
     report_type: report.reportType,
     project_state: report.projectState,
@@ -645,6 +651,8 @@ function structuredEvidenceFor(report) {
       requires_apply_chain: item.requiresApplyChain,
       can_replace_existing_rule: item.canReplaceExistingRule,
       target_action: item.targetAction,
+      control_effectiveness_required: item.controlEffectivenessRequired,
+      control_claim_refs: item.controlClaimRefs,
     })),
     protected_constraints: report.protectedConstraints,
     release_production_gaps: report.releaseProductionGaps,

@@ -15,6 +15,7 @@ import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 import { asArtifactRef, validateRuntimeTrustBinding } from "./lib/verification-runtime-consumer.mjs";
+import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -230,7 +231,7 @@ function checkRuntimeTrust(label, file, evidence) {
   const runtimeRequiredByScenario = (evidence.scenario_coverage_map || [])
     .some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF");
   const runtimeRequired = requireRuntimeTrust || runtimeRequiredByScenario;
-  if (!["1.104.0", "1.108.0"].includes(evidence.schema_version)) {
+  if (!["1.104.0", "1.108.0", "1.110.0"].includes(evidence.schema_version)) {
     if (runtimeRequired) fail(`${label} --require-runtime-trust requires Test Evidence schema 1.104.0 or 1.108.0`);
     return;
   }
@@ -291,7 +292,7 @@ function checkRuntimeTrust(label, file, evidence) {
 }
 
 function checkBusinessUniverseScenarioCoverage(label, evidence, verificationPlan) {
-  if (evidence.schema_version !== "1.108.0") return;
+  if (!["1.108.0", "1.110.0"].includes(evidence.schema_version)) return;
   const binding = evidence.business_universe_binding;
   const planBinding = verificationPlan?.business_universe_binding;
   if (!binding) {
@@ -435,10 +436,47 @@ function checkStructuredEvidence(label, file, evidence, markdown) {
   checkEvidenceItems(label, file, evidence, verificationPlan);
   checkCoverageMap(label, evidence, verificationPlan);
   checkBusinessUniverseScenarioCoverage(label, evidence, verificationPlan);
+  checkControlEffectiveness(label, file, evidence, verificationPlan);
   checkTestQualityControls(label, evidence, verificationPlan);
   checkManualVerification(label, evidence);
   checkBoundaries(label, evidence);
   checkMarkdownJsonConsistency(label, evidence, markdown);
+}
+
+function checkControlEffectiveness(label, file, evidence, verificationPlan) {
+  if (evidence.schema_version !== "1.110.0") return;
+  const binding = evidence.control_effectiveness_binding;
+  const planBinding = verificationPlan?.control_effectiveness_binding;
+  const trustedLegacyProjection = binding
+    && !planBinding
+    && verificationPlan?.schema_version !== "1.110.0"
+    && binding.requirement === "NOT_REQUIRED"
+    && binding.status === "NOT_REQUIRED"
+    && binding.report_ref === "N/A"
+    && binding.report_digest === "N/A"
+    && binding.assessment_outcome === "NOT_APPLICABLE_WITH_REASON";
+  if (trustedLegacyProjection) {
+    pass(`${label} trusted pre-1.110 Verification Plan is projected without fabricating Control Effectiveness proof`);
+  } else if (!binding || !planBinding) {
+    fail(`${label} 1.110.0 requires Control Effectiveness bindings in Test Evidence and Verification Plan`);
+    return;
+  } else if (JSON.stringify(binding) === JSON.stringify(planBinding)) {
+    pass(`${label} Control Effectiveness binding exactly matches Verification Plan`);
+  } else {
+    fail(`${label} Control Effectiveness binding must exactly preserve the Verification Plan decision`);
+  }
+  const validation = validateControlEffectivenessBinding(projectRoot, binding, {
+    required: binding.requirement === "REQUIRED",
+    allowBlocked: evidence.test_evidence_state !== "TEST_EVIDENCE_COMPLETE",
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+  });
+  if (validation.ok) pass(`${label} Control Effectiveness binding is current and valid`);
+  else validation.errors.forEach((error) => fail(`${label} ${error}`));
+  if (binding.requirement === "REQUIRED" && binding.status !== "VERIFIED" && evidence.test_evidence_state === "TEST_EVIDENCE_COMPLETE") {
+    fail(`${label} required unverified Control Effectiveness cannot support TEST_EVIDENCE_COMPLETE`);
+  }
 }
 
 function checkVerificationPlanBinding(label, file, evidence) {
@@ -504,7 +542,7 @@ function checkSourceSystemsConsistency(label, evidence, verificationPlan) {
   requireSourceField(label, planSource, "verification_plan", "source_outcome", evidence.verification_plan_state);
   if (strictSourceBinding && verificationPlan) {
     for (const source of verificationPlan.source_systems || []) {
-      if (!["business_rule_closure", "business_universe_coverage", "change_impact_coverage"].includes(source.name)) continue;
+      if (!["business_rule_closure", "business_universe_coverage", "control_effectiveness", "change_impact_coverage"].includes(source.name)) continue;
       const carried = byName.get(source.name);
       if (!carried) {
         fail(`${label} source_systems must preserve ${source.name} from Verification Plan`);

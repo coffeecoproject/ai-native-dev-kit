@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.109.0`
+`1.110.0`
 
 ## Project Version File
 
@@ -17,6 +17,11 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.110.0` requires claim-scoped effectiveness proof before an
+  IntentOS-native or project-native control can support adoption, planning,
+  verification, execution, or completion. The internal assessment remains
+  conditional, read-only, and non-authorizing.
 
 - `1.109.0` hardens project entry and behavior-complete adoption with one
   project-fact projection, exact same-run evidence binding, atomic new-project

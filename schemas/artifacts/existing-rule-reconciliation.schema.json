@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.69.2",
+  "schemaVersion": "1.110.0",
   "artifactType": "existing_rule_reconciliation_report",
   "required": [
     "schema_version",
@@ -28,8 +28,8 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.69.2"] },
-    "evidence_profile": { "type": "string", "enum": ["existing-rule-reconciliation-1.69.2"] },
+    "schema_version": { "type": "string", "enum": ["1.69.2", "1.110.0"] },
+    "evidence_profile": { "type": "string", "enum": ["existing-rule-reconciliation-1.69.2", "existing-rule-reconciliation-1.110.0"] },
     "artifact_type": { "type": "string", "enum": ["existing_rule_reconciliation_report"] },
     "report_type": { "type": "string", "enum": ["EXISTING_RULE_RECONCILIATION"] },
     "project_state": { "type": "string" },
@@ -146,6 +146,8 @@
           "requires_apply_chain": { "type": "string", "enum": ["Yes"] },
           "can_replace_existing_rule": { "type": "string", "enum": ["No"] },
           "target_action": { "type": "string" }
+          ,"control_effectiveness_required": { "enum": ["Yes", "No"] }
+          ,"control_claim_refs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
         }
       }
     },
@@ -226,5 +228,17 @@
       "type": "string",
       "enum": ["RECONCILIATION_RECORDED", "NEEDS_HUMAN_DECISION", "BLOCKED"]
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "schema_version": { "const": "1.110.0" } } },
+      "then": {
+        "properties": {
+          "reconciliation_items": {
+            "items": { "required": ["control_effectiveness_required", "control_claim_refs"] }
+          }
+        }
+      }
+    }
+  ]
 }

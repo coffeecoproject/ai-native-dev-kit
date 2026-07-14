@@ -13,7 +13,7 @@ const workflowOutputDirectories = new Set([
   "baseline-gap-reports", "baseline-pack-selections", "baseline-recommendations",
   "baseline-state-reports", "beginner-entry-cards", "business-rule-closures", "business-universe-coverage-reports",
   "change-boundary-reports", "change-impact-coverage-reports", "closure-decisions",
-  "completion-evidence-reports", "context-corrections", "controlled-apply-candidates",
+  "completion-evidence-reports", "context-corrections", "control-effectiveness-reports", "controlled-apply-candidates",
   "conversation-ask-cards", "conversation-turns", "customer-handoffs", "debt-handoff-reports",
   "decision-briefs", "delivery-path-reports", "delivery-status-cards", "doc-lifecycle-reports",
   "execution-assurance-reports", "execution-closures", "existing-rule-reconciliations",

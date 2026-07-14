@@ -1,0 +1,377 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/control-effectiveness.schema.json",
+  "title": "Control Effectiveness Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "assessment_id",
+    "assessment_purpose",
+    "report_ref",
+    "report_digest",
+    "task_ref",
+    "intent_digest",
+    "required_claim_ids",
+    "control_claims",
+    "authority_binding",
+    "limitations",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.110.0" },
+    "artifact_type": { "const": "control_effectiveness" },
+    "assessment_id": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]*$" },
+    "assessment_purpose": {
+      "enum": ["ADOPTION", "TASK", "VERIFICATION", "RELEASE_READINESS", "COMPLETION"]
+    },
+    "report_ref": { "type": "string", "pattern": "^(?:artifact:|file:)?(?:\\.intentos/)?control-effectiveness-reports/[a-zA-Z0-9._/-]+\\.md$" },
+    "report_digest": { "$ref": "#/$defs/digest" },
+    "task_ref": { "type": "string", "minLength": 1 },
+    "intent_digest": { "$ref": "#/$defs/digest" },
+    "required_claim_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "control_claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/controlClaim" }
+    },
+    "authority_binding": { "$ref": "#/$defs/authorityBinding" },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_is_read_only",
+        "authorizes_implementation",
+        "authorizes_writes",
+        "authorizes_release",
+        "authorizes_production",
+        "proves_product_correctness"
+      ],
+      "properties": {
+        "assessment_is_read_only": { "const": "Yes" },
+        "authorizes_implementation": { "const": "No" },
+        "authorizes_writes": { "const": "No" },
+        "authorizes_release": { "const": "No" },
+        "authorizes_production": { "const": "No" },
+        "proves_product_correctness": { "const": "No" }
+      }
+    },
+    "outcome": { "$ref": "#/$defs/controlState" }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "controlState": {
+      "enum": [
+        "CONTROL_PROVEN_EFFECTIVE",
+        "CONTROL_PROVEN_PARTIAL",
+        "CONTROL_NOT_PROVEN",
+        "CONTROL_INVALID",
+        "NOT_APPLICABLE_WITH_REASON"
+      ]
+    },
+    "evidenceRef": {
+      "type": "string",
+      "pattern": "^(?:artifact|file):[a-zA-Z0-9._/-]+(?:#[a-zA-Z0-9._:/-]+)?$"
+    },
+    "controlClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "claim_digest",
+        "control_id",
+        "origin",
+        "summary",
+        "category",
+        "enforcement_level",
+        "protected_surface",
+        "implementation_bindings",
+        "semantic_assessment",
+        "scope_assessment",
+        "freshness_assessment",
+        "failure_proof",
+        "dynamic_assessment",
+        "effectiveness_dimensions",
+        "consumers",
+        "state",
+        "reason_codes",
+        "limitations"
+      ],
+      "properties": {
+        "claim_id": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]*$" },
+        "claim_digest": { "$ref": "#/$defs/digest" },
+        "control_id": { "type": "string", "minLength": 1 },
+        "origin": { "enum": ["INTENTOS_NATIVE", "PROJECT_NATIVE"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "category": {
+          "enum": [
+            "SOURCE_OR_STRUCTURE_COVERAGE",
+            "EVIDENCE_FRESHNESS_AND_IDENTITY",
+            "POLICY_OR_SCHEMA_CONFORMANCE",
+            "STATIC_CORRECTNESS",
+            "RUNTIME_BEHAVIOR",
+            "VISUAL_OR_INTERACTION_REGRESSION",
+            "PERFORMANCE_OR_CAPACITY_BUDGET",
+            "SECURITY_OR_PERMISSION_BOUNDARY",
+            "DATA_INTEGRITY_OR_MIGRATION_SAFETY",
+            "RELEASE_ROLLBACK_OR_OPERATIONAL_READINESS",
+            "AUDIT_OR_OBSERVABILITY_QUALITY",
+            "CUSTOM_PROJECT_OWNED_CLAIM"
+          ]
+        },
+        "enforcement_level": { "enum": ["ADVISORY", "WARNING", "BLOCKING", "OBSERVATIONAL"] },
+        "protected_surface": { "type": "string", "minLength": 1 },
+        "implementation_bindings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ref", "digest", "role"],
+            "properties": {
+              "ref": { "$ref": "#/$defs/evidenceRef" },
+              "digest": { "$ref": "#/$defs/digest" },
+              "role": { "enum": ["IMPLEMENTATION", "CONFIGURATION", "CONSUMER"] }
+            }
+          }
+        },
+        "semantic_assessment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["declared_assertion", "observed_assertion", "match", "evidence_refs"],
+          "properties": {
+            "declared_assertion": { "type": "string", "minLength": 1 },
+            "observed_assertion": { "type": "string", "minLength": 1 },
+            "match": { "enum": ["MATCH", "PARTIAL", "MISMATCH", "UNKNOWN"] },
+            "evidence_refs": { "type": "array", "items": { "$ref": "#/$defs/evidenceRef" } }
+          }
+        },
+        "scope_assessment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "declared_inventory_ref",
+            "declared_inventory_digest",
+            "observed_inventory_ref",
+            "observed_inventory_digest",
+            "included_items",
+            "exclusions",
+            "completeness"
+          ],
+          "properties": {
+            "declared_inventory_ref": { "$ref": "#/$defs/evidenceRef" },
+            "declared_inventory_digest": { "$ref": "#/$defs/digest" },
+            "observed_inventory_ref": { "$ref": "#/$defs/evidenceRef" },
+            "observed_inventory_digest": { "$ref": "#/$defs/digest" },
+            "included_items": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+            "exclusions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["item", "reason", "evidence_ref"],
+                "properties": {
+                  "item": { "type": "string", "minLength": 1 },
+                  "reason": { "type": "string", "minLength": 1 },
+                  "evidence_ref": { "$ref": "#/$defs/evidenceRef" }
+                }
+              }
+            },
+            "completeness": { "enum": ["COMPLETE", "PARTIAL", "UNKNOWN"] }
+          }
+        },
+        "freshness_assessment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["revision", "environment", "run_id", "observed_at", "valid_until", "status"],
+          "properties": {
+            "revision": { "type": "string", "minLength": 1 },
+            "environment": { "type": "string", "minLength": 1 },
+            "run_id": { "type": "string", "minLength": 1 },
+            "observed_at": { "type": "string", "minLength": 1 },
+            "valid_until": { "type": "string", "minLength": 1 },
+            "status": { "enum": ["CURRENT", "STALE", "IDENTITY_INCOMPLETE"] }
+          }
+        },
+        "failure_proof": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required", "state", "evidence_ref", "output_digest", "safe", "cleanup_proven"],
+          "properties": {
+            "required": { "enum": ["Yes", "No"] },
+            "state": { "enum": ["PROVEN", "PARTIAL", "NOT_PROVEN", "NOT_REQUIRED"] },
+            "evidence_ref": { "type": "string", "minLength": 1 },
+            "output_digest": { "type": "string", "minLength": 1 },
+            "safe": { "enum": ["Yes", "No", "N/A"] },
+            "cleanup_proven": { "enum": ["Yes", "No", "N/A"] }
+          }
+        },
+        "dynamic_assessment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required", "state", "evidence_ref", "output_digest", "exit_code", "adapter"],
+          "properties": {
+            "required": { "enum": ["Yes", "No"] },
+            "state": { "enum": ["PROVEN", "PARTIAL", "NOT_PROVEN", "NOT_REQUIRED"] },
+            "evidence_ref": { "type": "string", "minLength": 1 },
+            "output_digest": { "type": "string", "minLength": 1 },
+            "exit_code": { "type": "integer" },
+            "adapter": { "$ref": "#/$defs/dynamicAdapter" }
+          }
+        },
+        "effectiveness_dimensions": {
+          "type": "array",
+          "minItems": 7,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dimension", "state", "reason", "evidence_refs"],
+            "properties": {
+              "dimension": {
+                "enum": [
+                  "IMPLEMENTATION_IDENTITY",
+                  "SEMANTIC_MATCH",
+                  "SCOPE_COMPLETENESS",
+                  "EVIDENCE_IDENTITY_AND_FRESHNESS",
+                  "FAILURE_CAPABILITY",
+                  "RESULT_INTEGRITY",
+                  "OPERATIONAL_SAFETY"
+                ]
+              },
+              "state": { "enum": ["PROVEN", "PARTIAL", "NOT_PROVEN", "NOT_APPLICABLE"] },
+              "reason": { "type": "string", "minLength": 1 },
+              "evidence_refs": { "type": "array", "items": { "$ref": "#/$defs/evidenceRef" } }
+            }
+          }
+        },
+        "consumers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["consumer_id", "claim_use", "strict_reliance"],
+            "properties": {
+              "consumer_id": { "type": "string", "minLength": 1 },
+              "claim_use": { "type": "string", "minLength": 1 },
+              "strict_reliance": { "enum": ["Yes", "No"] }
+            }
+          }
+        },
+        "state": { "$ref": "#/$defs/controlState" },
+        "reason_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "IMPLEMENTATION_UNRESOLVED",
+              "REVISION_MISMATCH",
+              "ENVIRONMENT_MISMATCH",
+              "EVIDENCE_STALE",
+              "EVIDENCE_IDENTITY_INCOMPLETE",
+              "SCAN_SCOPE_INCOMPLETE",
+              "EXCLUSION_UNPROVEN",
+              "SEMANTIC_MISMATCH",
+              "FAILURE_CAPABILITY_UNPROVEN",
+              "RESULT_INTEGRITY_UNPROVEN",
+              "UNSAFE_PROBE",
+              "CONTROL_EXECUTION_FAILED",
+              "PROJECT_AUTHORITY_BLOCK",
+              "TECHNICAL_INVESTIGATION_REQUIRED"
+            ]
+          }
+        },
+        "limitations": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "dynamicAdapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter_id",
+        "executable",
+        "arguments",
+        "working_directory",
+        "environment_allowlist",
+        "timeout_ms",
+        "expected_exit_codes",
+        "declared_effects",
+        "network_required",
+        "secrets_required",
+        "production_prohibited",
+        "cleanup_required",
+        "cleanup_owner"
+      ],
+      "properties": {
+        "adapter_id": { "type": "string", "minLength": 1 },
+        "executable": { "type": "string", "minLength": 1 },
+        "arguments": { "type": "array", "items": { "type": "string" } },
+        "working_directory": { "type": "string", "minLength": 1 },
+        "environment_allowlist": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "timeout_ms": { "type": "integer" },
+        "expected_exit_codes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "integer" } },
+        "declared_effects": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "network_required": { "enum": ["Yes", "No"] },
+        "secrets_required": { "enum": ["Yes", "No"] },
+        "production_prohibited": { "const": "Yes" },
+        "cleanup_required": { "enum": ["Yes", "No"] },
+        "cleanup_owner": { "type": "string" }
+      }
+    },
+    "authorityBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding_version", "project", "task", "sources"],
+      "properties": {
+        "binding_version": { "const": "1.91.0" },
+        "project": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "fingerprint", "revision"],
+          "properties": {
+            "kind": { "enum": ["GIT", "NON_GIT"] },
+            "fingerprint": { "$ref": "#/$defs/digest" },
+            "revision": { "type": "string", "minLength": 1 }
+          }
+        },
+        "task": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["task_ref", "intent_digest"],
+          "properties": {
+            "task_ref": { "type": "string", "minLength": 1 },
+            "intent_digest": { "$ref": "#/$defs/digest" }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ref", "relative_path", "raw_file_digest"],
+            "properties": {
+              "ref": { "$ref": "#/$defs/evidenceRef" },
+              "relative_path": { "type": "string", "minLength": 1 },
+              "raw_file_digest": { "$ref": "#/$defs/digest" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

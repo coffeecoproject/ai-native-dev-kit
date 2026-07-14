@@ -203,10 +203,15 @@ function checkStructuredEvidence(content, label, file, evidence) {
   else fail(`${label} can_claim_done must be No`);
   checkUserPromptBurden(label, evidence);
 
-  if (evidence.schema_version === "1.108.0") {
+  if (["1.108.0", "1.110.0"].includes(evidence.schema_version)) {
     if (sectionBody(content, "Business Universe Routing")) pass(`${label} includes Business Universe Routing`);
-    else fail(`${label} 1.108.0 report missing Business Universe Routing`);
+    else fail(`${label} ${evidence.schema_version} report missing Business Universe Routing`);
     checkBusinessUniverseRouting(label, evidence);
+  }
+  if (evidence.schema_version === "1.110.0") {
+    if (sectionBody(content, "Control Effectiveness Routing")) pass(`${label} includes Control Effectiveness Routing`);
+    else fail(`${label} 1.110.0 report missing Control Effectiveness Routing`);
+    checkControlEffectivenessRouting(label, evidence);
   }
 
   const impact = evidence.impact_classification?.task_impact;
@@ -252,8 +257,11 @@ function checkTierRules(label, evidence) {
   const rawIntentHighSurface = hasHighSurface(evidence.intent || "");
   const universeRequired = evidence.business_universe_routing?.required || "No";
 
-  if (evidence.schema_version === "1.108.0") {
+  if (["1.108.0", "1.110.0"].includes(evidence.schema_version)) {
     requireRequirement(label, beforeImplementation, "business_universe_coverage_required", universeRequired);
+  }
+  if (evidence.schema_version === "1.110.0") {
+    requireRequirement(label, beforeImplementation, "control_effectiveness_required", evidence.control_effectiveness_routing?.required || "Unknown");
   }
 
   if (evidence.adoption_review?.blocks_task_governance === "Yes") {
@@ -400,13 +408,14 @@ function checkReviewPolicy(label, evidence) {
   const impact = evidence.impact_classification?.task_impact;
   const policy = evidence.review_policy || {};
   const coverage = new Set(policy.review_must_cover || []);
+  const controlCoverage = evidence.control_effectiveness_routing?.required === "Yes" ? ["control effectiveness"] : [];
   const expected = {
     LOW: {
       review_level: "LIGHTWEIGHT",
       independent_review_required: "No",
       review_must_happen_before: "completion_claim",
       review_source: "codex_self_check",
-      coverage: ["scope unchanged", "excluded high-impact surfaces", "minimal verification or explicit reason", "unrelated edits check"],
+      coverage: ["scope unchanged", "excluded high-impact surfaces", "minimal verification or explicit reason", "unrelated edits check", ...controlCoverage],
     },
     MEDIUM: {
       review_level: "TARGETED",
@@ -416,6 +425,7 @@ function checkReviewPolicy(label, evidence) {
       coverage: [
         "short plan", "bounded impact surface",
         ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"] : []),
+        ...controlCoverage,
         "excluded high-impact surfaces", "targeted verification", "unrelated edits check",
       ],
     },
@@ -427,6 +437,7 @@ function checkReviewPolicy(label, evidence) {
       coverage: [
         "clarification or read-only inspection", "high-impact surface decision", "upgrade or downgrade rationale",
         ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"] : []),
+        ...controlCoverage,
       ],
     },
     HIGH: {
@@ -436,6 +447,7 @@ function checkReviewPolicy(label, evidence) {
       review_source: "review_loop_or_project_native_review",
       coverage: [
         ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage"] : []),
+        ...controlCoverage,
         "business rule closure",
         "change impact coverage",
         "execution plan",
@@ -507,6 +519,39 @@ function checkBusinessUniverseRouting(label, evidence) {
     else fail(`${label} non-required Business Universe routing must use NOT_REQUIRED_WITH_REASON with a reason`);
     if ((routing.reason_codes || []).length === 0 && (routing.relationship_ids || []).length === 0) pass(`${label} non-required Business Universe routing has no synthetic trigger`);
     else fail(`${label} non-required Business Universe routing must not carry trigger reasons`);
+  }
+}
+
+function checkControlEffectivenessRouting(label, evidence) {
+  const routing = evidence.control_effectiveness_routing;
+  if (!routing) {
+    fail(`${label} 1.110.0 requires control_effectiveness_routing`);
+    return;
+  }
+  if (routing.technical_terms_required_from_user === "No") pass(`${label} Control Effectiveness routing keeps technical judgment inside IntentOS`);
+  else fail(`${label} Control Effectiveness routing must not require technical terms from the user`);
+  const candidateIds = new Set((routing.control_candidates || []).map((item) => item.claim_id));
+  if (routing.required === "Yes") {
+    if (routing.routing_result === "REQUIRED_WITH_EVIDENCE") pass(`${label} relied-on controls require exact effectiveness evidence`);
+    else fail(`${label} required Control Effectiveness routing must use REQUIRED_WITH_EVIDENCE`);
+    if (routing.control_candidates.length > 0 && routing.required_claim_ids.length > 0) pass(`${label} required routing names exact controls and claims`);
+    else fail(`${label} required routing needs exact control and claim candidates`);
+    for (const claimId of routing.required_claim_ids) {
+      if (candidateIds.has(claimId)) pass(`${label} required claim ${claimId} maps to a discovered control`);
+      else fail(`${label} required claim ${claimId} has no discovered control`);
+    }
+    if ((evidence.readiness?.blocked_by || []).some((item) => /effective proof.*relied-on technical control/i.test(item))) pass(`${label} missing effectiveness proof blocks implementation review`);
+    else fail(`${label} required Control Effectiveness must remain blocked until current proof exists`);
+  } else if (routing.required === "Unknown") {
+    if (routing.routing_result === "TECHNICAL_INSPECTION_REQUIRED" && routing.technical_inspection_reason) pass(`${label} unresolved control dependency remains Codex-owned technical inspection`);
+    else fail(`${label} unresolved control dependency must use TECHNICAL_INSPECTION_REQUIRED`);
+    if ((evidence.readiness?.blocked_by || []).some((item) => /control dependency inspection/i.test(item))) pass(`${label} unresolved dependency blocks without burdening the user`);
+    else fail(`${label} unresolved control dependency must remain blocked`);
+  } else {
+    if (routing.routing_result === "NOT_REQUIRED_WITH_REASON" && routing.not_required_reason) pass(`${label} unrelated controls do not block the current task`);
+    else fail(`${label} not-required Control Effectiveness routing needs an evidence-based reason`);
+    if (routing.required_claim_ids.length === 0) pass(`${label} not-required routing fabricates no strict claim`);
+    else fail(`${label} not-required routing must not carry required claims`);
   }
 }
 

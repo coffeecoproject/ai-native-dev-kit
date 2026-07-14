@@ -11,6 +11,7 @@ import {
   runtimeBindingMarkdown,
   runtimeTrustBindingsAgree,
 } from "./lib/verification-runtime-consumer.mjs";
+import { controlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -93,12 +94,13 @@ function buildReport(root) {
     verificationPlanDigest: verificationPlan?.digest,
   });
   const businessUniverse = businessUniverseCompletionFor(sources);
+  const controlEffectiveness = controlEffectivenessCompletionFor(sources);
   const completionEvidenceRef = completionEvidenceRefForOutput(root, outputPath, slugify(intent));
-  const checks = buildChecks(sources, taskRef, digest(intent), runtimeTrust, businessUniverse);
+  const checks = buildChecks(sources, taskRef, digest(intent), runtimeTrust, businessUniverse, controlEffectiveness);
   const state = stateFor(checks);
   const canClaimComplete = state === "COMPLETION_EVIDENCE_READY" ? "Yes" : "No";
   const base = {
-    schema_version: "1.108.0",
+    schema_version: "1.110.0",
     artifact_type: "completion_evidence_gate",
     task_ref: taskRef,
     intent,
@@ -120,6 +122,7 @@ function buildReport(root) {
     })),
     runtime_trust_binding: runtimeTrust.binding,
     business_universe_binding: businessUniverse.binding,
+    control_effectiveness_binding: controlEffectiveness.binding,
     scenario_completion_map: businessUniverse.scenarios,
     gate_checks: checks,
     task_consistency: taskConsistencyFor(sources, taskRef),
@@ -141,6 +144,9 @@ function buildReport(root) {
         ...(/^(artifact|file):/.test(businessUniverse.binding.business_universe_ref)
           ? [businessUniverse.binding.business_universe_ref]
           : []),
+        ...(/^(artifact|file):/.test(controlEffectiveness.binding.report_ref)
+          ? [controlEffectiveness.binding.report_ref]
+          : []),
       ],
     }),
     completion_gate_digest: evidenceDigest(base, ["completion_gate_digest"]),
@@ -148,7 +154,7 @@ function buildReport(root) {
   structuredEvidence.completion_gate_digest = evidenceDigest(structuredEvidence, ["completion_gate_digest"]);
   return {
     reportType: "COMPLETION_EVIDENCE_GATE",
-    schemaVersion: "1.108.0",
+    schemaVersion: "1.110.0",
     generatedBy: "scripts/resolve-completion-evidence.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -232,7 +238,7 @@ function sourceFor(root, name, refValue, options) {
   };
 }
 
-function buildChecks(sources, taskRef, intentDigest, runtimeTrust, businessUniverse) {
+function buildChecks(sources, taskRef, intentDigest, runtimeTrust, businessUniverse, controlEffectiveness) {
   const required = [
     ["business_rule_closure", "Business Rule Closure is READY_FOR_IMPACT_COVERAGE."],
     ["verification_plan", "Verification Plan is VERIFICATION_PLAN_READY."],
@@ -278,6 +284,16 @@ function buildChecks(sources, taskRef, intentDigest, runtimeTrust, businessUnive
     reason: universeReady
       ? "Business Universe is not required or every required scenario has exact completion evidence."
       : "Business Universe routing or scenario evidence is unresolved, incomplete, stale, or inconsistent.",
+  });
+  checks.push({
+    id: "check:control-effectiveness",
+    status: controlEffectiveness.ok ? "PASS" : "FAIL",
+    source: "control_effectiveness",
+    expected: controlEffectiveness.binding.requirement === "REQUIRED"
+      ? "Verification Plan, Test Evidence, and Execution Assurance bind the same current effective control proof."
+      : "Control Effectiveness is explicitly not required by every current-task consumer.",
+    actual: controlEffectiveness.binding.status,
+    reason: controlEffectiveness.reason,
   });
   const testEvidence = sources.find((item) => item.name === "test_evidence")?.evidence;
   const executionAssurance = sources.find((item) => item.name === "execution_assurance")?.evidence;
@@ -334,6 +350,47 @@ function buildChecks(sources, taskRef, intentDigest, runtimeTrust, businessUnive
     reason: sourceChainBinding.reason,
   });
   return checks;
+}
+
+function controlEffectivenessCompletionFor(sources) {
+  const byName = new Map(sources.map((item) => [item.name, item.evidence]));
+  const verificationPlan = byName.get("verification_plan");
+  const verificationBinding = verificationPlan?.control_effectiveness_binding;
+  const testBinding = byName.get("test_evidence")?.control_effectiveness_binding;
+  const executionBinding = byName.get("execution_assurance")?.control_effectiveness_binding;
+  const legacyProjection = !verificationBinding
+    && verificationPlan?.schema_version !== "1.110.0"
+    && testBinding?.requirement === "NOT_REQUIRED"
+    && testBinding?.status === "NOT_REQUIRED"
+    && JSON.stringify(testBinding) === JSON.stringify(executionBinding);
+  if (legacyProjection) {
+    return {
+      binding: JSON.parse(JSON.stringify(testBinding)),
+      ok: true,
+      reason: "A trusted pre-1.110 Verification Plan is projected through matching non-required current consumers without fabricating control proof.",
+    };
+  }
+  const bindings = [verificationBinding, testBinding, executionBinding];
+  const fallback = controlEffectivenessBinding({
+    required: true,
+    reason: "One or more completion consumers do not carry a Control Effectiveness decision.",
+  });
+  if (bindings.some((item) => !item)) return { binding: fallback, ok: false, reason: fallback.reason };
+  const first = bindings[0];
+  const exact = bindings.every((item) => JSON.stringify(item) === JSON.stringify(first));
+  if (!exact) {
+    const binding = { ...fallback, reason: "Completion consumers disagree on the exact Control Effectiveness report, digest, claims, or state." };
+    return { binding, ok: false, reason: binding.reason };
+  }
+  const ready = (first.requirement === "REQUIRED" && first.status === "VERIFIED")
+    || (first.requirement === "NOT_REQUIRED" && first.status === "NOT_REQUIRED");
+  return {
+    binding: JSON.parse(JSON.stringify(first)),
+    ok: ready,
+    reason: ready
+      ? "Every completion consumer preserves the same bounded Control Effectiveness decision."
+      : "The exact Control Effectiveness decision remains blocked.",
+  };
 }
 
 function runtimeTrustRequiredFor(sources) {
@@ -673,6 +730,16 @@ ${evidence.source_chain.map((source) => `| \`${source.name}\` | \`${source.statu
 ## Runtime Trust Binding
 
 ${runtimeBindingMarkdown(evidence.runtime_trust_binding)}
+
+## Control Effectiveness Completion
+
+- Requirement: \`${evidence.control_effectiveness_binding.requirement}\`
+- Status: \`${evidence.control_effectiveness_binding.status}\`
+- Report: \`${evidence.control_effectiveness_binding.report_ref}\`
+- Report digest: \`${evidence.control_effectiveness_binding.report_digest}\`
+- Required claims: ${evidence.control_effectiveness_binding.required_claim_ids.map((item) => `\`${item}\``).join(", ") || "N/A"}
+- Assessment outcome: \`${evidence.control_effectiveness_binding.assessment_outcome}\`
+- Reason: ${evidence.control_effectiveness_binding.reason}
 
 ## Business Universe Completion
 

@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.109.0`.
+Current release: `1.110.0`.
 
-Release record: [releases/1.109.0/release-record.md](releases/1.109.0/release-record.md).
+Release record: [releases/1.110.0/release-record.md](releases/1.110.0/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
@@ -52,6 +52,14 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.110.0 verifies the checks that IntentOS relies on. A project gate, test,
+policy, workflow, or IntentOS checker is no longer treated as effective merely
+because it exists or reports PASS. When a current task or adoption claim
+depends on one, Codex must bind the exact claim to current implementation,
+scope, semantic, failure, identity, and safety evidence. Unrelated work stays
+lightweight, stronger proven project rules remain project-owned, and the user
+does not choose controls or verification techniques.
 
 1.109.0 hardcuts project entry and adoption trust. One natural-language goal
 now drives one shared target topology, project identity, fact projection,

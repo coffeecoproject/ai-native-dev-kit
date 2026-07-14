@@ -11,11 +11,12 @@ import {
   readSameRunEnvelopeFromEnvironment,
   sameRunBindingFromTrust,
 } from "./lib/same-run-evidence-envelope.mjs";
+import { controlEffectivenessBinding, loadControlEffectivenessReport } from "./lib/control-effectiveness.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "out"]);
+const knownFlags = new Set(["json", "format", "intent", "control-effectiveness", "out"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
@@ -66,6 +67,18 @@ function buildReport(root, options) {
   const nativeEvidence = nativeMigration.data?.structuredEvidence || {};
   const reconciliationEvidence = ruleReconciliation.data?.structuredEvidence || {};
   const releaseEvidence = releasePlan.data?.machineReadableEvidence || {};
+  const trustBinding = sameRunBindingFromTrust(entryTrust);
+  const controlReport = args["control-effectiveness"]
+    ? loadControlEffectivenessReport(root, String(args["control-effectiveness"]), {
+      taskRef: trustBinding.taskRef,
+      intentDigest: trustBinding.goalDigest,
+    })
+    : { ok: false, errors: ["No current Control Effectiveness report was supplied for a stricter-control claim."] };
+  const controlBinding = controlEffectivenessBinding({
+    required: true,
+    report: controlReport,
+    requiredClaimIds: controlReport.evidence?.required_claim_ids || [],
+  });
   const projectState = projectStateFor(nativeEvidence, ruleReconciliation.data, workflowNext.data);
   const coverage = reconciliationEvidence.rule_reconciliation_coverage || {};
   const omittedRules = Number.isInteger(coverage.omitted_rules) ? coverage.omitted_rules : 0;
@@ -73,11 +86,11 @@ function buildReport(root, options) {
   const sourceSystems = [workflowNext, nativeMigration, ruleReconciliation, releasePlan];
   const blocked = blockedReasons({ dirty, omittedRules, releaseEvidence, reconciliationEvidence, sourceSystems });
   const convergenceState = convergenceStateFor({ dirty, omittedRules, blocked, projectState });
-  const dimensions = dimensionsFor({ dirty, omittedRules, projectState, reconciliationEvidence, releaseEvidence });
+  const dimensions = dimensionsFor({ dirty, omittedRules, projectState, reconciliationEvidence, releaseEvidence, controlBinding });
   const nextSafeStep = nextSafeStepFor(convergenceState);
 
   const structuredEvidence = {
-    schema_version: "1.70.1",
+    schema_version: "1.110.0",
     artifact_type: "governance_convergence_report",
     project_state: projectState,
     intentos_operating_mode: "ACTIVE",
@@ -347,14 +360,14 @@ function convergenceStateFor({ dirty, omittedRules, blocked, projectState }) {
   return "CONVERGENCE_PARTIAL";
 }
 
-function dimensionsFor({ dirty, omittedRules, projectState, reconciliationEvidence }) {
+function dimensionsFor({ dirty, omittedRules, projectState, reconciliationEvidence, controlBinding }) {
   const blockedByRules = omittedRules > 0;
   const dirtyRecommendation = dirty ? "MERGE_AFTER_REVIEW" : null;
   const hasEngineering = JSON.stringify(reconciliationEvidence || {}).includes("ENGINEERING_BASELINE");
   const releaseOwned = /PRODUCTION|GOVERNED/.test(projectState);
   return [
     dim("workflow", dirty ? "dirty worktree" : "old workflow present", "IntentOS daily workflow", dirtyRecommendation || "MERGE_AFTER_REVIEW"),
-    dim("baseline", hasEngineering ? "engineering baseline exists" : "baseline needs mapping", "best available baseline rule", blockedByRules ? "BLOCKED_BY_RULE_COVERAGE" : "KEEP_EXISTING_STRICTER"),
+    dim("baseline", hasEngineering ? "engineering baseline exists" : "baseline needs mapping", "best available baseline rule", blockedByRules ? "BLOCKED_BY_RULE_COVERAGE" : controlBinding.status === "VERIFIED" ? "KEEP_EXISTING_STRICTER" : "KEEP_PROJECT_OWNED", controlBinding),
     dim("audit", "pre-IntentOS history exists", "convergence anchor then IntentOS artifacts", "MAP_TO_INTENTOS_ARTIFACT"),
     dim("release", releaseOwned ? "release / production rules project-owned" : "release not yet assessed", "project-owned release with IntentOS view", "KEEP_PROJECT_OWNED"),
     dim("ci_hooks", "existing CI / hook guards may exist", "compare before mutation", "KEEP_PROJECT_OWNED"),
@@ -365,7 +378,8 @@ function dimensionsFor({ dirty, omittedRules, projectState, reconciliationEviden
   ];
 }
 
-function dim(dimension, currentState, targetState, recommendation) {
+function dim(dimension, currentState, targetState, recommendation, controlBinding = null) {
+  const requiresControlProof = recommendation === "KEEP_EXISTING_STRICTER" || Boolean(controlBinding);
   return {
     dimension,
     current_state: currentState,
@@ -373,6 +387,9 @@ function dim(dimension, currentState, targetState, recommendation) {
     recommendation,
     human_decision_required: "No",
     write_requires_apply_plan: "Yes",
+    control_effectiveness_required: requiresControlProof ? "Yes" : "No",
+    control_effectiveness_ref: requiresControlProof ? controlBinding?.report_ref || "N/A" : "N/A",
+    control_effectiveness_state: requiresControlProof ? controlBinding?.assessment_outcome || "CONTROL_NOT_PROVEN" : "NOT_APPLICABLE_WITH_REASON",
   };
 }
 
