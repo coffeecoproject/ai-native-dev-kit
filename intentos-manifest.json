@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.111.1",
+  "intentOSVersion": "1.112.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.111.1"
+    "phase": "1.112.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1443,6 +1443,14 @@
       "releases/1.111.1/known-limitations.md",
       "releases/1.111.1/release-record.md",
       "releases/1.111.1/self-check-report.md",
+      "releases/1.112.0/capability-authority-map.md",
+      "releases/1.112.0/cross-domain-consumer-matrix.md",
+      "releases/1.112.0/domain-audit-report.md",
+      "releases/1.112.0/known-limitations.md",
+      "releases/1.112.0/release-record.md",
+      "releases/1.112.0/remediation-graph.md",
+      "releases/1.112.0/reproduction-log.md",
+      "releases/1.112.0/self-check-report.md",
       "releases/1.12.0/known-limitations.md",
       "releases/1.12.0/release-record.md",
       "releases/1.12.0/self-check-report.md",

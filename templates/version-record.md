@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.111.1`
+`1.112.0`
 
 ## Project Version File
 
@@ -17,6 +17,10 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.112.0` records the nine-domain capability audit, reproduced P0/P1
+  consumer-chain findings, and the bounded 1.113 remediation graph without
+  claiming behavioral closure or adding a public workflow.
 
 - `1.111.1` aligns current source, generated, installed, and runtime guidance
   with the zero-experience solo-user responsibility contract. Compatibility

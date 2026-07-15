@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.111.1`.
+Current release: `1.112.0`.
 
-Release record: [releases/1.111.1/release-record.md](releases/1.111.1/release-record.md).
+Release record: [releases/1.112.0/release-record.md](releases/1.112.0/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
@@ -52,6 +52,13 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.112.0 audits the complete IntentOS trust chain through nine capability
+domains and nineteen required consumer edges. It confirms substantial current
+controls, but also records one false-completion P0 and five P1 root causes where
+strict evidence is not always selected or enforced by public consumers. This
+is an audit release, not a behavioral-completion claim; 1.113 must close those
+findings before repository structure is reorganized.
 
 1.111.1 closes responsibility drift in the guidance Codex actually reads,
 generates, and installs. Codex selects technical routes, plans, baselines,

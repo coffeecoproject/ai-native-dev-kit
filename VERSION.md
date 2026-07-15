@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.111.1`
+Current version: `1.112.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.111.1`
 
 ## Current Release
 
-`1.111.1`
+`1.112.0`
 
 Includes:
+
+- Nine-Domain Capability Authority Mapping And Closure Audit `1.112.0`: maps
+  current authorities and nineteen required consumer edges across Project
+  Entry, Task Governance, Business Closure, Change Control, Engineering
+  Baselines, Execution Governance, Verification And Evidence, Unified Closure,
+  and Release And Evolution.
+- The audit records one P0 false-completion path and five P1 root-cause
+  findings. It does not claim behavioral closure or add a public workflow.
+  Repository structural governance remains blocked until 1.113 closes the
+  recorded P0/P1 consumer-chain defects.
 
 - Active Guidance Responsibility Consistency Close-Out `1.111.1`: aligns the
   current Core, docs, checklists, templates, generated assets, and runtime
