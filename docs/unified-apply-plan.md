@@ -20,11 +20,13 @@ Before Codex writes anything meaningful, it should produce one plan:
 Here is what I would change.
 Here is why.
 Here is what I will not touch.
-Here is what needs approval.
+Here is what still needs technical evidence, authority binding, or exact
+real-world consent.
 Here is how to verify and roll back.
 ```
 
-The user should not need to inspect many separate technical reports just to decide whether Codex may continue.
+The user does not inspect technical reports or action IDs. IntentOS validates
+them internally and asks only for a permitted missing input.
 
 ## Commands
 
@@ -67,11 +69,11 @@ The plan records:
 - proposed write actions
 - target files or directories
 - supporting evidence
-- human-only or blocked actions
+- specialized or blocked actions
 - preconditions
 - backup and rollback plan
 - verification plan
-- decisions needed from the human
+- permitted user input, if any
 - boundaries
 
 ## What It Does Not Do

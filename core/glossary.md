@@ -16,7 +16,7 @@ Use it when writing human-facing reports, decision briefs, onboarding notes, rev
 | Agent Execution | The implementation work done by AI or an AI-assisted developer. |
 | Verification | Tests, checks, screenshots, commands, or other evidence that prove the work behaves as expected. |
 | Review | A second look at the work to catch bugs, scope drift, missing tests, or risk mistakes. |
-| Release | The step that prepares or records delivery. Release approval still belongs to humans or the project's existing governance. |
+| Release | The step that prepares or records delivery. Codex determines technical readiness; a concrete external release effect still needs real authority and, when applicable, bounded user consent. |
 | AI Task Log | A short record of what AI did, what worked, what failed, and what should improve next time. |
 | Workflow Retro | A periodic review of workflow health across several tasks or a milestone. |
 
@@ -25,9 +25,9 @@ Use it when writing human-facing reports, decision briefs, onboarding notes, rev
 | Term | Plain meaning |
 |---|---|
 | Risk Gate | A checklist that marks whether the task touches risky areas such as permissions, data, payments, migrations, production config, release, or rollback. |
-| Risk Gate Exclusions | A record that says a risky word appeared in the task, but the risk is truly out of scope and a human accepted that explanation. |
-| Human Approval | Explicit human permission for a high-risk task or decision. |
-| Approval scope | The exact boundary of what the human approved. AI must not go beyond it. |
+| Risk Gate Exclusions | Evidence that a risk signal is genuinely outside the current task, validated by Codex and applicable project rules. |
+| Human Approval | Compatibility label. Current guidance maps it to a business fact, exact prepared real-world consent, or unavailable external fact; it is not technical judgment. |
+| Approval scope | The exact boundary bound to the current request or prepared consent. Codex must not go beyond it. |
 | Stop Condition | A condition that tells AI to stop and ask instead of guessing or continuing. |
 | Residual Risk | A known risk that remains after implementation or review. |
 | Exception | A deliberate, recorded deviation from the normal rule. |
@@ -76,11 +76,11 @@ Use it when writing human-facing reports, decision briefs, onboarding notes, rev
 | Next-Step Suggestion | A possible action or context after the current task. It is not approval to continue. |
 | IN_SCOPE_NEXT_STEP | A small safe action still inside the current task scope. |
 | DIRECT_FOLLOW_UP | Related follow-up work that requires a new request or follow-up proposal before implementation. |
-| RISK_DECISION | A suggestion that needs human judgment before implementation because it touches scope, risk, approval, architecture, dependency, migration, production, release, rollback, payment, or similar authority. |
+| RISK_DECISION | A compatibility suggestion class requiring stronger internal technical treatment or one permitted user input; architecture and technical risk remain Codex-owned. |
 | OUT_OF_SCOPE_OBSERVATION | Useful context observed during a task, recorded only as background. |
 | DO_NOT_PROCEED | A next action that is unsafe or unauthorized under the current scope. |
 | AUTO_FIX | A deterministic, low-risk fix that AI may apply inside approved scope. |
-| NEEDS_HUMAN_DECISION | A finding that requires a human decision because it touches scope, risk, architecture, dependency, migration, production, release, rollback, approval, or similar authority. |
+| NEEDS_HUMAN_DECISION | A compatibility finding state. Current output must translate it to a missing business fact, exact real-world consent, unavailable external fact, or a Codex-owned technical blocker. |
 | NEEDS_CLARIFICATION | A finding that cannot be resolved from available evidence. |
 | NO_ACTION | A finding that does not require a change, with a recorded reason. |
 

@@ -4,20 +4,13 @@
 
 Conclusion:
 
-Recommended choice: A / B / C / D
+Codex-selected route:
 
 Can AI continue now: yes / limited / no
 
-What I need from you:
+Permitted input needed: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Discuss only | Clarify goal without executing | No | low | Choose when direction is not settled |
-| B | Define work | Create request, preflight, spec, eval, or task artifacts | Workflow records only | low/medium | Choose when the idea needs structure before code |
-| C | Implement approved task | Execute within the approved task boundary | Approved task files only | medium | Choose when scope, baseline, and evidence are ready |
-| D | Stop for decision | Pause because goal mode or authority is unclear | No, unless decision record is saved | medium/high | Choose when the message changes risk or scope |
-
-Recommended reason:
+Reason:
 
 What happens if you do nothing:
 
@@ -106,7 +99,7 @@ Current Mainline:
 
 Parking Lot:
 
-User-owned confirmation needed:
+Permitted user input needed:
 
 ## Required Artifacts
 
@@ -132,13 +125,19 @@ User-owned confirmation needed:
 
 - Do not treat this Goal Card as approval to implement.
 - Do not bypass request, preflight, spec, eval, task, Engineering Baseline, Review Loop, Risk Gate, Human Approval, or Approval scope.
-- Do not widen scope, accept risk, approve release, change production config, add dependencies, change migrations, change permission model, or modify architecture without the required human decision.
+- Do not widen business scope without evidence, and do not change architecture,
+  dependencies, migrations, permissions, production configuration, release, or
+  rollback until the applicable technical gates and permitted user-input class
+  are satisfied.
 
 ## Human Decisions Needed
 
-| Decision | Owner | Needed Before | Current Status |
+Compatibility heading: list only the four permitted user-input classes. Do not
+place architecture, workflow, risk treatment, or other technical choices here.
+
+| Input class / blocker | Source | Needed Before | Current Status |
 |---|---|---|---|
-| Confirm selected goal mode if risk or write authority is unclear | human | next action | Pending / Not needed |
+| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED | project evidence / user / external authority | dependent action | Pending / Not needed |
 
 ## Next Safe Step
 

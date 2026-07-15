@@ -40,7 +40,7 @@ Goal Mode must choose one route:
 | `IMPLEMENT_TASK` | A selected task card exists and is ready | Implement inside approved scope only |
 | `REVIEW_TASK` | A task needs independent review | Create or use Review Packet and review-only instructions |
 | `REPAIR_TASK` | Review found deterministic `AUTO_FIX` findings | Fix only approved low-risk findings within scope |
-| `BASELINE_DECISION` | Engineering or platform conventions are unclear | Route to Decision Brief or human decision |
+| `BASELINE_DECISION` | Engineering or platform conventions are unclear | Codex derives the evidence-backed route and records a Decision Brief |
 | `HANDOFF_OR_REPORT` | Work needs status, handoff, or final report | Produce human-first reporting artifacts |
 
 ## When To Use Subagent Orchestration
@@ -101,17 +101,18 @@ The task card remains the execution authority. Goal Card and Subagent Run Plan d
 
 ## What Codex Must Stop For
 
-Codex must stop for human decision before:
+Codex must stop the dependent action when:
 
-- Scope expansion
-- Risk acceptance
-- Human Approval or Approval scope changes
-- Architecture changes
-- Permission model changes
-- New production dependency
-- Database migration
-- Production configuration change
-- Release, rollback, or irreversible operation
+- a business-scope fact or product preference is unavailable;
+- an external legal, provider, policy, or third-party fact is unavailable;
+- a concrete production, payment, real-user, external-account, cost, or
+  irreversible-data effect is prepared and needs consent;
+- architecture, permissions, dependencies, migrations, production
+  configuration, release, or rollback still lacks required technical evidence,
+  review, authority, or recovery proof.
+
+The last category remains Codex-owned technical work. It must not be converted
+into a raw user choice.
 - Any `NEEDS_HUMAN_DECISION` finding
 
 ## Commands

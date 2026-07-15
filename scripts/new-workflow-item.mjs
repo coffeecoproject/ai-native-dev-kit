@@ -1176,6 +1176,23 @@ function fillGoalCard(content, context) {
   let output = setTitle(content, `# Goal Card: ${context.number}-${context.slug}`);
   output = setSection(
     output,
+    "Human Decision Summary",
+    [
+      `Conclusion: IntentOS routes ${context.title} through ${goalMode}.`,
+      "",
+      `Codex-selected route: ${goalMode}`,
+      "",
+      "Can AI continue now: limited",
+      "",
+      "Permitted input needed: NO_USER_ACTION unless project evidence proves a missing business fact, exact real-world consent, or external fact.",
+      "",
+      "Reason: Codex owns the technical route and must satisfy its internal gates before execution.",
+      "",
+      "What happens if you do nothing: no external effect is executed.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
     "Human Summary",
     [
       "One-sentence conclusion:",
@@ -1284,16 +1301,18 @@ function fillGoalCard(content, context) {
     [
       "- Do not treat this Goal Card as approval to implement.",
       "- Do not bypass request, preflight, spec, eval, task, Engineering Baseline, Review Loop, Risk Gate, Human Approval, or Approval scope.",
-      "- Do not widen scope, accept risk, approve release, change production config, add dependencies, change migrations, change permission model, or modify architecture without the required human decision.",
+      "- Do not widen business scope without evidence, and do not change architecture, dependencies, migrations, permissions, production configuration, release, or rollback until applicable technical gates and the permitted user-input class are satisfied.",
     ].join("\n"),
   );
   output = setSection(
     output,
     "Human Decisions Needed",
     [
-      "| Decision | Owner | Needed Before | Current Status |",
+      "Compatibility heading: list only permitted user-input classes; technical choices remain Codex-owned.",
+      "",
+      "| Input class / blocker | Source | Needed Before | Current Status |",
       "|---|---|---|---|",
-      "| Confirm selected goal mode if risk or write authority is unclear | human | next action | Pending / Not needed |",
+      "| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED | project evidence / user / external authority | dependent action | Pending / Not needed |",
     ].join("\n"),
   );
   output = setSection(output, "Next Safe Step", "Next action:");
@@ -2199,38 +2218,38 @@ if (type === "review-packet") {
 } else if (type === "review-loop-report") {
   console.log("- Record review findings, AUTO_FIX attempts, verification, repeated issues, and human-decision items.");
   console.log("- AUTO_FIX is limited to 2 rounds and must stay inside approved task scope.");
-  console.log("- Route scope, risk, approval, architecture, migration, dependency, production, release, and rollback decisions to humans.");
+  console.log("- Return technical scope, architecture, migration, dependency, verification, and rollback gaps to Codex; ask the user only through a permitted input class.");
 } else if (type === "adoption-assessment" || type === "governance-map") {
-  console.log("- Keep this read-only until the human approves adapter setup or the target write location.");
+  console.log("- Keep this read-only until the controlled apply chain proves the exact target and authority.");
   console.log("- Do not use this file as permission to run init-project or update workflow assets.");
 } else if (type === "baseline-pack-selection-report") {
-  console.log("- Fill project classification, BL level, selected profiles, recommended packs, not-selected packs, evidence, and Human Decision.");
-  console.log("- Run node scripts/check-baseline-pack-selection.mjs . --report <report> before treating it as ready for human decision.");
+  console.log("- Fill project classification, BL level, selected profiles, recommended packs, not-selected packs, evidence, and any permitted user input.");
+  console.log("- Run node scripts/check-baseline-pack-selection.mjs . --report <report> before treating the technical recommendation as ready.");
   console.log("- Do not treat this report as target-project write, implementation, release, production, or draft-pack stability approval.");
 } else if (type === "standard-baseline-selection-report") {
-  console.log("- Fill project classification, selected profiles, BL level, standard packs, optional industrial overlays, evidence, and Human Decision.");
-  console.log("- Run node scripts/check-standard-baseline-selection.mjs . --report <report> before treating it as ready for human decision.");
+  console.log("- Fill project classification, selected profiles, BL level, standard packs, optional industrial overlays, evidence, and any permitted user input.");
+  console.log("- Run node scripts/check-standard-baseline-selection.mjs . --report <report> before treating the technical recommendation as ready.");
   console.log("- Do not treat this report as target-project write, implementation, release, production, or compliance/security/privacy approval.");
 } else if (type === "human-status-report") {
   console.log("- Start with status, risk, whether AI can continue, and the next safe step.");
   console.log("- Keep technical fields and command output under Technical Details.");
 } else if (type === "decision-brief") {
-  console.log("- Fill the decision question, options, recommendation, and what AI must not do before confirmation.");
-  console.log("- Do not treat this brief as approval; record the human decision after it is made.");
+  console.log("- Fill one plain outcome, the Codex recommendation, evidence, and any permitted user input still missing.");
+  console.log("- Do not expose raw technical options or treat this brief as authority by itself.");
 } else if (type === "plain-review-summary") {
   console.log("- Summarize Review Loop results for a human before listing technical findings.");
-  console.log("- Route scope, risk, approval, release, and production decisions to the human.");
+  console.log("- Return technical findings to Codex; surface only missing business facts, exact real-world consent, or unavailable external facts.");
 } else if (type === "customer-handoff") {
   console.log("- Summarize delivered scope, verification, exclusions, risks, and decisions needed.");
   console.log("- Do not treat this handoff summary as release approval by itself.");
 } else if (type === "follow-up-proposal") {
   console.log("- Classify the suggestion as IN_SCOPE_NEXT_STEP, DIRECT_FOLLOW_UP, RISK_DECISION, OUT_OF_SCOPE_OBSERVATION, or DO_NOT_PROCEED.");
-  console.log("- Do not implement the proposal until it enters a valid request, task, or human-decision path.");
+  console.log("- Do not implement the proposal until it enters a valid request, task, and evidence-backed authority path.");
 } else if (type === "final-report") {
-  console.log("- Fill Completed, Verified, Not Changed, Risks Remaining, Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.");
+  console.log("- Fill Completed, Verified, Not Changed, Risks Remaining, Next-Step Suggestions, permitted user input, and Next Safe Action.");
   console.log("- Keep next-step suggestions bounded, classified, and actionable.");
 } else if (type === "goal-card") {
-  console.log("- Confirm the selected Goal Mode before executing any write or implementation path.");
+  console.log("- Codex validates the selected Goal Mode against current evidence before execution; the user does not choose the internal route.");
   console.log("- Run node scripts/check-goal-mode.mjs . after filling the card.");
   console.log("- Do not treat the Goal Card as implementation approval.");
 } else if (type === "subagent-run-plan") {
@@ -2238,7 +2257,7 @@ if (type === "review-packet") {
   console.log("- Close or skip every subagent after handoff; do not leave RUNNING agents occupying slots.");
   console.log("- Run node scripts/check-subagent-orchestration.mjs . before final response or commit.");
 } else if (type === "launch-readiness-report") {
-  console.log("- Fill verification, human decisions, release boundary, rollback, and known limitations before claiming readiness.");
+  console.log("- Fill verification, permitted user input, release boundary, rollback, and known limitations before claiming readiness.");
   console.log("- Run node scripts/check-launch-readiness.mjs . after filling the report.");
 } else if (type === "conversation-turn-classification" || type === "scope-change-report") {
   console.log("- Fill routing, scope impact, risk impact, and human decision fields before acting on the turn.");

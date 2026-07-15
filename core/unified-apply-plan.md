@@ -2,7 +2,10 @@
 
 Unified Apply Plan Governance is the single review layer for any IntentOS action that may write project files.
 
-It does not execute writes. It turns proposed writes into a clear, reviewable plan so humans decide before Codex applies anything.
+It does not execute writes. It turns proposed writes into a clear, reviewable
+plan so IntentOS can validate scope, evidence, rollback, and authority before a
+specialized executor writes anything. The zero-experience user does not inspect
+or approve raw technical actions.
 
 When a consumer explicitly requires structured apply evidence, at least one
 Unified Apply Plan must exist. An empty plan directory cannot satisfy strict
@@ -68,26 +71,26 @@ If a specialized flow already has a local plan, the Unified Apply Plan summarize
 | State | Meaning | Codex action |
 |---|---|---|
 | `NO_APPLY_ACTION_READY` | No concrete write action is ready | stay read-only |
-| `PLAN_ONLY` | Proposed writes are described but not approved | wait for human review |
-| `NEEDS_HUMAN_APPROVAL` | At least one write needs explicit human approval | stop for approval |
+| `PLAN_ONLY` | Proposed writes are described but not ready | complete internal review and authority binding |
+| `NEEDS_HUMAN_APPROVAL` | Compatibility state: the current request does not bind an action or one permitted user input remains | translate to the exact four-class input; never ask for raw technical approval |
 | `BLOCKED_BY_MISSING_EVIDENCE` | Required source evidence is missing | gather evidence first |
 | `BLOCKED_BY_DIRTY_WORK` | Existing changes make apply unsafe | resolve or map current work first |
-| `BLOCKED_BY_RISK` | Risk is too high for Codex to apply | route to owner decision |
+| `BLOCKED_BY_RISK` | Required technical evidence, authority, or recovery proof is missing | keep blocked while Codex resolves the technical path |
 | `BLOCKED_BY_MISSING_TARGET` | Target project path is invalid | provide a valid project |
 
 ## Required Plan Sections
 
 Every Unified Apply Plan must include:
 
-- Human Decision Summary
+- Plain Outcome Summary
 - Apply Readiness
 - Source Evidence
 - Planned Actions
-- Human-Only / Blocked Actions
+- Specialized / Blocked Actions
 - Preconditions
 - Backup / Rollback Plan
 - Verification Plan
-- Human Decisions Needed
+- Permitted User Input Needed
 - Boundary
 - Outcome
 
@@ -101,7 +104,7 @@ Each planned action must include:
 - reason
 - status
 - whether it writes now
-- whether human approval is required
+- whether the current request binds the action or a permitted user input is required
 - whether rollback is required
 
 Allowed action statuses:
@@ -116,7 +119,8 @@ Allowed action statuses:
 
 ## High-Risk Action Rules
 
-These action types are always human-only or approval-required:
+These action types are never authorized by this generic Apply layer. They route
+to their specialized task, evidence, release, or real-world-effect authority:
 
 - `HOOK_OR_CI_CHANGE`
 - `PRODUCTION_CONFIG_CHANGE`
@@ -128,7 +132,9 @@ These action types are always human-only or approval-required:
 - `INDUSTRIAL_PACK_ENABLE`
 - `BUSINESS_CODE_CHANGE`
 
-Unified Apply Plan may describe them. It must not execute or approve them.
+Unified Apply Plan may describe them. It must not execute them, ask the user to
+approve their technical design, or treat a compatibility approval field as
+authority.
 
 ## Evidence Rules
 

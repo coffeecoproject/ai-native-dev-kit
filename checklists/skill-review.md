@@ -36,8 +36,10 @@ Use this checklist before generating, updating, or enabling any active Skill fro
 - [ ] No private customer data
 - [ ] No hidden dependency on local machine state
 - [ ] Does not weaken preflight, spec, eval, verification, review, release, or human approval gates
-- [ ] Preserves explicit human approval for L3/high-risk work
-- [ ] Does not ask AI to make product, architecture, security, release, or risk-acceptance decisions without approval
+- [ ] Preserves strict technical evidence, review, rollback, and exact
+  real-world-consent boundaries for L3/high-risk work
+- [ ] Keeps business truth and real-world consent with the user while Codex owns
+  architecture, security treatment, release readiness, and technical risk
 
 ## Generation / Enablement
 

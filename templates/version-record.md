@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.111.0`
+`1.111.1`
 
 ## Project Version File
 
@@ -17,6 +17,12 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.111.1` aligns current source, generated, installed, and runtime guidance
+  with the zero-experience solo-user responsibility contract. Compatibility
+  labels remain readable, but Codex owns technical decisions and asks the user
+  only for missing business facts, bounded product preferences, exact prepared
+  real-world consent, or unavailable external facts.
 
 - `1.111.0` derives one current-task Planning Closure before implementation
   review. Only current, valid, task-bound planning evidence can produce the

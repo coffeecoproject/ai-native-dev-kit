@@ -2,6 +2,13 @@
 
 I have switched to IntentOS Native-First Migration Planning mode.
 
+Compatibility note: fields containing `Human Approval`, `Human Decision`, or
+`owner` remain machine-readable legacy contracts. They bind the current
+request or one exact external-effect authority; they do not ask the ordinary
+user to choose migration mechanics, rule precedence, files, or safeguards.
+Codex derives the technical recommendation and proves controlled-apply
+readiness.
+
 ## Human Summary
 
 | Field | Value |
@@ -81,7 +88,7 @@ I have switched to IntentOS Native-First Migration Planning mode.
 | --- | --- |
 | Old workflow rules | preserved until reviewed migration plan is approved |
 | IntentOS rules | preferred future workflow authority for Codex planning |
-| Transition condition | human approval of exact Native Migration Plan and related apply plan |
+| Transition condition | exact current-request or external-effect authority bound to the reviewed Native Migration Plan and apply plan |
 
 ## Apply Chain
 
@@ -98,8 +105,9 @@ Change Impact Coverage / Review Loop / Finish
 
 | Decision | Owner | Status |
 | --- | --- | --- |
-| Confirm IntentOS-native planning posture | human | Pending |
-| Approve or reject governance replacement plan | human | Pending |
+| Missing business meaning, if any | current user | Pending / Not needed |
+| Exact external effect, if any | current user or external authority | Pending / Not needed |
+| Technical migration recommendation | IntentOS/Codex | Evidence required |
 
 ## Boundaries
 

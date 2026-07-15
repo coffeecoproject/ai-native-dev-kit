@@ -71,16 +71,19 @@ This task touches:
 - [ ] performance
 - [ ] dependency change
 
-If any item is checked, implementation requires explicit human approval before code changes.
+If any item is checked, Task Governance must select the stricter technical
+planning, review, verification, evidence, and rollback path before code
+changes. Ask the user only through a permitted user-input class.
 
 ## Risk Gate Exclusions
 
 Use only when a high-risk term appears in the task/spec text but is explicitly out of scope.
-If more than three exclusions are accepted, implementation requires Human Approval scope to explicitly cover Risk Gate Exclusions.
+If more than three exclusions are proposed, implementation requires stricter
+internal review and evidence that explicitly covers every exclusion.
 
-| Mentioned term | Not checked because | Human accepted |
+| Mentioned term | Not checked because | Evidence disposition |
 |---|---|---|
-|  |  | Yes / No |
+|  |  | Accepted / Rejected / Unresolved |
 
 ## Baseline References
 
@@ -95,13 +98,15 @@ Baseline refs:
 
 Baseline decisions introduced:
 
-- No / <decision brief ref or human approval ref>
+- No / <decision brief or current-request authority ref>
 
 Baseline rules:
 
 - If this task touches structure, API contracts, DTO/schema/domain boundaries, database schema, migrations, permissions, dependencies, generated types, enum/lookup/state-machine choices, or cross-module state, set Engineering Baseline touched to Yes and cite `docs/engineering-baseline.md`.
 - If this task touches build commands, CI/CD, environment variables, deployment, production config, release process, rollback, secrets, logs, monitoring, or alerts, set Environment Baseline touched to Yes and cite `docs/environment-baseline.md`.
-- If the relevant baseline is missing or pending, route the decision to humans before implementation.
+- If the relevant baseline is missing or pending, Codex derives and reviews the
+  evidence-backed baseline before implementation. Ask only for a permitted
+  business/external fact or exact real-world consent.
 
 ## Change Boundary
 
@@ -139,6 +144,10 @@ No-code or evidence-required baseline items must not be treated as confirmed imp
 
 ## Human Approval
 
+Compatibility section: these fields bind exact authority when an external
+effect or legacy schema requires it. They are not a user-facing technical
+approval step for ordinary reversible project-local work.
+
 Required: No
 Status: Not Required
 Approval scope: Not Required
@@ -157,7 +166,8 @@ Codex may do after implementation:
 - write ai-task-log or final-report evidence for this task
 - create follow-up-proposal for bounded suggestions
 
-Codex must not do without a new request, task, or human decision:
+Codex must not do without a new request, task, or the applicable exact
+authority:
 
 Codex must not implement next-step suggestions unless they are `IN_SCOPE_NEXT_STEP` and inside this task scope.
 

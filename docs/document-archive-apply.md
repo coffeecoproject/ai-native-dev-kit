@@ -30,13 +30,14 @@ Codex should produce:
 - link check plan
 - archive index preview
 - rollback plan
-- human decisions needed
+- permitted user input, if any
 
-## What Humans Decide
+## What Must Be Proven
 
-Humans decide:
+IntentOS/Codex proves:
 
-- whether the archive should happen
+- whether the archive should happen from authority, consumer, link, and
+  freshness evidence
 - which document is source of truth
 - whether links may be updated
 - whether risky docs must stay active

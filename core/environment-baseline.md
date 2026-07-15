@@ -23,8 +23,8 @@ Every environment item should use one of:
 
 | State | Meaning |
 |---|---|
-| `CONFIRMED` | Evidence exists and the human or project source accepts it. |
-| `PENDING_CONFIRMATION` | Evidence is missing, unclear, or needs a human decision. |
+| `CONFIRMED` | Current project evidence validates the environment fact. |
+| `PENDING_CONFIRMATION` | Compatibility state: technical evidence is missing or one permitted user/external fact remains. |
 | `NOT_APPLICABLE` | The item truly does not apply to this project or baseline level. |
 
 Do not leave important fields blank. Use `PENDING_CONFIRMATION` when unsure.

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.111.0",
+  "intentOSVersion": "1.111.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.111.0"
+    "phase": "1.111.1"
   },
   "groups": {
     "sourceRequired": [
@@ -458,6 +458,7 @@
       "docs/plans/test-evidence-binding-1.77-plan.md",
       "docs/plans/test-evidence-identity-hardening-1.77.1-plan.md",
       "docs/plans/test-evidence-installation-schema-contract-1.77.2-plan.md",
+      "docs/plans/active-guidance-responsibility-consistency-1.111.1-plan.md",
       "docs/plans/understanding-planning-closure-1.111-plan.md",
       "docs/plans/unified-apply-plan-1.34-plan.md",
       "docs/plans/unified-closure-model-1.53-plan.md",
@@ -1438,6 +1439,9 @@
       "releases/1.111.0/known-limitations.md",
       "releases/1.111.0/release-record.md",
       "releases/1.111.0/self-check-report.md",
+      "releases/1.111.1/known-limitations.md",
+      "releases/1.111.1/release-record.md",
+      "releases/1.111.1/self-check-report.md",
       "releases/1.12.0/known-limitations.md",
       "releases/1.12.0/release-record.md",
       "releases/1.12.0/self-check-report.md",

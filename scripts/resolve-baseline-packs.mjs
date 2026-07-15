@@ -130,14 +130,14 @@ function recommendedState(industrial, candidates) {
 function safeNextActions(state, industrial) {
   if (state === "PROFILE_DECISION_REQUIRED") {
     return [
-      "Confirm selected profiles in docs/project-profile.md.",
-      "Run node scripts/cli.mjs baseline <project> after profiles are known.",
+      "Codex derives and records the project profiles from project evidence and the stated product goal.",
+      "Run node scripts/cli.mjs baseline <project> after the profiles are evidence-backed.",
     ];
   }
   if (state === "BASELINE_LEVEL_DECISION_REQUIRED") {
     return [
-      "Choose BL0, BL1, or BL2 in docs/baseline-selection.md.",
-      "Keep industrial packs inactive until BL2 is explicitly selected.",
+      "Codex derives BL0, BL1, or BL2 from project scope, risk, and evidence, then records it in docs/baseline-selection.md.",
+      "Keep industrial packs inactive until BL2 is internally justified and verified.",
     ];
   }
   if (industrial.baselineLevel !== "BL2_INDUSTRIAL") {

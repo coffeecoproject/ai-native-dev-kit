@@ -16,7 +16,10 @@ Everything else must be one of:
 - `DONE`
 - `CANCELLED`
 
-If more than one task appears as `CURRENT`, Codex must stop and ask for a human decision before continuing execution.
+If more than one task appears as `CURRENT`, Codex must stop execution and
+reconcile task evidence, dependencies, recency, and the current conversation.
+Ask only for a business priority when project evidence cannot establish which
+valid outcome should lead.
 
 ## What This Layer Does
 

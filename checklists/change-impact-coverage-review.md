@@ -22,7 +22,9 @@
 - Changed migration/data files do not weakly exclude `DATA_MODEL`.
 - Changed auth/permission/security files do not weakly exclude `PERMISSION_RISK`.
 - Changed release/deploy/CI files do not weakly exclude `RELEASE_IMPACT`.
-- Permission, data, migration, payment, production, privacy, security, or compliance surfaces stop for human decision when evidence is insufficient.
+- Permission, data, migration, payment, production, privacy, security, or
+  compliance surfaces stop the dependent action when evidence is insufficient;
+  Codex owns technical resolution and surfaces only permitted user input.
 - The report does not approve implementation, release, production, or high-risk decisions.
 
 ## Reject When

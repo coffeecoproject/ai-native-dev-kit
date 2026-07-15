@@ -37,6 +37,24 @@ test("1.107.1 generated Codex project passes the effective guidance authority sc
     const checked = run("scripts/check-review-context-authority.mjs", [root], { cwd: root, scriptRoot: root });
     assert.equal(checked.status, 0, output(checked));
     assert.match(checked.stdout, /Review context authority check passed/);
+
+    const generated = run("scripts/new-workflow-item.mjs", [
+      "--type", "goal-card",
+      "--name", "booking-first-slice",
+      "--goal-mode", "DEFINE_WORK",
+    ], { cwd: root, scriptRoot: root });
+    assert.equal(generated.status, 0, output(generated));
+    assert.match(generated.stdout, /user does not choose the internal route/i);
+    assert.doesNotMatch(generated.stdout, /confirm the selected goal mode/i);
+
+    const goalCards = fs.readdirSync(path.join(root, "goal-cards"));
+    const generatedCard = fs.readFileSync(path.join(root, "goal-cards", goalCards.at(-1)), "utf8");
+    assert.match(generatedCard, /Codex-selected route: DEFINE_WORK/);
+    assert.match(generatedCard, /NO_USER_ACTION unless project evidence proves/);
+    assert.doesNotMatch(generatedCard, /Confirm the selected Goal Mode/i);
+
+    const goalChecked = run("scripts/check-goal-mode.mjs", [root], { cwd: root, scriptRoot: root });
+    assert.equal(goalChecked.status, 0, output(goalChecked));
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

@@ -99,7 +99,8 @@ For a normal task:
 2. If Codex finds reusable knowledge, draft a Learning Candidate.
 3. If old context is wrong, draft a Context Correction Report.
 4. If commit scope is unclear, draft a Git Boundary Report.
-5. Ask for human approval before promoting candidates or risky corrections.
+5. Validate candidates and risky corrections through the applicable technical
+   review and controlled-write path; ask only for permitted user input.
 
 ## Checker
 

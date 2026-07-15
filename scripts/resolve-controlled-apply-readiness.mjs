@@ -71,7 +71,7 @@ function buildReport(root, options) {
   if (plan.exists && !targetPathsBounded) blockers.push("Target paths are not bounded.");
   if (plan.exists && !backupReady) blockers.push("Backup / rollback readiness is missing.");
   if (plan.exists && !verificationReady) blockers.push("Verification readiness is missing.");
-  if (highRiskActions.length > 0) blockers.push("Plan contains human-only high-risk actions.");
+  if (highRiskActions.length > 0) blockers.push("Plan contains high-risk actions that require a specialized authority path.");
 
   const state = readinessState({ plan, blockers, highRiskActions, lowRiskActions });
   const candidate = state === "READY_FOR_HUMAN_APPROVED_APPLY" ? "Yes" : "No";
@@ -185,7 +185,7 @@ function isHumanOnlyAction(type) {
 
 function readinessState({ plan, blockers, highRiskActions, lowRiskActions }) {
   if (!plan.exists) return "NO_APPLY_PLAN";
-  if (blockers.some((item) => /human-only high-risk/i.test(item)) || highRiskActions.length > 0) return "HUMAN_ONLY";
+  if (highRiskActions.length > 0) return "HUMAN_ONLY";
   if (blockers.length > 0) return "BLOCKED";
   if (lowRiskActions.length === 0) return "NOT_READY";
   return "READY_FOR_HUMAN_APPROVED_APPLY";
@@ -205,7 +205,7 @@ function classifyAction(type, content) {
       actionType: type,
       targetPaths: extractTargetPathsFor(type, content),
       classification: "HUMAN_ONLY",
-      reason: "This action type is never eligible for Codex-controlled apply.",
+      reason: "This compatibility classification routes to a specialized task, release, migration, or real-world-effect authority.",
     };
   }
   if (lowRiskActionsSet.has(type)) {
@@ -213,7 +213,7 @@ function classifyAction(type, content) {
       actionType: type,
       targetPaths: extractTargetPathsFor(type, content),
       classification: "LOW_RISK_CANDIDATE",
-      reason: "This action may be considered only after explicit human approval.",
+      reason: "This action may proceed only after readiness and exact current-request or consent binding.",
     };
   }
   return {
@@ -232,19 +232,19 @@ function extractTargetPathsFor(type, content) {
 }
 
 function humanOnlyOrBlockedItems(blockers, highRiskActions) {
-  const items = blockers.map((blocker) => ({ item: blocker, reason: blocker, owner: "Human" }));
+  const items = blockers.map((blocker) => ({ item: blocker, reason: blocker, owner: "IntentOS / specialized authority" }));
   for (const action of highRiskActions) {
     items.push({
       item: action,
-      reason: "High-risk action is human-only.",
-      owner: "Human",
+      reason: "High-risk action requires its specialized technical and real-world authority path.",
+      owner: "IntentOS / specialized authority",
     });
   }
   if (items.length === 0) {
     items.push({
       item: "Actual apply execution",
-      reason: "Explicit human approval is still required before any future apply.",
-      owner: "Human",
+      reason: "Exact current-request or prepared-consent binding is still required before any future apply.",
+      owner: "IntentOS authority binding",
     });
   }
   return items;
@@ -253,9 +253,9 @@ function humanOnlyOrBlockedItems(blockers, highRiskActions) {
 function recommendedChoiceFor(state) {
   const choices = {
     NO_APPLY_PLAN: "Generate or provide one Unified Apply Plan first.",
-    NOT_READY: "Complete missing readiness evidence before approval.",
-    READY_FOR_HUMAN_APPROVED_APPLY: "Review the report and provide explicit approval only if you accept the bounded plan.",
-    HUMAN_ONLY: "Assign the action to a human owner or specialized workflow.",
+    NOT_READY: "Complete the missing readiness evidence.",
+    READY_FOR_HUMAN_APPROVED_APPLY: "Bind the exact bounded actions to the current request or prepared consent through Approval Record Governance.",
+    HUMAN_ONLY: "Route the action to its specialized task, release, migration, provider, or real-world-effect authority.",
     BLOCKED: "Resolve blockers before considering apply.",
   };
   return choices[state] || "Review manually.";
@@ -263,9 +263,9 @@ function recommendedChoiceFor(state) {
 
 function needFromHumanFor(state, approval) {
   if (state === "READY_FOR_HUMAN_APPROVED_APPLY" && approval !== "explicit") {
-    return "Explicit approval is still required before any future controlled apply.";
+    return "No technical choice is needed. IntentOS must bind the exact action to the current request or request consent to a prepared real-world effect.";
   }
-  if (state === "HUMAN_ONLY") return "A human owner must execute or redesign this action.";
+  if (state === "HUMAN_ONLY") return "No raw technical decision is needed. IntentOS must use the specialized authority path.";
   if (state === "BLOCKED" || state === "NOT_READY" || state === "NO_APPLY_PLAN") return "Resolve the missing or blocked readiness items.";
   return "Review the readiness report.";
 }
@@ -294,12 +294,12 @@ function escapeRegExp(value) {
 function printHuman(report) {
   console.log("# Controlled Apply Readiness Report");
   console.log("");
-  section("Human Decision Summary");
+  section("Plain Outcome Summary");
   table([
     ["Conclusion", code(report.humanDecisionSummary.conclusion)],
     ["Recommended choice", report.humanDecisionSummary.recommendedChoice],
     ["Can Codex apply now", report.humanDecisionSummary.canCodexApplyNow],
-    ["What I need from you", report.humanDecisionSummary.needFromHuman],
+    ["User input / next authority step", report.humanDecisionSummary.needFromHuman],
   ]);
   section("Apply Plan Reference");
   table([
@@ -312,8 +312,8 @@ function printHuman(report) {
   section("Readiness State");
   table([
     ["State", code(report.readinessState.state)],
-    ["Candidate for human-approved apply", report.readinessState.candidateForHumanApprovedApply],
-    ["Requires explicit human approval", report.readinessState.requiresExplicitHumanApproval],
+    ["Candidate for exact authority binding", report.readinessState.candidateForHumanApprovedApply],
+    ["Requires exact request or consent binding", report.readinessState.requiresExplicitHumanApproval],
     ["Can proceed without new approval", report.readinessState.canProceedWithoutNewApproval],
   ]);
   section("Action Classification");

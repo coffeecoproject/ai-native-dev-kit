@@ -8,7 +8,10 @@ It is a review and evidence layer. It is not operating-system sandboxing and doe
 
 Codex must not treat a task as complete when the actual diff exceeds the approved task boundary.
 
-If actual changes differ from the approved task boundary, Codex must report the drift and stop for review, revert guidance, or human decision.
+If actual changes differ from the current task boundary, Codex must report the
+drift and choose review, bounded plan revision, or revert guidance. Ask the user
+only when a missing business fact changes scope or a prepared real-world effect
+needs consent.
 
 ## Boundary Levels
 
@@ -17,7 +20,7 @@ If actual changes differ from the approved task boundary, Codex must report the 
 | `CB0_ADVISORY` | low-risk local task | final report records whether unexpected files changed |
 | `CB1_RECORDED` | normal project task | task records allowed and forbidden scope |
 | `CB2_CHECKED` | non-trivial, governed, or multi-file change | change-boundary report required |
-| `CB3_HUMAN_APPROVED` | high-risk or sensitive surfaces | human approval scope required before implementation |
+| `CB3_HUMAN_APPROVED` | compatibility name for high-risk or sensitive surfaces | strict technical review, exact evidence, and bounded authority required; user input is limited to the four current classes |
 
 Recommended mapping:
 
@@ -42,7 +45,8 @@ Out-of-scope but related:
 
 ## High-Risk Boundary Surfaces
 
-Changes require explicit human approval when they touch:
+Changes require stricter boundary evidence, independent review, and applicable
+project-native gates when they touch:
 
 - auth or permission;
 - data migration or destructive data operation;
@@ -63,7 +67,7 @@ Changes require explicit human approval when they touch:
 | `PASS` | actual changed files match approved boundary | may continue to verification/review |
 | `NEEDS_REVIEW` | unexpected but low/medium-risk drift needs review | stop and report |
 | `NEEDS_REVERT` | unrelated or forbidden changes should be reverted before closure | stop and report |
-| `NEEDS_HUMAN_DECISION` | boundary change touches high-risk or scope decision | stop for human decision |
+| `NEEDS_HUMAN_DECISION` | compatibility state: a technical blocker or permitted user input remains | Codex resolves technical work; ask only for business/external facts or exact real-world consent |
 
 ## Relationship To Existing Protocols
 
@@ -74,4 +78,3 @@ Changes require explicit human approval when they touch:
 - Launch Readiness must not claim readiness when required boundary checks fail.
 
 Change Boundary does not approve implementation, release, launch, production, risk acceptance, or target-project writes.
-

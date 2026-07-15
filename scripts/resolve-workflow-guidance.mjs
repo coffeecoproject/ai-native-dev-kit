@@ -640,7 +640,7 @@ function summarizeDeepCapability(result) {
   if (result.id === "baseline-decision") {
     summary.signal = report.recommendedBaselineLevel?.level || report.recommendedBaselineLevel?.userLabel || "unknown";
     summary.plainFinding = `建议的基础规则档位是 ${summary.signal}。`;
-    summary.nextAction = "先确认项目类型、平台和第一阶段目标，再决定是否配置基线。";
+    summary.nextAction = "Codex先从项目证据和产品目标判断项目类型、平台与档位，再配置相应基线。";
   }
   if (result.id === "workflow-map") {
     summary.signal = report.adapterMode || report.classification?.projectState || "unknown";
@@ -650,7 +650,7 @@ function summarizeDeepCapability(result) {
   if (result.id === "review-surface") {
     summary.signal = `${Array.isArray(report.selectedReviewSurfaces) ? report.selectedReviewSurfaces.length : 0} review surfaces`;
     summary.plainFinding = `已选出 ${Array.isArray(report.selectedReviewSurfaces) ? report.selectedReviewSurfaces.length : 0} 个需要复查的方面。`;
-    summary.nextAction = "执行前确认审查面，执行后逐项关闭。";
+    summary.nextAction = "Codex在执行前选定审查面，执行后逐项验证并关闭。";
   }
   if (result.id === "delivery-path") {
     summary.signal = `${report.deliveryPathState?.currentState || "unknown"} -> ${report.deliveryPathState?.nextTargetState || "unknown"}`;
@@ -665,7 +665,7 @@ function summarizeDeepCapability(result) {
   if (result.id === "work-queue") {
     summary.signal = `${report.currentTaskCount || 0} current / ${Array.isArray(report.pausedTasks) ? report.pausedTasks.length : 0} paused`;
     summary.plainFinding = `发现 ${report.currentTaskCount || 0} 个当前任务、${Array.isArray(report.pausedTasks) ? report.pausedTasks.length : 0} 个暂停任务、${Array.isArray(report.backlogItems) ? report.backlogItems.length : 0} 个待办。`;
-    summary.nextAction = "先确认当前主线任务，再切换或推进。";
+    summary.nextAction = "Codex先核对当前主线与暂停任务；只有业务优先级无法推断时才询问用户。";
   }
   if (result.id === "debt-handoff") {
     summary.signal = report.debtRegister?.[0]?.level || "unknown";
@@ -685,7 +685,7 @@ function summarizeDeepCapability(result) {
   if (result.id === "hook-policy") {
     summary.signal = report.policyState?.policyState || "unknown";
     summary.plainFinding = "已检查自动触发和 CI 相关规则，当前不能安装 hook 或改 CI。";
-    summary.nextAction = "如需新增自动化，先确认允许范围、审批人和回滚方式。";
+    summary.nextAction = "如需新增自动化，Codex先界定允许范围、验证与回滚；仅在准备产生真实外部影响时请求具体同意。";
   }
 
   return summary;
@@ -701,7 +701,7 @@ function recommendedNextStepFromDeep(project, delivery, orchestration, intent) {
   }
 
   if (intent.riskLevel === "high") {
-    return "先确认这个目标的高风险边界和审查面，再生成最小可验证计划。";
+    return "Codex先从证据推导高风险边界和审查面，再生成最小可验证计划。";
   }
 
   if (intent.classification === "DOCUMENT_GOVERNANCE") {
@@ -709,7 +709,7 @@ function recommendedNextStepFromDeep(project, delivery, orchestration, intent) {
   }
 
   if (intent.classification === "TASK_SWITCH_OR_RESUME") {
-    return "先确认当前任务、暂停任务和恢复点，再决定是否切换。";
+    return "Codex先核对当前任务、暂停任务和恢复点；只有业务优先级无法推断时才询问用户。";
   }
 
   if (intent.classification === "EXECUTION_REVIEW_CLOSURE") {
@@ -718,7 +718,7 @@ function recommendedNextStepFromDeep(project, delivery, orchestration, intent) {
 
   const workQueue = orchestration.summaries.find((item) => item.id === "work-queue");
   if (workQueue?.signal && !workQueue.signal.startsWith("0 current")) {
-    return "先确认当前主线任务和暂停任务，再决定继续、暂停还是切换。";
+    return "Codex先核对当前主线任务和暂停任务；只有业务优先级无法推断时才询问用户。";
   }
 
   const deliverySummary = orchestration.summaries.find((item) => item.id === "delivery-path");
@@ -728,7 +728,7 @@ function recommendedNextStepFromDeep(project, delivery, orchestration, intent) {
 
   const reviewSurface = orchestration.summaries.find((item) => item.id === "review-surface");
   if (reviewSurface) {
-    return "先按这张卡确认目标、风险和审查面，再进入最小可验证的一步。";
+    return "Codex按这张卡校验目标、风险和审查面，再进入最小可验证的一步。";
   }
 
   return recommendedNextStep(project, delivery);

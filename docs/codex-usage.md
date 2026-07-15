@@ -58,13 +58,19 @@ Expected Codex behavior:
 - Treat `baseline` as read-only by default: it must include `Can AI write now: No`.
 - Use `scripts/baseline-project.mjs <project-root> --write-plan baseline-recommendations/<file>.json` for a project-local proposal only. Convert accepted actions into the exact controlled init/update plan; direct baseline apply is retired.
 - Use `scripts/workflow-next.mjs <project-root>` as the lower-level technical state detector when needed.
-- Report `workflow-next` results with `Human Decision Summary` first, then human summary, then technical state fields. The decision summary must include the recommended option, alternatives, whether each option writes files, risk, and what happens if the human does nothing. Use `--format technical` only when the user or automation asks for raw technical output.
+- Report `workflow-next` results with one plain outcome first, then the evidence
+  trace and technical state fields. Codex selects the safest technical route;
+  the user sees only the current result, what Codex will do next, and any one
+  permitted user input that is genuinely missing. Use `--format technical`
+  only when a maintainer or automation asks for raw technical output.
 - If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce a real adoption report, existing governance map, and patch classification first.
 - If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, preserve unrelated changes, classify ownership, and select a safe isolated or bounded route. Ask the user only when an unavailable ownership fact prevents a safe route.
 - When the user is non-expert or the request is broad, use Guided Decision & Delivery Loop. Recommend the smallest safe path before asking for confirmation, keep one current mainline, park side ideas, and avoid raw technical questions such as enum-vs-lookup unless they are translated into product choices.
 - Follow `NEXT_ACTION`.
 - Use `init-project.mjs` for initialization or workflow asset updates.
-- Summarize `.intentos/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
+- Summarize `.intentos/migration-reports/`, derive the bounded technical
+  recommendation, and continue only when the controlled apply chain proves
+  current authority. Do not ask the user to inspect raw migration actions.
 - Run baseline checks after setup when scripts are available.
 - Run `node scripts/check-product-baseline.mjs .` and `node scripts/check-claim-control.mjs .` when workflow behavior, release wording, README/public summaries, final reports, or handoffs change.
 - Run `node scripts/check-context-governance.mjs .` when learning candidates, context corrections, Git boundary reports, baselines, AGENTS, or project source-of-truth docs change.

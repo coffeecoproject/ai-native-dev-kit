@@ -29,7 +29,8 @@ Which documents are active references?
 Which documents may be stale or duplicated?
 Which documents should be archived later?
 Which documents must not be touched?
-What human decision is needed before any move, deprecation, rewrite, or deletion?
+What evidence, rollback, business fact, external fact, or exact real-world
+consent is needed before any move, deprecation, rewrite, or deletion?
 ```
 
 ## Default Rule
@@ -57,7 +58,8 @@ The default recommendation is "archive suggestion", not deletion.
 ## Source Of Truth Rules
 
 Codex may identify likely source-of-truth documents, but must not declare or
-change source of truth without evidence or human confirmation.
+change source of truth without project evidence, conflict resolution, and
+verification. Missing technical evidence remains Codex-owned work.
 
 Source-of-truth evidence can include:
 
@@ -66,10 +68,12 @@ Source-of-truth evidence can include:
 - project profile, engineering baseline, environment baseline, or release SOP
 - architecture, ADR, API contract, schema, permission model, or test strategy
 - CI, manifest, package scripts, or checked release evidence
-- explicit human decision in a recorded report
+- a recorded business/external fact or exact consent when one is applicable
 
-When documents conflict, Codex must present the conflict and ask for a decision.
-It must not pick the newer file just because it is newer.
+When documents conflict, Codex must compare authority, freshness, consumers,
+and executable behavior, then select or propose the evidence-backed source. It
+must not pick the newer file just because it is newer. Ask only when an
+unavailable business or external fact prevents resolution.
 
 ## Archive Suggestion Rules
 
@@ -109,9 +113,10 @@ Codex must not delete, move, rewrite, or weaken:
 - docs containing secrets, credentials, private endpoints, customer data, or
   regulated records
 
-## Human Decision Boundary
+## Controlled Apply Boundary
 
-Human approval is required before:
+An exact controlled plan, link verification, rollback, and applicable evidence
+are required before:
 
 - moving a document into an archive path
 - deleting a document
@@ -125,7 +130,7 @@ Human approval is required before:
 - A document lifecycle inventory was produced.
 - Possible stale, duplicate, archive, or deprecation candidates were identified.
 - Source-of-truth candidates were mapped with evidence status.
-- Archive suggestions require human approval before file moves.
+- Archive suggestions require controlled apply evidence before file moves.
 
 ## Forbidden Claims
 

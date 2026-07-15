@@ -179,10 +179,10 @@ function safeNextActions(state, industrial) {
     return ["Install or reference standard-baseline-packs/index.json before relying on standard baseline recommendations."];
   }
   if (state === "PROFILE_DECISION_REQUIRED") {
-    return ["Confirm selected profiles in docs/project-profile.md before selecting standard packs."];
+    return ["Codex derives and records evidence-backed profiles in docs/project-profile.md before selecting standard packs."];
   }
   if (state === "BASELINE_LEVEL_DECISION_REQUIRED") {
-    return ["Choose BL0, BL1, or BL2 in docs/baseline-selection.md before treating recommendations as selected."];
+    return ["Codex derives BL0, BL1, or BL2 from scope, risk, and evidence before recording the selection in docs/baseline-selection.md."];
   }
   if (industrial.baselineLevel === "BL2_INDUSTRIAL") {
     return [

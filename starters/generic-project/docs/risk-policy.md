@@ -72,7 +72,9 @@ Examples:
 
 Required:
 
-- explicit human approval before code changes
+- strict technical planning, review, verification, and rollback evidence before
+  code changes; user input only for business/external facts or exact real-world
+  consent
 - full spec/eval/task chain
 - risk report
 - verification evidence

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.111.0",
+  "schemaVersion": "1.111.1",
   "artifactType": "review_context_authority",
   "contractId": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
   "currentVersionSource": "VERSION.md",
@@ -82,7 +82,7 @@
         "docs/guided-delivery-baseline.md",
         "docs/mental-model.md",
         "docs/operating-model.md",
-        "docs/plans/understanding-planning-closure-1.111-plan.md",
+        "docs/plans/active-guidance-responsibility-consistency-1.111.1-plan.md",
         "docs/product-baseline.md",
         "docs/project-entry-adoption-trust.md",
         "docs/quickstart.md",
@@ -95,9 +95,9 @@
         "docs/source-only-adoption.md",
         "docs/start-here.md",
         "prompts/reviewer-agent.md",
-        "releases/1.111.0/known-limitations.md",
-        "releases/1.111.0/release-record.md",
-        "releases/1.111.0/self-check-report.md",
+        "releases/1.111.1/known-limitations.md",
+        "releases/1.111.1/release-record.md",
+        "releases/1.111.1/self-check-report.md",
         "templates/gpt-review-prompt.md"
       ],
       "prefixes": [
@@ -428,6 +428,13 @@
       "generated": [
         "AGENTS.md governance appendix",
         ".github/pull_request_template.md governance appendix"
+      ]
+    },
+    {
+      "source": "scripts/new-workflow-item.mjs",
+      "generated": [
+        "project workflow artifacts",
+        "artifact next-step guidance"
       ]
     }
   ],

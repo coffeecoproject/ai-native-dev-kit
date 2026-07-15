@@ -18,7 +18,7 @@ Codex should not become a silent mechanical executor. It should still point out:
 - directly related risk
 - missing tests or evidence
 - adjacent issues exposed by implementation
-- human decisions needed before continuing
+- permitted business, real-world-consent, or external input needed before a dependent action
 - safer paths for follow-up work
 
 But a suggestion must not become implicit permission to continue, and a suggestion must not casually expand the project direction.
@@ -31,7 +31,7 @@ Every next-step suggestion must answer:
 2. Is it inside the current task scope?
 3. Can AI do it now?
 4. If not, what entry point is required?
-5. Does it need risk review or human approval?
+5. Does it need internal risk review or one permitted user-input class?
 
 Use `scripts/check-next-step-boundary.mjs` whenever Final Reports, Review Loop Reports, review summaries, or follow-up proposals include next-step suggestions:
 
@@ -48,7 +48,7 @@ Use only these types.
 |---|---|---|
 | IN_SCOPE_NEXT_STEP | The smallest safe next action inside the current task scope. | Yes, if it does not need new approval. |
 | DIRECT_FOLLOW_UP | Directly related to the current task but outside current scope. | No. Create a new request or follow-up proposal. |
-| RISK_DECISION | Requires human judgment for scope, permission, data, dependency, architecture, migration, production, release, payment, or value transfer. | No. Human decision and preflight are required. |
+| RISK_DECISION | Requires stronger technical evidence/review, a missing business fact, an external fact, or consent to a prepared real-world effect. | No. Codex selects the internal path and asks only for a permitted missing input. |
 | OUT_OF_SCOPE_OBSERVATION | Useful context observed during the task, but not recommended as immediate next work. | No. Record only. |
 | DO_NOT_PROCEED | Explicitly unsafe or unauthorized under current scope. | No. Separate approval or changed goal is required. |
 
@@ -106,9 +106,10 @@ Examples:
 
 Required entry:
 
-- human decision first
+- Codex technical decision and evidence first
 - preflight before implementation
 - task level escalation when applicable
+- one permitted user-input class only when project evidence cannot supply it
 
 ### OUT_OF_SCOPE_OBSERVATION
 

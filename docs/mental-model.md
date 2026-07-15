@@ -1,149 +1,85 @@
 # IntentOS Mental Model
 
-This document explains when to use each layer of the IntentOS.
+## One Public Entry
 
-It is intentionally short. Use it when a project owner or agent is unsure whether a project needs only the workflow, a platform profile, or BL2 industrial governance.
-
-## The Short Version
-
-Use the smallest layer that can control the risk.
+The ordinary user does not assemble an IntentOS workflow. The user states the
+goal in natural language:
 
 ```text
-Workflow
-  -> Goal Mode
-  -> Subagent Orchestration
-  -> Engineering Baseline
-  -> Profile
-  -> BL Level
-  -> Selected Industrial Pack
-  -> Project Evidence
-  -> Task Gate
-  -> Change Boundary
-  -> Output Experience
+work <what should become true>
 ```
 
-For an already governed or already-online project, add one step before setup:
+Codex reads the project, recovers current work, derives the technical path,
+performs the allowed work, verifies it, and reports one plain next action or
+completion conclusion.
+
+Internal commands, reports, schemas, profiles, baseline levels, industrial
+packs, review roles, and evidence systems are implementation details selected
+by IntentOS/Codex.
+
+## User And Codex Roles
+
+The zero-experience solo user is the source of:
+
+- the business goal;
+- unavailable business facts;
+- product preferences between valid outcomes;
+- unavailable authoritative external facts;
+- consent to one exact, prepared real-world effect.
+
+Codex is responsible for:
+
+- project and code inspection;
+- platform, Profile, baseline, BL level, and pack selection;
+- architecture, stack, dependencies, migrations, and engineering rules;
+- task classification, planning, implementation, verification, and review;
+- technical risk treatment, release-readiness analysis, evidence, repair, and
+  rollback preparation.
+
+Technical ambiguity is not a reason to ask the user to choose a technical
+option. Codex continues bounded inspection, selects the evidence-backed option,
+or records a technical blocker.
+
+## Internal Operating Meanings
+
+IntentOS derives one current operation:
 
 ```text
-Read-only adoption assessment
-  -> Existing governance map
-  -> Human approval
-  -> Adapter setup, if still needed
+DISCUSS
+START_OR_ADOPT
+PLAN_WORK
+EXECUTE_WORK
+VERIFY_OR_REVIEW
+PREPARE_RELEASE
 ```
 
-For target-project writes that need plan-first control, use this separate chain:
+These meanings help Codex route work. They are not modes the user must learn,
+not a mandatory six-stage lifecycle, and not separate sources of truth.
 
-```text
-Unified Apply Plan
-  -> Controlled Apply Readiness
-  -> Approval Record
-  -> Exact approved-graph replay
-  -> Apply Execution Receipt
-  -> Post-apply read-only activation check
-```
+## Source Systems, Not One Giant Workflow
 
-The Approval Record records exact human approval evidence. It is not automatic apply authority. A completed write can count as verified adoption evidence only after the Apply Execution Receipt still matches the current project, Git identity, action graph, and target hashes.
+IntentOS contains specialized source systems for different questions:
 
-## Workflow
+| Question | Source system examples |
+|---|---|
+| May the project be entered or adopted? | Project Entry Trust, adoption and reconciliation evidence |
+| What is the current task? | Work Queue or verified project-native task system |
+| How much governance is required? | Task Governance |
+| What business and technical scope is affected? | Business Universe, Business Rule, Change Impact |
+| Is the plan ready? | Plan Review, Planning Closure |
+| What must be verified? | Verification Plan |
+| Did the right code run in the right environment? | Runtime Trust, Test Evidence |
+| Did implementation and controls really hold? | Execution Assurance, Control Effectiveness |
+| Is the task complete? | Completion Evidence, Unified Closure |
+| Is release technically prepared? | Launch Review and release evidence systems |
+| May bounded project writes occur? | Unified Apply Plan and Controlled Apply Readiness |
 
-Use the core workflow for every project.
+The public Operating Model summarizes these systems. It does not replace their
+authority or smooth over a stricter, missing, or blocked result.
 
-It answers:
+## Project Depth
 
-- What is the request?
-- Is the request clear enough?
-- What is the spec?
-- How will the work be evaluated?
-- What task is AI allowed to execute?
-- What evidence must be reported?
-- What should be logged and improved after the task?
-
-If the project is a prototype, internal experiment, or low-risk local tool, the core workflow plus O0/O1 onboarding may be enough.
-
-## Goal Mode
-
-Use Goal Mode when Codex needs to decide what kind of work the human is asking for before creating artifacts or writing code.
-
-It answers:
-
-- Is this discussion only?
-- Is this existing project adoption?
-- Should Codex define work before implementation?
-- Is there an approved task to implement?
-- Does the intent require review, repair, an internally derived baseline decision, or a report?
-
-Goal Mode can create `goal-cards/` for durable route records. It is not approval to implement and does not replace task cards, Engineering Baseline, Review Loop, or Human Approval.
-
-## Subagent Orchestration
-
-Use Subagent Orchestration only when helper agents are actually used.
-
-It answers:
-
-- Which helper agents are involved?
-- Which ones are read-only?
-- Who, if anyone, is allowed to write?
-- Has every helper agent handed off its output?
-- Has every helper agent been closed or skipped?
-
-The rule is:
-
-```text
-Many readers, one writer.
-```
-
-Subagent Orchestration can create `subagent-run-plans/` for durable run records. It is not approval to execute more work and does not replace Goal Mode, task cards, Review Loop, or Human Approval.
-
-## Engineering Baseline
-
-Use Engineering Baseline when Codex is about to make project-wide engineering decisions.
-
-It answers:
-
-- Where does code belong?
-- Which types are source of truth?
-- How are DTO, schema, domain model, and view model separated?
-- Where do API contracts and generated types come from?
-- How should enum / string / lookup / state-machine choices be decided?
-- Who owns schema, migration, permission, dependency, and cross-module state decisions?
-
-Engineering Baseline does not prescribe a universal directory layout or platform style. It says where the project decision lives and whether Codex may decide.
-
-```text
-Codex may follow local patterns for low-risk local work.
-Codex must not invent a project standard.
-```
-
-If the baseline is missing or ambiguous and the task touches structural engineering decisions, Codex should create a Decision Brief or ask for human confirmation before implementation.
-
-## Profile
-
-Use a profile when the target runtime matters.
-
-Examples:
-
-- `web-app`
-- `backend-api`
-- `ios-app`
-- `android-app`
-- `wechat-miniprogram`
-- `internal-admin`
-- `high-risk-change`
-
-A profile answers:
-
-- What platform is this project built for?
-- What docs are required?
-- What task level should common risks use?
-- What risk gate labels matter?
-- What verification evidence is expected?
-- What must AI not do without human approval?
-
-Profiles do not replace the workflow. They tune the workflow for the project type.
-
-## BL Level
-
-BL level is project governance strength.
+Codex derives the smallest sufficient governance depth from project evidence.
 
 ```text
 BL0 = lightweight project governance
@@ -151,272 +87,111 @@ BL1 = standard project governance
 BL2 = industrial project governance with evidence
 ```
 
-Use BL0 when the project is exploratory and low risk.
+BL depth is not selected by the user and does not imply a team. A solo project
+may require BL2 when production, sensitive data, permissions, payments,
+destructive behavior, regulation, release risk, or long-term operational
+reliability demand it.
 
-Use BL1 when the project has real users, repeated development, or shared ownership.
+Profiles and industrial packs tune platform and risk requirements. Codex selects
+only applicable packs and proves that selected requirements are actually
+satisfied; availability alone does not expand product scope.
 
-Use BL2 when the project touches production, sensitive data, permissions, payments, destructive behavior, release risk, regulated work, or long-term maintainability.
+## New Projects
 
-## Industrial Pack
+For a new project, Codex:
 
-Use an industrial pack only when BL2 is selected and the pack is relevant.
+1. derives the project goal and platform from natural language;
+2. selects the baseline depth and applicable packs;
+3. initializes project and IntentOS assets atomically;
+4. verifies generated-project guidance and project identity;
+5. creates or recovers the first current task;
+6. routes the first ordinary task through the risk-proportional chain.
 
-An industrial pack answers:
+The user is not asked to choose starter internals, platform profiles, BL level,
+packs, test tools, or workflow commands.
 
-- What baseline docs apply?
-- What audit docs apply?
-- What checklists apply?
-- What evidence must exist?
-- Which risks require task level escalation?
-- Which actions require human approval?
+## Existing Projects
 
-Industrial packs should not be selected just because they exist. Select them when the project actually needs that runtime, capability, or risk overlay.
+For an existing project, Codex:
 
-The IntentOS keeps the industrial pack registry and schemas available by default, but concrete pack files should be installed only when selected. This keeps BL0 and BL1 projects light while preserving a clear path to BL2.
+1. enters read-only and identifies current project authority;
+2. maps existing baselines, tasks, CI, release, runtime, and business rules;
+3. compares them with IntentOS requirements;
+4. preserves stronger valid controls;
+5. repairs weak, missing, duplicate, or contradictory governance through a
+   bounded plan;
+6. proves that selected adoption actions were applied and remain active.
 
-Use `industrial-packs/selection-guide.md` when deciding pack combinations. Web remains the most dogfooded draft pack, and WeChat Mini Program now has a deeper BL2 draft with its own dogfood example. Backend, Auth/Permission, Data Storage, Internal Admin, iOS, Android, CloudBase, Payment/Value Transfer, and High-risk Change packs are also available as BL2 inputs when relevant.
+Existing files are evidence, not automatic authority. IntentOS does not preserve
+an unreliable legacy process merely because it is old, and it does not overwrite
+a stronger process merely because its filename differs.
 
-When dogfooding the workflow on a real project, use `.intentos/templates/dogfood-observation.md` as a separate observation record. It measures whether the workflow is affordable and accurate in practice: setup time, evidence effort, Risk Gate misses, false positives, false negatives, AI drift, and follow-up improvements. It should inform retros and intentos proposals, but it should not become another required task gate.
+## Task Depth
 
-## Existing Governed Project Adoption
+Task Governance derives LOW, MEDIUM, POSSIBLE_HIGH, or HIGH from actual impact.
+Every task still receives a bounded change, targeted verification, diff review,
+and authoritative completion decision.
 
-Some projects already have strong governance: agent rules, CI gates, guard scripts, baselines, evidence records, release/rollback controls, production lanes, incident response, backup/recovery, or a dirty worktree.
+Higher depth adds durable planning, wider impact coverage, stronger runtime and
+evidence identity, independent challenge, and rollback preparation. It does not
+add technical choices for the user.
 
-These projects should not be initialized as if they were ordinary existing projects.
+## Subagents And Review
 
-`workflow-next` should classify them with project state tags such as:
-
-```text
-GOVERNED_EXISTING_PROJECT
-PRODUCTION_GOVERNED_PROJECT
-DIRTY_WORKTREE_PROJECT
-```
-
-When protection is active, the adoption mode is:
-
-```text
-ADOPTION_MODE: READ_ONLY
-NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
-```
-
-In this mode, IntentOS should map to existing governance instead of replacing it. Use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to decide whether adapter docs, workflow assets, or no project writes are appropriate.
-
-If the project is already bootstrapped but is both production-governed and dirty, `workflow-next` can return:
-
-```text
-ADOPTION_MODE: GUARDED
-NEXT_ACTION: REVIEW_DIRTY_WORKTREE
-```
-
-That is not a setup problem. It means task execution should wait until the human confirms what the existing changes are and whether to continue, split, stash, commit, or package them for review.
-
-## Evidence
-
-BL2 requires evidence, not claims.
-
-There are three evidence layers:
+Subagents are internal roles, not people the user manages.
 
 ```text
-Baseline evidence = project-level evidence index
-Task evidence = evidence required by the current task risk
-Release evidence = evidence needed before a release or rollout
+Builder   -> implements inside the boundary
+Verifier  -> independently executes verification
+Challenger -> attempts to disprove the result
 ```
 
-`docs/baseline-evidence.md` is the project-level evidence index. It should point to real project files:
+IntentOS decides when these roles are needed. The default write rule remains:
 
 ```text
-Requirement -> Evidence Type -> Evidence Ref -> Status -> Owner -> Review date
+Many readers, one writer.
 ```
 
-`Done` means there is a real evidence reference.
+Every Subagent is closed or skipped after handoff. A Subagent result is evidence
+input, not final approval or completion authority.
 
-`Not applicable` means there is a reason.
+## Completion And Release
 
-`Pending` means the project is not ready for strict BL2 execution.
+Passing tests is not the same as completing a task, and completing a task is not
+the same as authorizing release.
 
-A task does not need to satisfy the entire industrial pack catalog every time. The task gate should require evidence only for the areas touched by the task risk, while release evidence is checked when the task or release flow actually reaches release readiness.
+Unified Closure produces the task completion conclusion from current source
+evidence. Release systems then determine technical readiness and prepare the
+exact external action and rollback path.
 
-## Task Gate
+The user does not judge technical release readiness. When a real production,
+provider, cost, customer, or irreversible data effect is prepared and evidence
+is ready, the user may be asked for consent to that exact effect.
 
-The task gate controls what AI may implement.
+## Compatibility Labels
 
-Before implementation, the task should prove:
+Older artifacts may contain labels such as `Human Approval`,
+`Risk Gate Exclusions`, `owner`, `human_decision`, or
+`NEEDS_HUMAN_DECISION`. These names are compatibility fields, not the current
+responsibility model. `Risk Gate Exclusions` records Codex-validated evidence
+that a risk signal does not apply to the current task; it is not a request for
+the user to waive a technical risk.
 
-- the project baseline is ready
-- the task level matches the risk
-- Risk Gate labels are checked when high-risk areas appear in the task or related spec
-- Risk Gate exclusions are explicit and internally evidenced when a risk term is mentioned but out of scope
-- Human Approval is present when a checked risk requires it
-- the eval names the evidence required by selected industrial packs
-
-If a high-risk area appears in the task or related spec but Risk Gate is not checked, ready mode should warn and implementation mode should fail.
-
-If a high-risk term appears only as an explicit non-goal or out-of-scope note, record it in `Risk Gate Exclusions` with a concrete evidence-backed reason. Do not make the wording vague just to pass the checker. More than three exclusions triggers stricter internal scope review; compatibility approval fields do not turn this into a user technical decision.
-
-## Change Boundary
-
-Use Change Boundary when the human needs to know whether Codex stayed inside the task it was supposed to do.
-
-It answers:
-
-- What was the intended scope?
-- Which paths were allowed?
-- Which paths were forbidden?
-- What files actually changed?
-- Are any changed files outside boundary?
-- What claims may Codex make about this change?
-
-Change Boundary is not needed for every tiny edit. Use it for non-trivial tasks, governed projects, dirty worktrees, broad repairs, or whenever changed files are not obviously local.
-
-## Baseline State
-
-Baseline State keeps baseline wording honest before the project has code or evidence.
-
-Allowed states are:
+Current IntentOS interprets user input only as:
 
 ```text
-PROPOSED
-PENDING_CONFIRMATION
-EVIDENCE_REQUIRED
-CONFIRMED
-NOT_APPLICABLE
+NO_USER_ACTION
+BUSINESS_FACT_NEEDED
+REAL_WORLD_CONSENT_NEEDED
+EXTERNAL_FACT_NEEDED
 ```
 
-Codex may propose or draft baselines. It must not claim that a no-code/new-project baseline is implemented, verified, production-ready, or confirmed unless project-owned evidence or a verifiable external fact exists.
+No compatibility label transfers architecture, baseline, testing, review,
+technical risk, migration design, or release-readiness judgment to the user.
 
-## Review Packet
+## The Practical Rule
 
-Use a Review Packet when a change needs independent review beyond the implementing agent's final report.
-
-It packages:
-
-- request, preflight, spec, eval, and task refs
-- risk gate and human approval state
-- baseline and industrial evidence state
-- commands run and evidence refs
-- files changed and diff summary
-- known risks and open questions
-
-It is a review input, not approval. Approval still belongs in the task card, release gate, PR review, or the project's existing governance process.
-
-## Review Loop
-
-Use a Review Loop when a task needs more than a final report:
-
-- L2 work requires a Review Packet and one read-only reviewer pass.
-- L3 work requires a Review Packet and independent reviewer, GPT Pro, or human review.
-- Review Packet is input.
-- GPT Review Prompt is reviewer instruction.
-- Review Loop Report is the record of findings, automatic fixes, re-review, and human decisions.
-
-Codex can only auto-fix deterministic, low-risk issues inside the approved task scope, and only for 2 rounds. Scope expansion, risk acceptance, permission model, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope decisions stay with humans.
-
-## Bounded Next-Step
-
-Use Bounded Next-Step when Codex reports possible next work after a task, review, baseline check, or status report.
-
-It does not forbid suggestions. It makes suggestions clear:
-
-- Is this still inside the current task?
-- Can AI do it now?
-- Does it need a new request, follow-up proposal, preflight, or human decision?
-- Is it only context that should not become immediate work?
-
-Allowed types are `IN_SCOPE_NEXT_STEP`, `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, and `DO_NOT_PROCEED`.
-
-Only `IN_SCOPE_NEXT_STEP` may be handled inside the current task. Other types must be recorded, proposed, routed to humans, or stopped.
-
-## Output Experience
-
-Use Output Experience for every important workflow status, blocked state, review result, baseline result, adoption assessment, release summary, or automation proposal.
-
-It answers:
-
-- What is the recommended option?
-- What alternatives exist?
-- Which option writes project files?
-- What happened?
-- Can AI continue?
-- Why?
-- What does the human need to decide?
-- What happens if the human does nothing?
-- What is the next safe step?
-- What may AI do now?
-- What must AI avoid?
-
-It does not replace technical details. It moves them after the human-facing summary.
-
-For decision-heavy states, the first section is `Human Decision Summary`. It should make the choice clear before exposing fields such as `NEXT_ACTION`, `ADOPTION_MODE`, or baseline state.
-
-## Guided Decision & Delivery Loop
-
-Human Decision Summary makes one output easier to read. Guided Decision & Delivery Loop keeps the whole conversation easier to follow.
-
-Use it when a user speaks naturally, changes direction, or lacks the background to choose technical mechanics.
-
-The mental model is:
-
-```text
-User owns goals and tradeoffs.
-Codex owns analysis, recommendation, artifact drafting, execution inside approved scope, verification, and reporting.
-Expert owners handle high-risk domains.
-```
-
-Codex should keep:
-
-- one Current Mainline
-- a Parking Lot for side ideas
-- a clear Decision Needed list
-- one Next Safe Action
-
-Parking Lot is not approval to execute future work.
-
-Use:
-
-- `core/output-protocol.md`
-- `core/glossary.md`
-- `core/next-step-boundary.md`
-- `core/decision-delegation-boundary.md`
-- `core/guided-delivery-loop.md`
-- `prompts/reporter-agent.md`
-- `prompts/delivery-coach-agent.md`
-- `templates/human-status-report.md`
-- `templates/decision-brief.md`
-- `templates/plain-review-summary.md`
-- `templates/customer-handoff.md`
-- `templates/follow-up-proposal.md`
-- `templates/final-report.md`
-
-## Practical Choices
-
-Use `docs/artifact-decision-tree.md` when it is unclear which artifact should be created. The decision should start from the current work state, not from the full template list.
-
-Use this decision path:
-
-```text
-Starting any project?
-  Use core workflow.
-
-Target runtime matters?
-  Codex derives profiles from the delivery target and project evidence.
-
-Production, sensitive, permission, payment, destructive, or release risk?
-  Consider BL2.
-
-BL2 selected?
-  Install selected industrial packs and require evidence.
-
-Single task touches a risky area?
-  Raise task level, check Risk Gate, and require stricter internal evidence/review; ask the user only for missing business reality or an exact prepared real-world effect.
-
-Reporting status to a human?
-  Start with Output Experience, then include technical details.
-```
-
-## What Not To Do
-
-- Do not use BL2 for every small experiment.
-- Do not select every industrial pack by default.
-- Do not treat passing local checks as production readiness.
-- Do not let AI approve its own high-risk scope.
-- Do not turn framework or hosting preferences into core workflow rules.
+Use one natural-language entry. Let IntentOS/Codex choose the internal path.
+Keep source systems authoritative, require current evidence, and ask the user
+only for information or real-world consent that cannot be obtained through
+technical work.

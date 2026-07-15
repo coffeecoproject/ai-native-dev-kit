@@ -1074,7 +1074,7 @@ function agentGovernanceSectionContent() {
     ["Approval Record Governance", [
       "## Approval Record Governance",
       "",
-      "Use `.intentos/core/approval-record-governance.md` and `.intentos/docs/approval-record-governance.md` only after a Unified Apply Plan and readiness report exist and a human gives explicit approval for exact action IDs.",
+      "Use `.intentos/core/approval-record-governance.md` and `.intentos/docs/approval-record-governance.md` only after a Unified Apply Plan and readiness report exist and the exact action IDs are bound to the current request or one prepared external-effect authority.",
       "",
       "Approval records capture who approved, which plan and hash were approved, exact action IDs, target paths, expiry, rollback acknowledgement, verification acknowledgement, and non-authorizations. They do not execute writes, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, or enable high-risk actions.",
       "",

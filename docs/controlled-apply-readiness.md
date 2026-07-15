@@ -5,21 +5,24 @@ Controlled Apply Readiness is the step after a Unified Apply Plan and before any
 In plain language:
 
 ```text
-We already have a plan. Can it be considered safe enough for a human-approved apply step?
+We already have a plan. Is it technically safe, bounded, reversible, verified,
+and bound to the current request or required real-world authority?
 ```
 
 The answer may be:
 
 - not ready;
-- ready for human-approved apply;
-- human-only;
+- ready for exact authority binding;
+- specialized-path only;
 - blocked.
 
 It still does not write files.
 
 ## When To Use
 
-Use it when the user says things like:
+Codex uses it internally when the current goal is ready to move from planning
+to a controlled project write. The user does not need to request this gate by
+name.
 
 ```text
 这个 apply plan 我确认了，接下来能执行吗？
@@ -44,8 +47,9 @@ Codex should check:
 - whether git state is safe;
 - whether backup and rollback are planned;
 - whether verification is planned;
-- whether the action is low-risk or human-only;
-- whether explicit human approval is still needed.
+- whether the action is low-risk or belongs to a specialized authority;
+- whether the current request binds the action or one permitted user input is
+  still needed.
 
 ## What Codex Must Not Do
 
@@ -94,7 +98,7 @@ Is this plan eligible for bounded controlled apply after authority, scope, rollb
 Approval Record Governance answers:
 
 ```text
-What exactly did the human approve?
+Which exact actions are bound to the current request or prepared consent?
 ```
 
 None of these steps is an executor.

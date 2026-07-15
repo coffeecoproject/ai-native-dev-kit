@@ -67,9 +67,9 @@ Additional surfaces are selected when project or intent signals require them:
 
 Codex can select review surfaces automatically.
 
-Codex cannot use the card to decide high-risk business or production questions.
-
-These surfaces usually require human confirmation before execution:
+Codex cannot use the card to invent business/external facts or authorize a
+production effect. These surfaces require stricter technical evidence and
+review before execution:
 
 - `DATA_REVIEW`
 - `PERMISSION_REVIEW`
@@ -83,7 +83,8 @@ Every task that used a Review Surface Card must close with:
 
 - Per-surface result: pass, fail, or not verified for each selected surface.
 - Unverified surfaces: named with reason and owner.
-- Debt result: fixed, deferred, or needs human decision.
+- Debt result: fixed, deferred with evidence, or blocked by a permitted user
+  input / Codex-owned technical gap.
 - Next delivery state: self-test, internal trial, release review, or blocked.
 
 Codex must not summarize only successful checks.
@@ -104,10 +105,12 @@ It decides what must be reviewed, then those layers provide the appropriate evid
 
 ## Stop Conditions
 
-Codex must stop for human decision when:
+Codex must stop the dependent action when:
 
-- a selected high-risk surface lacks evidence
-- data migration or production data impact is unclear
+- a selected high-risk surface lacks evidence;
+- data migration or production data impact is unclear and requires further
+  technical inspection, review, or rollback preparation;
+- a business/external fact or exact real-world consent is genuinely missing.
 - permission or tenant impact is unclear
 - security, privacy, compliance, payment, or finance impact is unclear
 - existing project governance conflicts with the proposed work

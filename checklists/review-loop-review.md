@@ -32,8 +32,11 @@ Use this checklist when reviewing a Review Loop Report or reviewer output.
 - [ ] Same finding did not appear twice.
 - [ ] Auto-fix did not introduce a new P0 or P1.
 - [ ] Repeated verification failure was not ignored.
-- [ ] Unstructured reviewer output was routed to human decision or clarification.
-- [ ] Scope expansion, dependency, production, migration, release, or approval changes were routed to human decision.
+- [ ] Unstructured reviewer output was normalized or rejected by Codex; it was
+  not converted into a raw technical question for the user.
+- [ ] Scope, dependency, production, migration, release, or compatibility
+  approval changes were routed to the applicable technical planning/review
+  source; only permitted user input was surfaced.
 
 ## Final State
 

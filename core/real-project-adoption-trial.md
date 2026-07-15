@@ -42,8 +42,8 @@ Allowed primary modes:
 | `NEW_PROJECT` | Empty or early project with little governance | may propose scaffold after confirmation |
 | `EXISTING_LIGHT_PROJECT` | Existing code with weak governance | read-only first, then guided setup |
 | `EXISTING_GOVERNED_PROJECT` | Existing project with strong rules, gates, docs, or evidence | map existing governance, do not overwrite |
-| `EXISTING_PRODUCTION_PROJECT` | Existing governed project with live, release, production, or customer-facing risk | read-only only until explicit approval |
-| `BLOCKED_UNKNOWN_RISK` | signals are unclear, risky, or contradictory | stop for human decision |
+| `EXISTING_PRODUCTION_PROJECT` | Existing governed project with live, release, production, or customer-facing risk | keep discovery read-only until the controlled technical path is proven; request consent only for a prepared real-world effect |
+| `BLOCKED_UNKNOWN_RISK` | signals are unclear, risky, or contradictory | remain read-only while Codex gathers evidence and selects the stricter technical path |
 
 ## Bridge Layer Modes
 

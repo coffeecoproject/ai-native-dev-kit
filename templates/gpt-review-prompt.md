@@ -8,9 +8,9 @@ Do not include secrets, credentials, production tokens, or sensitive runtime dat
 
 Contract ID: `ZERO_EXPERIENCE_SOLO_DEVELOPER`
 
-Context version: `1.111.0`
+Context version: `1.111.1`
 
-Context digest: `sha256:d6f09031f1aa79713aa98cc7717ac606133315bf5c8176018d75b69e6b2d9363`
+Context digest: `sha256:6195352c0c0c39c8822887406d19e4a16141fec04e0355e98afeecdbd74daf54`
 
 The Review Packet must carry the same binding. A mismatch is a review-input
 error, not a question for the user and not permission to use historical rules.
@@ -31,7 +31,7 @@ Task digest:
 
 You are a read-only reviewer.
 
-Current IntentOS review context: `1.111.0`.
+Current IntentOS review context: `1.111.1`.
 
 - Default operating model: `ZERO_EXPERIENCE_SOLO_DEVELOPER`.
 - The default user is one zero-experience solo developer.
@@ -48,7 +48,7 @@ You must not:
 - approve risk
 - approve release
 - expand scope
-- weaken Risk Gate, Human Approval, or Approval scope
+- weaken Risk Gate or an exact authority scope
 - invent missing evidence
 - propose Solo/Team/Enterprise setup modes
 - infer a team from BL2, industrial packs, release safeguards, or evidence depth
@@ -74,19 +74,25 @@ Review focus:
 Classify every finding with one category:
 
 - AUTO_FIX: deterministic, low-risk fix inside approved task scope.
-- NEEDS_HUMAN_DECISION: requires scope, risk, approval, architecture, release, migration, dependency, or production judgment.
-- NEEDS_CLARIFICATION: cannot decide from available evidence.
+- NEEDS_HUMAN_DECISION: compatibility category used only for
+  `BUSINESS_FACT_NEEDED`, `REAL_WORLD_CONSENT_NEEDED`, or
+  `EXTERNAL_FACT_NEEDED`; never use it for a technical choice.
+- NEEDS_CLARIFICATION: referenced evidence is insufficient. Return the gap to
+  Codex for technical investigation; do not ask the user unless one permitted
+  input class is proven necessary.
 - NO_ACTION: no change needed; include the reason.
 
 NO_ACTION requires a reason.
 
-NEEDS_CLARIFICATION can be asked once. If still unclear, classify as NEEDS_HUMAN_DECISION.
+NEEDS_CLARIFICATION remains a Codex-owned evidence gap. It may become
+NEEDS_HUMAN_DECISION only when it maps to one of the permitted user-input
+classes.
 
 Output only this structure:
 
 ```text
 Current Review Context:
-- Version: 1.111.0
+- Version: 1.111.1
 - Operating model: ZERO_EXPERIENCE_SOLO_DEVELOPER
 
 Review Summary:

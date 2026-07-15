@@ -23,7 +23,7 @@ Should this patch path be rejected?
 | `SAFE_LOCAL_FIX` | small isolated fix with no cross-boundary impact | may propose or execute only if already authorized |
 | `BASELINE_ALIGNED_HARDCUT` | scoped change touches governed surfaces but scope is clear | follow target baseline, update tests/docs/evidence in same batch |
 | `STRUCTURAL_REMEDIATION` | root cause is structural drift or cross-layer mismatch | plan structural repair; do not hide it with a symptom patch |
-| `NEEDS_HUMAN_DECISION` | risk, scope, architecture, production, data, security, privacy, release, or irreversible choice | stop and ask |
+| `NEEDS_HUMAN_DECISION` | compatibility state for unresolved technical evidence or one permitted user input | Codex resolves technical work and asks only for business/external facts or exact real-world consent |
 | `DO_NOT_PATCH` | patch would hide, weaken, bypass, or silence governance | reject patch path |
 
 ## SAFE_LOCAL_FIX
@@ -74,21 +74,25 @@ Signals:
 - large-file, module-boundary, or import-direction drift
 - several local patches would preserve the real problem
 
-Output must include structural plan, affected layers, migration/test/evidence plan, and human decisions.
+Output must include structural plan, affected layers, migration/test/evidence
+plan, and any permitted user input still missing.
 
 ## NEEDS_HUMAN_DECISION
 
-Use this when the issue requires a judgment call or irreversible/risky choice:
+Use this compatibility state when the issue requires stronger technical
+evidence or a permitted user input:
 
-- architecture direction
-- production/release/rollback
-- DB migration or destructive data action
-- auth, permission, security, privacy, compliance, payment, tax, identity, or regulated data
-- dependency adoption
-- scope expansion
-- accepting an exception
+- architecture, dependency, migration, permission, security, privacy, or
+  verification design without enough evidence: Codex inspects, plans, reviews,
+  and verifies;
+- a missing business rule or product preference: `BUSINESS_FACT_NEEDED`;
+- an unavailable legal, tax, compliance, provider, or third-party fact:
+  `EXTERNAL_FACT_NEEDED`;
+- a prepared production, release, payment, customer, cost, or irreversible-data
+  effect: `REAL_WORLD_CONSENT_NEEDED`.
 
-Codex must stop and ask.
+Codex stops only the dependent action and does not ask the user to choose the
+technical treatment.
 
 ## DO_NOT_PATCH
 

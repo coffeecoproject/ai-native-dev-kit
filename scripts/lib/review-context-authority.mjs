@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(moduleDir, "../..");
 
-export const REVIEW_CONTEXT_VERSION = "1.111.0";
+export const REVIEW_CONTEXT_VERSION = "1.111.1";
 export const CURRENT_OPERATING_MODEL = "ZERO_EXPERIENCE_SOLO_DEVELOPER";
 export const USER_DECISION_CLASSES = Object.freeze([
   "NO_USER_ACTION",
@@ -323,6 +323,21 @@ const ACTIVE_GUIDANCE_CONFLICT_RULES = [
     message: "Active guidance makes a generic technical risk gate depend on human approval.",
   },
   {
+    code: "BLANKET_CODE_CHANGE_APPROVAL",
+    pattern: /(?:explicit\s+)?human approval.{0,35}before\s+(?:any\s+)?(?:code|implementation|technical|project-file)\s+changes?|(?:code|implementation|technical|project-file)\s+changes?.{0,35}(?:require|need|must have).{0,20}(?:explicit\s+)?human approval|(?:任何|任意|所有)?(?:代码|实现|技术|项目文件)变更.{0,25}(?:必须|需要|要求).{0,15}(?:人工|用户)(?:批准|确认)/i,
+    message: "Active guidance places a blanket human-approval gate on technical work.",
+  },
+  {
+    code: "TECHNICAL_RISK_DELEGATED_TO_USER",
+    pattern: /(?:unknown|unclear|high[- ]risk|technical risk|risk treatment|未知|不明确|高风险|技术风险|风险处理).{0,55}(?:stop|route|ask|require|must|交给|询问|需要|必须).{0,35}(?:human decision|human confirmation|human approval|user confirmation|人工决定|人工确认|人工批准|用户确认)|(?:human decision|human confirmation|human approval|user confirmation|人工决定|人工确认|人工批准|用户确认).{0,55}(?:technical risk|risk treatment|architecture|dependency|migration design|test strategy|review depth|release readiness|技术风险|风险处理|架构|依赖|迁移设计|测试策略|审查深度|发布准备度)/i,
+    message: "Active guidance delegates technical risk treatment to the user.",
+  },
+  {
+    code: "GENERIC_HUMAN_TECHNICAL_AUTHORITY",
+    pattern: /(?:architecture|dependency|migration design|technical scope|test strategy|verification strategy|review depth|release readiness|rollback design|架构|依赖|迁移设计|技术范围|测试策略|验证策略|审查深度|发布准备度|回滚设计).{0,55}(?:requires?|needs?|must|routes?\s+to|stays?\s+with|需要|必须|交给|属于).{0,30}(?:human decision|human judgment|human approval|user decision|user confirmation|人工决定|人工判断|人工批准|用户决定|用户确认)|(?:human decision|human judgment|human approval|user decision|user confirmation|人工决定|人工判断|人工批准|用户决定|用户确认).{0,55}(?:architecture|dependency|migration design|technical scope|test strategy|verification strategy|review depth|release readiness|rollback design|架构|依赖|迁移设计|技术范围|测试策略|验证策略|审查深度|发布准备度|回滚设计)/i,
+    message: "Active guidance gives the user generic authority over technical work.",
+  },
+  {
     code: "INTERNAL_TECHNICAL_ROUTE_DELEGATED_TO_USER",
     pattern: /(?:\b(?:human|humans|user|users|the user)\b|人工|人类|用户).{0,45}(?:choose|select|decide|approve|confirm|review|merge|选择|决定|批准|确认|审查|合并).{0,90}(?:project profile|platform profile|architecture|technology strategy|technical stack|baseline|BL[012]|industrial pack|workflow asset|governance appendix|agent instructions|PR template|native migration|adapter docs?|apply plan|hook policy|archive plan|work queue takeover|release readiness|项目档案|平台档案|架构|技术策略|技术栈|基线|工业包|工作流资产|治理附录|代理指令|迁移路径|适配文档|应用计划|钩子策略|归档计划|任务队列接管|发布准备度)|(?:project profile|platform profile|architecture|technology strategy|technical stack|baseline|BL[012]|industrial pack|workflow asset|governance appendix|agent instructions|PR template|native migration|adapter docs?|apply plan|hook policy|archive plan|work queue takeover|release readiness|项目档案|平台档案|架构|技术策略|技术栈|基线|工业包|工作流资产|治理附录|代理指令|迁移路径|适配文档|应用计划|钩子策略|归档计划|任务队列接管|发布准备度).{0,90}(?:\b(?:human|humans|user|users|the user)\b|人工|人类|用户).{0,35}(?:choose|select|decide|approve|confirm|review|merge|选择|决定|批准|确认|审查|合并)/i,
     message: "Active guidance delegates an internal technical route or readiness judgment to the user.",
@@ -348,7 +363,7 @@ export function analyzeActiveGuidanceConflicts(text) {
       && (!isExplicitSafetyNegation(segment) || negatedTechnicalPermissionGate(segment)));
     if (matched) findings.push({ code: rule.code, message: rule.message, evidence: matched });
   }
-  const ambiguousAuthority = value.match(/\b(?:AI|Codex)\s+drafts?\s*[.!?;,:-]?\s*humans?\s+(?:decide|confirm)\b|\bhumans?\s+(?:decide|confirm)\s*[.!?;,:-]?\s*(?:AI|Codex)\s+drafts?\b|\bAI\s+proposes?\s*[.!?;,:-]?\s*humans?\s+approve\b|AI\s*起草.{0,12}(?:人|用户).{0,8}(?:决定|批准)|(?:人|用户).{0,8}(?:决定|批准).{0,12}AI\s*起草/i);
+  const ambiguousAuthority = value.match(/\b(?:AI|Codex)\s+(?:drafts?|executes?)\s*[.!?;,:-]?\s*humans?\s+(?:decide|confirm|approve)\b|\bhumans?\s+(?:decide|confirm|approve)\s*[.!?;,:-]?\s*(?:AI|Codex)\s+(?:drafts?|executes?)\b|\bAI\s+proposes?\s*[.!?;,:-]?\s*humans?\s+approve\b|AI\s*(?:起草|执行).{0,12}(?:人|用户).{0,8}(?:决定|批准)|(?:人|用户).{0,8}(?:决定|批准).{0,12}AI\s*(?:起草|执行)/i);
   if (ambiguousAuthority && !isExplicitSafetyNegation(ambiguousAuthority[0])) {
     findings.push({
       code: "AMBIGUOUS_HUMAN_TECHNICAL_AUTHORITY",

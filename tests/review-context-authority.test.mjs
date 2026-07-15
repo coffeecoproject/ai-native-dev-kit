@@ -20,7 +20,8 @@ const authority = loadReviewContextAuthority();
 
 test("current product contract overrides compatibility and historical material", () => {
   assert.equal(classifyReviewContextAsset("core/review-context-authority.md", authority), "CURRENT");
-  assert.equal(classifyReviewContextAsset("docs/plans/understanding-planning-closure-1.111-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/active-guidance-responsibility-consistency-1.111.1-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/understanding-planning-closure-1.111-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/control-effectiveness-1.110-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/project-entry-adoption-trust-hardcut-1.109-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/business-universe-coverage-1.108-plan.md", authority), "HISTORICAL");
@@ -30,7 +31,8 @@ test("current product contract overrides compatibility and historical material",
   assert.equal(classifyReviewContextAsset("docs/plans/review-context-enforcement-1.99.2-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/review-context-authority-1.99.1-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/zero-experience-solo-operating-model-1.99-plan.md", authority), "HISTORICAL");
-  assert.equal(classifyReviewContextAsset("releases/1.111.0/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.111.1/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.111.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.110.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.109.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.108.0/release-record.md", authority), "HISTORICAL");
@@ -53,6 +55,7 @@ test("effective guidance follows current references and stops at compatibility b
   const graph = effectiveGuidanceGraph(authority, false, path.resolve("."));
   assert.ok(graph.nodes.some((node) => node.source === "core/project-onboarding.md" && node.registration === "REFERENCE"));
   assert.ok(graph.nodes.some((node) => node.source === "scripts/init-project.mjs" && node.registration === "GENERATOR"));
+  assert.ok(graph.nodes.some((node) => node.source === "scripts/new-workflow-item.mjs" && node.registration === "GENERATOR"));
   assert.ok(!graph.nodes.some((node) => node.source === "docs/plans/project-entry-adoption-trust-hardcut-1.109-plan.md"));
   assert.ok(!graph.nodes.some((node) => node.source === "platforms/claude/instructions.md"));
   assert.ok(!graph.nodes.some((node) => node.source === "platforms/cursor/rules-template.md"));
@@ -91,6 +94,11 @@ test("implicit technical decisions in questions, menus, slogans, and sections fa
     "| Technical choice | User action |\n|---|---|\n| Platform profile | User confirms the selection |",
     "If any Risk Gate item is checked, Human Approval must be recorded before implementation.",
     "## Human-Only Decisions\n\n- technology stack approval\n- first vertical slice approval",
+    "AI executes. Humans decide.",
+    "Explicit human approval is required before code changes.",
+    "Unknown technical risk must stop for human confirmation.",
+    "Architecture and dependency changes require human judgment.",
+    "Release readiness requires a user decision.",
   ];
   for (const guidance of contradictory) {
     assert.notEqual(analyzeActiveGuidanceConflicts(guidance).length, 0, guidance);
@@ -102,6 +110,8 @@ test("semantic hardcut preserves technical delegation and bounded real-world con
     "Codex selects the profile and baseline; do not ask the user to confirm technical choices.",
     "Ask for consent only before the prepared production deployment with rollback evidence.",
     "Ask which refund period the business requires.",
+    "Codex resolves unknown technical risk through evidence and independent review.",
+    "Codex determines release readiness; ask only for consent to the prepared production effect.",
   ];
   for (const guidance of aligned) assert.deepEqual(analyzeActiveGuidanceConflicts(guidance), [], guidance);
 });

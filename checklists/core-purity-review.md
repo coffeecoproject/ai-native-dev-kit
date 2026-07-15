@@ -37,9 +37,9 @@ Use this checklist for changes to:
 - [ ] Does not weaken risk gate
 - [ ] Does not weaken verification gate
 - [ ] Does not weaken release gate
-- [ ] Preserves human approval for high-risk changes
+- [ ] Preserves stricter internal review and exact consent for prepared
+      high-risk real-world effects without delegating technical judgment
 
 ## Decision
 
 APPROVE / REQUEST_CHANGES / BLOCK
-

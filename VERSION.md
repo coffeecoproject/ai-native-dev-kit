@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.111.0`
+Current version: `1.111.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.111.0`
 
 ## Current Release
 
-`1.111.0`
+`1.111.1`
 
 Includes:
+
+- Active Guidance Responsibility Consistency Close-Out `1.111.1`: aligns the
+  current Core, docs, checklists, templates, generated assets, and runtime
+  guidance with the zero-experience solo-user contract.
+- Codex now owns technical route selection, planning, risk treatment, review,
+  verification, apply readiness, and release-readiness recommendations across
+  the checked guidance graph. Compatibility labels remain readable but cannot
+  become public technical decisions. No new public workflow, lifecycle, state
+  machine, command, or execution authority is introduced.
 
 - Understanding and Planning Closure `1.111.0`: derives one current-task
   planning conclusion from existing Work Queue, Task Governance, business,

@@ -50,14 +50,16 @@ It is optional for clearly isolated copy-only or docs-only tasks, but Codex must
 - `REQUIRED`: this surface must be handled or explicitly closed.
 - `OPTIONAL`: this surface may be affected, but current evidence is weak.
 - `NOT_APPLICABLE`: this surface is intentionally ruled out with a reason.
-- `NEEDS_HUMAN_DECISION`: this surface requires human judgment before implementation.
+- `NEEDS_HUMAN_DECISION`: compatibility state for a missing business/external
+  fact, exact real-world consent, or unresolved Codex-owned technical evidence.
 
 ### Implementation Coverage
 
 - `DONE`: handled and linked to evidence.
 - `NOT_APPLICABLE`: not relevant, with a concrete reason.
 - `OUT_OF_SCOPE`: relevant but intentionally excluded from this task, with owner or follow-up.
-- `NEEDS_HUMAN_DECISION`: cannot be closed without human decision.
+- `NEEDS_HUMAN_DECISION`: cannot close until its current four-class
+  interpretation or technical blocker is resolved.
 - `NOT_STARTED`: pre-execution report only; implementation has not started.
 
 ## Modes
@@ -99,8 +101,10 @@ Before implementation, Codex should:
 
 1. Read the user request and project signals.
 2. Select likely affected surfaces.
-3. Ask only the minimum necessary human questions.
-4. Mark any high-risk surface as `NEEDS_HUMAN_DECISION` when evidence is insufficient.
+3. Ask only for a permitted unavailable business/external fact or exact
+   real-world consent.
+4. Keep high-risk technical evidence gaps Codex-owned and mark the compatibility
+   state with its exact current interpretation.
 5. Keep the report read-only.
 
 After implementation, Codex should:
@@ -108,7 +112,9 @@ After implementation, Codex should:
 1. Close every required surface.
 2. Link evidence for every `DONE` surface.
 3. Explain every `NOT_APPLICABLE` or `OUT_OF_SCOPE` surface.
-4. Stop if permission, data, migration, payment, production, or compliance scope needs human decision.
+4. Stop the dependent action when permission, data, migration, payment,
+   production, or compliance lacks technical evidence, external authority, or
+   exact real-world consent; do not ask the user to choose technical treatment.
 5. Feed missed surfaces into Review Loop or Execution Closure.
 
 When `--changed-files`, `--from-git-diff`, `--cached`, `--base`, or another changed-file list is available, Codex must use it as a risk signal:
@@ -124,10 +130,15 @@ Changed files reduce manual copying but do not prove correctness.
 
 ## Stop Conditions
 
-Stop and ask for human decision when:
+Stop the dependent action when:
 
-- a high-risk surface is affected and no approval or baseline exists
-- the task requires a migration, production config change, payment change, permission model change, or sensitive data handling
+- a high-risk surface is affected and no current baseline, evidence, review, or
+  rollback path exists;
+- the task requires a migration, production config change, payment change,
+  permission model change, or sensitive data handling whose technical path is
+  not yet proven;
+- an unavailable business/external fact or exact prepared real-world consent is
+  required.
 - the report cannot determine whether frontend, backend, API, data, or tests are in scope
 - the user request changes during implementation
 - closing the surface would require work outside the approved task

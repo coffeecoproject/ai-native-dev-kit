@@ -76,4 +76,6 @@ It does not:
 - approve implementation or cleanup work
 
 If Codex wants to do any of those, it must present a separate reviewed plan and
-wait for human approval.
+prove the applicable controlled-apply authority. The ordinary user is asked
+only for a missing business fact or consent to one prepared real-world effect,
+not to judge document topology or technical safety.

@@ -50,7 +50,7 @@ A Goal Card records:
 - required artifacts
 - allowed actions
 - forbidden actions
-- human decisions needed
+- permitted user inputs or Codex-owned technical blockers
 - next safe step
 
 Goal Cards are useful for new projects, old projects, review work, and handoff/reporting work. They are not required for every tiny L0 edit unless the project asks for strict entry governance.
@@ -97,7 +97,9 @@ The path is:
 Request -> Preflight -> Engineering Baseline when needed -> Spec -> Eval -> Task
 ```
 
-Do not implement until the task card has enough scope, acceptance criteria, verification, risk handling, and human approval when needed.
+Do not implement until the task card has enough scope, acceptance criteria,
+verification, technical risk handling, and any applicable business/external
+fact or exact real-world consent.
 
 ### Implementation Requires A Task
 
@@ -177,7 +179,7 @@ DO_NOT_PROCEED
 | `L0` | Goal Card optional unless project requires strict entry governance |
 | `L1` | Goal Card recommended when the request is broad or has multiple possible paths |
 | `L2` | Goal Card recommended; Review Packet / Review Loop must be planned when implementation proceeds |
-| `L3` | Goal Card required before execution; human decisions and review path must be explicit |
+| `L3` | Goal Card required before execution; technical review path and any permitted user input must be explicit |
 
 ## Checks
 

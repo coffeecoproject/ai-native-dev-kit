@@ -28,7 +28,9 @@ Use this checklist before treating a Workflow Adoption Map as ready.
 - The report does not approve business-code changes.
 - The report does not claim production readiness or compliance.
 - Dirty worktree, production, release, migration, secrets, data, payment,
-  security, privacy, tax, HR, and permission signals stop for human approval.
+  security, privacy, tax, HR, and permission signals select stricter technical
+  inspection; only permitted business/external facts or exact real-world
+  consent are surfaced to the user.
 
 ## Human Decision
 

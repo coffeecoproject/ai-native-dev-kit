@@ -234,11 +234,11 @@ function classifyDeliveryPath(project, signals) {
       nextTargetState: "READY_FOR_PLAN",
       canMoveNow: "Limited",
       canAiContinueNow: "limited",
-      outcome: "NEEDS_HUMAN_DECISION",
-      nextSafeAction: "Confirm risk boundaries, then prepare a read-only plan with review surfaces.",
-      blockers: ["Risk signals require human confirmation before execution."],
-      distance: ["Risk boundaries are not confirmed.", "The project may need Safe Launch before trial or release."],
-      recommendedChoice: "B - Confirm risk boundary before execution",
+      outcome: "DELIVERY_PATH_RECORDED",
+      nextSafeAction: "Codex derives the technical risk boundary from project evidence, prepares a read-only plan, and selects the required review surfaces.",
+      blockers: ["Risk signals require stronger internal evidence and review before execution."],
+      distance: ["Technical risk boundaries are not yet evidence-backed.", "The project may need Safe Launch before trial or release."],
+      recommendedChoice: "Codex prepares the evidence-backed risk boundary before execution",
     });
   }
 
@@ -345,11 +345,14 @@ function evidence(name, status, notes) {
 
 function userDecisionsFor(project, signals, deliveryPath) {
   const decisions = [];
-  if (project.existingUsersAssumed !== "No") decisions.push("Confirm whether real users or real data are involved.");
-  if (project.riskLevel === "high" || signals.hasRiskSignals) decisions.push("Confirm risk boundary before implementation.");
-  if (deliveryPath.currentState === "IDEA_ONLY") decisions.push("Confirm the smallest useful slice.");
+  if (project.existingUsersAssumed !== "No" && !signals.hasReleaseSignals) {
+    decisions.push("BUSINESS_FACT_NEEDED only if project evidence cannot establish whether real users or real data are involved.");
+  }
+  if (deliveryPath.currentState === "IDEA_ONLY") {
+    decisions.push("PRODUCT_PREFERENCE_NEEDED only if more than one materially different smallest useful slice remains after Codex analysis.");
+  }
   if (deliveryPath.currentState === "BLOCKED_BY_DIRTY_WORK") decisions.push("Confirm whether to continue, pause, split, or defer current changes.");
-  if (decisions.length === 0) decisions.push("Confirm whether Codex may prepare the next small plan.");
+  if (decisions.length === 0) decisions.push("NO_USER_ACTION: Codex may prepare the next bounded plan from the current request and project evidence.");
   return decisions.slice(0, project.riskLevel === "high" ? 5 : 3);
 }
 

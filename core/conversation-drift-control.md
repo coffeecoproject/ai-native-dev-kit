@@ -32,7 +32,7 @@ Codex must decide whether the message is:
 | `SCOPE_CHANGE` | The user adds, removes, or changes work materially. Stop for decision. |
 | `NEW_TASK` | The user starts a separate task. Do not fold into the current one silently. |
 | `DIRECT_FOLLOW_UP` | A related next step. Suggest or create a new entry, but do not execute inside current task. |
-| `RISK_DECISION` | The user mentions or requests a decision on risk, release, production, payment, privacy, security, migration, or irreversible operation. Stop for human decision. |
+| `RISK_DECISION` | The user mentions risk, release, production, payment, privacy, security, migration, or an irreversible operation. Codex selects the technical review path and asks only for a permitted missing input or exact prepared consent. |
 | `PAUSE_OR_STOP` | The user asks Codex to pause, stop, or only report. |
 | `REVIEW_ONLY` | The user asks Codex to inspect, review, or discuss without edits. |
 | `MEMORY_CANDIDATE` | The message may become future project memory after approval. |
@@ -44,7 +44,7 @@ Codex may continue the current task only when:
 
 - the message is `ANSWER_TO_PENDING_QUESTION` or `CONTINUE_CURRENT_TASK`
 - the scope did not change
-- no high-risk human decision is required
+- no unresolved technical gate or permitted user input blocks the dependent action
 - the active task is still valid
 
 Codex must not continue when:
@@ -81,18 +81,14 @@ Create a Scope Change Report when:
 - new platform, baseline, dependency, permission, payment, privacy, migration, or release risk appears
 - the new request competes with the current task
 
-## Human Decision Boundary
+## Responsibility Boundary
 
-Codex may recommend how to route the turn.
-
-Humans decide whether to:
-
-- change scope
-- start a new task
-- accept risk
-- launch or release
-- pause or cancel work
-- promote a memory candidate
+Codex determines how to route the turn, preserve the current task, classify
+technical risk, and maintain memory candidates. The user supplies a business
+priority when two valid product outcomes conflict, may pause/cancel work, and
+may consent to an exact prepared launch or release effect. Technical scope,
+risk treatment, task mechanics, and memory promotion remain Codex-owned and
+evidence-bound.
 
 ## Artifact Use
 

@@ -79,7 +79,8 @@ check(JSON.stringify(authority.precedence) === JSON.stringify([
 const classificationCases = [
   ["core/review-context-authority.md", "CURRENT"],
   ["prompts/reviewer-agent.md", "CURRENT"],
-  ["releases/1.111.0/release-record.md", "CURRENT"],
+  ["releases/1.111.1/release-record.md", "CURRENT"],
+  ["releases/1.111.0/release-record.md", "HISTORICAL"],
   ["releases/1.110.0/release-record.md", "HISTORICAL"],
   ["releases/1.109.0/release-record.md", "HISTORICAL"],
   ["releases/1.108.0/release-record.md", "HISTORICAL"],
@@ -89,7 +90,8 @@ const classificationCases = [
   ["releases/1.99.2/release-record.md", "HISTORICAL"],
   ["releases/1.99.1/release-record.md", "HISTORICAL"],
   ["releases/1.80.0/release-record.md", "HISTORICAL"],
-  ["docs/plans/understanding-planning-closure-1.111-plan.md", "CURRENT"],
+  ["docs/plans/active-guidance-responsibility-consistency-1.111.1-plan.md", "CURRENT"],
+  ["docs/plans/understanding-planning-closure-1.111-plan.md", "HISTORICAL"],
   ["docs/plans/control-effectiveness-1.110-plan.md", "HISTORICAL"],
   ["docs/plans/project-entry-adoption-trust-hardcut-1.109-plan.md", "HISTORICAL"],
   ["docs/plans/business-universe-coverage-1.108-plan.md", "HISTORICAL"],
@@ -148,6 +150,11 @@ for (const guidance of [
   "Choose BL0, BL1, or BL2 before continuing.",
   "If any Risk Gate item is checked, Human Approval must be recorded before implementation.",
   "## Human-Only Decisions\n\n- technology stack approval\n- first vertical slice approval",
+  "AI executes. Humans decide.",
+  "Explicit human approval is required before code changes.",
+  "Unknown technical risk must stop for human confirmation.",
+  "Architecture and dependency changes require human judgment.",
+  "Release readiness requires a user decision.",
 ]) {
   check(analyzeActiveGuidanceConflicts(guidance).length > 0, `implicit technical-decision drift rejected: ${guidance.split("\n")[0]}`);
 }
@@ -155,6 +162,8 @@ for (const guidance of [
   "Codex selects the profile and baseline; do not ask the user to confirm technical choices.",
   "Ask for consent only before the prepared production deployment with rollback evidence.",
   "Ask which refund period the business requires.",
+  "Codex resolves unknown technical risk through evidence and independent review.",
+  "Codex determines release readiness; ask only for consent to the prepared production effect.",
 ]) {
   check(analyzeActiveGuidanceConflicts(guidance).length === 0, `valid responsibility guidance accepted: ${guidance}`);
 }

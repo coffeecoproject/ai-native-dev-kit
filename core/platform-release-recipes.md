@@ -44,9 +44,9 @@ Recipe selection is confidence-based:
 | Confidence | Behavior |
 |---|---|
 | `HIGH` | select recipe and explain why |
-| `MEDIUM` | suggest recipe and ask user to confirm |
-| `LOW` | show top candidates and ask one decision question |
-| `CONFLICT` | stop and ask the user to choose |
+| `MEDIUM` | select the safest bounded recipe and record the remaining evidence gap |
+| `LOW` | continue read-only discovery until one evidence-backed recipe can be recommended |
+| `CONFLICT` | block release planning while Codex resolves technical conflicts; ask only for a missing business target or external fact |
 
 ## Recipe Contract
 
@@ -57,7 +57,7 @@ Each recipe must define:
 - supported targets
 - required inputs
 - preflight checks
-- human decisions
+- permitted user inputs and exact real-world consent, when applicable
 - Codex allowed actions
 - Codex blocked actions
 - required evidence

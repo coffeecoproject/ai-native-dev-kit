@@ -24,9 +24,10 @@ For any paused task that may resume, confirm:
 
 ## Stop Conditions
 
-Stop for human decision if:
+Stop queue mutation and let Codex reconcile if:
 
-- more than one task is marked `CURRENT`
+- more than one task is marked `CURRENT`; ask only if an unavailable business
+  priority remains after technical reconciliation
 - a paused task is requested for resume but current-state evidence is missing
 - the user asks to switch tasks without pausing or closing the current task
 - the Work Queue report claims it approved code changes

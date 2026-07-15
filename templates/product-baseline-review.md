@@ -1,25 +1,18 @@
 # Product Baseline Review: <change-name>
 
-## Human Decision Summary
+## Plain Outcome Summary
 
 Conclusion:
 
-Recommended choice: A / B / C / D
+Codex conclusion: PASS / REPAIR_REQUIRED / BUSINESS_FACT_NEEDED /
+EXTERNAL_FACT_NEEDED / BLOCKED
 
-Can AI continue now: yes / limited / no
+Codex next action:
 
-What I need from you:
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED /
+REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Pass review | Keep the change as aligned with product baseline | Report only | low | Choose when the change reduces user burden and preserves authority |
-| B | Repair wording or routing | Adjust outputs, docs, or templates | Docs/templates only | low/medium | Choose when behavior is right but hard to judge |
-| C | Stop for product decision | Pause before expanding scope or claims | Decision/report only | medium/high | Choose when the change shifts product direction |
-| D | Reject change | Do not include this product behavior | Report only | low | Choose when it adds burden or overclaims capability |
-
-Recommended reason:
-
-What happens if you do nothing:
+One plain question, only if input is needed:
 
 ## Human Summary
 
@@ -31,13 +24,13 @@ One-sentence judgment:
 |---|---|---|
 | Does this improve guided delivery from idea to safe handoff? | Yes / No |  |
 | Does this reduce user burden? | Yes / No |  |
-| Does this preserve human decision authority? | Yes / No |  |
+| Does this preserve bounded business input and real-world consent? | Yes / No |  |
 
 ## Product Boundary
 
 | Rule | Status | Evidence |
 |---|---|---|
-| Human decides; AI executes approved work | PASS / FAIL / NOT_APPLICABLE |  |
+| User supplies business/external facts or exact consent; Codex owns technical work | PASS / FAIL / NOT_APPLICABLE |  |
 | Reports are not approvals | PASS / FAIL / NOT_APPLICABLE |  |
 | Simulated evidence is not production evidence | PASS / FAIL / NOT_APPLICABLE |  |
 | Draft packs are not stable packs | PASS / FAIL / NOT_APPLICABLE |  |
