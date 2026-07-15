@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [IntentOS 1.112-1.114 Capability Closure And Structural Governance](capability-closure-and-structural-governance-1.112-1.114-plan.md)
 - [IntentOS 1.111.1 Active Guidance Responsibility Consistency Close-Out](active-guidance-responsibility-consistency-1.111.1-plan.md)
 - [IntentOS 1.111 Understanding And Planning Closure](understanding-planning-closure-1.111-plan.md)
 - [IntentOS 1.110 Control Effectiveness](control-effectiveness-1.110-plan.md)
