@@ -24,7 +24,7 @@ const workflowOutputDirectories = new Set([
   "hook-policies", "intentos-proposals", "launch-readiness", "launch-review-views",
   "implementation-plans", "learning-candidates", "mvp-example-reports", "native-adoption-review-reports",
   "native-migration-plans", "ordinary-first-slices", "patch-classification-false-positives",
-  "patch-classifications", "plan-review-reports", "product-completeness-reports", "real-adoption-trials",
+  "patch-classifications", "plan-review-reports", "planning-closure-reports", "product-completeness-reports", "real-adoption-trials",
   "release-adapters", "release-approval-records", "release-candidates", "release-channel-policies",
   "release-evidence-gate-reports", "release-execution-plans", "release-guides",
   "release-execution-topologies", "release-handoff-packs", "release-plans", "release-recipes",

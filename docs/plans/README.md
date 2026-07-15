@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [IntentOS 1.111 Understanding And Planning Closure](understanding-planning-closure-1.111-plan.md)
 - [IntentOS 1.110 Control Effectiveness](control-effectiveness-1.110-plan.md)
 - [IntentOS 1.108 Business Universe Coverage](business-universe-coverage-1.108-plan.md)
 - [IntentOS 1.104.1 Active Guidance Semantic Hardcut](active-guidance-semantic-hardcut-1.104.1-plan.md)

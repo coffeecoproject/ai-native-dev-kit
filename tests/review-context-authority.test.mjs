@@ -20,7 +20,8 @@ const authority = loadReviewContextAuthority();
 
 test("current product contract overrides compatibility and historical material", () => {
   assert.equal(classifyReviewContextAsset("core/review-context-authority.md", authority), "CURRENT");
-  assert.equal(classifyReviewContextAsset("docs/plans/control-effectiveness-1.110-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/understanding-planning-closure-1.111-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/control-effectiveness-1.110-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/project-entry-adoption-trust-hardcut-1.109-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/business-universe-coverage-1.108-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/active-guidance-distribution-closeout-1.107.1-plan.md", authority), "HISTORICAL");
@@ -29,7 +30,8 @@ test("current product contract overrides compatibility and historical material",
   assert.equal(classifyReviewContextAsset("docs/plans/review-context-enforcement-1.99.2-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/review-context-authority-1.99.1-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/zero-experience-solo-operating-model-1.99-plan.md", authority), "HISTORICAL");
-  assert.equal(classifyReviewContextAsset("releases/1.110.0/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.111.0/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.110.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.109.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.108.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.107.1/release-record.md", authority), "HISTORICAL");

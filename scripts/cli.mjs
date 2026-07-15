@@ -106,6 +106,24 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "planning-closure": {
+    description: "Derive one read-only planning conclusion before implementation review without authorizing project writes.",
+    script: "scripts/resolve-planning-closure.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "planning-closure-check": {
+    description: "Check Planning Closure evidence, source authority, and the non-authorizing Execution Entry Contract.",
+    script: "scripts/check-planning-closure.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "execution-entry-contract-check": {
+    description: "Check that a ready Planning Closure exposes one exact, non-authorizing execution entry contract.",
+    script: "scripts/check-execution-entry-contract.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "impact-coverage": {
     description: "Map affected surfaces for a change so Codex does not complete only one layer.",
     script: "scripts/resolve-change-impact-coverage.mjs",

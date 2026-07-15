@@ -75,6 +75,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Business Rule Closure](business-rule-closure.md)
 - [Business Universe Coverage](business-universe-coverage.md)
 - [Control Effectiveness](control-effectiveness.md)
+- [Understanding And Planning Closure](understanding-planning-closure.md)
 - [Change Impact Coverage](change-impact-coverage.md)
 - [Behavior-Complete Existing Project Adoption](behavior-complete-existing-project-adoption.md)
 - [Existing Project Work Queue Takeover](existing-project-work-queue-takeover.md)

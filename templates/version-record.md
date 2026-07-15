@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.110.0`
+`1.111.0`
 
 ## Project Version File
 
@@ -17,6 +17,11 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.111.0` derives one current-task Planning Closure before implementation
+  review. Only current, valid, task-bound planning evidence can produce the
+  explicitly non-authorizing Execution Entry Contract; incomplete planning
+  remains Codex-owned technical work.
 
 - `1.110.0` requires claim-scoped effectiveness proof before an
   IntentOS-native or project-native control can support adoption, planning,

@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/planning-closure.schema.json",
+  "title": "Planning Closure Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_type", "report_ref", "report_digest", "closure_core_digest",
+    "task_ref", "intent_digest", "task_impact", "authority_binding",
+    "project_entry", "current_task", "task_governance", "source_requirements",
+    "first_blocker", "execution_entry_contract", "plain_summary",
+    "plain_next_step", "technical_decision_required_from_user", "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.111.0" },
+    "artifact_type": { "const": "planning_closure" },
+    "report_ref": { "type": "string", "pattern": "^(?:artifact:|file:)?(?:\\.intentos/)?planning-closure-reports/[a-zA-Z0-9._/-]+\\.md$" },
+    "report_digest": { "$ref": "#/$defs/digest" },
+    "closure_core_digest": { "$ref": "#/$defs/digest" },
+    "task_ref": { "type": "string", "minLength": 1 },
+    "intent_digest": { "$ref": "#/$defs/digest" },
+    "task_impact": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH", "UNKNOWN"] },
+    "authority_binding": { "$ref": "#/$defs/authorityBinding" },
+    "project_entry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["state", "ready_for_intentos_operation", "reason"],
+      "properties": {
+        "state": { "type": "string", "minLength": 1 },
+        "ready_for_intentos_operation": { "enum": ["Yes", "No"] },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "current_task": {
+      "type": "object", "additionalProperties": false,
+      "required": ["work_queue_ref", "work_queue_item_digest", "current_task_count", "task_ref", "intent_digest", "current_task_match"],
+      "properties": {
+        "work_queue_ref": { "type": "string", "minLength": 1 },
+        "work_queue_item_digest": { "type": "string", "minLength": 1 },
+        "current_task_count": { "type": "integer" },
+        "task_ref": { "type": "string" },
+        "intent_digest": { "type": "string" },
+        "current_task_match": { "enum": ["Yes", "No", "Unknown"] }
+      }
+    },
+    "task_governance": { "$ref": "#/$defs/sourceBinding" },
+    "source_requirements": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["source_kind", "required", "report_ref", "report_digest", "source_state", "validation_state", "current_task_match", "current_intent_match", "reason"],
+        "properties": {
+          "source_kind": { "type": "string", "minLength": 1 },
+          "required": { "enum": ["Yes", "No"] },
+          "report_ref": { "type": "string", "minLength": 1 },
+          "report_digest": { "type": "string", "minLength": 1 },
+          "source_state": { "type": "string", "minLength": 1 },
+          "validation_state": { "enum": ["VALID", "MISSING", "INVALID", "BLOCKED", "NOT_REQUIRED"] },
+          "current_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+          "current_intent_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "first_blocker": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "owner_class", "summary", "next_action"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "owner_class": { "enum": ["CODEX_TECHNICAL_WORK", "BUSINESS_FACT_NEEDED", "EXTERNAL_FACT_NEEDED", "REAL_WORLD_CONSENT_NEEDED", "NONE"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "next_action": { "type": "string", "minLength": 1 }
+      }
+    },
+    "execution_entry_contract": {
+          "type": ["object", "null"], "additionalProperties": false,
+          "required": [
+            "contract_id", "contract_digest", "project_identity_digest", "source_revision_digest",
+            "task_ref", "intent_digest", "task_impact", "planning_closure_ref", "planning_closure_digest",
+            "source_bindings", "authorizes_implementation", "authorizes_project_writes", "authorizes_apply",
+            "authorizes_release", "authorizes_production", "requires_pre_write_revalidation"
+          ],
+          "properties": {
+            "contract_id": { "type": "string", "pattern": "^execution-entry:[a-z0-9][a-z0-9._:-]*$" },
+            "contract_digest": { "$ref": "#/$defs/digest" },
+            "project_identity_digest": { "$ref": "#/$defs/digest" },
+            "source_revision_digest": { "type": "string", "minLength": 1 },
+            "task_ref": { "type": "string", "minLength": 1 },
+            "intent_digest": { "$ref": "#/$defs/digest" },
+            "task_impact": { "enum": ["LOW", "MEDIUM", "HIGH"] },
+            "planning_closure_ref": { "type": "string", "minLength": 1 },
+            "planning_closure_digest": { "$ref": "#/$defs/digest" },
+            "source_bindings": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/sourceBinding" } },
+            "authorizes_implementation": { "const": "No" },
+            "authorizes_project_writes": { "const": "No" },
+            "authorizes_apply": { "const": "No" },
+            "authorizes_release": { "const": "No" },
+            "authorizes_production": { "const": "No" },
+            "requires_pre_write_revalidation": { "const": "Yes" }
+          }
+    },
+    "plain_summary": { "type": "string", "minLength": 1 },
+    "plain_next_step": { "type": "string", "minLength": 1 },
+    "technical_decision_required_from_user": { "const": "No" },
+    "boundaries": {
+      "type": "object", "additionalProperties": false,
+      "required": ["read_only", "changes_task_state", "authorizes_implementation", "authorizes_writes", "authorizes_apply", "authorizes_release", "authorizes_production", "proves_completion"],
+      "properties": {
+        "read_only": { "const": "Yes" },
+        "changes_task_state": { "const": "No" },
+        "authorizes_implementation": { "const": "No" },
+        "authorizes_writes": { "const": "No" },
+        "authorizes_apply": { "const": "No" },
+        "authorizes_release": { "const": "No" },
+        "authorizes_production": { "const": "No" },
+        "proves_completion": { "const": "No" }
+      }
+    },
+    "outcome": { "enum": ["PLANNING_READY", "PLANNING_IN_PROGRESS", "PLANNING_INPUT_NEEDED", "PLANNING_DISCOVERY_NEEDED", "PLANNING_BLOCKED", "PLANNING_INVALID"] }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "sourceBinding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_kind", "ref", "digest", "state", "current_task_match"],
+      "properties": {
+        "source_kind": { "type": "string", "minLength": 1 },
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "minLength": 1 },
+        "state": { "type": "string", "minLength": 1 },
+        "current_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] }
+      }
+    },
+    "authorityBinding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["binding_version", "project", "task", "sources"],
+      "properties": {
+        "binding_version": { "const": "1.91.0" },
+        "project": {
+          "type": "object", "additionalProperties": false,
+          "required": ["kind", "fingerprint", "revision"],
+          "properties": {
+            "kind": { "enum": ["GIT", "NON_GIT"] },
+            "fingerprint": { "$ref": "#/$defs/digest" },
+            "revision": { "type": "string", "minLength": 1 }
+          }
+        },
+        "task": {
+          "type": "object", "additionalProperties": false,
+          "required": ["task_ref", "intent_digest"],
+          "properties": {
+            "task_ref": { "type": "string", "minLength": 1 },
+            "intent_digest": { "$ref": "#/$defs/digest" }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["ref", "relative_path", "raw_file_digest"],
+            "properties": {
+              "ref": { "type": "string", "minLength": 1 },
+              "relative_path": { "type": "string", "minLength": 1 },
+              "raw_file_digest": { "$ref": "#/$defs/digest" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

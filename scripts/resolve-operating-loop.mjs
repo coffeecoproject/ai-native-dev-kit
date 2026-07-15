@@ -93,6 +93,7 @@ function buildOperatingState() {
   const closure = sources.find((item) => item.name === "UNIFIED_CLOSURE")?.value || null;
   const completionEvidence = sources.find((item) => item.name === "COMPLETION_EVIDENCE")?.value || null;
   const workQueue = sources.find((item) => item.name === "WORK_QUEUE")?.value || null;
+  const planningClosure = sources.find((item) => item.name === "PLANNING_CLOSURE")?.value || null;
   const release = sources.find((item) => item.name === "RELEASE_GUIDE")?.value || null;
   const adoption = sources.find((item) => item.name === "ADOPTION_AUTOPILOT")?.value || null;
   const currentGit = gitWorktreeState(projectRoot);
@@ -103,7 +104,9 @@ function buildOperatingState() {
   const dirtyWorktree = currentGit.isDirty
     || projectState === "DIRTY_WORKTREE_PROJECT"
     || projectStateTags.includes("DIRTY_WORKTREE_PROJECT");
-  const taskImpact = taskGovernance?.impactClassification?.task_impact
+  const planningTaskImpact = planningClosure?.structuredEvidence?.task_impact;
+  const taskImpact = (planningTaskImpact && planningTaskImpact !== "UNKNOWN" ? planningTaskImpact : "")
+    || taskGovernance?.impactClassification?.task_impact
     || taskGovernance?.structuredEvidence?.impact_classification?.task_impact
     || "NOT_APPLICABLE";
   const operatingState = operatingStateFor({
@@ -116,10 +119,11 @@ function buildOperatingState() {
     closure,
     completionEvidence,
     workQueue,
+    planningClosure,
     discussionOnly: operation === "DISCUSS_ONLY",
     resumeRequested: operation === "RESUME_TASK",
   });
-  const evidenceTrace = buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, closure, release, adoption);
+  const evidenceTrace = buildEvidenceTrace(sources, operation, taskGovernance, planningClosure, deliveryStatus, closure, release, adoption);
   const sourceSystemTrace = sources.map(toSourceTrace);
   const projectIdentityProjection = buildProjectIdentityProjection({
     workflowNext,
@@ -139,6 +143,7 @@ function buildOperatingState() {
     closure,
     completionEvidence,
     workQueue,
+    planningClosure,
     sourceFailure,
     dirtyWorktree,
     evidenceTrace,
@@ -239,6 +244,19 @@ function addOperationSources(sources, operation) {
   }
   if (["CONTINUE_TASK", "CHECK_STATUS", "FINISH_TASK", "RESUME_TASK", "DISCUSS_ONLY"].includes(operation)) {
     sources.push(runSource("WORK_QUEUE", "scripts/resolve-work-queue.mjs", [projectRoot, "--json"]));
+  }
+  if (["CONTINUE_TASK", "CHECK_STATUS", "RESUME_TASK"].includes(operation)) {
+    const currentQueueTask = sources.find((item) => item.name === "WORK_QUEUE")?.value?.currentTaskCandidates?.[0] || null;
+    if (currentQueueTask) {
+      const planningArgs = [
+        projectRoot,
+        "--intent", String(currentQueueTask.title || intent),
+        "--task-ref", String(currentQueueTask.taskRef || currentQueueTask.taskId || ""),
+        "--json",
+      ];
+      if (currentQueueTask.intentDigest) planningArgs.push("--intent-digest", currentQueueTask.intentDigest);
+      sources.push(runSource("PLANNING_CLOSURE", "scripts/resolve-planning-closure.mjs", planningArgs));
+    }
   }
   if (["CHECK_STATUS", "FINISH_TASK", "PREPARE_RELEASE"].includes(operation)) {
     sources.push(runSource("USER_DELIVERY_CONSOLE", "scripts/resolve-user-delivery-console.mjs", [projectRoot, "--intent", intent, "--json"]));
@@ -528,6 +546,17 @@ function operatingStateFor(context) {
   if (context.operation === "CHECK_STATUS") return "STATUS_AVAILABLE";
   if (context.operation === "ADOPT_PROJECT") return "ADOPTION_REVIEW_ACTIVE";
   if (context.operation === "PREPARE_RELEASE") return "RELEASE_REVIEW_ONLY";
+  if (context.operation === "CONTINUE_TASK" && context.planningClosure) {
+    const planningOutcome = context.planningClosure.outcome;
+    if (planningOutcome === "PLANNING_INVALID") return "PLANNING_INVALID";
+    if (planningOutcome === "PLANNING_DISCOVERY_NEEDED") return "NEEDS_READ_ONLY_RISK_REVIEW";
+    if (planningOutcome === "PLANNING_INPUT_NEEDED") return "NEEDS_PLANNING_INPUT";
+    if (planningOutcome !== "PLANNING_READY") return "NEEDS_PLANNING_EVIDENCE";
+    if (context.productionSensitive) return "READY_FOR_PROJECT_GOVERNED_WORK_REVIEW";
+    return context.planningClosure.structuredEvidence?.task_impact === "LOW"
+      ? "READY_FOR_LIGHTWEIGHT_WORK_REVIEW"
+      : "READY_FOR_IMPLEMENTATION_REVIEW";
+  }
   const impact = context.taskImpact || "POSSIBLE_HIGH";
   const ready = context.taskGovernance?.readiness?.ready_for_implementation_review === "Yes";
   if (impact === "POSSIBLE_HIGH") return "NEEDS_READ_ONLY_RISK_REVIEW";
@@ -594,7 +623,7 @@ function completionMatchesCurrentTask(context) {
     && reports[0].canClaimComplete === "Yes";
 }
 
-function buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, closure, release, adoption) {
+function buildEvidenceTrace(sources, operation, taskGovernance, planningClosure, deliveryStatus, closure, release, adoption) {
   const nodes = sources.map((source) => ({
     id: source.name,
     ref: source.ref,
@@ -611,6 +640,7 @@ function buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, 
   }));
   const missing = unique([
     ...(taskGovernance?.readiness?.blocked_by || []),
+    ...(Array.isArray(planningClosure?.blockers) ? planningClosure.blockers : []).map((item) => item?.summary || item?.code || String(item)),
     ...(deliveryStatus?.missingItems || []),
     ...(closure?.requiredNextAction || []),
     ...arrayValue(release?.humanDecisions),
@@ -903,10 +933,19 @@ function selectOperatingAction(context) {
   if (context.operation === "ADOPT_PROJECT") return action("RUN_ADOPTION_REVIEW", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "ADOPTION_REVIEW_REQUIRED", true);
   if (context.operation === "CHECK_STATUS") return action("SUMMARIZE_CURRENT_STATUS", "REPORTING", "READY_TO_REPORT", "STATUS_SUMMARY_REQUESTED", true);
   if (context.operation === "PREPARE_RELEASE") return action("PREPARE_RELEASE_REVIEW", "RELEASE_REVIEW_PREPARATION", "ACTION_REQUIRED", "RELEASE_REVIEW_REQUESTED", true);
+  if (context.operatingState === "PLANNING_INVALID") return action("REPAIR_PLANNING_EVIDENCE", "BLOCKED_RECOVERY", "BLOCKED", "PLANNING_EVIDENCE_INVALID", true);
+  if (context.operatingState === "NEEDS_PLANNING_INPUT") return action("RESOLVE_PLANNING_INPUT", "BUSINESS_INPUT", "ACTION_REQUIRED", "PLANNING_INPUT_REQUIRED", true);
+  if (context.planningClosure?.outcome === "PLANNING_READY") {
+    if (context.taskImpact === "LOW" && context.operatingState !== "READY_FOR_PROJECT_GOVERNED_WORK_REVIEW") {
+      return action("PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW", "IMPLEMENTATION_REVIEW_PREPARATION", "READY_FOR_REVIEW_PREPARATION", "PLANNING_CLOSURE_READY", true);
+    }
+    return action("PREPARE_IMPLEMENTATION_REVIEW", "IMPLEMENTATION_REVIEW_PREPARATION", "READY_FOR_REVIEW_PREPARATION", "PLANNING_CLOSURE_READY", true);
+  }
   if (context.taskImpact === "POSSIBLE_HIGH") return action("INSPECT_TASK_RISK", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "TASK_IMPACT_UNRESOLVED", true);
 
   const blockers = arrayValue(context.taskGovernance?.readiness?.blocked_by);
   if (blockers.length > 0) return actionForTaskBlocker(blockers);
+  if (context.operatingState === "NEEDS_PLANNING_EVIDENCE") return action("COMPLETE_PLANNING_CLOSURE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "PLANNING_CLOSURE_INCOMPLETE", true);
   if (context.taskGovernance?.readiness?.ready_for_implementation_review === "Yes") {
     if (context.taskImpact === "LOW" && context.operatingState !== "READY_FOR_PROJECT_GOVERNED_WORK_REVIEW") {
       return action("PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW", "IMPLEMENTATION_REVIEW_PREPARATION", "READY_FOR_REVIEW_PREPARATION", "LOW_TASK_READY_FOR_REVIEW", true);
@@ -944,6 +983,13 @@ function decisionBlockers(context) {
   if (context.operatingState === "NEEDS_TASK_SWITCH_REVIEW") return ["the new goal does not match the single CURRENT task"];
   if (context.operatingState === "NEEDS_WORK_QUEUE") return ["one durable CURRENT Work Queue item matching this task is required"];
   if (context.operatingState === "NEEDS_RESUME_REVIEW") return ["paused task requires current-state, worktree, evidence, and resume review"];
+  if (["PLANNING_INVALID", "NEEDS_PLANNING_INPUT", "NEEDS_PLANNING_EVIDENCE"].includes(context.operatingState)) {
+    return unique([
+      ...(Array.isArray(context.planningClosure?.blockers) ? context.planningClosure.blockers : [])
+        .map((item) => item?.summary || item?.code || String(item)),
+      ...arrayValue(context.taskGovernance?.readiness?.blocked_by),
+    ]);
+  }
   if (context.operation === "CONTINUE_TASK") return arrayValue(context.taskGovernance?.readiness?.blocked_by);
   if (context.operation === "FINISH_TASK" && context.operatingState !== "READY_TO_REPORT_DONE") {
     return arrayValue(context.closure?.requiredNextAction);
@@ -998,6 +1044,9 @@ function reasonFor(actionCode, blockers) {
     COMPLETE_CLOSURE_EVIDENCE: `Unified Closure does not support a done claim: ${firstBlocker}.`,
     REPORT_TASK_COMPLETE: "Unified Closure supports reporting the current task as done.",
     PREPARE_RELEASE_REVIEW: "The goal requests release preparation; release execution remains unauthorized.",
+    REPAIR_PLANNING_EVIDENCE: `Planning sources are inconsistent or invalid: ${firstBlocker}.`,
+    RESOLVE_PLANNING_INPUT: `Planning requires one business or external fact that the project cannot prove: ${firstBlocker}.`,
+    COMPLETE_PLANNING_CLOSURE: `Planning is not ready for implementation review: ${firstBlocker}.`,
   };
   return values[actionCode] || `The safe next route is ${actionCode}.`;
 }
@@ -1030,6 +1079,9 @@ function plainActionFor(actionCode, language = "en") {
     COMPLETE_CLOSURE_EVIDENCE: "Codex 先补齐缺失证据，再判断任务是否完成。",
     REPORT_TASK_COMPLETE: "Codex 可以生成任务完成说明，但这不代表发布或生产批准。",
     PREPARE_RELEASE_REVIEW: "Codex 自动准备发布、验证、备份和回滚材料；真正产生外部影响前再说明现实影响。",
+    REPAIR_PLANNING_EVIDENCE: "Codex 先修复当前任务、意图和规划证据之间的不一致，再继续。",
+    RESOLVE_PLANNING_INPUT: "Codex 已完成技术判断，现在只整理项目无法证明的业务或外部事实。",
+    COMPLETE_PLANNING_CLOSURE: "Codex 先自动补齐当前任务缺少的规划、影响和验证证据，再进入实现审查。",
   };
   const en = {
     REPAIR_SOURCE_READ: "Codex should explain or repair the failed source read before continuing.",
@@ -1058,6 +1110,9 @@ function plainActionFor(actionCode, language = "en") {
     COMPLETE_CLOSURE_EVIDENCE: "Codex should complete the missing evidence before deciding whether the task is done.",
     REPORT_TASK_COMPLETE: "Codex may report task completion, but this is not release or production approval.",
     PREPARE_RELEASE_REVIEW: "Codex should prepare release, verification, backup, and rollback evidence, then explain the real-world effect before external execution.",
+    REPAIR_PLANNING_EVIDENCE: "Codex should repair inconsistent task, intent, and planning evidence before continuing.",
+    RESOLVE_PLANNING_INPUT: "Codex has completed the technical judgment and should surface only the business or external fact the project cannot prove.",
+    COMPLETE_PLANNING_CLOSURE: "Codex should complete the missing planning, impact, and verification evidence before implementation review.",
   };
   return (language === "zh" ? zh : en)[actionCode] || actionCode;
 }
@@ -1080,7 +1135,8 @@ function sourceOutcome(value) {
 
 function sourceRef(value, script) {
   return String(
-    value?.structuredEvidence?.task_governance_ref
+    value?.structuredEvidence?.report_ref
+      || value?.structuredEvidence?.task_governance_ref
       || value?.structuredEvidence?.adoption_autopilot_ref
       || value?.reportRef
       || `generated:${script}`,
@@ -1103,6 +1159,7 @@ function relationFor(name, operation) {
   if (name === "WORKFLOW_NEXT") return "PROJECT_ENTRY_STATE_INPUT";
   if (name === "WORKFLOW_GUIDANCE") return "PROJECT_AND_ROUTE_INPUT";
   if (name === "TASK_GOVERNANCE") return "TASK_IMPACT_INPUT";
+  if (name === "PLANNING_CLOSURE") return "PLANNING_READINESS_INPUT";
   if (name === "CONTROL_EFFECTIVENESS_CHECK") return "CONTROL_EFFECTIVENESS_INPUT";
   if (name === "USER_DELIVERY_CONSOLE") return "STATUS_INPUT";
   if (name === "UNIFIED_CLOSURE") return "CLOSURE_INPUT";
@@ -1204,6 +1261,9 @@ function plainStateFor(state, language = "en") {
     NOT_DONE: "证据还不足以认定完成",
     NEEDS_READ_ONLY_RISK_REVIEW: "需要先只读确认风险",
     NEEDS_GOVERNANCE_EVIDENCE: "需要补齐任务治理证据",
+    PLANNING_INVALID: "规划证据不一致，需要先修复",
+    NEEDS_PLANNING_INPUT: "缺少项目无法证明的业务或外部事实",
+    NEEDS_PLANNING_EVIDENCE: "需要先补齐规划证据",
     READY_FOR_LIGHTWEIGHT_WORK_REVIEW: "可以进入轻量执行审查",
     READY_FOR_PROJECT_GOVERNED_WORK_REVIEW: "任务可继续，但必须保留生产项目原有门禁",
     READY_FOR_IMPLEMENTATION_REVIEW: "可以进入实现审查",
@@ -1225,6 +1285,9 @@ function plainStateFor(state, language = "en") {
     NOT_DONE: "Evidence is not sufficient to report done",
     NEEDS_READ_ONLY_RISK_REVIEW: "A read-only risk review is required",
     NEEDS_GOVERNANCE_EVIDENCE: "Task-governance evidence is required",
+    PLANNING_INVALID: "Planning evidence is inconsistent and must be repaired",
+    NEEDS_PLANNING_INPUT: "A business or external fact that the project cannot prove is required",
+    NEEDS_PLANNING_EVIDENCE: "Planning evidence must be completed first",
     READY_FOR_LIGHTWEIGHT_WORK_REVIEW: "Ready for lightweight implementation review",
     READY_FOR_PROJECT_GOVERNED_WORK_REVIEW: "Task may continue only under the production project's existing gates",
     READY_FOR_IMPLEMENTATION_REVIEW: "Ready for implementation review",

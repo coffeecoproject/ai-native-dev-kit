@@ -74,6 +74,7 @@ const typeMap = {
   "execution-closure-report": { dir: "execution-closures", template: "execution-closure-report.md", defaultName: "execution-closure" },
   "user-decision-card": { dir: "decision-briefs", template: "user-decision-card.md", defaultName: "user-decision" },
   "control-effectiveness-report": { dir: "control-effectiveness-reports", template: "control-effectiveness-report.md", defaultName: "control-effectiveness" },
+  "planning-closure-report": { dir: "planning-closure-reports", template: "planning-closure-report.md", defaultName: "planning-closure" },
 };
 
 const aliases = {
@@ -297,6 +298,9 @@ const aliases = {
   "control-effectiveness": "control-effectiveness-report",
   "control-proof": "control-effectiveness-report",
   "control-effectiveness-report": "control-effectiveness-report",
+  "planning-closure": "planning-closure-report",
+  "planning-closure-report": "planning-closure-report",
+  "execution-entry-contract": "planning-closure-report",
 };
 
 function parseArgs(argv) {

@@ -27,6 +27,7 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/low-risk-apply-candidate.schema.json": "sha256:6c6f64f687995bad99311732bceed926d2810b19f868fb9c4b0f8b53f5562b9f",
   "schemas/artifacts/native-migration-plan.schema.json": "sha256:16848409604cb6c2b8e0b53bb2e5c8332c2b73e1d18881216b99e613487fb6ac",
   "schemas/artifacts/plan-review.schema.json": "sha256:c948fc68768324a08bf0873262a38638bc51f8fb71ca0cdfa82e24815a725dec",
+  "schemas/artifacts/planning-closure.schema.json": "sha256:7f9926efe3fa3d51eda79705f4059af11d6c172d98f1a5731a20f57c2abf78a2",
   "schemas/artifacts/preflight.schema.json": "sha256:d0c928569a2d8c6a4776df78307b310a4c7420e56b5bb89964367f69a251f353",
   "schemas/artifacts/product-completeness-evidence.schema.json": "sha256:71da81e0c9202d4b8b15c409b1d957e2741219dd064301b83fbdea8750c2c7c2",
   "schemas/artifacts/project-entry-trust.schema.json": "sha256:63a571df190fb50e70814fc38bcd079b51824753e54706261322fbc9e0087211",

@@ -9,6 +9,11 @@ semantics, freshness, failure capability, result integrity, and operational
 safety are proven. It never authorizes implementation, apply, release,
 production, or final completion.
 
+`planning-closure-reports/*.md` is the read-only, task-bound planning summary
+derived from existing authoritative planning sources. Only a fully ready
+report contains a non-authorizing Execution Entry Contract; it never grants
+implementation, write, apply, release, production, or completion authority.
+
 Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0-lightweight-path.md` when the task is a prototype, small tool, or low-risk local change.
 
 ## Core Task Artifacts
@@ -27,6 +32,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | Directory | Purpose |
 |---|---|
 | `review-surface-cards/` | Selected review surfaces before execution and post-execution close-out contract |
+| `planning-closure-reports/` | One derived current-task planning conclusion and optional non-authorizing execution handoff |
 | `business-universe-coverage-reports/` | Conditional, task-bound evidence for scenario categories, participants, origins, lifecycle applicability, project-path provenance, selection/consistency relationships, proof strength, and deterministic resumable discovery |
 | `business-rule-closures/` | Business Rule Closure cards that close rule dimensions, safe defaults, limited user decisions, and real-environment validation expectations before impact coverage |
 | `change-impact-coverage-reports/` | Affected-surface coverage for validation, rule, API, backend, data, permission, copy, and business-behavior changes |

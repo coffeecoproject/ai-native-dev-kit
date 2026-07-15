@@ -19291,6 +19291,96 @@ function checkControlEffectivenessProtocol() {
   }
 }
 
+function checkUnderstandingPlanningClosureProtocol() {
+  const assets = [
+    "core/understanding-planning-closure.md",
+    "docs/understanding-planning-closure.md",
+    "docs/plans/understanding-planning-closure-1.111-plan.md",
+    "checklists/planning-closure-review.md",
+    "prompts/planning-closure-agent.md",
+    "templates/planning-closure-report.md",
+    "schemas/artifacts/planning-closure.schema.json",
+    "scripts/lib/planning-closure.mjs",
+    "scripts/resolve-planning-closure.mjs",
+    "scripts/check-planning-closure.mjs",
+    "scripts/check-execution-entry-contract.mjs",
+    "tests/understanding-planning-closure.test.mjs",
+    "tests/understanding-planning-consumer-chain.test.mjs",
+    "tests/understanding-planning-public-ux.test.mjs",
+    "planning-closure-reports/.gitkeep",
+    "releases/1.111.0/release-record.md",
+    "releases/1.111.0/known-limitations.md",
+    "releases/1.111.0/self-check-report.md",
+  ];
+  for (const file of assets) {
+    if (exists(file)) pass(`1.111 Planning Closure asset exists: ${file}`);
+    else fail(`1.111 Planning Closure asset missing: ${file}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const command of ["planning-closure", "planning-closure-check", "execution-entry-contract-check"]) {
+    if (cli.includes(`\"${command}\"`)) pass(`1.111 advanced CLI exposes ${command}`);
+    else fail(`1.111 advanced CLI missing ${command}`);
+  }
+  if (cli.includes("work:") && !cli.match(/work:[\s\S]{0,500}planning-closure/)) {
+    pass("1.111 keeps Planning Closure behind the existing public work entry");
+  } else {
+    fail("1.111 must not add Planning Closure as an ordinary-user workflow choice");
+  }
+
+  const focused = runNode([
+    "--test",
+    "tests/understanding-planning-closure.test.mjs",
+    "tests/understanding-planning-consumer-chain.test.mjs",
+    "tests/understanding-planning-public-ux.test.mjs",
+  ]);
+  if (focused.status === 0) pass("1.111 Planning Closure and public-entry regressions");
+  else fail(`1.111 Planning Closure regressions failed: ${focused.stderr || focused.stdout}`);
+
+  const compatibilityEmpty = runNode(["scripts/check-planning-closure.mjs", ".", "--allow-empty"]);
+  if (compatibilityEmpty.status === 0) pass("1.111 explicit non-strict empty state remains readable");
+  else fail(`1.111 compatibility empty-state check failed: ${compatibilityEmpty.stderr || compatibilityEmpty.stdout}`);
+  const strictEmpty = runNode(["scripts/check-planning-closure.mjs", ".", "--allow-empty", "--require-ready"]);
+  if (strictEmpty.status !== 0) pass("1.111 strict planning readiness cannot be bypassed by allow-empty");
+  else fail("1.111 strict planning readiness was bypassed by allow-empty");
+
+  const generatedAssets = [
+    ".intentos/core/understanding-planning-closure.md",
+    ".intentos/docs/understanding-planning-closure.md",
+    ".intentos/checklists/planning-closure-review.md",
+    ".intentos/prompts/planning-closure-agent.md",
+    ".intentos/templates/planning-closure-report.md",
+    ".intentos/schemas/artifacts/planning-closure.schema.json",
+    "scripts/lib/planning-closure.mjs",
+    "scripts/resolve-planning-closure.mjs",
+    "scripts/check-planning-closure.mjs",
+    "scripts/check-execution-entry-contract.mjs",
+    "planning-closure-reports/.gitkeep",
+  ];
+  for (const starter of ["generic-project", "codex-web-app", "codex-ios-app", "codex-android-app"]) {
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), `intentos-1.111-${starter}-`));
+    const init = runNode([
+      path.join(kitRoot, "scripts/init-project.mjs"),
+      "--target", target,
+      "--starter", starter,
+      "--goal", "build a bounded appointment product",
+    ]);
+    if (init.status !== 0) {
+      fail(`1.111 ${starter} initialization failed: ${init.stderr || init.stdout}`);
+      continue;
+    }
+    const missing = generatedAssets.filter((file) => !fs.existsSync(path.join(target, file)));
+    if (missing.length === 0) pass(`1.111 ${starter} distributes complete Planning Closure assets`);
+    else fail(`1.111 ${starter} is missing generated assets: ${missing.join(", ")}`);
+    const installed = spawnSync(process.execPath, [path.join(target, "scripts/check-planning-closure.mjs"), target, "--allow-empty"], {
+      cwd: target,
+      encoding: "utf8",
+    });
+    if (installed.status === 0) pass(`1.111 ${starter} installed checker runs without source checkout dependencies`);
+    else fail(`1.111 ${starter} installed checker failed: ${installed.stderr || installed.stdout}`);
+  }
+}
+
 checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
@@ -19371,6 +19461,7 @@ checkActiveGuidanceSemanticHardcutProtocol();
 checkActiveGuidanceDistributionCloseoutProtocol();
 checkBusinessUniverseCoverageProtocol();
 checkControlEffectivenessProtocol();
+checkUnderstandingPlanningClosureProtocol();
 checkZeroExperienceSoloOperatingModelProtocol();
 checkExecutionAuthorityConsumerHardcutProtocol();
 checkReleaseExecutionTopologyProtocol();

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.110.0`
+Current version: `1.111.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,16 @@ Current version: `1.110.0`
 
 ## Current Release
 
-`1.110.0`
+`1.111.0`
 
 Includes:
+
+- Understanding and Planning Closure `1.111.0`: derives one current-task
+  planning conclusion from existing Work Queue, Task Governance, business,
+  impact, verification, review, and Control Effectiveness evidence.
+- Only `PLANNING_READY` emits a non-authorizing Execution Entry Contract. It
+  never permits project writes, apply, release, production, or completion, and
+  the existing public `work` entry remains the only ordinary-user workflow.
 
 - Control Effectiveness `1.110.0`: IntentOS-native and project-native checks,
   gates, policies, tests, and workflows cannot support a strict claim merely

@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.110.0`。
+当前版本：`1.111.0`。
 
-发布记录：[releases/1.110.0/release-record.md](releases/1.110.0/release-record.md)。
+发布记录：[releases/1.111.0/release-record.md](releases/1.111.0/release-record.md)。
 
 IntentOS 面向零基础个人开发者：用户只描述真实业务、补充项目无法推断的业务事实，并在产生真实费用、生产、用户通信、账号平台或不可逆数据影响前表达同意；AI 负责全部技术判断、实现、测试、复查、证据、修复和交付组织。
 
@@ -45,6 +45,11 @@ node scripts/cli.mjs work <project> "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.111.0 增加实现前的统一规划收口。IntentOS 会自动核对当前任务、业务范围、
+影响面、验证义务、方案审查和所依赖门禁是否属于同一个项目和目标。只有全部就绪
+才生成一份不授权写入的执行交接契约；它不能授权改代码、接入写入、发布、生产或
+任务完成。普通用户仍然只需要自然语言沟通，或使用唯一的 `work` 入口。
 
 1.110.0 开始验证 IntentOS 所依赖的检查本身是否真的有效。项目门禁、测试、
 策略、工作流或 IntentOS 检查器，不能再因为“文件存在、执行过、显示 PASS”就

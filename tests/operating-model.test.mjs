@@ -160,7 +160,7 @@ test("unbootstrapped existing project normal task enters adoption review", () =>
   assert.equal(report.operatingDecision.canCodexContinueReadOnly, "Yes");
 }));
 
-test("trusted initialized project normal task uses CONTINUE_TASK without forcing high governance", () => withRoot("intentos-operating-trusted-", (root) => {
+test("trusted initialized project normal task completes Planning Closure before implementation review", () => withRoot("intentos-operating-trusted-", (root) => {
   makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   const report = runWork(root, "修改首页按钮文案");
@@ -170,7 +170,8 @@ test("trusted initialized project normal task uses CONTINUE_TASK without forcing
   assert.equal(report.projectIdentityProjection.evidenceIdentity.kind, "NON_GIT");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
-  assert.equal(report.operatingDecision.actionCode, "PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW");
+  assert.equal(report.operatingDecision.actionCode, "COMPLETE_PLANNING_CLOSURE");
+  assert.equal(report.operatingLoop.state, "NEEDS_PLANNING_EVIDENCE");
   assert.equal(report.operatingLoop.projectBaselineControlsTaskImpact, "No");
   assert.ok(report.evidenceTrace.dependencies.every((item) => item.to === "OPERATING_STATE" && item.relation === "INPUT_TO_DERIVED_VIEW"));
   assert.equal(report.decisionResponsibility.userResponsibilityClass, "NO_USER_ACTION");
@@ -406,8 +407,8 @@ test("production vocabulary does not override original new-project entry or task
   assert.equal(report.projectIdentityProjection.governancePosture, "NOT_ESTABLISHED");
   assert.equal(report.projectIdentityProjection.productionPosture, "NOT_ESTABLISHED");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
-  assert.equal(report.operatingLoop.state, "READY_FOR_LIGHTWEIGHT_WORK_REVIEW");
-  assert.equal(report.operatingDecision.actionCode, "PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW");
+  assert.equal(report.operatingLoop.state, "NEEDS_PLANNING_EVIDENCE");
+  assert.equal(report.operatingDecision.actionCode, "COMPLETE_PLANNING_CLOSURE");
 }));
 
 test("controlled plan records new-project entry origin", () => withRoot("intentos-operating-new-plan-origin-", (root) => {
@@ -488,7 +489,7 @@ test("possible-high task selects read-only risk inspection", () => withRoot("int
   assert.ok(report.operatingDecision.blockedBy.length > 0);
 }));
 
-test("medium task selects targeted implementation-review preparation", () => withRoot("intentos-operating-medium-", (root) => {
+test("medium task completes durable Planning Closure before implementation-review preparation", () => withRoot("intentos-operating-medium-", (root) => {
   makeTrustedProject(root);
   makeCurrentWorkQueue(root);
   fs.writeFileSync(
@@ -497,8 +498,8 @@ test("medium task selects targeted implementation-review preparation", () => wit
   );
   const report = runWork(root, "Update local panel handler interaction");
   assert.equal(report.operatingLoop.taskImpact, "MEDIUM");
-  assert.equal(report.operatingDecision.actionCode, "PREPARE_IMPLEMENTATION_REVIEW");
-  assert.equal(report.operatingDecision.decisionStatus, "READY_FOR_REVIEW_PREPARATION");
+  assert.equal(report.operatingDecision.actionCode, "COMPLETE_PLANNING_CLOSURE");
+  assert.equal(report.operatingDecision.decisionStatus, "ACTION_REQUIRED");
 }));
 
 test("medium selection behavior pauses for bounded omission-risk inspection", () => withRoot("intentos-operating-medium-inspection-", (root) => {

@@ -14,6 +14,9 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `resolve-business-rule-closure.mjs` | Read-only business rule closure resolver that summarizes a user rule, required dimensions, safe defaults, and decisions before impact coverage |
 | `check-business-rule-closure.mjs` | Business Rule Closure completeness, structured evidence, digest, user-question, safe-default, existing-rule, high-risk, cross-surface, and no-authority checks |
 | `check-control-effectiveness.mjs` | Exact project/task identity, control claim, implementation and inventory digests, semantic and failure proof, bounded adapter safety, and non-authorizing boundaries; `--require-effective` fails closed |
+| `resolve-planning-closure.mjs` | Derive one current-task planning conclusion from existing authoritative planning sources without authorizing implementation |
+| `check-planning-closure.mjs` | Strict Planning Closure schema, project/task/intent/source authority, readiness, and no-authority checks |
+| `check-execution-entry-contract.mjs` | Verify that a ready Planning Closure exposes one exact non-authorizing execution handoff and that non-ready reports expose none |
 | `resolve-business-universe-coverage.mjs` | Conditional internal resolver for task-relevant scenarios, lifecycle applicability, project-path provenance, selection/consistency relationships, proof strength, and bounded resumable discovery |
 | `check-business-universe-coverage.mjs` | Strict current-task, scenario identity, lifecycle, provenance, discovery-resume, exclusion, Challenger, evidence-authority, digest, and no-authority checks |
 | `resolve-change-impact-coverage.mjs` | Read-only affected-surface mapper for validation, rule, API, backend, data, permission, copy, and business-behavior changes |

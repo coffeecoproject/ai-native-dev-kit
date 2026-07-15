@@ -134,6 +134,9 @@ jobs:
       - name: Execution and distribution trust tests
         run: node --test tests/execution-distribution-trust.test.mjs
 
+      - name: Understanding and planning closure tests
+        run: npm run verify:planning-closure
+
       - name: Operating model source smoke
         run: |
           node scripts/cli.mjs work . "检查当前项目状态" --json > "$RUNNER_TEMP/operating-state.json"

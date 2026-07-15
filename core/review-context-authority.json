@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.110.0",
+  "schemaVersion": "1.111.0",
   "artifactType": "review_context_authority",
   "contractId": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
   "currentVersionSource": "VERSION.md",
@@ -51,6 +51,7 @@
         "core/business-universe-coverage.md",
         "core/context-governance.md",
         "core/control-effectiveness.md",
+        "core/understanding-planning-closure.md",
         "core/decision-delegation-boundary.md",
         "core/engineering-baseline.md",
         "core/glossary.md",
@@ -75,12 +76,13 @@
         "docs/business-universe-coverage.md",
         "docs/codex-usage.md",
         "docs/control-effectiveness.md",
+        "docs/understanding-planning-closure.md",
         "docs/first-hour.md",
         "docs/guided-baseline-selection-entry.md",
         "docs/guided-delivery-baseline.md",
         "docs/mental-model.md",
         "docs/operating-model.md",
-        "docs/plans/control-effectiveness-1.110-plan.md",
+        "docs/plans/understanding-planning-closure-1.111-plan.md",
         "docs/product-baseline.md",
         "docs/project-entry-adoption-trust.md",
         "docs/quickstart.md",
@@ -93,9 +95,9 @@
         "docs/source-only-adoption.md",
         "docs/start-here.md",
         "prompts/reviewer-agent.md",
-        "releases/1.110.0/known-limitations.md",
-        "releases/1.110.0/release-record.md",
-        "releases/1.110.0/self-check-report.md",
+        "releases/1.111.0/known-limitations.md",
+        "releases/1.111.0/release-record.md",
+        "releases/1.111.0/self-check-report.md",
         "templates/gpt-review-prompt.md"
       ],
       "prefixes": [
@@ -161,6 +163,10 @@
     {
       "source": "core/control-effectiveness.md",
       "installed": ".intentos/core/control-effectiveness.md"
+    },
+    {
+      "source": "core/understanding-planning-closure.md",
+      "installed": ".intentos/core/understanding-planning-closure.md"
     },
     {
       "source": "core/decision-delegation-boundary.md",
@@ -248,6 +254,10 @@
     {
       "source": "docs/control-effectiveness.md",
       "installed": ".intentos/docs/control-effectiveness.md"
+    },
+    {
+      "source": "docs/understanding-planning-closure.md",
+      "installed": ".intentos/docs/understanding-planning-closure.md"
     },
     {
       "source": "docs/first-hour.md"

@@ -33,6 +33,9 @@ exact evidence work. Ordinary users should not choose among them.
 | `node scripts/cli.mjs business-universe-check <project>` | Check recorded Business Universe Coverage evidence and fail closed when strict current-task coverage is required | No |
 | `node scripts/cli.mjs control-effectiveness <project> --intent "<goal>"` | Prepare a read-only, deliberately non-authorizing assessment for exact control claims relied on by the current scope | No |
 | `node scripts/cli.mjs control-effectiveness-check <project>` | Validate recorded claim effectiveness without executing a control or evidence-provided command | No |
+| `node scripts/cli.mjs planning-closure <project>` | Derive one task-bound planning conclusion and optional non-authorizing execution handoff | No by default; writes only `planning-closure-reports/*.md` with `--out` |
+| `node scripts/cli.mjs planning-closure-check <project>` | Validate Planning Closure source identity, readiness, and no-authority boundaries | No |
+| `node scripts/cli.mjs execution-entry-contract-check <project>` | Validate the exact non-authorizing handoff inside a ready Planning Closure | No |
 | `node scripts/cli.mjs impact-coverage <project> --intent "<change>"` | Map affected surfaces for a business-rule or product-behavior change before it is treated as complete | No |
 | `node scripts/cli.mjs impact-coverage <project> --intent "<change>" --business-rule-ref <ref>` | Map affected surfaces while carrying a prior Business Rule Closure reference | No |
 | `node scripts/cli.mjs impact-coverage <project> --intent "<change>" --from-git-diff` | Map affected surfaces using read-only git changed-file signals | No |
