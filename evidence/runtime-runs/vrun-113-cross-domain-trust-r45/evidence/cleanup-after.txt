@@ -1,4 +1,0 @@
-run_id=vrun-113-cross-domain-trust-r45
-owned_resources_remaining=0
-unrelated_resources_touched=0
-cleanup_blocked=0

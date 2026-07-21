@@ -7,7 +7,7 @@
 | Plain user summary | I will keep the external release blocked because a workflow package script cannot be proven free of external effects. I will continue the technical checks and prepare evidence; you do not need to choose the technical release path. |
 | Project type | existing_project |
 | Effective release channel | source_only |
-| Recommendation | KEEP_GIT_SOURCE_ONLY_AND_EXTERNAL_RELEASE |
+| Recommendation | KEEP_EXISTING_APPROVED_CHANNEL |
 | Blocked | Yes |
 | Blocks release review | Yes |
 | Release approved | No |
@@ -60,7 +60,7 @@
 | Registry storage cost risk | No |
 | Platform fee risk | No |
 | Concrete cost consent required | No |
-| Cost consent ref | missing |
+| Cost consent ref | not_applicable |
 
 ## Release Package Identity
 
@@ -80,7 +80,7 @@
 | Concrete release consent required | No |
 | Consent required for this policy | No |
 | Consent required before release review | Yes |
-| Consent confirmer ref | missing |
+| Consent confirmer ref | not_applicable_until_release_review |
 | Cost consent ref | missing |
 | Platform/provider ref | not_applicable |
 | Production consent ref | not_applicable |
@@ -117,9 +117,9 @@
   "schema_version": "1.87.1",
   "artifact_type": "release_channel_policy",
   "release_channel_policy_ref": "release-channel-policies/113-cross-domain-trust-closure.md",
-  "release_channel_policy_digest": "sha256:6c428f9a95fe75180707404eda74660bb7745f054e89f50259074dc5bdff6908",
-  "intent": "Keep the IntentOS 1.113 candidate source-only and prohibit all external release effects.",
-  "intent_digest": "sha256:1207ceb6c34889b6518a44d6d4f58aaa4af7c1adefea6c8efb5dddb9777a71a7",
+  "release_channel_policy_digest": "sha256:2becb1be8331060db38d4db120718b8c89bed3810daf57062b2aa9ba2b9dcd38",
+  "intent": "Complete IntentOS 1.113 cross-domain trust closure by enforcing required task consumers, evidence authority, security boundaries, atomic apply recovery, existing-project activation, baseline integrity, and bounded source distribution evidence while prohibiting external effects.",
+  "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
   "project_type": "existing_project",
   "source_identity": {
     "source_ref": "git:refs/heads/main",
@@ -132,14 +132,14 @@
   },
   "effective_release_channel": {
     "channel": "source_only",
-    "recommendation_class": "KEEP_GIT_SOURCE_ONLY_AND_EXTERNAL_RELEASE",
+    "recommendation_class": "KEEP_EXISTING_APPROVED_CHANNEL",
     "blocked": "Yes",
     "blocked_by": [
       "source_only_external_effect_not_proven_absent"
     ],
     "current_channel_detected": "Yes",
     "current_channel_summary": "release SOP, unresolved package-script external effect",
-    "recommended_channel_summary": "source_only with recommendation KEEP_GIT_SOURCE_ONLY_AND_EXTERNAL_RELEASE."
+    "recommended_channel_summary": "source_only with recommendation KEEP_EXISTING_APPROVED_CHANNEL."
   },
   "github_release_policy": {
     "github_release_used": "No",
@@ -176,13 +176,13 @@
     "registry_storage_cost_risk": "No",
     "app_store_or_platform_fee_risk": "No",
     "cost_owner_required": "No",
-    "cost_owner_ref": "missing"
+    "cost_owner_ref": "not_applicable"
   },
   "owners": {
     "release_owner_required": "No",
     "release_owner_required_for_policy": "No",
     "release_owner_required_before_release_review": "Yes",
-    "release_owner_ref": "missing",
+    "release_owner_ref": "not_applicable_until_release_review",
     "cost_owner_ref": "missing",
     "platform_owner_ref": "not_applicable",
     "production_owner_ref": "not_applicable"

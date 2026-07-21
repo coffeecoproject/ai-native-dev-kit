@@ -30,7 +30,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Branch | `main` |
 | Upstream | `origin/main` |
 | Origin main fresh | `Yes` |
-| Ahead count | `4` |
+| Ahead count | `5` |
 | Behind count | `0` |
 | Current task commit isolated | `Yes` |
 | Force push required | `No` |
@@ -63,7 +63,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Release ID reusable | `Yes` |
 | Release owner required | `Yes` |
 | Release execution topology ref | `artifact:release-execution-topologies/113-cross-domain-trust-closure.md` |
-| Release execution topology digest | `sha256:ea8b8fa619f3c23e4ddba62151916d34f3b6e2c150b4aae41f91e020650e3250` |
+| Release execution topology digest | `sha256:0631065784729c4db1b38f8f07c89b1f439bcee683428dbda0eead8c55eaa75a` |
 
 ## Artifact Context
 
@@ -127,7 +127,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "schema_version": "1.93.0",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/113-cross-domain-trust-closure.md",
-  "runtime_hygiene_digest": "sha256:ab87da7374f4723cc23f308e80cb8005a14bf61c348bdf45a3c226b249cfb16b",
+  "runtime_hygiene_digest": "sha256:b2620238a49842634fe3dac80b063c413736f2d19cbe18d896a4263199b749e1",
   "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
   "work_queue_item_ref": "artifact:work-queue-takeover-reports/113-cross-domain-trust-closure.md#WQ-003",
@@ -165,7 +165,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
     "branch": "main",
     "upstream": "origin/main",
     "origin_main_fresh": "Yes",
-    "ahead_count": 4,
+    "ahead_count": 5,
     "behind_count": 0,
     "current_task_commit_isolated": "Yes",
     "force_push_required": "No"
@@ -264,7 +264,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
     "release_candidate_digest": "sha256:188c89d1f7a6f8e9ce6f86834531f267bbcb872c53ceb94799749308943c1b3c",
     "source_revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
     "release_execution_topology_ref": "artifact:release-execution-topologies/113-cross-domain-trust-closure.md",
-    "release_execution_topology_digest": "sha256:ea8b8fa619f3c23e4ddba62151916d34f3b6e2c150b4aae41f91e020650e3250"
+    "release_execution_topology_digest": "sha256:0631065784729c4db1b38f8f07c89b1f439bcee683428dbda0eead8c55eaa75a"
   }
 }
 ```

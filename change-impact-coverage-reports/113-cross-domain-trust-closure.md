@@ -83,14 +83,6 @@ Change type PERMISSION_OR_VISIBILITY_RULE; 10 required surfaces were identified.
 
 ## Changed Files
 
-
-
-
-
-
-
-
-
 - `.github/workflows/intentos-pr-checks.yml`
 - `.github/workflows/intentos-release-checks.yml`
 - `.gitignore`
@@ -133,17 +125,17 @@ Change type PERMISSION_OR_VISIBILITY_RULE; 10 required surfaces were identified.
 - `evidence/113-full-verification.log`
 - `evidence/113-release-preflight.log`
 - `evidence/113-task-verification.log`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-after.txt`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-before.txt`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/resources.txt`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/lifecycle-journal.jsonl`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-candidate-verification.log`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-obligation-evidence.log`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-runtime-behavior.log`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-negative.log`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-positive.log`
-- `evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-service.log`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-after.txt`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-before.txt`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/resources.txt`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/lifecycle-journal.jsonl`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-candidate-verification.log`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-obligation-evidence.log`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-runtime-behavior.log`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-negative.log`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-positive.log`
+- `evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-service.log`
 - `examples/1.16-bl2-industrial-deepening/miniprogram-cloud-auth/evidence/miniprogram-cloud-auth-proof.log`
 - `examples/1.16-bl2-industrial-deepening/miniprogram-cloud-auth/evidence/miniprogram-cloud-auth-verification.md`
 - `examples/1.16-bl2-industrial-deepening/mobile-api/evidence/mobile-api-proof.log`
@@ -639,7 +631,7 @@ None. Codex derives technical surface coverage and asks only for a missing busin
   "schema_version": "1.113.0",
   "artifact_type": "change_impact_coverage",
   "artifact_id": "complete-intentos-1.113-cross-domain-trust-closure-by-enforcing",
-  "impact_digest": "sha256:bf6809c3be589cc219790899a3eb8dc8ad6c94ff7a227780f6f8456d9463e49b",
+  "impact_digest": "sha256:732e1cad993271bcd7755c03e7c0c20bb4f04d7006fa6a5dd892f131a6bc586d",
   "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
   "mode": "closure",
@@ -1413,17 +1405,17 @@ None. Codex derives technical surface coverage and asks only for a missing busin
     "evidence/113-full-verification.log",
     "evidence/113-release-preflight.log",
     "evidence/113-task-verification.log",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-after.txt",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-before.txt",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/resources.txt",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/lifecycle-journal.jsonl",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-candidate-verification.log",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-obligation-evidence.log",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-runtime-behavior.log",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-negative.log",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-positive.log",
-    "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-service.log",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-after.txt",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-before.txt",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/resources.txt",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/lifecycle-journal.jsonl",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-candidate-verification.log",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-obligation-evidence.log",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-runtime-behavior.log",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-negative.log",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-positive.log",
+    "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-service.log",
     "examples/1.16-bl2-industrial-deepening/miniprogram-cloud-auth/evidence/miniprogram-cloud-auth-proof.log",
     "examples/1.16-bl2-industrial-deepening/miniprogram-cloud-auth/evidence/miniprogram-cloud-auth-verification.md",
     "examples/1.16-bl2-industrial-deepening/mobile-api/evidence/mobile-api-proof.log",

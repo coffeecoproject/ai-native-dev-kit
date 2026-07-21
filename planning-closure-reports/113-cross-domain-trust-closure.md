@@ -45,8 +45,8 @@ write, apply, release, production, or completion claim.
   "schema_version": "1.111.0",
   "artifact_type": "planning_closure",
   "report_ref": "file:planning-closure-reports/113-cross-domain-trust-closure.md",
-  "report_digest": "sha256:f8373ef188101f99d8cedc272270dc991a57dea25feb310ea805d4123e590ad7",
-  "closure_core_digest": "sha256:4d4c9d55ecfe90b2c2d3c5ff4fe1423625a07f6db3bebfe0d83f265c34c43580",
+  "report_digest": "sha256:44a049b9bb127e25d44ee1941069a1d93ddc364b073c00b3256471b35db46e8f",
+  "closure_core_digest": "sha256:22264020a36d04955d61aba8ca4cee246b0d518472e39f4984850c6a0804e1f9",
   "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
   "task_impact": "HIGH",
@@ -75,7 +75,7 @@ write, apply, release, production, or completion claim.
       {
         "ref": "file:business-rule-closures/113-cross-domain-trust-closure.md",
         "relative_path": "business-rule-closures/113-cross-domain-trust-closure.md",
-        "raw_file_digest": "sha256:c254ed804d859983e11d3eeefd53f7bc319309fbca6852828fc8e3aab8308b8f"
+        "raw_file_digest": "sha256:851bbfdfe58ac98d2063d3e86527683697c5e060137de21dc10055c47959a472"
       },
       {
         "ref": "file:change-impact-coverage-reports/preflight-113-cross-domain-trust-closure.md",
@@ -85,17 +85,17 @@ write, apply, release, production, or completion claim.
       {
         "ref": "file:verification-plans/113-cross-domain-trust-closure.md",
         "relative_path": "verification-plans/113-cross-domain-trust-closure.md",
-        "raw_file_digest": "sha256:d11076bd1482b227c3efc710181f37f672b4c17786153430815938367691a3a8"
+        "raw_file_digest": "sha256:5a45bba416cdb856d442e112095c694b48f4c5da0433ead74a07a256c8b0555a"
       },
       {
         "ref": "file:plan-review-reports/113-cross-domain-trust-closure.md",
         "relative_path": "plan-review-reports/113-cross-domain-trust-closure.md",
-        "raw_file_digest": "sha256:cf7ffb877db7966700585aeb0202f72adc1e2355f337e2dbcd1bb69fc754a13c"
+        "raw_file_digest": "sha256:e56481172c6674341a74e1f01eed4236f1c71a59caeaf31a68f2afccfa3d46f6"
       },
       {
         "ref": "file:control-effectiveness-reports/113-cross-domain-trust-closure.md",
         "relative_path": "control-effectiveness-reports/113-cross-domain-trust-closure.md",
-        "raw_file_digest": "sha256:c99aad15f7026e3f117a0ae54ad52433da2be299c6b66ef8760cc06941cb91c9"
+        "raw_file_digest": "sha256:b278df498daa961b0b76f209dcfd33cc632b33ddd8df964dca30c08f8cc0ee63"
       }
     ]
   },
@@ -156,7 +156,7 @@ write, apply, release, production, or completion claim.
     {
       "source_kind": "VERIFICATION_PLAN",
       "report_ref": "file:verification-plans/113-cross-domain-trust-closure.md",
-      "report_digest": "sha256:92f1c62c8ed6b3853df2ec2e594ca1c7d4a40d93668dc793c7fa98666994bbdc",
+      "report_digest": "sha256:f31bb1fef6875d0dc81614d4cc9a407bd3ebc902f6449b48ef8d3c0aec8c748c",
       "source_state": "VERIFICATION_PLAN_READY",
       "validation_state": "VALID",
       "current_task_match": "Yes",
@@ -167,7 +167,7 @@ write, apply, release, production, or completion claim.
     {
       "source_kind": "PLAN_REVIEW",
       "report_ref": "file:plan-review-reports/113-cross-domain-trust-closure.md",
-      "report_digest": "sha256:f608245deade6db776567e09a14711527968496761b61d61d1898c18095ed2f3",
+      "report_digest": "sha256:266296b4cb137316ce5449ca2dc9b19b4fc80f4f89a68a5f50ba05d09cf1e40e",
       "source_state": "PLAN_REVIEW_PASSED",
       "validation_state": "VALID",
       "current_task_match": "Yes",
@@ -178,7 +178,7 @@ write, apply, release, production, or completion claim.
     {
       "source_kind": "CONTROL_EFFECTIVENESS",
       "report_ref": "file:control-effectiveness-reports/113-cross-domain-trust-closure.md",
-      "report_digest": "sha256:f746500af84ea19fba21ed879f8635020a5e65f101e8a687ca4e2810c326cad7",
+      "report_digest": "sha256:72c8b436fa6fff5ab18875cd7eb640d50b5377e5d00fd1ef2fa111e8b6f35057",
       "source_state": "CONTROL_PROVEN_EFFECTIVE",
       "validation_state": "VALID",
       "current_task_match": "Yes",
@@ -195,15 +195,15 @@ write, apply, release, production, or completion claim.
   },
   "execution_entry_contract": {
     "contract_id": "execution-entry:task-17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
-    "contract_digest": "sha256:511ee422e5859ac0de94f664f6cf6fb3592d3115360618def0e8802110763a36",
+    "contract_digest": "sha256:33a91ed6bb6c50d8dc8a0d1c0900b4164686fa578ae0bf78f3587f0b67ab5573",
     "project_identity_digest": "sha256:4a77760d85b61ab83d59a03b95a53a3ef502e9467711cef8ca0603a585905d58",
     "source_revision_digest": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
-    "source_git_commit": "f68d700feec7e97e9cd740de4f06c4f69555b7b5",
+    "source_git_commit": "8bdf0a9f07a43f4397accfc5624a862355af9ba5",
     "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
     "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
     "task_impact": "HIGH",
     "planning_closure_ref": "file:planning-closure-reports/113-cross-domain-trust-closure.md",
-    "planning_closure_digest": "sha256:4d4c9d55ecfe90b2c2d3c5ff4fe1423625a07f6db3bebfe0d83f265c34c43580",
+    "planning_closure_digest": "sha256:22264020a36d04955d61aba8ca4cee246b0d518472e39f4984850c6a0804e1f9",
     "source_bindings": [
       {
         "source_kind": "TASK_GOVERNANCE",
@@ -236,21 +236,21 @@ write, apply, release, production, or completion claim.
       {
         "source_kind": "VERIFICATION_PLAN",
         "ref": "file:verification-plans/113-cross-domain-trust-closure.md",
-        "digest": "sha256:92f1c62c8ed6b3853df2ec2e594ca1c7d4a40d93668dc793c7fa98666994bbdc",
+        "digest": "sha256:f31bb1fef6875d0dc81614d4cc9a407bd3ebc902f6449b48ef8d3c0aec8c748c",
         "state": "VERIFICATION_PLAN_READY",
         "current_task_match": "Yes"
       },
       {
         "source_kind": "PLAN_REVIEW",
         "ref": "file:plan-review-reports/113-cross-domain-trust-closure.md",
-        "digest": "sha256:f608245deade6db776567e09a14711527968496761b61d61d1898c18095ed2f3",
+        "digest": "sha256:266296b4cb137316ce5449ca2dc9b19b4fc80f4f89a68a5f50ba05d09cf1e40e",
         "state": "PLAN_REVIEW_PASSED",
         "current_task_match": "Yes"
       },
       {
         "source_kind": "CONTROL_EFFECTIVENESS",
         "ref": "file:control-effectiveness-reports/113-cross-domain-trust-closure.md",
-        "digest": "sha256:f746500af84ea19fba21ed879f8635020a5e65f101e8a687ca4e2810c326cad7",
+        "digest": "sha256:72c8b436fa6fff5ab18875cd7eb640d50b5377e5d00fd1ef2fa111e8b6f35057",
         "state": "CONTROL_PROVEN_EFFECTIVE",
         "current_task_match": "Yes"
       }

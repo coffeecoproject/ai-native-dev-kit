@@ -31,13 +31,13 @@ What happens if you do nothing: No files are changed. No task state, apply, comm
 | Project path | `PASS` | No | N/A | /Users/liushan/Developer/CodingFlow/ai-native-dev-kit | N/A | Project path is readable. |
 | Task intent | `PASS` | Yes | Yes | task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98 | work-queue-task-identity | Canonical task reference and intent digest are present. |
 | Completion Evidence | `PASS` | Yes | Yes | completion-evidence-reports/113-cross-domain-trust-closure.md | check-completion-evidence --require-ready | Current Completion Evidence passes strict validation for the exact task and intent. |
-| Verification | `PASS` | No | Yes | Runtime r45 and strict current-task evidence consumers passed | explicit-verification-summary | Passing verification was provided. |
+| Verification | `PASS` | No | Yes | Runtime r46 and strict current-task evidence consumers passed | explicit-verification-summary | Passing verification was provided. |
 | Runtime Trust | `PASS` | No | Yes | artifact:verification-run-manifests/113-cross-domain-trust-closure.md | scripts/check-verification-run-manifest.mjs --require-complete | The exact current run passed the authoritative checker and consumer identity checks. |
 | Change Impact Coverage | `PASS` | No | Yes | change-impact-coverage-reports/113-cross-domain-trust-closure.md | check-change-impact-coverage --report --require-precise-evidence | Change Impact Coverage passes strict validation and matches the current task. |
 | Execution Closure | `MISSING` | No | No | N/A | check-execution-closure --report --require-impact-coverage --require-precise-evidence | Execution closure evidence is missing. |
 | Guided Closure | `OPTIONAL` | No | N/A | N/A | N/A | Guided summary is optional after the unified decision. |
 | Human Decision | `N/A` | No | N/A | N/A | N/A | No bounded business, external-fact, or exact real-world consent reference was supplied; technical risk remains Codex-owned. |
-| Git worktree | `NEEDS_REVIEW` | No | N/A | main | N/A | 460 changed file(s) detected. |
+| Git worktree | `NEEDS_REVIEW` | No | N/A | main | N/A | 36 changed file(s) detected. |
 
 ## Decision Trace
 
@@ -87,7 +87,7 @@ If lower-level close-out artifacts disagree, this decision uses the stricter res
 | Input | Required | Verified | Evidence ref | Checker |
 |---|---|---|---|---|
 | Completion Evidence | Yes | Yes | completion-evidence-reports/113-cross-domain-trust-closure.md | check-completion-evidence --require-ready |
-| Verification | No | Yes | Runtime r45 and strict current-task evidence consumers passed | explicit-verification-summary |
+| Verification | No | Yes | Runtime r46 and strict current-task evidence consumers passed | explicit-verification-summary |
 | Runtime Trust | No | Yes | artifact:verification-run-manifests/113-cross-domain-trust-closure.md | scripts/check-verification-run-manifest.mjs --require-complete |
 | Change Impact Coverage | No | Yes | change-impact-coverage-reports/113-cross-domain-trust-closure.md | check-change-impact-coverage --report --require-precise-evidence |
 | Execution Closure | No | No | N/A | check-execution-closure --report --require-impact-coverage --require-precise-evidence |
@@ -98,7 +98,7 @@ If lower-level close-out artifacts disagree, this decision uses the stricter res
 | Evidence | Status | Verified | Ref | Checker |
 |---|---|---|---|
 | Completion Evidence | `PASS` | Yes | completion-evidence-reports/113-cross-domain-trust-closure.md | check-completion-evidence --require-ready |
-| Verification | `PASS` | Yes | Runtime r45 and strict current-task evidence consumers passed | explicit-verification-summary |
+| Verification | `PASS` | Yes | Runtime r46 and strict current-task evidence consumers passed | explicit-verification-summary |
 | Runtime Trust | `PASS` | Yes | artifact:verification-run-manifests/113-cross-domain-trust-closure.md | scripts/check-verification-run-manifest.mjs --require-complete |
 | Change Impact Coverage | `PASS` | Yes | change-impact-coverage-reports/113-cross-domain-trust-closure.md | check-change-impact-coverage --report --require-precise-evidence |
 | Execution Closure | `MISSING` | No | N/A | check-execution-closure --report --require-impact-coverage --require-precise-evidence |

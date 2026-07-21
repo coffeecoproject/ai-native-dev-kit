@@ -8,8 +8,8 @@ IntentOS derived a bounded `LOCAL_CONTROLLED` lifecycle. Codex selected the tech
 
 - Task ref: `task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98`
 - Runtime Plan: `artifact:verification-runtime-plans/113-cross-domain-trust-closure.md`
-- Runtime Plan digest: `sha256:003a712b6718685438ea9588b6adaf85920180a6d332851861be9cb24b0c22a9`
-- Run ID: `vrun-113-cross-domain-trust-r45`
+- Runtime Plan digest: `sha256:f538ed1c0a8c46257b3dbb579a0835a2cdc1ab690b494920b31a87cfeba13ad6`
+- Run ID: `vrun-113-cross-domain-trust-r46`
 - Declaration: `RECORDED`
 
 ## Execution Actions
@@ -36,7 +36,7 @@ IntentOS derived a bounded `LOCAL_CONTROLLED` lifecycle. Codex selected the tech
 
 - Environment inheritance: `MINIMAL_ALLOWLIST`
 - Owner token: `CHILD_MEMORY_ONLY`
-- Run workspace: `.intentos/runtime-runs/vrun-113-cross-domain-trust-r45`
+- Run workspace: `.intentos/runtime-runs/vrun-113-cross-domain-trust-r46`
 - Broad cleanup: `No`
 
 ## Boundaries
@@ -54,14 +54,14 @@ Project, task, Runtime Plan, lifecycle declaration, and current source revision 
   "schema_version": "1.103.0",
   "artifact_type": "verification_runtime_lifecycle_plan",
   "lifecycle_plan_ref": "verification-runtime-lifecycle-plans/113-cross-domain-trust-closure.md",
-  "lifecycle_plan_digest": "sha256:3e353ef582539fe44ae1efd7809d9ecaebcab3ed676037ce065c0d89d5155adb",
-  "run_id": "vrun-113-cross-domain-trust-r45",
+  "lifecycle_plan_digest": "sha256:2594b8cfa01c3e4083a0c044b1e05f6c865522342fd5574afe030b27188b0e52",
+  "run_id": "vrun-113-cross-domain-trust-r46",
   "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
   "task_tier": "HIGH",
   "runtime_trust_level": "ISOLATED_RUNTIME",
   "runtime_plan_ref": "artifact:verification-runtime-plans/113-cross-domain-trust-closure.md",
-  "runtime_plan_digest": "sha256:003a712b6718685438ea9588b6adaf85920180a6d332851861be9cb24b0c22a9",
+  "runtime_plan_digest": "sha256:f538ed1c0a8c46257b3dbb579a0835a2cdc1ab690b494920b31a87cfeba13ad6",
   "adapter_contract_digest": "sha256:3616126bc156655e5e602cca74247796e4a711f7fd0a30702a1d6313029037f7",
   "adapter_kind": "LOCAL_PROCESS",
   "declaration_source": {
@@ -84,7 +84,7 @@ Project, task, Runtime Plan, lifecycle declaration, and current source revision 
       "cwd": ".",
       "timeout_ms": 15000,
       "environment": [],
-      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-service.log",
+      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-service.log",
       "obligation_ids": [],
       "positive_path": "No",
       "negative_path": "No",
@@ -109,7 +109,7 @@ Project, task, Runtime Plan, lifecycle declaration, and current source revision 
       "cwd": ".",
       "timeout_ms": 15000,
       "environment": [],
-      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-negative.log",
+      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-negative.log",
       "obligation_ids": [],
       "positive_path": "No",
       "negative_path": "Yes",
@@ -136,7 +136,7 @@ Project, task, Runtime Plan, lifecycle declaration, and current source revision 
       "cwd": ".",
       "timeout_ms": 15000,
       "environment": [],
-      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-positive.log",
+      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-positive.log",
       "obligation_ids": [],
       "positive_path": "Yes",
       "negative_path": "No",
@@ -163,7 +163,7 @@ Project, task, Runtime Plan, lifecycle declaration, and current source revision 
       "cwd": ".",
       "timeout_ms": 1800000,
       "environment": [],
-      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-candidate-verification.log",
+      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-candidate-verification.log",
       "obligation_ids": [],
       "positive_path": "Yes",
       "negative_path": "Yes",
@@ -192,7 +192,7 @@ Project, task, Runtime Plan, lifecycle declaration, and current source revision 
       "cwd": ".",
       "timeout_ms": 1800000,
       "environment": [],
-      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-obligation-evidence.log",
+      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-obligation-evidence.log",
       "obligation_ids": [
         "verify:background-work-integration-contract-check-scheduled-queued-retr",
         "verify:data-model-data-model-check-data-model-historical-records-migrat",
@@ -338,7 +338,7 @@ Project, task, Runtime Plan, lifecycle declaration, and current source revision 
       "cwd": ".",
       "timeout_ms": 60000,
       "environment": [],
-      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-runtime-behavior.log",
+      "output_ref": "file:.intentos/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-runtime-behavior.log",
       "obligation_ids": [
         "verify:runtime-behavior-regression-smoke-the-current-code-runs-through-"
       ],
@@ -434,7 +434,7 @@ Project, task, Runtime Plan, lifecycle declaration, and current source revision 
     "inject_owner_token": "CHILD_MEMORY_ONLY",
     "stores_raw_secrets": "No"
   },
-  "run_workspace": ".intentos/runtime-runs/vrun-113-cross-domain-trust-r45",
+  "run_workspace": ".intentos/runtime-runs/vrun-113-cross-domain-trust-r46",
   "authority_binding": {
     "binding_version": "1.91.0",
     "project": {
@@ -450,7 +450,7 @@ Project, task, Runtime Plan, lifecycle declaration, and current source revision 
       {
         "ref": "artifact:verification-runtime-plans/113-cross-domain-trust-closure.md",
         "relative_path": "verification-runtime-plans/113-cross-domain-trust-closure.md",
-        "raw_file_digest": "sha256:c0dabe27d295ef11f3945d324be948c0c35887c4914e631e5070462279add598"
+        "raw_file_digest": "sha256:c733f0115dab00d196d47da90c9d7e836e5e47c263d2cdf8ada813955e0d05a8"
       },
       {
         "ref": "file:.intentos/verification-runtime-lifecycle.json",

@@ -77,7 +77,7 @@ Safe next step: Codex should finish the evidence and exact action plan; do not r
 | Release Execution Topology | Conditional | N/A |
 | Platform Release Recipe | Conditional | N/A |
 | Release Handoff Pack | Conditional | N/A |
-| Preflight verification | Yes | r45 isolated runtime and strict current-task evidence chain passed |
+| Preflight verification | Yes | r46 isolated runtime and strict current-task evidence chain passed |
 | Build output | Conditional | N/A |
 | Release handoff evidence | Yes | N/A |
 | Monitoring observation | Yes | N/A |

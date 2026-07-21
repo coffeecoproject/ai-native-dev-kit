@@ -67,7 +67,7 @@ The report authorizes no implementation, writes, release, production, or externa
   "assessment_id": "assessment:1.113-cross-domain-trust-closure",
   "assessment_purpose": "TASK",
   "report_ref": "control-effectiveness-reports/113-cross-domain-trust-closure.md",
-  "report_digest": "sha256:f746500af84ea19fba21ed879f8635020a5e65f101e8a687ca4e2810c326cad7",
+  "report_digest": "sha256:72c8b436fa6fff5ab18875cd7eb640d50b5377e5d00fd1ef2fa111e8b6f35057",
   "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
   "required_claim_ids": [
@@ -84,7 +84,7 @@ The report authorizes no implementation, writes, release, production, or externa
   "control_claims": [
     {
       "claim_id": "claim:package-script-verify-candidate",
-      "claim_digest": "sha256:8bbbe52dc43e9f9ebc430c898a8d0c807c52c16dfb2c083d6d328f7a180f7bec",
+      "claim_digest": "sha256:368e256f518e47e6c2adc05c9373b0bf3b5eaf2bc779a4935eb66eaad8662d18",
       "control_id": "package-script:verify:candidate",
       "origin": "PROJECT_NATIVE",
       "summary": "Project package script verify:candidate rejects invalid current-task candidates and remains bound to its strict consumer composition.",
@@ -120,7 +120,7 @@ The report authorizes no implementation, writes, release, production, or externa
       "freshness_assessment": {
         "revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
         "environment": "isolated-local-process",
-        "run_id": "run:1.113-control:pre-runtime-final",
+        "run_id": "run:1.113-control:pre-runtime-208",
         "observed_at": "2026-07-20T17:22:57.629Z",
         "valid_until": "until source, candidate, inventory, proof, or consumer composition changes",
         "status": "CURRENT"
@@ -129,7 +129,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "safe": "Yes",
         "cleanup_proven": "Yes"
       },
@@ -137,7 +137,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "exit_code": 0,
         "adapter": {
           "adapter_id": "npm-verify-pre-runtime",
@@ -251,7 +251,7 @@ The report authorizes no implementation, writes, release, production, or externa
     },
     {
       "claim_id": "claim:package-script-verify-runtime-trust-core",
-      "claim_digest": "sha256:b06d6ec06a77d6ce6066353956e193150eaca21c2b85254edb3cd655cde00549",
+      "claim_digest": "sha256:7e2e368a04d248eba733c07fc06e63d0292d3378ac9f5ee46deea679658032ae",
       "control_id": "package-script:verify:runtime-trust:core",
       "origin": "PROJECT_NATIVE",
       "summary": "Project package script verify:runtime-trust:core rejects invalid current-task candidates and remains bound to its strict consumer composition.",
@@ -287,7 +287,7 @@ The report authorizes no implementation, writes, release, production, or externa
       "freshness_assessment": {
         "revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
         "environment": "isolated-local-process",
-        "run_id": "run:1.113-control:pre-runtime-final",
+        "run_id": "run:1.113-control:pre-runtime-208",
         "observed_at": "2026-07-20T17:22:57.629Z",
         "valid_until": "until source, candidate, inventory, proof, or consumer composition changes",
         "status": "CURRENT"
@@ -296,7 +296,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "safe": "Yes",
         "cleanup_proven": "Yes"
       },
@@ -304,7 +304,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "exit_code": 0,
         "adapter": {
           "adapter_id": "npm-verify-pre-runtime",
@@ -418,7 +418,7 @@ The report authorizes no implementation, writes, release, production, or externa
     },
     {
       "claim_id": "claim:package-script-verify-runtime-trust",
-      "claim_digest": "sha256:464b9d782b767feb68762d81aa59e7ed2fd7a6c70b8e253b402f403c02f565ed",
+      "claim_digest": "sha256:ba5217383ad04076ac3259d94f0e1761868958c151d5554be97f02a5d9846257",
       "control_id": "package-script:verify:runtime-trust",
       "origin": "PROJECT_NATIVE",
       "summary": "Project package script verify:runtime-trust rejects invalid current-task candidates and remains bound to its strict consumer composition.",
@@ -454,7 +454,7 @@ The report authorizes no implementation, writes, release, production, or externa
       "freshness_assessment": {
         "revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
         "environment": "isolated-local-process",
-        "run_id": "run:1.113-control:pre-runtime-final",
+        "run_id": "run:1.113-control:pre-runtime-208",
         "observed_at": "2026-07-20T17:22:57.629Z",
         "valid_until": "until source, candidate, inventory, proof, or consumer composition changes",
         "status": "CURRENT"
@@ -463,7 +463,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "safe": "Yes",
         "cleanup_proven": "Yes"
       },
@@ -471,7 +471,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "exit_code": 0,
         "adapter": {
           "adapter_id": "npm-verify-pre-runtime",
@@ -585,7 +585,7 @@ The report authorizes no implementation, writes, release, production, or externa
     },
     {
       "claim_id": "claim:package-script-verify-consumer-chain-candidate",
-      "claim_digest": "sha256:33ef5e64c7452653d25cbbad4b6a37fe08a50a619cf31587e37ae4b6195b0f5c",
+      "claim_digest": "sha256:368c0f605fca5cd009d8683a97905a78742ca4a146b1dc6270a336f48fe13bc3",
       "control_id": "package-script:verify:consumer-chain:candidate",
       "origin": "PROJECT_NATIVE",
       "summary": "Project package script verify:consumer-chain:candidate rejects invalid current-task candidates and remains bound to its strict consumer composition.",
@@ -621,7 +621,7 @@ The report authorizes no implementation, writes, release, production, or externa
       "freshness_assessment": {
         "revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
         "environment": "isolated-local-process",
-        "run_id": "run:1.113-control:pre-runtime-final",
+        "run_id": "run:1.113-control:pre-runtime-208",
         "observed_at": "2026-07-20T17:22:57.629Z",
         "valid_until": "until source, candidate, inventory, proof, or consumer composition changes",
         "status": "CURRENT"
@@ -630,7 +630,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "safe": "Yes",
         "cleanup_proven": "Yes"
       },
@@ -638,7 +638,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "exit_code": 0,
         "adapter": {
           "adapter_id": "npm-verify-pre-runtime",
@@ -752,7 +752,7 @@ The report authorizes no implementation, writes, release, production, or externa
     },
     {
       "claim_id": "claim:package-script-verify-baseline",
-      "claim_digest": "sha256:13e0aa219375c9b3087a1536415442aaa188e1c81ef5a6b633eb1db877831403",
+      "claim_digest": "sha256:ff28391087eee873944b9bf90c93620cf6651c7a8f509b1687c60975ac620142",
       "control_id": "package-script:verify:baseline",
       "origin": "PROJECT_NATIVE",
       "summary": "Project package script verify:baseline rejects invalid current-task candidates and remains bound to its strict consumer composition.",
@@ -788,7 +788,7 @@ The report authorizes no implementation, writes, release, production, or externa
       "freshness_assessment": {
         "revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
         "environment": "isolated-local-process",
-        "run_id": "run:1.113-control:pre-runtime-final",
+        "run_id": "run:1.113-control:pre-runtime-208",
         "observed_at": "2026-07-20T17:22:57.629Z",
         "valid_until": "until source, candidate, inventory, proof, or consumer composition changes",
         "status": "CURRENT"
@@ -797,7 +797,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "safe": "Yes",
         "cleanup_proven": "Yes"
       },
@@ -805,7 +805,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "exit_code": 0,
         "adapter": {
           "adapter_id": "npm-verify-pre-runtime",
@@ -919,7 +919,7 @@ The report authorizes no implementation, writes, release, production, or externa
     },
     {
       "claim_id": "claim:package-script-verify-example-observed-evidence",
-      "claim_digest": "sha256:3e98f2e61aa1285584b71e88367315863e72e0186ee81e8d1d2f53cd53b25602",
+      "claim_digest": "sha256:5d9729484d1d310919cbc80bb958c31231baef4969c4191b608de4b933ed076d",
       "control_id": "package-script:verify:example-observed-evidence",
       "origin": "PROJECT_NATIVE",
       "summary": "Project package script verify:example-observed-evidence rejects invalid current-task candidates and remains bound to its strict consumer composition.",
@@ -955,7 +955,7 @@ The report authorizes no implementation, writes, release, production, or externa
       "freshness_assessment": {
         "revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
         "environment": "isolated-local-process",
-        "run_id": "run:1.113-control:pre-runtime-final",
+        "run_id": "run:1.113-control:pre-runtime-208",
         "observed_at": "2026-07-20T17:22:57.629Z",
         "valid_until": "until source, candidate, inventory, proof, or consumer composition changes",
         "status": "CURRENT"
@@ -964,7 +964,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "safe": "Yes",
         "cleanup_proven": "Yes"
       },
@@ -972,7 +972,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "exit_code": 0,
         "adapter": {
           "adapter_id": "npm-verify-pre-runtime",
@@ -1086,7 +1086,7 @@ The report authorizes no implementation, writes, release, production, or externa
     },
     {
       "claim_id": "claim:package-script-verify-release-topology-consumers",
-      "claim_digest": "sha256:94c035c6e2599f4337742ebd5ba856a3300f70d067e3fe0dc4b7723acd11e4d2",
+      "claim_digest": "sha256:d9970765b98b5f76ea5ee7dc8fee808e10b4aa37c9d46b63a71027a43056e747",
       "control_id": "package-script:verify:release-topology-consumers",
       "origin": "PROJECT_NATIVE",
       "summary": "Project package script verify:release-topology-consumers rejects invalid current-task candidates and remains bound to its strict consumer composition.",
@@ -1122,7 +1122,7 @@ The report authorizes no implementation, writes, release, production, or externa
       "freshness_assessment": {
         "revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
         "environment": "isolated-local-process",
-        "run_id": "run:1.113-control:pre-runtime-final",
+        "run_id": "run:1.113-control:pre-runtime-208",
         "observed_at": "2026-07-20T17:22:57.629Z",
         "valid_until": "until source, candidate, inventory, proof, or consumer composition changes",
         "status": "CURRENT"
@@ -1131,7 +1131,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "safe": "Yes",
         "cleanup_proven": "Yes"
       },
@@ -1139,7 +1139,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "exit_code": 0,
         "adapter": {
           "adapter_id": "npm-verify-pre-runtime",
@@ -1253,7 +1253,7 @@ The report authorizes no implementation, writes, release, production, or externa
     },
     {
       "claim_id": "claim:package-script-verify-planning-closure",
-      "claim_digest": "sha256:e6a3ca34318297ea75d5581f8fb8c6b5030371ee14a0138efd2b80c68cb75d43",
+      "claim_digest": "sha256:5544986b1557b153093e7c8f9bf47915cc405f88041980ba5b62b5c31be86575",
       "control_id": "package-script:verify:planning-closure",
       "origin": "PROJECT_NATIVE",
       "summary": "Project package script verify:planning-closure rejects invalid current-task candidates and remains bound to its strict consumer composition.",
@@ -1289,7 +1289,7 @@ The report authorizes no implementation, writes, release, production, or externa
       "freshness_assessment": {
         "revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
         "environment": "isolated-local-process",
-        "run_id": "run:1.113-control:pre-runtime-final",
+        "run_id": "run:1.113-control:pre-runtime-208",
         "observed_at": "2026-07-20T17:22:57.629Z",
         "valid_until": "until source, candidate, inventory, proof, or consumer composition changes",
         "status": "CURRENT"
@@ -1298,7 +1298,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "safe": "Yes",
         "cleanup_proven": "Yes"
       },
@@ -1306,7 +1306,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "exit_code": 0,
         "adapter": {
           "adapter_id": "npm-verify-pre-runtime",
@@ -1420,7 +1420,7 @@ The report authorizes no implementation, writes, release, production, or externa
     },
     {
       "claim_id": "claim:file-scripts-check-apply-execution-receipt-mjs",
-      "claim_digest": "sha256:4dffc26afa4a76f00017531faefa9bcc1087c87c7e1a56c3e3ba2d44e247bca1",
+      "claim_digest": "sha256:1c26f7ff10eec8b809896f349d4b2dd8da37ba0de5de825da8295c092ddcc19d",
       "control_id": "file:scripts/check-apply-execution-receipt.mjs",
       "origin": "PROJECT_NATIVE",
       "summary": "Project control implemented by scripts/check-apply-execution-receipt.mjs rejects invalid current-task candidates and remains bound to its strict consumer composition.",
@@ -1456,7 +1456,7 @@ The report authorizes no implementation, writes, release, production, or externa
       "freshness_assessment": {
         "revision": "sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a",
         "environment": "isolated-local-process",
-        "run_id": "run:1.113-control:pre-runtime-final",
+        "run_id": "run:1.113-control:pre-runtime-208",
         "observed_at": "2026-07-20T17:22:57.629Z",
         "valid_until": "until source, candidate, inventory, proof, or consumer composition changes",
         "status": "CURRENT"
@@ -1465,7 +1465,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "safe": "Yes",
         "cleanup_proven": "Yes"
       },
@@ -1473,7 +1473,7 @@ The report authorizes no implementation, writes, release, production, or externa
         "required": "Yes",
         "state": "PROVEN",
         "evidence_ref": "file:evidence/113-control-proof.log",
-        "output_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b",
+        "output_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514",
         "exit_code": 0,
         "adapter": {
           "adapter_id": "npm-verify-pre-runtime",
@@ -1616,7 +1616,7 @@ The report authorizes no implementation, writes, release, production, or externa
       {
         "ref": "file:evidence/113-control-proof.log",
         "relative_path": "evidence/113-control-proof.log",
-        "raw_file_digest": "sha256:5f5fcf46e7ddd74cf72729f56b506f8e74ee773b1411d5148cd770d6d7614f6b"
+        "raw_file_digest": "sha256:89f65e279dba2a8a87971b78b3ce7f78afce323cabba2ee239d987f883de3514"
       }
     ]
   },

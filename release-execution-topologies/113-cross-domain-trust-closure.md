@@ -43,11 +43,11 @@
 | --- | --- | --- | --- |
 | source_control | .git/config | sha256:d2d7d49ef247798a7dc1a2f108bc3f27c3c2f1532989ac8c00524fd790162c51 | OBSERVED |
 | orchestration | .github/workflows/intentos-pr-checks.yml | sha256:483d945d493cce1674ffe72448cea5921ea5a5bbb255e45c7baa603d4802235c | OBSERVED |
-| execution_backend | release-channel-policies/113-cross-domain-trust-closure.md | sha256:080c11a8c366930b273845376103cb57bb86210a3276df01795a6b96579dc751 | OBSERVED |
-| package_transport | release-channel-policies/113-cross-domain-trust-closure.md | sha256:080c11a8c366930b273845376103cb57bb86210a3276df01795a6b96579dc751 | DECLARED |
+| execution_backend | release-channel-policies/113-cross-domain-trust-closure.md | sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af | OBSERVED |
+| package_transport | release-channel-policies/113-cross-domain-trust-closure.md | sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af | DECLARED |
 | evidence_store | .github/workflows/intentos-release-checks.yml | sha256:10b5b231ca6e45ebcca2a5376d6d79888777ca7225e395a704218245a415476a | DECLARED |
-| production_target | release-channel-policies/113-cross-domain-trust-closure.md | sha256:080c11a8c366930b273845376103cb57bb86210a3276df01795a6b96579dc751 | OBSERVED |
-| legacy_policy | release-channel-policies/113-cross-domain-trust-closure.md | sha256:080c11a8c366930b273845376103cb57bb86210a3276df01795a6b96579dc751 | DECLARED |
+| production_target | release-channel-policies/113-cross-domain-trust-closure.md | sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af | OBSERVED |
+| legacy_policy | release-channel-policies/113-cross-domain-trust-closure.md | sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af | DECLARED |
 
 ## Boundaries
 
@@ -65,7 +65,7 @@
   "schema_version": "1.105.0",
   "artifact_type": "release_execution_topology",
   "topology_ref": "release-execution-topologies/113-cross-domain-trust-closure.md",
-  "topology_digest": "sha256:1d3cd080e98c430975203101377e6c27db48ed51be32aa3a38e8ef570df4c961",
+  "topology_digest": "sha256:61a729976a0aa8ec0e66815b464cdf0c11adefee436741c8fd87cdc95524eb55",
   "intent": "Complete IntentOS 1.113 cross-domain trust closure by enforcing required task consumers, evidence authority, security boundaries, atomic apply recovery, existing-project activation, baseline integrity, and bounded source distribution evidence while prohibiting external effects.",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
   "project_identity": {
@@ -199,13 +199,13 @@
     {
       "plane": "execution_backend",
       "ref": "release-channel-policies/113-cross-domain-trust-closure.md",
-      "digest": "sha256:080c11a8c366930b273845376103cb57bb86210a3276df01795a6b96579dc751",
+      "digest": "sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af",
       "confidence": "OBSERVED"
     },
     {
       "plane": "package_transport",
       "ref": "release-channel-policies/113-cross-domain-trust-closure.md",
-      "digest": "sha256:080c11a8c366930b273845376103cb57bb86210a3276df01795a6b96579dc751",
+      "digest": "sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af",
       "confidence": "DECLARED"
     },
     {
@@ -217,13 +217,13 @@
     {
       "plane": "production_target",
       "ref": "release-channel-policies/113-cross-domain-trust-closure.md",
-      "digest": "sha256:080c11a8c366930b273845376103cb57bb86210a3276df01795a6b96579dc751",
+      "digest": "sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af",
       "confidence": "OBSERVED"
     },
     {
       "plane": "legacy_policy",
       "ref": "release-channel-policies/113-cross-domain-trust-closure.md",
-      "digest": "sha256:080c11a8c366930b273845376103cb57bb86210a3276df01795a6b96579dc751",
+      "digest": "sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af",
       "confidence": "DECLARED"
     }
   ],

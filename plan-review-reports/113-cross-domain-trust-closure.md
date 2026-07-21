@@ -64,7 +64,7 @@
 | Requirement | REQUIRED |
 | Status | VERIFIED |
 | Report ref | artifact:control-effectiveness-reports/113-cross-domain-trust-closure.md |
-| Report digest | sha256:f746500af84ea19fba21ed879f8635020a5e65f101e8a687ca4e2810c326cad7 |
+| Report digest | sha256:72c8b436fa6fff5ab18875cd7eb640d50b5377e5d00fd1ef2fa111e8b6f35057 |
 | Required claims | claim:package-script-verify-candidate, claim:package-script-verify-runtime-trust-core, claim:package-script-verify-runtime-trust, claim:package-script-verify-consumer-chain-candidate, claim:package-script-verify-baseline, claim:package-script-verify-release-topology-consumers, claim:package-script-verify-planning-closure, claim:file-scripts-check-apply-execution-receipt-mjs |
 | Assessment outcome | CONTROL_PROVEN_EFFECTIVE |
 | Reason | The exact current report proves every relied-on bounded control claim. |
@@ -158,11 +158,11 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | task_governance | artifact:task-governance-reports/113-cross-domain-trust-closure.md | sha256:7ef8fb8b14d674bf8418107d2cd04975ca3381ccc5abe4ab1a267502658bad28 | HIGH_REQUIRES_FULL_GOVERNANCE | Yes | No | intentos-governance |
 | review_surface_card | artifact:review-surface-cards/113-cross-domain-trust-closure.md | sha256:7e83a744ec0e5035bca63a311aa51b220fe38a8257a880535c36f6ebf7e96786 | RECORDED | N/A | Yes | project-review-evidence |
-| verification_plan | artifact:verification-plans/113-cross-domain-trust-closure.md | sha256:d11076bd1482b227c3efc710181f37f672b4c17786153430815938367691a3a8 | VERIFICATION_PLAN_READY | Yes | No | codex |
-| business_rule_closure | artifact:business-rule-closures/113-cross-domain-trust-closure.md | sha256:c254ed804d859983e11d3eeefd53f7bc319309fbca6852828fc8e3aab8308b8f | READY_FOR_IMPACT_COVERAGE | Yes | No | project-business-evidence |
+| verification_plan | artifact:verification-plans/113-cross-domain-trust-closure.md | sha256:5a45bba416cdb856d442e112095c694b48f4c5da0433ead74a07a256c8b0555a | VERIFICATION_PLAN_READY | Yes | No | codex |
+| business_rule_closure | artifact:business-rule-closures/113-cross-domain-trust-closure.md | sha256:851bbfdfe58ac98d2063d3e86527683697c5e060137de21dc10055c47959a472 | READY_FOR_IMPACT_COVERAGE | Yes | No | project-business-evidence |
 | change_impact_coverage | artifact:change-impact-coverage-reports/preflight-113-cross-domain-trust-closure.md | sha256:71a1387d0d31058727587df3014c7fef8a3da93d1872536b231181f9e61a0159 | CHANGE_IMPACT_RECORDED | Yes | No | codex |
 | business_universe_coverage | artifact:business-universe-coverage-reports/113-cross-domain-trust-closure.md | sha256:202ec5ac2dfa3d3c7c7fa618e7d6dd4c3f65e2b5e8bbeeff2adb8a21a6c07a22 | COVERAGE_READY | Yes | No | codex |
-| control_effectiveness | artifact:control-effectiveness-reports/113-cross-domain-trust-closure.md | sha256:f746500af84ea19fba21ed879f8635020a5e65f101e8a687ca4e2810c326cad7 | CONTROL_PROVEN_EFFECTIVE | Yes | No | codex |
+| control_effectiveness | artifact:control-effectiveness-reports/113-cross-domain-trust-closure.md | sha256:72c8b436fa6fff5ab18875cd7eb640d50b5377e5d00fd1ef2fa111e8b6f35057 | CONTROL_PROVEN_EFFECTIVE | Yes | No | codex |
 
 ## Reviewed Surfaces
 
@@ -244,7 +244,7 @@
   "schema_version": "1.113.0",
   "artifact_type": "plan_review",
   "plan_review_ref": "plan-review-reports/113-cross-domain-trust-closure.md",
-  "plan_review_digest": "sha256:f608245deade6db776567e09a14711527968496761b61d61d1898c18095ed2f3",
+  "plan_review_digest": "sha256:266296b4cb137316ce5449ca2dc9b19b4fc80f4f89a68a5f50ba05d09cf1e40e",
   "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
   "intent": "Complete IntentOS 1.113 cross-domain trust closure by enforcing required task consumers, evidence authority, security boundaries, atomic apply recovery, existing-project activation, baseline integrity, and bounded source distribution evidence while prohibiting external effects.",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
@@ -357,7 +357,7 @@
     "requirement": "REQUIRED",
     "status": "VERIFIED",
     "report_ref": "artifact:control-effectiveness-reports/113-cross-domain-trust-closure.md",
-    "report_digest": "sha256:f746500af84ea19fba21ed879f8635020a5e65f101e8a687ca4e2810c326cad7",
+    "report_digest": "sha256:72c8b436fa6fff5ab18875cd7eb640d50b5377e5d00fd1ef2fa111e8b6f35057",
     "required_claim_ids": [
       "claim:package-script-verify-candidate",
       "claim:package-script-verify-runtime-trust-core",
@@ -1481,7 +1481,7 @@
     {
       "source_kind": "verification_plan",
       "source_ref": "artifact:verification-plans/113-cross-domain-trust-closure.md",
-      "source_digest": "sha256:d11076bd1482b227c3efc710181f37f672b4c17786153430815938367691a3a8",
+      "source_digest": "sha256:5a45bba416cdb856d442e112095c694b48f4c5da0433ead74a07a256c8b0555a",
       "source_state": "VERIFICATION_PLAN_READY",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",
@@ -1491,7 +1491,7 @@
     {
       "source_kind": "business_rule_closure",
       "source_ref": "artifact:business-rule-closures/113-cross-domain-trust-closure.md",
-      "source_digest": "sha256:c254ed804d859983e11d3eeefd53f7bc319309fbca6852828fc8e3aab8308b8f",
+      "source_digest": "sha256:851bbfdfe58ac98d2063d3e86527683697c5e060137de21dc10055c47959a472",
       "source_state": "READY_FOR_IMPACT_COVERAGE",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",
@@ -1521,7 +1521,7 @@
     {
       "source_kind": "control_effectiveness",
       "source_ref": "artifact:control-effectiveness-reports/113-cross-domain-trust-closure.md",
-      "source_digest": "sha256:f746500af84ea19fba21ed879f8635020a5e65f101e8a687ca4e2810c326cad7",
+      "source_digest": "sha256:72c8b436fa6fff5ab18875cd7eb640d50b5377e5d00fd1ef2fa111e8b6f35057",
       "source_state": "CONTROL_PROVEN_EFFECTIVE",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",

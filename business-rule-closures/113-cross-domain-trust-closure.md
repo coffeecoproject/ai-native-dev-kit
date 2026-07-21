@@ -203,8 +203,17 @@ Local smoke evidence first; staging or internal trial evidence when available be
   "business_universe_binding": {
     "required": "Yes",
     "routing_result": "REQUIRED_WITH_EVIDENCE",
+    "reason_codes": [
+      "MULTI_CLASS_OR_ORIGIN",
+      "SELECTIVE_INCLUSION_OR_FANOUT",
+      "LIFECYCLE_BRANCH_OR_RECOVERY",
+      "PATH_PROVENANCE_AMBIGUITY",
+      "DOMAIN_COMPLETENESS_CLAIM",
+      "HIGH_RISK_OMISSION_AMPLIFIER"
+    ],
     "business_universe_ref": "artifact:business-universe-coverage-reports/113-cross-domain-trust-closure.md",
     "business_universe_digest": "sha256:3fd5627529d7fe3a6905cf6bcf4d164e20f363983bdf8e1b00b28e7402b5197a",
+    "business_universe_state": "COVERAGE_READY",
     "coverage_scenario_ids": [
       "coverage-scenario:43cece0c8802346401b5deae",
       "coverage-scenario:caa9e24d2528c535370c5a1e",
@@ -261,15 +270,6 @@ Local smoke evidence first; staging or internal trial evidence when available be
       "coverage-scenario:992de49bc34fc2d806b86b13",
       "coverage-scenario:ff3062fc90293a63d6fb92e1"
     ],
-    "reason_codes": [
-      "MULTI_CLASS_OR_ORIGIN",
-      "SELECTIVE_INCLUSION_OR_FANOUT",
-      "LIFECYCLE_BRANCH_OR_RECOVERY",
-      "PATH_PROVENANCE_AMBIGUITY",
-      "DOMAIN_COMPLETENESS_CLAIM",
-      "HIGH_RISK_OMISSION_AMPLIFIER"
-    ],
-    "business_universe_state": "COVERAGE_READY",
     "coverage_mapping_status": "COMPLETE",
     "current_task_match": "Yes",
     "intent_match": "Yes",

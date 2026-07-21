@@ -1,0 +1,41 @@
+{"at":"2026-07-21T04:45:51.667Z","event":"PREFLIGHT_RUNNING","run_id":"vrun-113-cross-domain-trust-r46"}
+{"at":"2026-07-21T04:45:51.670Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"EXECUTABLE_AVAILABILITY","result":"PASS","reason":"all 6 declared executables resolved in the bounded executor PATH"}
+{"at":"2026-07-21T04:45:51.670Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SOURCE_IDENTITY","result":"PASS","reason":"current project identity matches sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a"}
+{"at":"2026-07-21T04:45:51.670Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"WORKTREE_STATE","result":"PASS","reason":"the exact pre-run worktree identity was captured for post-run comparison"}
+{"at":"2026-07-21T04:45:51.670Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"OLD_PROCESS","result":"PASS","reason":"process inventory probe is unavailable on this executor; the run workspace is new, every service is spawned with a fresh owner token, and reusable network endpoints are independently bind-probed"}
+{"at":"2026-07-21T04:45:51.670Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"PORT_CONFLICT","result":"PASS","reason":"no network port is declared or reused by this lifecycle"}
+{"at":"2026-07-21T04:45:51.670Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SENSITIVE_ENVIRONMENT","result":"PASS","reason":"child environment is rebuilt from the non-sensitive allowlist: PATH, LANG, LC_ALL, CI, TERM"}
+{"at":"2026-07-21T04:45:51.670Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"DATA_IDENTITY","result":"PASS","reason":"all 4 declared resources are new run-scoped, non-production, and non-shared paths"}
+{"at":"2026-07-21T04:45:51.670Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SESSION_RESIDUE","result":"PASS","reason":"no run-scoped session namespace existed before execution (1 declared)"}
+{"at":"2026-07-21T04:45:51.670Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"PRODUCTION_RESOURCE_GUARD","result":"PASS","reason":"all actions and resources are explicitly non-production and contain no external-effect command marker"}
+{"at":"2026-07-21T04:45:51.671Z","event":"EXECUTABLE_RESOLVED","action_id":"self-runtime-service","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-21T04:45:51.671Z","event":"EXECUTABLE_RESOLVED","action_id":"self-runtime-negative","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-21T04:45:51.671Z","event":"EXECUTABLE_RESOLVED","action_id":"self-runtime-positive","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-21T04:45:51.671Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-candidate-verification","executable":"/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js"}
+{"at":"2026-07-21T04:45:51.671Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-obligation-evidence","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-21T04:45:51.671Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-runtime-behavior","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-21T04:45:51.671Z","event":"PREFLIGHT_PASSED"}
+{"at":"2026-07-21T04:45:51.672Z","event":"RESOURCE_CREATED","resource_id":"cache","resource_type":"CACHE_NAMESPACE"}
+{"at":"2026-07-21T04:45:51.672Z","event":"RESOURCE_CREATED","resource_id":"context","resource_type":"SESSION_NAMESPACE"}
+{"at":"2026-07-21T04:45:51.672Z","event":"RESOURCE_CREATED","resource_id":"data","resource_type":"FILE_NAMESPACE"}
+{"at":"2026-07-21T04:45:51.672Z","event":"RESOURCE_CREATED","resource_id":"files","resource_type":"FILE_NAMESPACE"}
+{"at":"2026-07-21T04:45:51.673Z","event":"ACTION_STARTING","action_id":"self-runtime-service","phase":"START_SERVICE","kind":"SERVICE"}
+{"at":"2026-07-21T04:45:52.679Z","event":"SERVICE_OBSERVED","action_id":"self-runtime-service","pid":33928}
+{"at":"2026-07-21T04:45:52.679Z","event":"ACTION_STARTING","action_id":"self-runtime-negative","phase":"VERIFY","kind":"PROBE"}
+{"at":"2026-07-21T04:45:52.718Z","event":"ACTION_FINISHED","action_id":"self-runtime-negative","exit_code":0,"timed_out":false}
+{"at":"2026-07-21T04:45:52.718Z","event":"ACTION_STARTING","action_id":"self-runtime-positive","phase":"VERIFY","kind":"PROBE"}
+{"at":"2026-07-21T04:45:52.756Z","event":"ACTION_FINISHED","action_id":"self-runtime-positive","exit_code":0,"timed_out":false}
+{"at":"2026-07-21T04:45:52.756Z","event":"ACTION_STARTING","action_id":"self-current-candidate-verification","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-21T05:03:41.397Z","event":"ACTION_FINISHED","action_id":"self-current-candidate-verification","exit_code":0,"timed_out":false}
+{"at":"2026-07-21T05:03:41.399Z","event":"ACTION_STARTING","action_id":"self-current-obligation-evidence","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-21T05:10:40.448Z","event":"ACTION_FINISHED","action_id":"self-current-obligation-evidence","exit_code":0,"timed_out":false}
+{"at":"2026-07-21T05:10:40.450Z","event":"ACTION_STARTING","action_id":"self-current-runtime-behavior","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-21T05:10:40.728Z","event":"ACTION_FINISHED","action_id":"self-current-runtime-behavior","exit_code":0,"timed_out":false}
+{"at":"2026-07-21T05:10:40.731Z","event":"CLEANUP_EVIDENCE_BEFORE_RECORDED"}
+{"at":"2026-07-21T05:10:40.734Z","event":"CLEANING_UP"}
+{"at":"2026-07-21T05:10:40.746Z","event":"PROCESS_CLEANED","action_id":"self-runtime-service","pid":33928}
+{"at":"2026-07-21T05:10:40.751Z","event":"RESOURCE_CLEANED","resource_id":"files"}
+{"at":"2026-07-21T05:10:40.754Z","event":"RESOURCE_CLEANED","resource_id":"data"}
+{"at":"2026-07-21T05:10:40.755Z","event":"RESOURCE_CLEANED","resource_id":"context"}
+{"at":"2026-07-21T05:10:40.756Z","event":"RESOURCE_CLEANED","resource_id":"cache"}
+{"at":"2026-07-21T05:10:44.870Z","event":"COMPLETED"}

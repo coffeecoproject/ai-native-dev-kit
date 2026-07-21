@@ -1,0 +1,7 @@
+run_id=vrun-113-cross-domain-trust-r46
+owner_marker_digest=sha256:52334b1b26674785319adaa754fc5322e816064ca049395241e9247050ef3067
+cache:CACHE_NAMESPACE:cleaned=Yes
+context:SESSION_NAMESPACE:cleaned=Yes
+data:FILE_NAMESPACE:cleaned=Yes
+files:FILE_NAMESPACE:cleaned=Yes
+process:self-runtime-service:pid=33928:cleaned=Yes

@@ -6,7 +6,7 @@ IntentOS executed only the bounded local lifecycle plan and preserved observed i
 
 ## Run Binding
 
-- Run ID: `vrun-113-cross-domain-trust-r45`
+- Run ID: `vrun-113-cross-domain-trust-r46`
 - Runtime Plan: `artifact:verification-runtime-plans/113-cross-domain-trust-closure.md`
 - Lifecycle Plan: `artifact:verification-runtime-lifecycle-plans/113-cross-domain-trust-closure.md`
 
@@ -17,8 +17,8 @@ IntentOS executed only the bounded local lifecycle plan and preserved observed i
 
 ## Run Window
 
-- Started: `2026-07-21T01:29:13.992Z`
-- Finished: `2026-07-21T01:41:34.046Z`
+- Started: `2026-07-21T04:45:51.662Z`
+- Finished: `2026-07-21T05:10:44.863Z`
 - State: `COMPLETED`
 
 ## Environment Preflight
@@ -66,18 +66,18 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
   "schema_version": "1.103.0",
   "artifact_type": "verification_run_manifest",
   "run_manifest_ref": "verification-run-manifests/113-cross-domain-trust-closure.md",
-  "run_manifest_digest": "sha256:85bef60cf3445edc21524788ccd1342ca0a9ec3a6b88f182efc852adabe213c0",
-  "run_id": "vrun-113-cross-domain-trust-r45",
-  "owner_token_digest": "sha256:407bf088264fd049291f7d989db1c2ccec2ec1ba53537935e3672d4d48b46a4f",
+  "run_manifest_digest": "sha256:fa1c7969e781349a55da46041c1d52db22e981efcd2b6f835fe31a3829514b1e",
+  "run_id": "vrun-113-cross-domain-trust-r46",
+  "owner_token_digest": "sha256:49b204090b2121d3bffb4b0d3bc8dcf75c286ffdffe8866f2c07bac1a09a1d29",
   "runtime_plan_ref": "artifact:verification-runtime-plans/113-cross-domain-trust-closure.md",
-  "runtime_plan_digest": "sha256:003a712b6718685438ea9588b6adaf85920180a6d332851861be9cb24b0c22a9",
+  "runtime_plan_digest": "sha256:f538ed1c0a8c46257b3dbb579a0835a2cdc1ab690b494920b31a87cfeba13ad6",
   "lifecycle_plan_ref": "artifact:verification-runtime-lifecycle-plans/113-cross-domain-trust-closure.md",
-  "lifecycle_plan_digest": "sha256:3e353ef582539fe44ae1efd7809d9ecaebcab3ed676037ce065c0d89d5155adb",
-  "lifecycle_journal_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/lifecycle-journal.jsonl",
-  "lifecycle_journal_digest": "sha256:1c28c7334bf1a10b4057defcf4f6f706fe37a87607c294e428ed14ab2bfc0903",
+  "lifecycle_plan_digest": "sha256:2594b8cfa01c3e4083a0c044b1e05f6c865522342fd5574afe030b27188b0e52",
+  "lifecycle_journal_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/lifecycle-journal.jsonl",
+  "lifecycle_journal_digest": "sha256:a0635b0de88e1beafdb7f70ec8f4fe3ca18beae0dc605a297385c34602dcce1e",
   "adapter_contract_digest": "sha256:3616126bc156655e5e602cca74247796e4a711f7fd0a30702a1d6313029037f7",
   "verification_plan_ref": "artifact:verification-plans/113-cross-domain-trust-closure.md",
-  "verification_plan_digest": "sha256:92f1c62c8ed6b3853df2ec2e594ca1c7d4a40d93668dc793c7fa98666994bbdc",
+  "verification_plan_digest": "sha256:f31bb1fef6875d0dc81614d4cc9a407bd3ebc902f6449b48ef8d3c0aec8c748c",
   "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
   "task_tier": "HIGH",
@@ -90,8 +90,8 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
   },
   "build_artifacts": [],
   "run_window": {
-    "started_at": "2026-07-21T01:29:13.992Z",
-    "finished_at": "2026-07-21T01:41:34.046Z",
+    "started_at": "2026-07-21T04:45:51.662Z",
+    "finished_at": "2026-07-21T05:10:44.863Z",
     "state": "COMPLETED"
   },
   "preflight_results": [
@@ -99,72 +99,72 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       "probe": "EXECUTABLE_AVAILABILITY",
       "required": "Yes",
       "result": "PASS",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-      "evidence_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268",
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+      "evidence_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520",
       "reason": "all 6 declared executables resolved in the bounded executor PATH"
     },
     {
       "probe": "SOURCE_IDENTITY",
       "required": "Yes",
       "result": "PASS",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-      "evidence_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268",
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+      "evidence_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520",
       "reason": "current project identity matches sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a"
     },
     {
       "probe": "WORKTREE_STATE",
       "required": "Yes",
       "result": "PASS",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-      "evidence_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268",
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+      "evidence_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520",
       "reason": "the exact pre-run worktree identity was captured for post-run comparison"
     },
     {
       "probe": "OLD_PROCESS",
       "required": "Yes",
       "result": "PASS",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-      "evidence_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268",
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+      "evidence_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520",
       "reason": "process inventory probe is unavailable on this executor; the run workspace is new, every service is spawned with a fresh owner token, and reusable network endpoints are independently bind-probed"
     },
     {
       "probe": "PORT_CONFLICT",
       "required": "Yes",
       "result": "PASS",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-      "evidence_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268",
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+      "evidence_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520",
       "reason": "no network port is declared or reused by this lifecycle"
     },
     {
       "probe": "SENSITIVE_ENVIRONMENT",
       "required": "Yes",
       "result": "PASS",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-      "evidence_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268",
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+      "evidence_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520",
       "reason": "child environment is rebuilt from the non-sensitive allowlist: PATH, LANG, LC_ALL, CI, TERM"
     },
     {
       "probe": "DATA_IDENTITY",
       "required": "Yes",
       "result": "PASS",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-      "evidence_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268",
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+      "evidence_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520",
       "reason": "all 4 declared resources are new run-scoped, non-production, and non-shared paths"
     },
     {
       "probe": "SESSION_RESIDUE",
       "required": "Yes",
       "result": "PASS",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-      "evidence_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268",
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+      "evidence_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520",
       "reason": "no run-scoped session namespace existed before execution (1 declared)"
     },
     {
       "probe": "PRODUCTION_RESOURCE_GUARD",
       "required": "Yes",
       "result": "PASS",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-      "evidence_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268",
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+      "evidence_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520",
       "reason": "all actions and resources are explicitly non-production and contain no external-effect command marker"
     }
   ],
@@ -176,7 +176,7 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       "identity_fields": [
         {
           "name": "pid",
-          "value_digest": "sha256:9f0b37c566e5773f4091ef0e75a5bd9369ada622c27fc0d528ade09d5ab9ccbf",
+          "value_digest": "sha256:550ce5813e204881075f96ac04b7ee8b4a85327723067d48c6742d0283c185b8",
           "redacted_display": "pid:<recorded>"
         },
         {
@@ -190,18 +190,18 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
           "redacted_display": "cwd:<recorded>"
         }
       ],
-      "started_at": "2026-07-21T01:29:14.005Z",
+      "started_at": "2026-07-21T04:45:51.675Z",
       "owned_by_run": "Yes",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-service.log",
-      "evidence_digest": "sha256:feaf554e1aa6400e00770e781448d078ef82f3a10106d6e4eee1b25536922ac1"
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-service.log",
+      "evidence_digest": "sha256:935e4db22ed43a7fa7fb253fedb181a932845dd88df47ac3ffc62ef9aa2d1394"
     }
   ],
   "data_resources": [
     {
       "id": "cache",
       "resource_type": "CACHE",
-      "instance_fingerprint": "sha256:235491f5b86df50d43ca01489b5f69687c43ee2eb6adf9fb04216b0752267583",
-      "namespace_digest": "sha256:825ca6c51dbfdf511bf12045ab2b463831cebbd01f157843075bdb3341d5355c",
+      "instance_fingerprint": "sha256:52334b1b26674785319adaa754fc5322e816064ca049395241e9247050ef3067",
+      "namespace_digest": "sha256:2e85fa8b5ecfe6e939b6c6d5229ba35792f255aeb0253957e5ee344a914e3985",
       "migration_revision": "not-applicable",
       "isolation_status": "ISOLATED",
       "production_instance": "No",
@@ -210,8 +210,8 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
     {
       "id": "data",
       "resource_type": "OTHER",
-      "instance_fingerprint": "sha256:235491f5b86df50d43ca01489b5f69687c43ee2eb6adf9fb04216b0752267583",
-      "namespace_digest": "sha256:1334198043ccd928ccbbb49030a54448fc413eabacbae8bcb7e33ed9e048f583",
+      "instance_fingerprint": "sha256:52334b1b26674785319adaa754fc5322e816064ca049395241e9247050ef3067",
+      "namespace_digest": "sha256:8e610def0953f8efb2572012f03d50d5b16c31b3520046ee5b350af1bd0a1787",
       "migration_revision": "not-applicable",
       "isolation_status": "ISOLATED",
       "production_instance": "No",
@@ -220,8 +220,8 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
     {
       "id": "files",
       "resource_type": "OTHER",
-      "instance_fingerprint": "sha256:235491f5b86df50d43ca01489b5f69687c43ee2eb6adf9fb04216b0752267583",
-      "namespace_digest": "sha256:cd193cc317d3b665d3bc20efcbca13647230017007d02bdfd114c7d219276d99",
+      "instance_fingerprint": "sha256:52334b1b26674785319adaa754fc5322e816064ca049395241e9247050ef3067",
+      "namespace_digest": "sha256:bb43c7298cef0b2fd6179eee39978b6fd746cf2ed653d6c61d4307fa590cc6a4",
       "migration_revision": "not-applicable",
       "isolation_status": "ISOLATED",
       "production_instance": "No",
@@ -232,7 +232,7 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
     {
       "id": "context",
       "role": "isolated-user-context",
-      "namespace_digest": "sha256:2ccf081282fa656d531aac30749b7e53fd7ec30020121ead11cda368fb2e7018",
+      "namespace_digest": "sha256:7f79d86eb738889203b510dc5a3eddfb2ff28405d38d309b4188b44b91d8cbe4",
       "isolation_status": "ISOLATED",
       "owned_by_run": "Yes",
       "credential_stored": "No"
@@ -243,46 +243,46 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       "resource_id": "cache",
       "resource_type": "CACHE",
       "created_by_run": "Yes",
-      "owner_marker_digest": "sha256:235491f5b86df50d43ca01489b5f69687c43ee2eb6adf9fb04216b0752267583",
+      "owner_marker_digest": "sha256:52334b1b26674785319adaa754fc5322e816064ca049395241e9247050ef3067",
       "cleanup_state": "CLEANED",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/resources.txt",
-      "evidence_digest": "sha256:a114644e3c2a0436b260ebcb6a1b74c148463702dc53ab4552b848142d66d307"
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/resources.txt",
+      "evidence_digest": "sha256:04607a9c53b8c0bdf210e0fa3bb67b535eb741575981366cfd9cd0e9584f7483"
     },
     {
       "resource_id": "context",
       "resource_type": "SESSION",
       "created_by_run": "Yes",
-      "owner_marker_digest": "sha256:235491f5b86df50d43ca01489b5f69687c43ee2eb6adf9fb04216b0752267583",
+      "owner_marker_digest": "sha256:52334b1b26674785319adaa754fc5322e816064ca049395241e9247050ef3067",
       "cleanup_state": "CLEANED",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/resources.txt",
-      "evidence_digest": "sha256:a114644e3c2a0436b260ebcb6a1b74c148463702dc53ab4552b848142d66d307"
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/resources.txt",
+      "evidence_digest": "sha256:04607a9c53b8c0bdf210e0fa3bb67b535eb741575981366cfd9cd0e9584f7483"
     },
     {
       "resource_id": "data",
       "resource_type": "FILE",
       "created_by_run": "Yes",
-      "owner_marker_digest": "sha256:235491f5b86df50d43ca01489b5f69687c43ee2eb6adf9fb04216b0752267583",
+      "owner_marker_digest": "sha256:52334b1b26674785319adaa754fc5322e816064ca049395241e9247050ef3067",
       "cleanup_state": "CLEANED",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/resources.txt",
-      "evidence_digest": "sha256:a114644e3c2a0436b260ebcb6a1b74c148463702dc53ab4552b848142d66d307"
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/resources.txt",
+      "evidence_digest": "sha256:04607a9c53b8c0bdf210e0fa3bb67b535eb741575981366cfd9cd0e9584f7483"
     },
     {
       "resource_id": "files",
       "resource_type": "FILE",
       "created_by_run": "Yes",
-      "owner_marker_digest": "sha256:235491f5b86df50d43ca01489b5f69687c43ee2eb6adf9fb04216b0752267583",
+      "owner_marker_digest": "sha256:52334b1b26674785319adaa754fc5322e816064ca049395241e9247050ef3067",
       "cleanup_state": "CLEANED",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/resources.txt",
-      "evidence_digest": "sha256:a114644e3c2a0436b260ebcb6a1b74c148463702dc53ab4552b848142d66d307"
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/resources.txt",
+      "evidence_digest": "sha256:04607a9c53b8c0bdf210e0fa3bb67b535eb741575981366cfd9cd0e9584f7483"
     },
     {
       "resource_id": "service:self-runtime-service",
       "resource_type": "PROCESS",
       "created_by_run": "Yes",
-      "owner_marker_digest": "sha256:235491f5b86df50d43ca01489b5f69687c43ee2eb6adf9fb04216b0752267583",
+      "owner_marker_digest": "sha256:52334b1b26674785319adaa754fc5322e816064ca049395241e9247050ef3067",
       "cleanup_state": "CLEANED",
-      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/resources.txt",
-      "evidence_digest": "sha256:a114644e3c2a0436b260ebcb6a1b74c148463702dc53ab4552b848142d66d307"
+      "evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/resources.txt",
+      "evidence_digest": "sha256:04607a9c53b8c0bdf210e0fa3bb67b535eb741575981366cfd9cd0e9584f7483"
     }
   ],
   "verification_executions": [
@@ -290,8 +290,8 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       "id": "self-runtime-negative",
       "result": "PASSED",
       "command_digest": "sha256:065f3cb043f7f0ac45feb9b3cfc86fb4d745f4e74d0ba3dc60855433fe721a1d",
-      "started_at": "2026-07-21T01:29:15.008Z",
-      "finished_at": "2026-07-21T01:29:15.059Z",
+      "started_at": "2026-07-21T04:45:52.680Z",
+      "finished_at": "2026-07-21T04:45:52.718Z",
       "exit_code": 0,
       "covers_obligations": [],
       "service_instance_ids": [
@@ -305,15 +305,15 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       ],
       "positive_path": "No",
       "negative_path": "Yes",
-      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-negative.log",
-      "output_digest": "sha256:2720c59e5878303132946002df6cd08e812b58ff1cdf8453aab90f2ffc9522b5"
+      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-negative.log",
+      "output_digest": "sha256:db00ba10b86b4fd4d8818661ded684e4577dd51ecc46b76f371a17805b8efca1"
     },
     {
       "id": "self-runtime-positive",
       "result": "PASSED",
       "command_digest": "sha256:b2f85ec5c19a3d2fe1f8a8159a89899854aed5901bc877980b2be88e3d36bc60",
-      "started_at": "2026-07-21T01:29:15.059Z",
-      "finished_at": "2026-07-21T01:29:15.091Z",
+      "started_at": "2026-07-21T04:45:52.718Z",
+      "finished_at": "2026-07-21T04:45:52.756Z",
       "exit_code": 0,
       "covers_obligations": [],
       "service_instance_ids": [
@@ -327,15 +327,15 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       ],
       "positive_path": "Yes",
       "negative_path": "No",
-      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-positive.log",
-      "output_digest": "sha256:48c84829e1b1558d08bc9bb6179088f09b46f00fe63383e752f448f194bc64ee"
+      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-positive.log",
+      "output_digest": "sha256:8337923abcf7495a8304d1642a158a91a0b79ec8804eb278d7c993525e2baf33"
     },
     {
       "id": "self-current-candidate-verification",
       "result": "PASSED",
       "command_digest": "sha256:b27c49ad15d727673a6e6628d6420d1c174b1f54586726229bac26d04f068b6d",
-      "started_at": "2026-07-21T01:29:15.091Z",
-      "finished_at": "2026-07-21T01:37:17.223Z",
+      "started_at": "2026-07-21T04:45:52.756Z",
+      "finished_at": "2026-07-21T05:03:41.393Z",
       "exit_code": 0,
       "covers_obligations": [],
       "service_instance_ids": [
@@ -349,15 +349,15 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       ],
       "positive_path": "Yes",
       "negative_path": "Yes",
-      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-candidate-verification.log",
-      "output_digest": "sha256:a197838c685be11bb481cbcdf9fb6b2315db8b5fd680321241b251bd269a6c24"
+      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-candidate-verification.log",
+      "output_digest": "sha256:5095a04d9e0843b29f37d03187f8d9e957b49dfeaef89d414c17d2144e462f3a"
     },
     {
       "id": "self-current-obligation-evidence",
       "result": "PASSED",
       "command_digest": "sha256:ca42b88080c83ac13acdd505e56749caa8b6b6c17da021dbabedccabaec36fd6",
-      "started_at": "2026-07-21T01:37:17.232Z",
-      "finished_at": "2026-07-21T01:41:32.257Z",
+      "started_at": "2026-07-21T05:03:41.401Z",
+      "finished_at": "2026-07-21T05:10:40.445Z",
       "exit_code": 0,
       "covers_obligations": [
         "verify:background-work-integration-contract-check-scheduled-queued-retr",
@@ -490,15 +490,15 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       ],
       "positive_path": "Yes",
       "negative_path": "Yes",
-      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-obligation-evidence.log",
-      "output_digest": "sha256:fd867ec850039dec48bc969a9f48c901bdb508880b0489fe4c5245f2267e2d5e"
+      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-obligation-evidence.log",
+      "output_digest": "sha256:6da8d4074059183dd7fa8bcbff8d2765cc63b7d7ba81b7bede4a99c9bdea4dc2"
     },
     {
       "id": "self-current-runtime-behavior",
       "result": "PASSED",
       "command_digest": "sha256:d0980b0c5c04598799030b48a155f8cb144d4759354e17fc5ac4feca0462d30f",
-      "started_at": "2026-07-21T01:41:32.261Z",
-      "finished_at": "2026-07-21T01:41:32.353Z",
+      "started_at": "2026-07-21T05:10:40.453Z",
+      "finished_at": "2026-07-21T05:10:40.727Z",
       "exit_code": 0,
       "covers_obligations": [
         "verify:runtime-behavior-regression-smoke-the-current-code-runs-through-"
@@ -514,18 +514,18 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       ],
       "positive_path": "Yes",
       "negative_path": "Yes",
-      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-runtime-behavior.log",
-      "output_digest": "sha256:257e20cf25778e772d417576177e48f3740bd9ad7e44195b8d726eb64ed38c76"
+      "output_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-runtime-behavior.log",
+      "output_digest": "sha256:f7e9d924d6f29b6bfb13bd6c8d70705d901dde75591f730900ac0699e3ebc064"
     }
   ],
   "cleanup_summary": {
     "state": "VERIFIED",
     "owned_resources_remaining": 0,
     "unrelated_resources_touched": "No",
-    "before_evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-before.txt",
-    "before_evidence_digest": "sha256:08228b9a7f9496bf5b547427094d00fc7900a0df632d7879c1a7fc235e0844e0",
-    "after_evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-after.txt",
-    "after_evidence_digest": "sha256:f266a75e70d4d107e11dad5f8de710b744c29202203585d15d326b939ca6586d"
+    "before_evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-before.txt",
+    "before_evidence_digest": "sha256:8d2e0e7614bbcf427c383254e20602fa76a8e79df3dff3099bcd452572f8d715",
+    "after_evidence_ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-after.txt",
+    "after_evidence_digest": "sha256:748b245e8d3fe853cd345c659e6904d61e804dafe603a6c63779a1d0a27ec591"
   },
   "boundaries": {
     "stores_raw_secrets": "No",
@@ -549,72 +549,72 @@ The task, source revision, plans, journal, outputs, identity, and cleanup eviden
       {
         "ref": "artifact:verification-runtime-plans/113-cross-domain-trust-closure.md",
         "relative_path": "verification-runtime-plans/113-cross-domain-trust-closure.md",
-        "raw_file_digest": "sha256:c0dabe27d295ef11f3945d324be948c0c35887c4914e631e5070462279add598"
+        "raw_file_digest": "sha256:c733f0115dab00d196d47da90c9d7e836e5e47c263d2cdf8ada813955e0d05a8"
       },
       {
         "ref": "artifact:verification-runtime-lifecycle-plans/113-cross-domain-trust-closure.md",
         "relative_path": "verification-runtime-lifecycle-plans/113-cross-domain-trust-closure.md",
-        "raw_file_digest": "sha256:77d7ad6ef3dad7147f6d8ff201c1bf6f4049ebb701e1781a9d902c724d16c490"
+        "raw_file_digest": "sha256:8f5cd21ad8f8ef48435a85540aa02f6b87aa440217d5585509efac51758e7ba1"
       },
       {
         "ref": "artifact:verification-plans/113-cross-domain-trust-closure.md",
         "relative_path": "verification-plans/113-cross-domain-trust-closure.md",
-        "raw_file_digest": "sha256:d11076bd1482b227c3efc710181f37f672b4c17786153430815938367691a3a8"
+        "raw_file_digest": "sha256:5a45bba416cdb856d442e112095c694b48f4c5da0433ead74a07a256c8b0555a"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/preflight.txt",
-        "raw_file_digest": "sha256:4ca30d335b3e2a31018ac3b7c76fef42dd5186e5db0c5c9c1bb7d59b75249268"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/preflight.txt",
+        "raw_file_digest": "sha256:246e2350aeb55855ecc3830fabca53687f48b0f8a9cf00a3ef7a6074896a6520"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/resources.txt",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/resources.txt",
-        "raw_file_digest": "sha256:a114644e3c2a0436b260ebcb6a1b74c148463702dc53ab4552b848142d66d307"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/resources.txt",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/resources.txt",
+        "raw_file_digest": "sha256:04607a9c53b8c0bdf210e0fa3bb67b535eb741575981366cfd9cd0e9584f7483"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-before.txt",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-before.txt",
-        "raw_file_digest": "sha256:08228b9a7f9496bf5b547427094d00fc7900a0df632d7879c1a7fc235e0844e0"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-before.txt",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-before.txt",
+        "raw_file_digest": "sha256:8d2e0e7614bbcf427c383254e20602fa76a8e79df3dff3099bcd452572f8d715"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-after.txt",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-after.txt",
-        "raw_file_digest": "sha256:f266a75e70d4d107e11dad5f8de710b744c29202203585d15d326b939ca6586d"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-after.txt",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/evidence/cleanup-after.txt",
+        "raw_file_digest": "sha256:748b245e8d3fe853cd345c659e6904d61e804dafe603a6c63779a1d0a27ec591"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/lifecycle-journal.jsonl",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/lifecycle-journal.jsonl",
-        "raw_file_digest": "sha256:1c28c7334bf1a10b4057defcf4f6f706fe37a87607c294e428ed14ab2bfc0903"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/lifecycle-journal.jsonl",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/lifecycle-journal.jsonl",
+        "raw_file_digest": "sha256:a0635b0de88e1beafdb7f70ec8f4fe3ca18beae0dc605a297385c34602dcce1e"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-service.log",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-service.log",
-        "raw_file_digest": "sha256:feaf554e1aa6400e00770e781448d078ef82f3a10106d6e4eee1b25536922ac1"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-service.log",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-service.log",
+        "raw_file_digest": "sha256:935e4db22ed43a7fa7fb253fedb181a932845dd88df47ac3ffc62ef9aa2d1394"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-negative.log",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-negative.log",
-        "raw_file_digest": "sha256:2720c59e5878303132946002df6cd08e812b58ff1cdf8453aab90f2ffc9522b5"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-negative.log",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-negative.log",
+        "raw_file_digest": "sha256:db00ba10b86b4fd4d8818661ded684e4577dd51ecc46b76f371a17805b8efca1"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-positive.log",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-runtime-positive.log",
-        "raw_file_digest": "sha256:48c84829e1b1558d08bc9bb6179088f09b46f00fe63383e752f448f194bc64ee"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-positive.log",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-runtime-positive.log",
+        "raw_file_digest": "sha256:8337923abcf7495a8304d1642a158a91a0b79ec8804eb278d7c993525e2baf33"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-candidate-verification.log",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-candidate-verification.log",
-        "raw_file_digest": "sha256:a197838c685be11bb481cbcdf9fb6b2315db8b5fd680321241b251bd269a6c24"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-candidate-verification.log",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-candidate-verification.log",
+        "raw_file_digest": "sha256:5095a04d9e0843b29f37d03187f8d9e957b49dfeaef89d414c17d2144e462f3a"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-obligation-evidence.log",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-obligation-evidence.log",
-        "raw_file_digest": "sha256:fd867ec850039dec48bc969a9f48c901bdb508880b0489fe4c5245f2267e2d5e"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-obligation-evidence.log",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-obligation-evidence.log",
+        "raw_file_digest": "sha256:6da8d4074059183dd7fa8bcbff8d2765cc63b7d7ba81b7bede4a99c9bdea4dc2"
       },
       {
-        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-runtime-behavior.log",
-        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-runtime-behavior.log",
-        "raw_file_digest": "sha256:257e20cf25778e772d417576177e48f3740bd9ad7e44195b8d726eb64ed38c76"
+        "ref": "file:evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-runtime-behavior.log",
+        "relative_path": "evidence/runtime-runs/vrun-113-cross-domain-trust-r46/outputs/self-current-runtime-behavior.log",
+        "raw_file_digest": "sha256:f7e9d924d6f29b6bfb13bd6c8d70705d901dde75591f730900ac0699e3ebc064"
       }
     ]
   },

@@ -11,7 +11,7 @@ IntentOS classified this task as `HIGH` and selected `LOCAL_PROCESS` without ask
 - Task tier: `HIGH`
 - Task Governance ref: `artifact:task-governance-reports/113-cross-domain-trust-closure.md`
 - Verification Plan ref: `artifact:verification-plans/113-cross-domain-trust-closure.md`
-- Verification Plan digest: `sha256:92f1c62c8ed6b3853df2ec2e594ca1c7d4a40d93668dc793c7fa98666994bbdc`
+- Verification Plan digest: `sha256:f31bb1fef6875d0dc81614d4cc9a407bd3ebc902f6449b48ef8d3c0aec8c748c`
 
 ## Runtime Trust Requirement
 
@@ -85,7 +85,7 @@ Project, task, intent, and file-backed sources are bound in the structured recor
   "schema_version": "1.102.0",
   "artifact_type": "verification_runtime_plan",
   "runtime_plan_ref": "verification-runtime-plans/113-cross-domain-trust-closure.md",
-  "runtime_plan_digest": "sha256:003a712b6718685438ea9588b6adaf85920180a6d332851861be9cb24b0c22a9",
+  "runtime_plan_digest": "sha256:f538ed1c0a8c46257b3dbb579a0835a2cdc1ab690b494920b31a87cfeba13ad6",
   "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
   "intent": "Complete IntentOS 1.113 cross-domain trust closure by enforcing required task consumers, evidence authority, security boundaries, atomic apply recovery, existing-project activation, baseline integrity, and bounded source distribution evidence while prohibiting external effects.",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
@@ -100,7 +100,7 @@ Project, task, intent, and file-backed sources are bound in the structured recor
   "verification_plan_source": {
     "status": "RECORDED",
     "ref": "artifact:verification-plans/113-cross-domain-trust-closure.md",
-    "digest": "sha256:92f1c62c8ed6b3853df2ec2e594ca1c7d4a40d93668dc793c7fa98666994bbdc",
+    "digest": "sha256:f31bb1fef6875d0dc81614d4cc9a407bd3ebc902f6449b48ef8d3c0aec8c748c",
     "state": "VERIFICATION_PLAN_READY",
     "current_task_match": "Yes"
   },
@@ -299,7 +299,7 @@ Project, task, intent, and file-backed sources are bound in the structured recor
       {
         "ref": "artifact:verification-plans/113-cross-domain-trust-closure.md",
         "relative_path": "verification-plans/113-cross-domain-trust-closure.md",
-        "raw_file_digest": "sha256:d11076bd1482b227c3efc710181f37f672b4c17786153430815938367691a3a8"
+        "raw_file_digest": "sha256:5a45bba416cdb856d442e112095c694b48f4c5da0433ead74a07a256c8b0555a"
       },
       {
         "ref": "file:package.json",

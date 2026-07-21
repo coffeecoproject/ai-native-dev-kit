@@ -33,7 +33,7 @@
 | execution_assurance | RECORDED | artifact:execution-assurance-reports/113-cross-domain-trust-closure.md | Yes | VERIFIED_DONE |
 | product_completeness | OPTIONAL | not provided | N/A | not provided |
 | launch_review_view | OPTIONAL | not provided | N/A | not provided |
-| release_plan | RECORDED | artifact:release-execution-plans/113-cross-domain-trust-closure.md | Yes | RELEASE_EXECUTION_PLAN_RECORDED |
+| release_plan | OPTIONAL | not provided | N/A | not provided |
 | platform_release_recipe | OPTIONAL | not provided | N/A | not provided |
 | release_handoff_pack | OPTIONAL | not provided | N/A | not provided |
 | release_execution_topology | RECORDED | artifact:release-execution-topologies/113-cross-domain-trust-closure.md | Yes | RELEASE_TOPOLOGY_RECORDED |
@@ -126,7 +126,7 @@
   "artifact_type": "release_evidence_gate",
   "intent": "Complete IntentOS 1.113 cross-domain trust closure by enforcing required task consumers, evidence authority, security boundaries, atomic apply recovery, existing-project activation, baseline integrity, and bounded source distribution evidence while prohibiting external effects.",
   "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
-  "release_evidence_digest": "sha256:b4d14b42666438ef24ae5e05a293af2cecf740695f11ad1ed65ac4912997c6ac",
+  "release_evidence_digest": "sha256:1e4edd951d26222a8038a6dabf80e0b9db1125d10b64cc3052c081bf44851dab",
   "release_target": "source_review",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/113-source-candidate.md",
@@ -151,7 +151,7 @@
       "name": "completion_evidence",
       "status": "RECORDED",
       "ref": "artifact:completion-evidence-reports/113-cross-domain-trust-closure.md",
-      "digest": "sha256:54c4cc96d977097a5e1634c5107dc7f6c47eea14b59d960a0aadda0e334e3515",
+      "digest": "sha256:3cea780a6599aec1aa8c672f1fa74ae7af194663ebdebd96a64dcda9d21eeaf2",
       "source_outcome": "COMPLETION_EVIDENCE_READY",
       "current_release_match": "Yes",
       "reason": "Source artifact has machine-readable evidence."
@@ -160,7 +160,7 @@
       "name": "test_evidence",
       "status": "RECORDED",
       "ref": "artifact:test-evidence-reports/113-cross-domain-trust-closure.md",
-      "digest": "sha256:7a984aa8f530a55792c29c1ff36b3417a4371fe63854b466ea2424c526ddfbfd",
+      "digest": "sha256:5ebbc7796b200f4afa0f1ca71b79062551c200989110af519b682ea842eabc8d",
       "source_outcome": "TEST_EVIDENCE_COMPLETE",
       "current_release_match": "Yes",
       "reason": "Source artifact has machine-readable evidence."
@@ -169,7 +169,7 @@
       "name": "execution_assurance",
       "status": "RECORDED",
       "ref": "artifact:execution-assurance-reports/113-cross-domain-trust-closure.md",
-      "digest": "sha256:7991067ef6d6fee57314ef12dda9e91f58517a5707bff5b4677d9e105984db33",
+      "digest": "sha256:647fea277cb9104378f7ff21e176583d163c68ba6b0ff1d299b01185f0c580a4",
       "source_outcome": "VERIFIED_DONE",
       "current_release_match": "Yes",
       "reason": "Source artifact has machine-readable evidence."
@@ -194,12 +194,12 @@
     },
     {
       "name": "release_plan",
-      "status": "RECORDED",
-      "ref": "artifact:release-execution-plans/113-cross-domain-trust-closure.md",
-      "digest": "sha256:1c64b22881b7117b8e73041ba9cbd11366f4cb8644fa3aef2460cf139f61a9ca",
-      "source_outcome": "RELEASE_EXECUTION_PLAN_RECORDED",
-      "current_release_match": "Yes",
-      "reason": "Source artifact has machine-readable evidence."
+      "status": "OPTIONAL",
+      "ref": "",
+      "digest": "",
+      "source_outcome": "",
+      "current_release_match": "N/A",
+      "reason": "Optional source was not provided."
     },
     {
       "name": "platform_release_recipe",
@@ -223,7 +223,7 @@
       "name": "release_execution_topology",
       "status": "RECORDED",
       "ref": "artifact:release-execution-topologies/113-cross-domain-trust-closure.md",
-      "digest": "sha256:ea8b8fa619f3c23e4ddba62151916d34f3b6e2c150b4aae41f91e020650e3250",
+      "digest": "sha256:0631065784729c4db1b38f8f07c89b1f439bcee683428dbda0eead8c55eaa75a",
       "source_outcome": "RELEASE_TOPOLOGY_RECORDED",
       "current_release_match": "Yes",
       "reason": "Source artifact has machine-readable evidence."
@@ -263,7 +263,7 @@
     {
       "ref": "artifact:completion-evidence-reports/113-cross-domain-trust-closure.md",
       "status": "RECORDED",
-      "digest": "sha256:54c4cc96d977097a5e1634c5107dc7f6c47eea14b59d960a0aadda0e334e3515",
+      "digest": "sha256:3cea780a6599aec1aa8c672f1fa74ae7af194663ebdebd96a64dcda9d21eeaf2",
       "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
       "intent_digest": "sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d",
       "completion_state": "COMPLETION_EVIDENCE_READY",
