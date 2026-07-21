@@ -1,16 +1,22 @@
 id: evidence:user-flow
 evidence_type: COMMAND_OUTPUT
 result_state: PASSED
-command: npm run test:user-flow -- appointment-service-time
+command: node --test --test-name-pattern "verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-" tests/appointment-service-time.test.mjs
 owner: automated-test-command
-environment: local-ci-node-20
-ran_at: 2026-07-06T10:00:00Z
+environment: node-v23.11.0
+ran_at: 2026-07-19T00:03:32.431Z
 exit_code: 0
-failure_reason: not recorded
+failure_reason: N/A
 ran_after_change: Yes
 current_task_match: Yes
-covers_obligations: verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-, verify:user-flow-regression-smoke-existing-critical-flow-still-works-af
-limitations: Local CI simulation only; not production traffic.
-
-PASS appointment flow requires service time before submit.
-PASS existing critical booking flow remains available after the rule change.
+covers_obligations: verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-
+limitations: Local Node behavior test; not production traffic.
+✔ [verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-] tests/appointment-service-time.test.mjs :: valid appointment follows the service-time booking flow (0.419042ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39.464292

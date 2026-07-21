@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { parseArgs } from "./lib/args.mjs";
 import { validateSchema } from "./lib/artifact-schema.mjs";
 import {
@@ -239,7 +240,6 @@ function checkCopyRules(manifest) {
     "scripts/lib/manifest.mjs",
     "scripts/check-ai-workflow.mjs",
     "scripts/workflow-next.mjs",
-    ".github/workflows/ai-workflow-checks.yml",
   ]) {
     if (targets.includes(requiredTarget)) {
       pass(`manifest copy rules include ${requiredTarget}`);
@@ -272,9 +272,11 @@ function checkTargetGroups(manifest) {
 function checkWorkflowVersionAssets(manifest) {
   const templateAssets = sortedUnique(readJson(projectRoot, "templates/workflow-version.json").workflowAssets || []);
   const manifestAssets = sortedUnique(manifest.groups.workflowVersionAssets || []);
-  const comparison = diffLists(manifestAssets, templateAssets);
+  const optionalAdapterTargets = new Set([".github/workflows/ai-workflow-checks.yml"]);
+  const requiredTemplateAssets = templateAssets.filter((asset) => !optionalAdapterTargets.has(asset));
+  const comparison = diffLists(manifestAssets, requiredTemplateAssets);
   if (comparison.missing.length === 0 && comparison.extra.length === 0) {
-    pass("templates/workflow-version.json matches manifest workflowVersionAssets");
+    pass("templates/workflow-version.json matches default manifest workflowVersionAssets after optional adapters are excluded");
   } else {
     if (comparison.missing.length > 0) {
       fail(`templates/workflow-version.json missing manifest workflow asset(s): ${comparison.missing.join(", ")}`);
@@ -285,11 +287,53 @@ function checkWorkflowVersionAssets(manifest) {
   }
 }
 
+function checkOptionalPlatformAdapters(manifest) {
+  const adapterSource = "platforms/github/ci-ai-workflow.yml";
+  const adapterTarget = ".github/workflows/ai-workflow-checks.yml";
+  const platformAdapters = new Set(manifest.groups.platformAdapters || []);
+  const sourceRequired = new Set(manifest.groups.sourceRequired || []);
+  if (platformAdapters.has(adapterSource) && sourceRequired.has(adapterSource)) {
+    pass("GitHub-hosted workflow remains a source-required optional platform adapter");
+  } else {
+    fail("GitHub-hosted workflow must remain registered as a source-required optional platform adapter");
+  }
+
+  const copiedTargets = new Set([
+    ...(manifest.copyRules.directories || []).map((rule) => rule.target),
+    ...(manifest.copyRules.files || []).map((rule) => rule.target),
+  ]);
+  const unconditionalGroups = ["targetCore", "targetFull", "workflowVersionAssets"]
+    .filter((group) => (manifest.groups[group] || []).includes(adapterTarget));
+  const copiedAdapter = (manifest.copyRules.files || []).some((rule) => (
+    rule.source === adapterSource || rule.target === adapterTarget
+  ));
+  if (!copiedTargets.has(adapterTarget) && !copiedAdapter && unconditionalGroups.length === 0) {
+    pass("GitHub-hosted workflow is absent from unconditional target distribution");
+  } else {
+    fail(`GitHub-hosted workflow must be optional, not default-distributed${unconditionalGroups.length > 0 ? ` via ${unconditionalGroups.join(", ")}` : ""}`);
+  }
+
+  const targetCore = new Set(manifest.groups.targetCore || []);
+  const targetFull = new Set(manifest.groups.targetFull || []);
+  for (const checker of [
+    "scripts/check-ai-workflow.mjs",
+    "scripts/check-consumer-chain.mjs",
+    "scripts/check-review-context-authority.mjs",
+  ]) {
+    if (copiedTargets.has(checker) && targetCore.has(checker) && targetFull.has(checker)) {
+      pass(`local core checker remains default-distributed: ${checker}`);
+    } else {
+      fail(`local core checker must remain default-distributed: ${checker}`);
+    }
+  }
+}
+
 function walkFiles(relativeDir) {
   const absoluteDir = path.join(projectRoot, relativeDir);
   if (!fs.existsSync(absoluteDir)) return [];
   const output = [];
   for (const entry of fs.readdirSync(absoluteDir, { withFileTypes: true })) {
+    if ([".DS_Store", ".localized"].includes(entry.name)) continue;
     const relativePath = normalizePortablePath(path.join(relativeDir, entry.name));
     if (entry.isDirectory()) {
       output.push(...walkFiles(relativePath));
@@ -306,6 +350,12 @@ function isImportantSourceAsset(file) {
   }
   if (/^scripts\//.test(file)) {
     return /\.(mjs|md)$/.test(file);
+  }
+  if (/^schemas\//.test(file)) {
+    return /\.json$/.test(file);
+  }
+  if (/^tests\//.test(file)) {
+    return /\.test\.mjs$/.test(file);
   }
   if (/^\.github\/workflows\//.test(file)) {
     return /\.yml$/.test(file);
@@ -325,7 +375,35 @@ function isImportantSourceAsset(file) {
   ].includes(file);
 }
 
-function checkManifestReverseDrift(manifest) {
+function checkManifestCandidateAuthority(manifest, candidate) {
+  if (candidate.error) {
+    fail(`manifest Git candidate is unreadable: ${candidate.error}`);
+    return;
+  }
+
+  const declaredFiles = sortedUnique([
+    ...(manifest.groups.sourceRequired || []),
+    ...(manifest.copyRules.files || []).map((rule) => rule.source),
+    ...(manifest.copyRules.directories || []).flatMap((rule) => walkFiles(rule.source)),
+  ].map(normalizePortablePath));
+  const outsideCandidate = declaredFiles.filter((file) => !candidate.files.has(file));
+  if (outsideCandidate.length > 0) {
+    fail(`manifest declared source asset(s) are not staged/tracked Git candidates: ${outsideCandidate.join(", ")}`);
+    return;
+  }
+
+  const emptyCandidateDirectories = (manifest.copyRules.directories || [])
+    .map((rule) => normalizePortablePath(rule.source))
+    .filter((directory) => !declaredFiles.some((file) => file.startsWith(`${directory.replace(/\/$/, "")}/`)));
+  if (emptyCandidateDirectories.length > 0) {
+    fail(`manifest copy rule director${emptyCandidateDirectories.length === 1 ? "y has" : "ies have"} no staged/tracked source files: ${emptyCandidateDirectories.join(", ")}`);
+    return;
+  }
+
+  pass("manifest sourceRequired and copy rule sources belong to the staged/tracked Git candidate");
+}
+
+function checkManifestReverseDrift(manifest, candidateFiles) {
   const exactCoverage = new Set([
     ...(manifest.groups.sourceRequired || []),
     ...(manifest.copyRules.files || []).map((rule) => rule.source),
@@ -354,7 +432,9 @@ function checkManifestReverseDrift(manifest) {
     ...walkFiles("profiles"),
     ...walkFiles("platforms"),
     ...walkFiles("scripts"),
-  ]).filter(isImportantSourceAsset);
+    ...walkFiles("schemas"),
+    ...walkFiles("tests"),
+  ]).filter((file) => isImportantSourceAsset(file) && candidateFiles.has(file));
 
   const missing = candidates.filter((file) => {
     if (exactCoverage.has(file)) return false;
@@ -365,6 +445,124 @@ function checkManifestReverseDrift(manifest) {
   } else {
     fail(`manifest reverse drift guard missing important source asset(s): ${missing.join(", ")}`);
   }
+}
+
+function localModuleReferences(relativeFile) {
+  const fullPath = path.join(projectRoot, relativeFile);
+  if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) return [];
+  const content = fs.readFileSync(fullPath, "utf8");
+  const references = [];
+  const pattern = /(?:\bfrom\s*|\bimport\s*\()\s*["']([^"']+)["']/g;
+  for (const match of content.matchAll(pattern)) {
+    const specifier = match[1];
+    if (!specifier.startsWith(".")) continue;
+    let resolved = path.posix.normalize(path.posix.join(path.posix.dirname(relativeFile), specifier));
+    if (!path.posix.extname(resolved)) resolved += ".mjs";
+    references.push(normalizePortablePath(resolved));
+  }
+  return sortedUnique(references);
+}
+
+function packageScriptReferences() {
+  const packageJson = loadJsonOrFail("package.json", "package metadata");
+  if (!packageJson) return [];
+  const references = [];
+  for (const command of Object.values(packageJson.scripts || {})) {
+    for (const match of String(command).matchAll(/\bscripts\/[A-Za-z0-9_./-]+\.mjs\b/g)) {
+      references.push(normalizePortablePath(match[0]));
+    }
+  }
+  return sortedUnique(references);
+}
+
+function checkRuntimeDependencyClosure(manifest, candidateFiles) {
+  const copySources = new Set((manifest.copyRules.files || [])
+    .map((rule) => normalizePortablePath(rule.source)));
+  const workflowAssets = new Set((manifest.groups.workflowVersionAssets || [])
+    .map(normalizePortablePath));
+  const sourceCoverage = new Set([
+    ...(manifest.groups.sourceRequired || []),
+    ...copySources,
+  ].map(normalizePortablePath));
+  const distributedRoots = [...copySources].filter((file) => file.endsWith(".mjs"));
+  const queue = [...distributedRoots];
+  const visited = new Set();
+  const dependencies = new Set();
+  const missingFiles = [];
+
+  while (queue.length > 0) {
+    const current = queue.pop();
+    if (visited.has(current)) continue;
+    visited.add(current);
+    const fullPath = path.join(projectRoot, current);
+    if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+      missingFiles.push(current);
+      continue;
+    }
+    for (const dependency of localModuleReferences(current)) {
+      dependencies.add(dependency);
+      queue.push(dependency);
+    }
+  }
+
+  const undistributed = [...dependencies]
+    .filter((dependency) => !copySources.has(dependency) || !workflowAssets.has(dependency))
+    .sort();
+  const packageReferences = packageScriptReferences();
+  const undeclaredPackageReferences = packageReferences
+    .filter((dependency) => !sourceCoverage.has(dependency))
+    .sort();
+  const outsideCandidate = [...new Set([...dependencies, ...packageReferences])]
+    .filter((dependency) => !candidateFiles.has(dependency))
+    .sort();
+
+  if (missingFiles.length > 0) {
+    fail(`manifest runtime dependency file(s) are missing: ${sortedUnique(missingFiles).join(", ")}`);
+  }
+  if (undistributed.length > 0) {
+    fail(`manifest runtime dependencies must be copied and workflow-version managed: ${undistributed.join(", ")}`);
+  }
+  if (undeclaredPackageReferences.length > 0) {
+    fail(`package runtime script reference(s) are absent from manifest source coverage: ${undeclaredPackageReferences.join(", ")}`);
+  }
+  if (outsideCandidate.length > 0) {
+    fail(`runtime dependency reference(s) are not staged/tracked Git candidates: ${outsideCandidate.join(", ")}`);
+  }
+  if (missingFiles.length === 0
+    && undistributed.length === 0
+    && undeclaredPackageReferences.length === 0
+    && outsideCandidate.length === 0) {
+    pass("manifest closes distributed imports and package runtime script references over the staged/tracked candidate");
+  }
+}
+
+function gitCandidateFiles() {
+  const result = spawnSync("git", ["-C", projectRoot, "ls-files", "--cached", "-z"], {
+    encoding: "buffer",
+    maxBuffer: 1024 * 1024 * 32,
+    env: {
+      ...process.env,
+      GIT_OPTIONAL_LOCKS: "0",
+      GIT_TERMINAL_PROMPT: "0",
+      GIT_PAGER: "cat",
+    },
+  });
+  if (result.status !== 0 || result.error) {
+    const stderr = Buffer.isBuffer(result.stderr) ? result.stderr.toString("utf8").trim() : "";
+    return {
+      files: new Set(),
+      error: result.error?.message || stderr || `git ls-files exited with status ${result.status}`,
+    };
+  }
+  return {
+    files: new Set(
+      result.stdout.toString("utf8")
+      .split("\0")
+      .map(normalizePortablePath)
+      .filter(Boolean),
+    ),
+    error: null,
+  };
 }
 
 function checkScriptConsumption() {
@@ -408,7 +606,13 @@ checkSourceRequiredAssets(manifest);
 checkCopyRules(manifest);
 checkTargetGroups(manifest);
 checkWorkflowVersionAssets(manifest);
-checkManifestReverseDrift(manifest);
+checkOptionalPlatformAdapters(manifest);
+const gitCandidate = gitCandidateFiles();
+checkManifestCandidateAuthority(manifest, gitCandidate);
+if (!gitCandidate.error) {
+  checkManifestReverseDrift(manifest, gitCandidate.files);
+  checkRuntimeDependencyClosure(manifest, gitCandidate.files);
+}
 checkScriptConsumption();
 
 emitJsonIfNeeded();

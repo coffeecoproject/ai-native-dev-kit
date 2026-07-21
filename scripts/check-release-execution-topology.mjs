@@ -7,7 +7,7 @@ import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { assertNoSymlinkInPath, isSafeRelativePath } from "./lib/path-safety.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
-import { PLANE_NAMES, topologyDigest } from "./lib/release-execution-topology.mjs";
+import { discoverReleaseTopology, PLANE_NAMES, topologyDigest } from "./lib/release-execution-topology.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const known = new Set(["allow-empty", "report", "require-report", "require-structured-evidence", "require-current-project", "require-ready", "json"]);
@@ -75,6 +75,16 @@ function checkFile(file) {
     else fail(`${label} source ${source.ref} digest mismatch`);
   }
   if (value.legacy_compatibility?.can_establish_readiness !== "No") fail(`${label} legacy policy must not establish topology readiness`);
+  if (requireStructured) {
+    const replayed = discoverReleaseTopology(projectRoot, {
+      intent: value.intent,
+      topologyRef: value.topology_ref,
+    });
+    for (const field of ["planes", "mandatory_capabilities", "source_chain", "conflicts", "recommendation", "outcome"]) {
+      if (JSON.stringify(value[field]) === JSON.stringify(replayed[field])) pass(`${label} ${field} exactly replays the current release execution graph`);
+      else fail(`${label} ${field} does not replay the current release execution graph`);
+    }
+  }
   const text = value.recommendation?.plain_summary || "";
   if (/choose|select|confirm.*(runner|orchestrator|backend|transport|store|protocol)/i.test(text)) fail(`${label} asks the user to choose technical topology`);
 }

@@ -72,13 +72,13 @@ This task touches:
 - [ ] value transfer
 - [ ] safety-critical behavior
 - [ ] data deletion
-- [x] production config
+- [ ] production config
 - [ ] secrets
 - [x] personal data
 - [ ] regulated data
-- [x] external side effect
+- [ ] external side effect
 - [ ] privileged operation
-- [x] app signing / platform release
+- [ ] app signing / platform release
 - [x] cloud function / access rule
 - [ ] form interaction
 - [x] api failure
@@ -86,16 +86,13 @@ This task touches:
 - [ ] performance
 - [ ] dependency change
 
-If any item is checked, implementation requires explicit human approval before code changes.
+Checked project-local technical risks require Codex to apply the corresponding verification controls. Human consent is required only if the task later introduces a concrete real-world effect.
 
 ## Human Approval
 
-Required: Yes
-Status: Approved
-Approval scope: Example-only Mini Program BL2 slice covering auth, permission, personal data handling, cloud function/access rule, API failure, production configuration review, and platform release readiness evidence. No production release, production config change, secrets, payment, admin backend, destructive behavior, framework decision, or provider decision approved.
-Approved by: human-review
-Approved at: 2026-06-26T00:00:00.000Z
-Approval notes: Evidence-only dogfood example accepted.
+Required: No
+Status: Not Required
+Reason: This example performs only reversible project-local verification and has no production submission, paid, destructive, legal, privacy-impacting, or other real-world effect.
 
 ## Stop Conditions
 

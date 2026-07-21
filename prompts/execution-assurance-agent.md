@@ -20,6 +20,7 @@ Return:
 - verified items;
 - missing evidence;
 - unexpected diff;
+- structured pre-write source-snapshot replay status;
 - patch-smell risks;
 - review gaps;
 - safe next step.

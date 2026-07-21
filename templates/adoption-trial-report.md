@@ -4,22 +4,27 @@
 
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Accept trial result | Keep the recorded walkthrough as evidence | Report only | low | Choose when the trial proves the expected path |
-| B | Revise the path | Update routing, baseline, or decision wording | Workflow/docs only | low/medium | Choose when the trial is valid but confusing |
-| C | Run another scenario | Add a separate trial for a different project type | New report only | low/medium | Choose when one scenario is not enough |
-| D | Pause | Stop trial work and wait | No | low | Choose when the target scenario is not agreed |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Trial Decision And Evidence
+
+Selected disposition: ACCEPT_RESULT / REVISE_PATH / RUN_ANOTHER_SCENARIO / BLOCKED_BY_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Routing, baseline, and scope evidence:
+
+Risk response:
+
+Verification, review route, and technical recovery:
 
 ## Plain Summary
 

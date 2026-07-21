@@ -9,6 +9,7 @@ import { evidenceDigest, loadSchema, validateEvidenceBlock } from "./lib/artifac
 import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { validateReleaseSurfaceEvidence } from "./lib/release-surface-evidence.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -233,7 +234,11 @@ function validateStructuredLaunchView(file, label, evidence, markdown) {
     const bound = resolveAuthoritativeEvidenceReference(projectRoot, file, item?.ref || "");
     if (!bound.ok) fail(`${label} ${key} evidence is unsafe or unresolved`);
     else if (canonicalFileDigest(bound.file) !== item.digest) fail(`${label} ${key} evidence digest is stale`);
-    else pass(`${label} binds current ${key} evidence`);
+    else {
+      const semantic = validateReleaseSurfaceEvidence(key, bound);
+      if (semantic.ok) pass(`${label} binds current semantic ${key} evidence`);
+      else semantic.errors.forEach((error) => fail(`${label} ${error}`));
+    }
   }
   const owner = evidence.surface_evidence?.release_ownership;
   if (evidence.surfaces?.release_ownership === "PASS"

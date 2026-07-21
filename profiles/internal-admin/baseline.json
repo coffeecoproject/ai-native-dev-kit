@@ -4,11 +4,22 @@
   "defaultTaskLevel": "L2",
   "escalationRules": [
     {
-      "when": ["permission", "sensitive-record", "audit", "bulk-operation", "approval-flow"],
+      "when": [
+        "permission",
+        "sensitive-record",
+        "audit",
+        "bulk-operation",
+        "approval-flow"
+      ],
       "minLevel": "L2"
     },
     {
-      "when": ["destructive-operation", "regulated-operation", "production-data", "sensitive-data-export"],
+      "when": [
+        "destructive-operation",
+        "regulated-operation",
+        "production-data",
+        "sensitive-data-export"
+      ],
       "minLevel": "L3"
     }
   ],
@@ -23,10 +34,20 @@
     "docs/verification-matrix.md"
   ],
   "riskGateMappings": {
-    "permission": ["permission"],
-    "destructive-operation": ["irreversible operation", "data deletion"],
-    "sensitive-data-export": ["personal data", "regulated data"],
-    "audit": ["regulated operation"]
+    "permission": [
+      "permission"
+    ],
+    "destructive-operation": [
+      "irreversible operation",
+      "data deletion"
+    ],
+    "sensitive-data-export": [
+      "personal data",
+      "regulated data"
+    ],
+    "audit": [
+      "regulated operation"
+    ]
   },
   "requiredVerification": [
     "admin-only route checks",
@@ -35,31 +56,49 @@
     "export privacy review",
     "permission rejection tests"
   ],
-  "verificationKeywords": ["admin", "audit", "confirmation", "export", "permission", "rejection"],
-  "verifyScriptKeywords": ["test"],
-  "highRiskKeywords": ["permission", "audit", "destructive", "export", "production data", "approval"],
-  "humanApprovalRequiredFor": [
+  "verificationKeywords": [
+    "admin",
+    "audit",
+    "confirmation",
+    "export",
     "permission",
-    "destructive-operation",
-    "bulk-operation",
-    "sensitive-data-export",
-    "production-data",
-    "approval-flow"
+    "rejection"
+  ],
+  "verifyScriptKeywords": [
+    "test"
+  ],
+  "highRiskKeywords": [
+    "permission",
+    "audit",
+    "destructive",
+    "export",
+    "production data",
+    "approval"
+  ],
+  "humanApprovalRequiredFor": [
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "production-or-external-release",
+    "real-user-communication",
+    "regulated-data-export-to-external-recipient"
   ],
   "releaseChecks": [
-    "admin permission and rejection behavior reviewed before release",
-    "audit events verified for sensitive or destructive operations",
-    "bulk operations, exports, and destructive actions have approval and rollback or disable evidence"
+    "admin permission, rejection behavior, audit events, exports, bulk operations, rollback, and disable paths are technically reviewed by Codex",
+    "project-bound evidence covers sensitive, destructive, and cross-role behavior",
+    "exact user consent is required only for a prepared production release, external recipient export, real-user or staff communication, provider action, or irreversible production-data effect"
   ],
   "aiBoundaries": {
     "may": [
-      "edit admin UI, admin workflows, tests, audit documentation, and permission documentation inside approved task scope",
-      "propose safer confirmation, audit, and approval-flow behavior with verification evidence"
+      "edit admin UI, admin workflows, permissions, tests, audit documentation, and operational safeguards inside the current governed task scope",
+      "derive and implement confirmation, audit, permission, export, rollback, and approval-flow behavior from project evidence"
     ],
     "mustNot": [
-      "grant broad admin access, weaken auditability, or add sensitive export behavior without human approval",
-      "perform destructive, bulk, production-data, or approval-flow changes without explicit human approval"
+      "delegate admin permission, audit, export, bulk-operation, migration, rollback, or test strategy choices to the user",
+      "export regulated data to an external recipient, communicate with real users or staff, perform a production release, or create an irreversible production-data effect without exact consent"
     ]
   },
-  "compatibleStarters": ["generic-project", "codex-web-app"]
+  "compatibleStarters": [
+    "generic-project",
+    "codex-web-app"
+  ]
 }

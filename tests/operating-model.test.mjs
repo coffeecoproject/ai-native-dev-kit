@@ -7,6 +7,10 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { evidenceDigest } from "../scripts/lib/artifact-schema.mjs";
+import {
+  buildCurrentTrustFixture,
+  prepareCurrentTrustFixtureSource,
+} from "../scripts/lib/current-trust-fixture.mjs";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const kitRoot = path.resolve(testDir, "..");
@@ -55,6 +59,8 @@ function runWork(root, intent, extraArgs = [], options = {}) {
   return report;
 }
 
+import { taskIntentDigest } from "../scripts/lib/task-entry-binding.mjs";
+
 function withRoot(prefix, callback) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
   try {
@@ -91,6 +97,7 @@ function makeTrustedProject(root) {
       maxBuffer: 1024 * 1024 * 100,
     });
     assert.equal(initialized.status, 0, `${initialized.stdout}\n${initialized.stderr}`);
+    confirmGeneratedProjectReadiness(trustedProjectTemplate);
   }
 
   fs.cpSync(trustedProjectTemplate, root, { recursive: true, force: true });
@@ -104,13 +111,43 @@ function makeTrustedProject(root) {
   fs.writeFileSync(path.join(root, "src/index.js"), "export const ready = true;\n");
 }
 
+function confirmGeneratedProjectReadiness(root) {
+  for (const rel of [
+    "docs/project-onboarding.md",
+    "docs/project-profile.md",
+    "docs/tech-stack-strategy.md",
+    "docs/business-spec-index.md",
+    "docs/sample-policy.md",
+    "docs/onboarding-decisions.md",
+  ]) {
+    const file = path.join(root, rel);
+    const content = fs.readFileSync(file, "utf8")
+      .replace(/<[^>\n]+>/g, "fixture-confirmed")
+      .replace(/PENDING_CONFIRMATION|NOT_READY|PENDING\b|TBD|TODO/g, "CONFIRMED");
+    fs.writeFileSync(file, content);
+  }
+  for (const rel of ["docs/baseline-selection.md", "docs/baseline-evidence.md"]) {
+    const file = path.join(root, rel);
+    const content = fs.readFileSync(file, "utf8")
+      .replace(/PENDING_EVIDENCE|EVIDENCE_PENDING/g, "VERIFIED");
+    fs.writeFileSync(file, content);
+  }
+  const environment = path.join(root, "docs/environment-baseline.md");
+  fs.writeFileSync(
+    environment,
+    fs.readFileSync(environment, "utf8").replace(/PENDING_CONFIRMATION/g, "CONFIRMED"),
+  );
+}
+
 function makeCurrentWorkQueue(root, taskId = "TASK-001", title = "Current test task") {
+  const intentDigest = taskIntentDigest(title);
+  const taskRef = `task:${intentDigest.slice("sha256:".length)}`;
   fs.rmSync(path.join(root, "work-queue"), { recursive: true, force: true });
   fs.rmSync(path.join(root, "active-work-threads"), { recursive: true, force: true });
   fs.mkdirSync(path.join(root, "work-queue"), { recursive: true });
   fs.writeFileSync(path.join(root, "work-queue/current.md"), [
-    "# Work Queue", "", "| Task ID | Title | State | Evidence | Resume Review | Notes |", "|---|---|---|---|---|---|",
-    `| ${taskId} | ${title} | CURRENT | test setup | N/A | current |`, "",
+    "# Work Queue", "", "| Task ID | Title | State | Task ref | Intent digest | Evidence | Resume Review | Notes |", "|---|---|---|---|---|---|---|---|",
+    `| ${taskId} | ${title} | CURRENT | ${taskRef} | ${intentDigest} | test setup | N/A | current |`, "",
   ].join("\n"));
 }
 
@@ -162,21 +199,85 @@ test("unbootstrapped existing project normal task enters adoption review", () =>
 
 test("trusted initialized project normal task completes Planning Closure before implementation review", () => withRoot("intentos-operating-trusted-", (root) => {
   makeTrustedProject(root);
-  makeCurrentWorkQueue(root);
+  makeCurrentWorkQueue(root, "TASK-001", "修改首页按钮文案");
   const report = runWork(root, "修改首页按钮文案");
   assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
   assert.equal(report.projectIdentityProjection.projectKind, "NEW_PROJECT");
-  assert.equal(report.projectIdentityProjection.governancePosture, "NOT_ESTABLISHED");
+  assert.equal(report.projectIdentityProjection.governancePosture, "INTENTOS_ACTIVE_GOVERNANCE");
   assert.equal(report.projectIdentityProjection.evidenceIdentity.kind, "NON_GIT");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
   assert.equal(report.operatingDecision.actionCode, "COMPLETE_PLANNING_CLOSURE");
   assert.equal(report.operatingLoop.state, "NEEDS_PLANNING_EVIDENCE");
+  assert.equal(report.operatingLoop.projectBaselineConsumptionRequired, "Yes");
+  assert.equal(report.operatingLoop.projectBaselineConsumptionState, "BASELINE_READY");
   assert.equal(report.operatingLoop.projectBaselineControlsTaskImpact, "No");
+  const baselineIndex = report.sourceSystemTrace.findIndex((source) => source.sourceSystem === "BASELINE_ENFORCEMENT_CHECK");
+  const planningIndex = report.sourceSystemTrace.findIndex((source) => source.sourceSystem === "PLANNING_CLOSURE");
+  assert.ok(baselineIndex >= 0 && planningIndex > baselineIndex);
+  assert.equal(report.sourceSystemTrace[baselineIndex].readStatus, "CURRENT_RUN");
+  assert.equal(report.sourceSystemTrace[baselineIndex].sourceContract, "IMPLEMENTATION_BASELINE_READINESS");
   assert.ok(report.evidenceTrace.dependencies.every((item) => item.to === "OPERATING_STATE" && item.relation === "INPUT_TO_DERIVED_VIEW"));
   assert.equal(report.decisionResponsibility.userResponsibilityClass, "NO_USER_ACTION");
   assert.equal(report.operatingDecision.routineEngineeringMayProceedAfterInternalGates, "Yes");
 }));
+
+test("VERIFIED_ACTIVE work blocks missing, stale, and incomplete platform installation baselines", () => {
+  const cases = [
+    {
+      name: "missing",
+      damage(root) {
+        fs.rmSync(path.join(root, "docs/baseline-evidence.md"));
+      },
+      reason: /BASELINE_INSTALLATION_INCOMPLETE|baseline-evidence\.md is missing/i,
+    },
+    {
+      name: "stale",
+      damage(root) {
+        const file = path.join(root, "docs/project-profile.md");
+        const content = fs.readFileSync(file, "utf8");
+        assert.match(content, /^- web-app$/m);
+        fs.writeFileSync(file, content.replace(/^- web-app$/m, "- backend-api"));
+      },
+      reason: /PROFILE_INVALID|select different profiles|omits project-evidenced profile/i,
+    },
+    {
+      name: "installation-incomplete",
+      damage(root) {
+        const selection = path.join(root, "docs/baseline-selection.md");
+        const content = fs.readFileSync(selection, "utf8");
+        assert.match(content, /^- web-runtime-standard$/m);
+        fs.writeFileSync(selection, content.replace(
+          /^- web-runtime-standard$/m,
+          "- web-runtime-standard\n- backend-api-standard",
+        ));
+      },
+      reason: /BASELINE_INSTALLATION_INCOMPLETE|not installed: backend-api-standard/i,
+    },
+  ];
+
+  for (const scenario of cases) {
+    withRoot(`intentos-operating-baseline-${scenario.name}-`, (root) => {
+      makeTrustedProject(root);
+      makeCurrentWorkQueue(root, "TASK-LOW", "修改首页按钮文案");
+      scenario.damage(root);
+      const report = runWork(root, "修改首页按钮文案", [], { expectedStatus: 1 });
+      const baseline = report.sourceSystemTrace.find((source) => source.sourceSystem === "BASELINE_ENFORCEMENT_CHECK");
+
+      assert.equal(report.projectIdentityProjection.behavioralAdoptionState, "VERIFIED_ACTIVE", scenario.name);
+      assert.equal(report.operatingLoop.taskImpact, "LOW", scenario.name);
+      assert.equal(report.operatingLoop.state, "NEEDS_PROJECT_SETUP", scenario.name);
+      assert.equal(report.operatingLoop.projectBaselineConsumptionRequired, "Yes", scenario.name);
+      assert.equal(report.operatingLoop.projectBaselineConsumptionState, "BASELINE_BLOCKED", scenario.name);
+      assert.equal(report.operatingDecision.actionCode, "COMPLETE_PROJECT_SETUP", scenario.name);
+      assert.equal(report.operatingDecision.reasonCode, "RUN_PLATFORM_BASELINE_SETUP", scenario.name);
+      assert.equal(baseline?.sourceKind, "GATE", scenario.name);
+      assert.equal(baseline?.readStatus, "FAILED", scenario.name);
+      assert.match(baseline?.error || "", scenario.reason, scenario.name);
+      assert.notEqual(report.operatingDecision.actionCode, "PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW", scenario.name);
+    });
+  }
+});
 
 test("existing project adoption is a project-entry review and remains read-only", () => withRoot("intentos-operating-adopt-", (root) => {
   makeExistingProject(root);
@@ -191,21 +292,33 @@ test("existing project adoption is a project-entry review and remains read-only"
   assert.deepEqual(snapshot(root), before);
 }));
 
-test("release preparation remains automatic while real-world consent stays explicit", () => withRoot("intentos-operating-release-", (root) => {
+test("release preparation fails closed until every strict release evidence source is current", () => withRoot("intentos-operating-release-", (root) => {
   makeTrustedProject(root);
   const report = runWork(root, "准备发布内部测试版本");
   assert.equal(report.operatingLoop.operation, "PREPARE_RELEASE");
-  assert.equal(report.operatingDecision.actionCode, "PREPARE_RELEASE_REVIEW");
+  assert.equal(report.operatingLoop.state, "NEEDS_RELEASE_EVIDENCE");
+  assert.equal(report.operatingDecision.actionCode, "COMPLETE_RELEASE_EVIDENCE");
+  const strictReleaseSources = new Map(report.sourceSystemTrace.map((source) => [source.sourceSystem, source]));
+  for (const source of [
+    "RELEASE_CHANNEL_POLICY_CHECK",
+    "RELEASE_EXECUTION_TOPOLOGY_CHECK",
+    "RUNTIME_HYGIENE_CHECK",
+    "RELEASE_EVIDENCE_GATE_CHECK",
+  ]) {
+    assert.equal(strictReleaseSources.get(source)?.sourceKind, "GATE");
+    assert.equal(strictReleaseSources.get(source)?.readStatus, "FAILED");
+  }
   assert.ok(report.decisionResponsibility.responsibilityDomains.includes("RELEASE_SAFETY"));
   assert.equal(report.decisionResponsibility.userResponsibilityClass, "REAL_WORLD_CONSENT_NEEDED");
   assert.equal(report.decisionResponsibility.userActionRequiredNow, "No");
   assert.equal(report.decisionResponsibility.technicalDecisionRequiredFromUser, "No");
   assert.equal(report.boundaries.approvesReleaseOrProduction, "No");
+  assert.equal(report.operatingDecision.materialActionAuthorized, "No");
 }));
 
 test("permission task remains a technical responsibility domain instead of a people-selection task", () => withRoot("intentos-operating-permission-", (root) => {
   makeTrustedProject(root);
-  makeCurrentWorkQueue(root);
+  makeCurrentWorkQueue(root, "TASK-001", "Add administrator permission and restrict sensitive database access");
   fs.writeFileSync(
     path.join(root, "src/administrator-permission.js"),
     "export function validateAdministratorPermissionAndSensitiveDatabaseAccess() { return true; }\n",
@@ -311,14 +424,17 @@ test("Closure cannot authorize DONE from fuzzy intent text without canonical tas
   assert.notEqual(JSON.parse(result.stdout).closureDecision.decision, "DONE");
 });
 
-test("BL2 project still permits a genuinely low task classification", () => withRoot("intentos-operating-bl2-low-", (root) => {
+test("incomplete BL2 selection blocks work without inflating a genuinely LOW task", () => withRoot("intentos-operating-bl2-low-", (root) => {
   makeTrustedProject(root);
   fs.mkdirSync(path.join(root, "docs"), { recursive: true });
   fs.writeFileSync(path.join(root, "docs/baseline-selection.md"), [
     "# Baseline Selection", "", "## Baseline Level", "", "BL2_INDUSTRIAL", "",
   ].join("\n"));
-  const report = runWork(root, "修正文档中的一个错别字");
+  const report = runWork(root, "修正文档中的一个错别字", [], { expectedStatus: 1 });
   assert.equal(report.operatingLoop.taskImpact, "LOW");
+  assert.equal(report.operatingLoop.state, "NEEDS_PROJECT_SETUP");
+  assert.equal(report.operatingLoop.projectBaselineConsumptionState, "BASELINE_BLOCKED");
+  assert.equal(report.operatingDecision.actionCode, "COMPLETE_PROJECT_SETUP");
   assert.equal(report.operatingLoop.projectBaselineControlsTaskImpact, "No");
   assert.equal(report.operatingLoop.stricterApplicableProjectRuleRequirement, "PRESERVE_WHEN_APPLICABLE");
   assert.equal(report.operatingLoop.stricterApplicableProjectRuleVerifiedByThisView, "No");
@@ -326,7 +442,7 @@ test("BL2 project still permits a genuinely low task classification", () => with
 
 test("initialized new project continues later tasks instead of restarting project entry", () => withRoot("intentos-operating-initialized-", (root) => {
   makeTrustedProject(root);
-  makeCurrentWorkQueue(root);
+  makeCurrentWorkQueue(root, "TASK-001", "继续完成预约规则");
   const report = runWork(root, "继续完成预约规则");
   assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
@@ -383,14 +499,43 @@ test("controlled plan records existing-project entry origin", () => withRoot("in
 
 test("English intent receives an English human summary", () => withRoot("intentos-operating-english-", (root) => {
   makeExistingProject(root);
-  assert.equal(runWork(root, "检查当前项目状态").operatingLoop.operation, "CHECK_STATUS");
-  assert.equal(runWork(root, "检查当前项目状态").operatingDecision.actionCode, "SUMMARIZE_CURRENT_STATUS");
+  const projectStatus = runWork(root, "检查当前项目状态");
+  assert.equal(projectStatus.operatingLoop.operation, "CHECK_STATUS");
+  assert.equal(projectStatus.operatingLoop.statusScope, "PROJECT_INFORMATION");
+  assert.equal(projectStatus.operatingDecision.actionCode, "SUMMARIZE_CURRENT_STATUS");
   const result = runNode(["scripts/resolve-operating-loop.mjs", root, "--intent", "check current task progress"]);
-  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  assert.equal(result.status, 1, `${result.stdout}\n${result.stderr}`);
   assert.match(result.stdout, /IntentOS Current Operating State/);
   assert.match(result.stdout, /Current status:/);
   assert.match(result.stdout, /Project reading:/);
   assert.doesNotMatch(result.stdout, /当前工作状态|需要你决定/);
+}));
+
+test("task status consumes one CURRENT Work Queue while project information remains queue-independent", () => withRoot("intentos-operating-status-scope-", (root) => {
+  makeTrustedProject(root);
+  fs.rmSync(path.join(root, "work-queue"), { recursive: true, force: true });
+  fs.rmSync(path.join(root, "tasks"), { recursive: true, force: true });
+  fs.rmSync(path.join(root, "active-work-threads"), { recursive: true, force: true });
+
+  const projectStatus = runWork(root, "查看当前项目状态");
+  assert.equal(projectStatus.operatingLoop.statusScope, "PROJECT_INFORMATION");
+  assert.equal(projectStatus.operatingLoop.state, "STATUS_AVAILABLE");
+
+  const missingTask = runWork(root, "查看当前任务进度", [], { expectedStatus: 1 });
+  assert.equal(missingTask.operatingLoop.statusScope, "CURRENT_TASK");
+  assert.equal(missingTask.operatingLoop.state, "NEEDS_WORK_QUEUE");
+  assert.equal(missingTask.operatingDecision.actionCode, "PREPARE_WORK_QUEUE");
+
+  const cliMissing = runNode(["scripts/cli.mjs", "work", root, "--intent", "查看当前任务进度", "--json"]);
+  assert.equal(cliMissing.status, 1, `${cliMissing.stdout}\n${cliMissing.stderr}`);
+  assert.equal(JSON.parse(cliMissing.stdout).operatingLoop.state, "NEEDS_WORK_QUEUE");
+
+  makeCurrentWorkQueue(root, "TASK-STATUS", "完善预约时间校验");
+  const currentTask = runWork(root, "check current task progress");
+  assert.equal(currentTask.operatingLoop.statusScope, "CURRENT_TASK");
+  assert.equal(currentTask.operatingLoop.state, "STATUS_AVAILABLE");
+  assert.match(currentTask.taskRef, /^task:[a-f0-9]{64}$/);
+  assert.ok(currentTask.sourceSystemTrace.some((source) => source.sourceSystem === "WORK_QUEUE" && source.readStatus === "CURRENT_RUN"));
 }));
 
 test("production vocabulary does not override original new-project entry or task impact", () => withRoot("intentos-operating-production-origin-", (root) => {
@@ -400,11 +545,11 @@ test("production vocabulary does not override original new-project entry or task
   fs.writeFileSync(path.join(root, ".github/workflows/release.yml"), "name: production release\n");
   fs.writeFileSync(path.join(root, "docs/runbooks/release.md"), "# Production release runbook\n");
   fs.writeFileSync(path.join(root, "Dockerfile"), "FROM scratch\n");
-  makeCurrentWorkQueue(root);
+  makeCurrentWorkQueue(root, "TASK-001", "修正文档中的一个错别字");
   const report = runWork(root, "修正文档中的一个错别字");
   assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
   assert.equal(report.projectIdentityProjection.projectKind, "NEW_PROJECT");
-  assert.equal(report.projectIdentityProjection.governancePosture, "NOT_ESTABLISHED");
+  assert.equal(report.projectIdentityProjection.governancePosture, "INTENTOS_ACTIVE_GOVERNANCE");
   assert.equal(report.projectIdentityProjection.productionPosture, "NOT_ESTABLISHED");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
   assert.equal(report.operatingLoop.state, "NEEDS_PLANNING_EVIDENCE");
@@ -435,12 +580,86 @@ test("controlled plan records new-project entry origin", () => withRoot("intento
 test("finish without valid completion evidence cannot report done", () => withRoot("intentos-operating-finish-", (root) => {
   makeTrustedProject(root);
   makeCurrentWorkQueue(root);
-  const report = runWork(root, "这个任务做完了吗");
+  const report = runWork(root, "这个任务做完了吗", [], { expectedStatus: 1 });
   assert.equal(report.operatingLoop.operation, "FINISH_TASK");
   assert.equal(report.operatingLoop.state, "NOT_DONE");
   assert.equal(report.operatingDecision.actionCode, "COMPLETE_CLOSURE_EVIDENCE");
   assert.equal(report.boundaries.provesProductCorrectness, "No");
   assert.ok(report.evidenceTrace.nodes.some((item) => item.id === "UNIFIED_CLOSURE"));
+  const cli = runNode(["scripts/cli.mjs", "work", root, "--intent", "这个任务做完了吗", "--json"]);
+  assert.equal(cli.status, 1, `${cli.stdout}\n${cli.stderr}`);
+  assert.equal(JSON.parse(cli.stdout).operatingLoop.state, "NOT_DONE");
+}));
+
+test("FINISH_TASK consumes and blocks an incomplete active-project baseline before closure", () => withRoot("intentos-operating-finish-baseline-", (root) => {
+  makeTrustedProject(root);
+  makeCurrentWorkQueue(root, "TASK-LOW", "修改首页按钮文案");
+  const evidenceFile = path.join(root, "docs/baseline-evidence.md");
+  const evidence = fs.readFileSync(evidenceFile, "utf8");
+  assert.match(evidence, /Draft status: VERIFIED/);
+  fs.writeFileSync(evidenceFile, evidence.replace("Draft status: VERIFIED", "Draft status: PENDING_EVIDENCE"));
+
+  const report = runWork(root, "这个任务做完了吗", [], { expectedStatus: 1 });
+  const baselineIndex = report.sourceSystemTrace.findIndex((source) => source.sourceSystem === "BASELINE_ENFORCEMENT_CHECK");
+  const closureIndex = report.sourceSystemTrace.findIndex((source) => source.sourceSystem === "UNIFIED_CLOSURE");
+  const baseline = report.sourceSystemTrace[baselineIndex];
+
+  assert.equal(report.projectIdentityProjection.behavioralAdoptionState, "VERIFIED_ACTIVE");
+  assert.equal(report.operatingLoop.operation, "FINISH_TASK");
+  assert.equal(report.operatingLoop.state, "NEEDS_PROJECT_SETUP");
+  assert.equal(report.operatingLoop.projectBaselineConsumptionState, "BASELINE_BLOCKED");
+  assert.equal(report.operatingDecision.actionCode, "COMPLETE_PROJECT_SETUP");
+  assert.notEqual(report.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
+  assert.ok(baselineIndex >= 0 && closureIndex > baselineIndex);
+  assert.equal(baseline.readStatus, "FAILED");
+  assert.match(baseline.error, /STANDARD_PACK_EVIDENCE_INCOMPLETE|non-ready evidence status/i);
+}));
+
+test("finish requires matching Unified Closure consumption of strict current Completion Evidence", () => withRoot("intentos-operating-finish-current-", (root) => {
+  prepareCurrentTrustFixtureSource(root);
+  for (const args of [
+    ["init"],
+    ["config", "user.email", "intentos-test@example.invalid"],
+    ["config", "user.name", "IntentOS Test"],
+    ["add", "."],
+    ["commit", "-m", "current trust source"],
+  ]) runGit(root, args);
+  const fixture = buildCurrentTrustFixture(kitRoot, root);
+  const ready = runWork(root, "这个任务做完了吗", [
+    "--task", fixture.taskRef,
+    "--completion-evidence", fixture.refs.completion,
+  ]);
+  assert.equal(ready.operatingLoop.state, "READY_TO_REPORT_DONE");
+  assert.equal(ready.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
+  const closure = ready.sourceSystemTrace.find((item) => item.sourceSystem === "UNIFIED_CLOSURE");
+  assert.equal(closure.outcome, "CLOSURE_DECISION_RECORDED");
+
+  const wrongTask = runWork(root, "这个任务做完了吗", [
+    "--task", `task:${"f".repeat(64)}`,
+    "--completion-evidence", fixture.refs.completion,
+  ], { expectedStatus: 1 });
+  assert.equal(wrongTask.operatingLoop.state, "NOT_DONE");
+  assert.notEqual(wrongTask.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
+
+  const conflicting = runWork(root, "这个任务做完了吗", [
+    "--task", fixture.taskRef,
+    "--completion-evidence", fixture.refs.completion,
+    "--verification", "focused verification failed",
+  ], { expectedStatus: 1 });
+  assert.equal(conflicting.operatingLoop.state, "NOT_DONE");
+  assert.notEqual(conflicting.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
+}));
+
+test("finish repairs unreadable mandatory sources before considering completion", () => withRoot("intentos-operating-finish-source-fail-", (root) => {
+  const targetFile = path.join(root, "not-a-project-directory");
+  fs.writeFileSync(targetFile, "not a directory\n");
+  const report = runWork(targetFile, "这个任务做完了吗", [], { expectedStatus: 2 });
+  assert.equal(report.operatingLoop.operation, "FINISH_TASK");
+  assert.equal(report.operatingLoop.state, "BLOCKED_BY_SOURCE_FAILURE");
+  assert.equal(report.outcome, "BLOCKED_BY_SOURCE_FAILURE");
+  assert.equal(report.operatingDecision.actionCode, "REPAIR_SOURCE_READ");
+  assert.notEqual(report.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
+  assert.ok(report.sourceSystemTrace.some((item) => item.sourceKind === "RESOLVER" && item.readStatus === "FAILED"));
 }));
 
 test("source failure is visible and blocks the operating state", () => withRoot("intentos-operating-source-fail-", (root) => {
@@ -481,7 +700,7 @@ test("missing goal selects one user-input decision", () => withRoot("intentos-op
 
 test("possible-high task selects read-only risk inspection", () => withRoot("intentos-operating-possible-high-", (root) => {
   makeTrustedProject(root);
-  makeCurrentWorkQueue(root);
+  makeCurrentWorkQueue(root, "TASK-001", "调整预约限制规则");
   const report = runWork(root, "调整预约限制规则");
   assert.equal(report.operatingLoop.taskImpact, "POSSIBLE_HIGH");
   assert.equal(report.operatingDecision.actionCode, "INSPECT_TASK_RISK");
@@ -489,22 +708,22 @@ test("possible-high task selects read-only risk inspection", () => withRoot("int
   assert.ok(report.operatingDecision.blockedBy.length > 0);
 }));
 
-test("medium task completes durable Planning Closure before implementation-review preparation", () => withRoot("intentos-operating-medium-", (root) => {
+test("medium task satisfies minimum business-rule obligations before planning can close", () => withRoot("intentos-operating-medium-", (root) => {
   makeTrustedProject(root);
-  makeCurrentWorkQueue(root);
+  makeCurrentWorkQueue(root, "TASK-001", "Update local panel handler interaction");
   fs.writeFileSync(
     path.join(root, "src/local-panel.js"),
     "export function handler() { const localPanelInteraction = 'bounded local behavior'; return localPanelInteraction; }\n",
   );
   const report = runWork(root, "Update local panel handler interaction");
   assert.equal(report.operatingLoop.taskImpact, "MEDIUM");
-  assert.equal(report.operatingDecision.actionCode, "COMPLETE_PLANNING_CLOSURE");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_BUSINESS_RULE_CLOSURE");
   assert.equal(report.operatingDecision.decisionStatus, "ACTION_REQUIRED");
 }));
 
 test("medium selection behavior pauses for bounded omission-risk inspection", () => withRoot("intentos-operating-medium-inspection-", (root) => {
   makeTrustedProject(root);
-  makeCurrentWorkQueue(root);
+  makeCurrentWorkQueue(root, "TASK-001", "调整局部列表筛选展示");
   const report = runWork(root, "调整局部列表筛选展示");
   assert.equal(report.operatingLoop.taskImpact, "MEDIUM");
   assert.equal(report.operatingDecision.actionCode, "INSPECT_BUSINESS_UNIVERSE_RISK");
@@ -514,7 +733,7 @@ test("medium selection behavior pauses for bounded omission-risk inspection", ()
 
 test("evidenced medium shared behavior prepares Business Universe before Business Rule", () => withRoot("intentos-operating-medium-universe-", (root) => {
   makeTrustedProject(root);
-  makeCurrentWorkQueue(root);
+  makeCurrentWorkQueue(root, "TASK-001", "Member and guest use the same local list filter");
   fs.writeFileSync(
     path.join(root, "src/member-guest-list.js"),
     "export function filterMemberAndGuestListWithSharedDisplayRule() { return true; }\n",
@@ -527,7 +746,7 @@ test("evidenced medium shared behavior prepares Business Universe before Busines
 
 test("high task selects the first authoritative governance prerequisite", () => withRoot("intentos-operating-high-", (root) => {
   makeTrustedProject(root);
-  makeCurrentWorkQueue(root);
+  makeCurrentWorkQueue(root, "TASK-001", "Add administrator permission validation");
   fs.writeFileSync(
     path.join(root, "src/administrator-permission.js"),
     "export function validateAdministratorPermission() { return true; }\n",
@@ -578,12 +797,32 @@ test("legacy closure cannot report completion without strict Completion Evidence
     "--verification", "strict checks passed",
     "--execution-closure", "execution-closures/001-contract-input-rule.md",
     "--impact-report", "change-impact-coverage-reports/001-contract-input-rule.md",
-  ]);
+  ], { expectedStatus: 1 });
   assert.notEqual(report.operatingLoop.state, "READY_TO_REPORT_DONE");
   assert.notEqual(report.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
   assert.notEqual(report.operatingDecision.decisionStatus, "READY_TO_REPORT");
   assert.equal(report.boundaries.approvesReleaseOrProduction, "No");
 });
+
+test("strict checker JSON larger than 64 KiB drains completely before exit", () => withRoot("intentos-operating-large-json-", (root) => {
+  const cases = [
+    ["scripts/check-work-queue-takeover.mjs", "work-queue-takeover-reports"],
+    ["scripts/check-business-universe-coverage.mjs", "business-universe-coverage-reports"],
+    ["scripts/check-execution-assurance.mjs", "execution-assurance-reports"],
+  ];
+  for (const [script, directory] of cases) {
+    const reportRoot = path.join(root, directory);
+    fs.mkdirSync(reportRoot, { recursive: true });
+    for (let index = 0; index < 160; index += 1) {
+      fs.writeFileSync(path.join(reportRoot, `${String(index).padStart(3, "0")}.md`), "# Deliberately incomplete report\n");
+    }
+    const result = runNode([script, root, "--json"]);
+    assert.equal(result.status, 1, `${script}\n${result.stdout}\n${result.stderr}`);
+    assert.ok(Buffer.byteLength(result.stdout) > 64 * 1024, `${script} emitted only ${Buffer.byteLength(result.stdout)} bytes`);
+    assert.doesNotThrow(() => JSON.parse(result.stdout), `${script} emitted truncated JSON`);
+    fs.rmSync(reportRoot, { recursive: true, force: true });
+  }
+}));
 
 test("decision digest is stable across repeated reads with unchanged semantic inputs", () => withRoot("intentos-operating-digest-", (root) => {
   makeTrustedProject(root);
@@ -610,7 +849,7 @@ test("selected platform profiles are projected from structured Workflow Next out
   ].join("\n"));
   const report = runWork(root, "修改首页按钮文案");
   assert.deepEqual(report.projectIdentityProjection.baselinePosture.selectedProfiles, ["backend-api", "web-app"]);
-  assert.equal(report.projectIdentityProjection.baselinePosture.platformBaselineState, "PROFILE_INVALID");
+  assert.equal(report.projectIdentityProjection.baselinePosture.platformBaselineState, "BASELINE_DOCS_MISSING");
 }));
 
 test("project posture changes invalidate the identity projection and operating decision", () => withRoot("intentos-operating-identity-change-", (root) => {

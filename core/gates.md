@@ -31,7 +31,7 @@ Stop if:
 
 - 同一个测试失败两次，停止并报告。
 - 缺少关键上下文，停止并请求补充。
-- 需要高风险决策，停止并请求人工确认。
+- 缺少可验证的业务事实、外部权威事实，或即将执行具体真实世界影响时，停止并请求对应的最小输入。
 
 ## Risk Gate
 
@@ -50,7 +50,7 @@ Stop if:
 - personal data
 - regulated data
 
-高风险任务默认需要人工批准、review gate 和 release gate。
+高风险任务默认由 Codex 提升审查、验证和证据强度，并经过 review gate 与 release gate。只有缺少业务事实、外部权威事实，或即将执行具体生产发布、付费、不可逆数据操作等真实世界影响时，才请求用户提供事实或同意该具体动作。
 
 ## Verification Gate
 

@@ -1,10 +1,22 @@
 name: IntentOS Release Checks
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
+    inputs:
+      candidate_git_revision:
+        description: Exact candidate commit SHA to check
+        required: true
+        type: string
+      candidate_digest:
+        description: Exact sha256 digest of the release candidate record
+        required: true
+        type: string
+      hosted_runner_consent:
+        description: Consent to use a hosted runner for read-only release checks only
+        required: true
+        type: choice
+        options:
+          - CONSENT_TO_HOSTED_RUNNER_FOR_READ_ONLY_RELEASE_CHECKS
 
 permissions:
   contents: read
@@ -17,18 +29,45 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.candidate_git_revision }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Release tag matches package version
-        if: github.ref_type == 'tag'
+      - name: Validate acceptance and resolve candidate base
+        id: candidate-base
+        env:
+          CANDIDATE_DIGEST: ${{ inputs.candidate_digest }}
+          CANDIDATE_GIT_REVISION: ${{ inputs.candidate_git_revision }}
+          HOSTED_RUNNER_CONSENT: ${{ inputs.hosted_runner_consent }}
         shell: bash
         run: |
-          expected="v$(node -p "require('./package.json').version")"
-          test "$GITHUB_REF_NAME" = "$expected"
+          version="$(node -p "require('./package.json').version")"
+          base="$(node scripts/check-release-acceptance.mjs . \
+            --report "releases/$version/independent-review-report.md" \
+            --version "$version" \
+            --candidate-git-revision "$CANDIDATE_GIT_REVISION" \
+            --candidate-digest "$CANDIDATE_DIGEST" \
+            --hosted-runner-consent "$HOSTED_RUNNER_CONSENT" \
+            --require-hosted-runner-consent \
+            --require-dispatch-binding \
+            --require-accepted \
+            --print-base-revision)"
+          test -n "$base"
+          test "$(git rev-parse --verify "$base^{commit}")" = "$base"
+          git merge-base --is-ancestor "$base" HEAD
+          test "$(git rev-list --count "$base"..HEAD)" -gt 0
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce current task, completion, and release consumers
+        run: node scripts/check-consumer-chain.mjs . --base "${{ steps.candidate-base.outputs.base }}" --phase final
+
+      - name: Exact candidate diff check
+        run: git diff --check "${{ steps.candidate-base.outputs.base }}"...HEAD
 
       - name: Release evidence bundle matches package version
         shell: bash
@@ -37,6 +76,7 @@ jobs:
           test -s "releases/$version/release-record.md"
           test -s "releases/$version/self-check-report.md"
           test -s "releases/$version/known-limitations.md"
+          test -s "releases/$version/independent-review-report.md"
           grep -Fq "IntentOS $version" "releases/$version/release-record.md"
           grep -Fq "IntentOS $version" "releases/$version/self-check-report.md"
           if grep -Eiq '\b(PENDING|NOT RUN|PLANNED ONLY)\b' "releases/$version/self-check-report.md"; then
@@ -48,7 +88,9 @@ jobs:
         run: node scripts/check-intentos.mjs
 
       - name: Release verify
-        run: npm run verify
+        env:
+          INTENTOS_CONSUMER_BASE: ${{ steps.candidate-base.outputs.base }}
+        run: npm run verify:release
 
       - name: Manifest check
         run: node scripts/check-manifest.mjs

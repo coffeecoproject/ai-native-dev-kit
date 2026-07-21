@@ -5,18 +5,28 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { validateTaskObligationProjection } from "./lib/task-obligations.mjs";
+import {
+  normalizeTaskIntent,
+  taskIntentDigest,
+  validateTaskGovernanceLineage,
+} from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence"]);
+const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-current-task-lineage", "strict"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const canonicalProjectRoot = fs.realpathSync(projectRoot);
 const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
-const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
+const requireCurrentTaskLineage = Boolean(args["require-current-task-lineage"] || args.strict);
+const strictRequested = requireReport || requireStructuredEvidence || requireCurrentTaskLineage || Boolean(args.report);
+const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/task-governance.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -63,6 +73,7 @@ const highSurfacePatterns = [
   /business rule|approval|review|settlement|payment|finance|tax|业务规则|审批|审核|结算|支付|财务|税务/i,
   /release|production|rollback|CI|hook|deploy|发布|上线|生产|回滚/i,
 ];
+const behavioralIntentPattern = /\b(click|submit|handler|validate|validation|logic|behavior|function|method|event|state|request|response|route|endpoint|component|hook|callback|workflow|api|database|query|mutation)\b|点击|提交|处理器|校验|验证|逻辑|行为|函数|方法|事件|状态|请求|响应|路由|接口|组件|回调|流程|数据库|查询/i;
 const lowKinds = new Set(["docs_only", "test_docs_only", "copy", "visual_only"]);
 const userBurdenPatterns = [
   /Task Governance/i,
@@ -129,8 +140,8 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("task-governance-reports");
   if (files.length === 0) {
-    if (allowEmpty) pass("task governance check skipped by explicit --allow-empty: no reports");
-    else if (requireReport || explicitReport) fail("no Task Governance reports found");
+    if (allowEmpty && !strictRequested) pass("task governance check skipped by explicit --allow-empty: no reports");
+    else if (strictRequested) fail("no Task Governance reports found");
     else pass("SKIPPED_NO_REPORT: no Task Governance reports found");
     return;
   }
@@ -141,6 +152,15 @@ function checkReports() {
     }
     checkReport(file);
   }
+}
+
+function resolveReportPath(value) {
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", value, { markdownOnly: true });
+  if (!resolved.ok) {
+    console.error(`FAIL --report must be a project-contained non-symlink Markdown file: ${resolved.error}`);
+    process.exit(1);
+  }
+  return resolved.file;
 }
 
 function checkReport(file) {
@@ -162,10 +182,10 @@ function checkReport(file) {
   }
   checkBoundaryTables(content, label);
   const result = validateEvidenceBlock(content, schema, label, {
-    require: requireStructuredEvidence,
+    require: requireStructuredEvidence || requireCurrentTaskLineage,
     digestField: "task_governance_digest",
   });
-  if (!result.present && !requireStructuredEvidence) {
+  if (!result.present && !(requireStructuredEvidence || requireCurrentTaskLineage)) {
     pass(`${label} structured evidence optional and not present`);
     return;
   }
@@ -179,6 +199,18 @@ function checkReport(file) {
 }
 
 function checkStructuredEvidence(content, label, file, evidence) {
+  const normalizedIntent = normalizeTaskIntent(evidence.intent);
+  if (evidence.intent === normalizedIntent && evidence.intent_digest === taskIntentDigest(normalizedIntent)) {
+    pass(`${label} intent and intent_digest are canonical`);
+  } else {
+    fail(`${label} intent_digest must be recomputed from normalized intent`);
+  }
+  const lineage = validateTaskGovernanceLineage(projectRoot, evidence, {
+    fromFile: file,
+    requireCurrent: requireCurrentTaskLineage,
+  });
+  if (lineage.ok) pass(`${label} task-instance lineage is valid for its authority mode`);
+  else lineage.errors.forEach((error) => fail(`${label} ${error}`));
   if (reportRefCandidates(file).includes(evidence.task_governance_ref)) pass(`${label} task_governance_ref points to this report`);
   else fail(`${label} task_governance_ref ${evidence.task_governance_ref || "<missing>"} must point to this report`);
   if (evidence.outcome && stripMarkdown(sectionBody(content, "Outcome") || "").includes(evidence.outcome)) pass(`${label} outcome matches Markdown`);
@@ -203,12 +235,12 @@ function checkStructuredEvidence(content, label, file, evidence) {
   else fail(`${label} can_claim_done must be No`);
   checkUserPromptBurden(label, evidence);
 
-  if (["1.108.0", "1.110.0"].includes(evidence.schema_version)) {
+  if (["1.108.0", "1.110.0", "1.113.0"].includes(evidence.schema_version)) {
     if (sectionBody(content, "Business Universe Routing")) pass(`${label} includes Business Universe Routing`);
     else fail(`${label} ${evidence.schema_version} report missing Business Universe Routing`);
     checkBusinessUniverseRouting(label, evidence);
   }
-  if (evidence.schema_version === "1.110.0") {
+  if (["1.110.0", "1.113.0"].includes(evidence.schema_version)) {
     if (sectionBody(content, "Control Effectiveness Routing")) pass(`${label} includes Control Effectiveness Routing`);
     else fail(`${label} 1.110.0 report missing Control Effectiveness Routing`);
     checkControlEffectivenessRouting(label, evidence);
@@ -255,6 +287,7 @@ function checkTierRules(label, evidence) {
     ...(classification.trigger_evidence || []),
   ].join("\n");
   const rawIntentHighSurface = hasHighSurface(evidence.intent || "");
+  const rawIntentBehavioral = behavioralIntentPattern.test(String(evidence.intent || ""));
   const universeRequired = evidence.business_universe_routing?.required || "No";
 
   if (["1.108.0", "1.110.0"].includes(evidence.schema_version)) {
@@ -280,10 +313,14 @@ function checkTierRules(label, evidence) {
     else fail(`${label} LOW must not touch API, DB, runtime, permissions, release, production, business rules, state, CI, gates, or test behavior`);
     if (!rawIntentHighSurface) pass(`${label} LOW intent has no hidden high-impact surface`);
     else fail(`${label} LOW intent contains high-impact wording and must be upgraded or explicitly inspected`);
+    if (!rawIntentBehavioral) pass(`${label} LOW intent has no hidden behavioral implementation signal`);
+    else fail(`${label} LOW intent contains behavioral implementation wording and cannot use a non-behavioral task-kind override`);
     requireExcludedHighSurfaces(label, classification);
     requireRequirement(label, beforeImplementation, "scope_check_required", "Yes");
     requireRequirement(label, beforeImplementation, "short_plan_required", "No");
     requireRequirement(label, beforeCompletion, "test_evidence_required", "No");
+    requireRequirement(label, beforeCompletion, "execution_assurance_required", "Yes");
+    requireRequirement(label, beforeCompletion, "completion_evidence_required", "Yes");
     if (closeout.scope_unchanged === "Yes") pass(`${label} LOW records scope unchanged`);
     else fail(`${label} LOW requires scope unchanged evidence`);
     if (["REQUIRED", "RECORDED"].includes(closeout.minimal_verification_status)
@@ -304,6 +341,12 @@ function checkTierRules(label, evidence) {
     requireExcludedHighSurfaces(label, classification);
     requireRequirement(label, beforeImplementation, "scope_check_required", "Yes");
     requireRequirement(label, beforeImplementation, "short_plan_required", "Yes");
+    requireRequirement(label, beforeImplementation, "business_rule_closure_required", "Yes");
+    requireRequirement(label, beforeImplementation, "change_impact_coverage_required", "Yes");
+    requireRequirement(label, beforeImplementation, "verification_plan_required", "Yes");
+    requireRequirement(label, beforeCompletion, "test_evidence_required", "Yes");
+    requireRequirement(label, beforeCompletion, "execution_assurance_required", "Yes");
+    requireRequirement(label, beforeCompletion, "completion_evidence_required", "Yes");
     if (["REQUIRED", "RECORDED"].includes(closeout.targeted_verification_status)) pass(`${label} MEDIUM records targeted verification status`);
     else fail(`${label} MEDIUM requires targeted verification status without claiming unperformed work is done`);
   }
@@ -317,6 +360,12 @@ function checkTierRules(label, evidence) {
     }
     if (readiness.ready_for_implementation_review === "No") pass(`${label} POSSIBLE_HIGH blocks implementation review`);
     else fail(`${label} POSSIBLE_HIGH must not proceed as LOW or MEDIUM without clarification or inspection evidence`);
+    for (const field of ["business_rule_closure_required", "change_impact_coverage_required", "verification_plan_required"]) {
+      requireRequirement(label, beforeImplementation, field, "Yes");
+    }
+    for (const field of ["test_evidence_required", "execution_assurance_required", "completion_evidence_required"]) {
+      requireRequirement(label, beforeCompletion, field, "Yes");
+    }
   }
 
   if (impact === "HIGH") {
@@ -345,6 +394,11 @@ function checkTierRules(label, evidence) {
       if ((readiness.blocked_by || []).length > 0) pass(`${label} HIGH blocks until required governance exists`);
       else fail(`${label} HIGH not ready must list missing governance blockers`);
     }
+  }
+  if (evidence.schema_version === "1.113.0") {
+    const projection = validateTaskObligationProjection(evidence);
+    if (projection.ok) pass(`${label} preserves the authoritative task-obligation projection`);
+    else fail(`${label} weakens or mismatches authoritative task obligations: ${(projection.errors.length > 0 ? projection.errors : projection.missing).join(", ")}`);
   }
 }
 
@@ -424,7 +478,8 @@ function checkReviewPolicy(label, evidence) {
       review_source: "targeted_checker_or_project_review",
       coverage: [
         "short plan", "bounded impact surface",
-        ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"] : []),
+        ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage"] : []),
+        "business rule closure", "change impact coverage", "verification plan",
         ...controlCoverage,
         "excluded high-impact surfaces", "targeted verification", "unrelated edits check",
       ],
@@ -436,7 +491,8 @@ function checkReviewPolicy(label, evidence) {
       review_source: "human_or_read_only_inspection",
       coverage: [
         "clarification or read-only inspection", "high-impact surface decision", "upgrade or downgrade rationale",
-        ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"] : []),
+        ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage"] : []),
+        "business rule closure", "change impact coverage", "verification plan",
         ...controlCoverage,
       ],
     },
@@ -739,7 +795,9 @@ function emitAndExit() {
 }
 
 function rel(file) {
-  return path.relative(projectRoot, file).replaceAll(path.sep, "/");
+  const absolute = path.resolve(file);
+  const canonical = fs.existsSync(absolute) ? fs.realpathSync(absolute) : absolute;
+  return path.relative(canonicalProjectRoot, canonical).replaceAll(path.sep, "/");
 }
 
 function digest(value) {

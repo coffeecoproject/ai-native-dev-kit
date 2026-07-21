@@ -56,7 +56,7 @@ function buildReport(root, options) {
   const persistedNativePlanCount = sameRunNative ? 0 : nativeMigrationPlanCount(root);
   const stalePersistedNativeEvidence = persistedNativePlanCount > 0 && nativePlans.length === 0;
   if (nativePlans.length === 0 && options.autoNative) {
-    nativePlans = generateNativeMigrationPlans(root);
+    nativePlans = generateNativeMigrationPlans(root, options.intent);
   }
   const rules = nativePlans.flatMap((plan) => plan.rules.map((rule) => ({ ...rule, planPath: plan.path })));
   const ruleReconciliationCoverage = buildRuleReconciliationCoverage(rules, nativePlans);
@@ -213,11 +213,13 @@ function persistedNativeBindingMatches(evidence, binding) {
     && evidence.source_revision === binding.sourceRevision;
 }
 
-function generateNativeMigrationPlans(root) {
+function generateNativeMigrationPlans(root, intent = "") {
   const result = spawnSync(process.execPath, [
     path.join(__dirname, "resolve-native-migration.mjs"),
     root,
     "--json",
+    "--intent",
+    intent || "reconcile existing project rules",
   ], {
     cwd: path.resolve(__dirname, ".."),
     encoding: "utf8",

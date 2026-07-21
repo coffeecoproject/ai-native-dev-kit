@@ -5,12 +5,74 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 
+import {
+  requiresOperatingBaselineConsumption,
+  validateBaselineEnforcementConsumption,
+} from "../scripts/lib/planning-closure.mjs";
+
 const root = path.resolve(import.meta.dirname, "..");
 const resolver = path.join(root, "scripts/resolve-planning-closure.mjs");
 const checker = path.join(root, "scripts/check-planning-closure.mjs");
 const contractChecker = path.join(root, "scripts/check-execution-entry-contract.mjs");
+const cli = path.join(root, "scripts/cli.mjs");
 const lowSource = path.join(root, "examples/1.83-task-governance/low-copy-change/task-governance-reports/001-task-governance.md");
 const possibleHighIntent = "possibly change list filter rule may touch data state";
+
+test("operating baseline consumption preserves LOW advisories after strict baselines pass", () => {
+  const result = validateBaselineEnforcementConsumption({
+    baselineLevel: "BL1",
+    mode: "implementation",
+    checkStatus: "PENDING",
+    checks: [
+      { status: "PASS", message: "platform baseline strict state is BASELINE_READY" },
+      { status: "PASS", message: "industrial baseline strict state is NOT_APPLICABLE" },
+      { status: "PENDING", message: "No task cards found; baseline reference enforcement is skipped until a task exists." },
+      { status: "PENDING", message: "No review packets found; skipped until review evidence exists." },
+    ],
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.outcome, "BASELINE_READY");
+  assert.equal(result.advisoryCount, 2);
+  assert.equal(requiresOperatingBaselineConsumption({ behavioralAdoptionState: "VERIFIED_ACTIVE", operation: "CONTINUE_TASK" }), true);
+  assert.equal(requiresOperatingBaselineConsumption({ behavioralAdoptionState: "VERIFIED_ACTIVE", operation: "FINISH_TASK" }), true);
+  assert.equal(requiresOperatingBaselineConsumption({ behavioralAdoptionState: "VERIFIED_ACTIVE", operation: "CHECK_STATUS" }), false);
+  assert.equal(requiresOperatingBaselineConsumption({ behavioralAdoptionState: "READ_ONLY_ASSESSED", operation: "CONTINUE_TASK" }), false);
+});
+
+test("operating baseline consumption rejects missing, stale, and incomplete baseline authority", () => {
+  for (const message of [
+    "platform baseline is not implementation-ready (BASELINE_DOCS_MISSING): missing docs/test-strategy.md",
+    "platform baseline is not implementation-ready (PROFILE_INVALID): project profile and baseline selection are stale",
+    "platform baseline is not implementation-ready (BASELINE_INSTALLATION_INCOMPLETE): web-runtime-standard is not installed",
+  ]) {
+    const result = validateBaselineEnforcementConsumption({
+      baselineLevel: "BL1",
+      mode: "implementation",
+      checkStatus: "FAIL",
+      checks: [
+        { status: "FAIL", message },
+        { status: "PASS", message: "industrial baseline strict state is NOT_APPLICABLE" },
+      ],
+    });
+    assert.equal(result.ok, false, message);
+    assert.equal(result.outcome, "BASELINE_BLOCKED", message);
+    assert.equal(result.remediationAction, "RUN_PLATFORM_BASELINE_SETUP", message);
+    assert.match(result.reason, /platform baseline is not implementation-ready/i, message);
+  }
+
+  const industrial = validateBaselineEnforcementConsumption({
+    baselineLevel: "BL2",
+    mode: "implementation",
+    checkStatus: "FAIL",
+    checks: [
+      { status: "PASS", message: "platform baseline strict state is BASELINE_READY" },
+      { status: "FAIL", message: "industrial baseline is not implementation-ready (EVIDENCE_INVALID)" },
+    ],
+  });
+  assert.equal(industrial.ok, false);
+  assert.equal(industrial.remediationAction, "RUN_INDUSTRIAL_BASELINE_SETUP");
+});
 
 test("LOW planning emits one non-authorizing Execution Entry Contract", () => {
   const fixture = createFixture(lowSource);
@@ -24,6 +86,21 @@ test("LOW planning emits one non-authorizing Execution Entry Contract", () => {
   assert.equal(check.status, 0, combined(check));
   const contract = run(contractChecker, [fixture.root, "--report", "planning-closure-reports/current.md", "--require-contract"]);
   assert.equal(contract.status, 0, combined(contract));
+  const publicContract = run(cli, ["execution-entry-contract-check", fixture.root, "--require-contract"]);
+  assert.equal(publicContract.status, 0, combined(publicContract));
+  assert.match(combined(publicContract), /selected current Planning Closure report planning-closure-reports\/current\.md/);
+});
+
+test("implicit Execution Entry Contract selection fails closed when current reports are ambiguous", () => {
+  const fixture = createFixture(lowSource);
+  assert.equal(resolveFixture(fixture).status, 0);
+  fs.copyFileSync(
+    path.join(fixture.root, "planning-closure-reports/current.md"),
+    path.join(fixture.root, "planning-closure-reports/duplicate.md"),
+  );
+  const contract = run(cli, ["execution-entry-contract-check", fixture.root, "--require-contract"]);
+  assert.notEqual(contract.status, 0);
+  assert.match(combined(contract), /multiple current Planning Closure reports are valid/);
 });
 
 test("POSSIBLE_HIGH remains discovery-only and emits no contract", () => {

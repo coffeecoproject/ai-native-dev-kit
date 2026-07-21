@@ -4,24 +4,35 @@ Use this template to explain Review Loop results to a project owner before techn
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Accept and close | Keep the reviewed result | Report only | low | Choose when no blocking issue remains |
-| B | Let AI fix allowed issues | Fix only AUTO_FIX findings inside approved scope | Yes, approved task files only | low/medium | Choose when findings are deterministic and bounded |
-| C | Human decision first | Stop before risky or unclear changes | Decision/report only | medium/high | Choose when findings affect scope, risk, release, or architecture |
-| D | Pause review | Stop and wait | No | low | Choose when review evidence is incomplete |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Review Decision And Evidence
+
+Selected disposition: CLOSE / AUTO_FIX / REPLAN_AND_REVIEW / BLOCKED_BY_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Decision rationale:
+
+Scope and file boundary:
+
+Risk response:
+
+Verification and independent review evidence:
+
+Technical recovery if evidence fails or a finding repeats:
 
 ## Human Summary
 
@@ -29,7 +40,7 @@ One-sentence conclusion:
 
 ## Current Status
 
-Status: Can continue / Needs confirmation / Must stop
+Status: CAN_CONTINUE / NEEDS_USER_INPUT / BLOCKED
 
 Reason:
 
@@ -42,7 +53,7 @@ Can AI continue: yes / limited / no
 - Findings found:
 - Automatically fixed:
 - Still open:
-- Needs human decision:
+- Needs bounded user input:
 - Release / merge recommendation:
 
 ## AI Already Fixed
@@ -55,9 +66,9 @@ Can AI continue: yes / limited / no
 
 ## What I Need From You
 
-Decisions needed:
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-1.
+Exact question or prepared effect, if needed:
 
 ## Recommended Next Step
 
@@ -91,13 +102,15 @@ Findings table:
 |---|---|---|---|---|
 |  | P0 / P1 / P2 | AUTO_FIX / NEEDS_HUMAN_DECISION / NEEDS_CLARIFICATION / NO_ACTION |  |  |
 
+`NEEDS_HUMAN_DECISION` is a compatibility category and may be used only for one of the three bounded user-input classes. Codex resolves technical findings through repair, replanning, verification, or review routing.
+
 ## Audit Notes
 
 Evidence refs:
 
 -
 
-Approvals / exceptions:
+Consent / external-fact refs and exceptions:
 
 -
 

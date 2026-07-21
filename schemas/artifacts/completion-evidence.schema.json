@@ -23,7 +23,7 @@
   ],
   "properties": {
     "schema_version": {
-      "enum": ["1.78.0", "1.104.0", "1.108.0", "1.110.0"]
+      "enum": ["1.78.0", "1.104.0", "1.108.0", "1.110.0", "1.113.0"]
     },
     "artifact_type": {
       "const": "completion_evidence_gate"
@@ -94,9 +94,16 @@
               "execution_assurance"
             ]
           },
+          "requirement": {
+            "enum": [
+              "REQUIRED",
+              "NOT_REQUIRED"
+            ]
+          },
           "status": {
             "enum": [
               "RECORDED",
+              "NOT_REQUIRED",
               "NOT_PROVIDED",
               "UNRESOLVED",
               "INVALID"
@@ -367,8 +374,12 @@
       "then": { "required": ["business_universe_binding", "scenario_completion_map", "runtime_trust_binding", "authority_binding"] }
     },
     {
-      "if": { "properties": { "schema_version": { "const": "1.110.0" } } },
+      "if": { "properties": { "schema_version": { "const": "1.110.0" } }, "required": ["schema_version"] },
       "then": { "required": ["business_universe_binding", "scenario_completion_map", "runtime_trust_binding", "control_effectiveness_binding", "authority_binding"] }
+    },
+    {
+      "if": { "properties": { "schema_version": { "const": "1.113.0" } }, "required": ["schema_version"] },
+      "then": { "required": ["business_universe_binding", "scenario_completion_map", "runtime_trust_binding", "control_effectiveness_binding", "authority_binding", "source_chain"] }
     }
   ],
   "$defs": {

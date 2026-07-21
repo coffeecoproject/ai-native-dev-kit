@@ -7,19 +7,33 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const invocationCwd = process.cwd();
 const kitRoot = path.resolve(__dirname, "..");
 const manifest = readJsonIfExists(path.join(kitRoot, "intentos-manifest.json"))
   || readJsonIfExists(path.join(kitRoot, ".intentos", "intentos-manifest.json"));
 const packageJson = readJsonIfExists(path.join(kitRoot, "package.json"));
 const installedVersion = readJsonIfExists(path.join(kitRoot, ".intentos", "version.json"));
 const version = manifest?.intentOSVersion || installedVersion?.intentOSVersion || packageJson?.version || readVersionFile();
+const publicTargetValueOptions = new Set([
+  "--format",
+  "--intent",
+  "--task",
+  "--verification",
+  "--impact-report",
+  "--execution-closure",
+  "--guided-closure",
+  "--human-decision",
+  "--runtime-manifest",
+  "--completion-evidence",
+  "--operation",
+]);
 
 const commandRegistry = {
   work: {
     description: "Let one zero-experience solo developer describe a business goal while IntentOS chooses the technical workflow.",
     script: "scripts/resolve-operating-loop.mjs",
     writes: false,
-    buildArgs: (args) => args,
+    buildArgs: (args) => withCallerResolvedTarget(args),
   },
   ask: {
     description: "Accept one natural-language goal and return a beginner-friendly entry card.",
@@ -311,10 +325,10 @@ const commandRegistry = {
     buildArgs: (args) => withDefaultTarget(args),
   },
   finish: {
-    description: "Answer whether a task can be treated as done with one Unified Closure Decision.",
-    script: "scripts/resolve-closure-decision.mjs",
+    description: "Compatibility entry for the public operating loop's strict final completion decision.",
+    script: "scripts/resolve-operating-loop.mjs",
     writes: false,
-    buildArgs: (args) => withDefaultTarget(args),
+    buildArgs: (args) => buildFinishArgs(args),
   },
   "finish-check": {
     description: "Check recorded Unified Closure Decisions.",
@@ -1242,6 +1256,22 @@ function withDefaultTarget(args) {
   return firstPositional(args, new Set(["--mode", "--format", "--intent", "--task", "--report", "--from-lifecycle"])) ? args : [".", ...args];
 }
 
+function withCallerResolvedTarget(args) {
+  const result = [...args];
+  const targetIndex = firstPositionalIndex(result, publicTargetValueOptions);
+  if (targetIndex === -1) return [invocationCwd, ...result];
+  result[targetIndex] = path.resolve(invocationCwd, result[targetIndex]);
+  return result;
+}
+
+function buildFinishArgs(args) {
+  const result = withCallerResolvedTarget(args);
+  if (!result.includes("--intent") && positionalCount(result, publicTargetValueOptions) < 2) {
+    result.push("--intent", "finish the current task");
+  }
+  return [...result, "--operation", "FINISH_TASK"];
+}
+
 function withDefaultApplyPlanTarget(args) {
   return firstPositional(args, new Set([
     "--format",
@@ -1269,13 +1299,30 @@ function withDefaultMode(args, defaultMode) {
 }
 
 function firstPositional(args, valueOptions) {
+  const index = firstPositionalIndex(args, valueOptions);
+  return index === -1 ? null : args[index];
+}
+
+function firstPositionalIndex(args, valueOptions) {
   for (let index = 0; index < args.length; index += 1) {
     const item = args[index];
     if (valueOptions.has(item)) {
       index += 1;
       continue;
     }
-    if (!item.startsWith("-")) return item;
+    if (!item.startsWith("-")) return index;
   }
-  return null;
+  return -1;
+}
+
+function positionalCount(args, valueOptions) {
+  let count = 0;
+  for (let index = 0; index < args.length; index += 1) {
+    if (valueOptions.has(args[index])) {
+      index += 1;
+      continue;
+    }
+    if (!args[index].startsWith("-")) count += 1;
+  }
+  return count;
 }

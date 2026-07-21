@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.113.0",
+  "artifact_type": "bl2_execution_receipt",
+  "requirement_id": "bl2:wechat-miniprogram-industrial:client-storage:sensitive-data-handling-evidence",
+  "pack_id": "wechat-miniprogram-industrial",
+  "evidence_type": "client-storage",
+  "requirement": "sensitive data handling evidence",
+  "command": "node scripts/bl2-proof.mjs all",
+  "command_argv": [
+    "node",
+    "scripts/bl2-proof.mjs",
+    "all"
+  ],
+  "command_digest": "sha256:a161dea4cb1e4e1c3308392f613949d3b79572d91b9f71c33d623df655378eea",
+  "result": "PASS",
+  "exit_code": 0,
+  "source_revision": "sha256:7524a0f609232e2acebca0dcc1e7a9f9094284935ccce5205c28c318b48966fa",
+  "output_ref": ".intentos/runtime-runs/vrun-miniprogram-bl2-001/outputs/miniprogram-bl2-all.log",
+  "output_digest": "sha256:c130f99786410a8f52070e2cd7114558a919bd5ef5abff92a9423e54166b4109",
+  "run_manifest_ref": "artifact:verification-run-manifests/bl2-miniprogram.md",
+  "run_manifest_digest": "sha256:4c1a7fed2c93394092d444a7d1806a370772bbf179360cced9b55d184a8dab87",
+  "run_id": "vrun-miniprogram-bl2-001",
+  "execution_id": "miniprogram-bl2-all"
+}

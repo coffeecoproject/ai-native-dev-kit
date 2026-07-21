@@ -6,13 +6,24 @@ import { fileURLToPath } from "node:url";
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(moduleDir, "../..");
 
-export const REVIEW_CONTEXT_VERSION = "1.112.0";
+export const REVIEW_CONTEXT_VERSION = "1.113.0";
 export const CURRENT_OPERATING_MODEL = "ZERO_EXPERIENCE_SOLO_DEVELOPER";
 export const USER_DECISION_CLASSES = Object.freeze([
   "NO_USER_ACTION",
   "BUSINESS_FACT_NEEDED",
   "REAL_WORLD_CONSENT_NEEDED",
   "EXTERNAL_FACT_NEEDED",
+]);
+
+const STRICT_EXECUTION_CONSUMERS = new Set([
+  "scripts/check-consumer-chain.mjs",
+  "scripts/check-work-queue-takeover.mjs",
+  "scripts/check-task-governance.mjs",
+  "scripts/check-change-boundary.mjs",
+  "scripts/check-execution-assurance.mjs",
+  "scripts/check-completion-evidence.mjs",
+  "scripts/check-release-evidence-gate.mjs",
+  "scripts/check-release-execution.mjs",
 ]);
 
 export function normalizeReviewContextPath(relativePath) {
@@ -73,7 +84,7 @@ function isIntentOSSourceCheckout(root) {
 }
 
 function activeGuidanceRows(authority, root = defaultRoot, installedLayout = false) {
-  const rows = Array.isArray(authority.activeGuidance) ? [...authority.activeGuidance] : [];
+  let rows = Array.isArray(authority.activeGuidance) ? [...authority.activeGuidance] : [];
   for (const family of authority.activeGuidanceFamilies || []) {
     const prefix = normalizeReviewContextPath(installedLayout ? family.installedPrefix : family.sourcePrefix);
     const sourcePrefix = normalizeReviewContextPath(family.sourcePrefix);
@@ -89,6 +100,30 @@ function activeGuidanceRows(authority, root = defaultRoot, installedLayout = fal
       });
     }
   }
+  if (installedLayout) {
+    const versionPath = path.join(root, ".intentos", "version.json");
+    let installedStarter = "";
+    let projectEntryOrigin = "";
+    try {
+      const version = JSON.parse(fs.readFileSync(versionPath, "utf8"));
+      installedStarter = String(version.starter || "").trim();
+      projectEntryOrigin = String(version.projectEntryOrigin || "").trim();
+    } catch {
+      installedStarter = "";
+      projectEntryOrigin = "";
+    }
+    rows = rows.filter((row) => {
+      const match = normalizeReviewContextPath(row.source).match(/^starters\/([^/]+)\//);
+      if (!match) return true;
+      // Existing-project adoption installs the managed IntentOS layer, not a
+      // starter application. Requiring a starter's README and guidance would
+      // turn absent, never-selected assets into false project authority.
+      if (projectEntryOrigin === "EXISTING_PROJECT") return false;
+      if (installedStarter) return match[1] === installedStarter;
+      const installed = normalizeReviewContextPath(row.installed);
+      return Boolean(installed && fs.existsSync(path.join(root, installed)));
+    });
+  }
   return rows;
 }
 
@@ -97,6 +132,17 @@ function baseGuidanceClassification(value, authority) {
   const current = rows.find((row) => row.status === "CURRENT") || {};
   const compatibility = rows.find((row) => row.status === "COMPATIBILITY") || {};
   const historical = rows.find((row) => row.status === "HISTORICAL") || {};
+  if (value.startsWith("releases/")) {
+    const currentReleasePrefix = `releases/${authority.schemaVersion}/`;
+    return value.startsWith(currentReleasePrefix) && (current.exact || []).includes(value)
+      ? "CURRENT"
+      : "HISTORICAL";
+  }
+  if ([
+    ".github/workflows/intentos-pr-checks.yml",
+    ".github/workflows/intentos-release-checks.yml",
+    "platforms/github/ci-ai-workflow.yml",
+  ].includes(value)) return "CURRENT";
   if ((current.exact || []).includes(value)) return "CURRENT";
   if (startsWithAny(value, historical.versionedPrefixes)) return "HISTORICAL";
   if (startsWithAny(value, compatibility.prefixes)) return "COMPATIBILITY";
@@ -107,7 +153,7 @@ function baseGuidanceClassification(value, authority) {
 
 function guidanceReferences(content) {
   const matches = String(content || "").match(
-    /(?:\.intentos\/)?(?:core|docs|prompts|templates|checklists|platforms)\/[A-Za-z0-9._/-]+\.(?:md|json|ya?ml)/g,
+    /(?:\.intentos\/)?(?:(?:core|docs|prompts|templates|checklists|platforms|scripts)\/[A-Za-z0-9._/-]+\.(?:json|ya?ml|mjs|c?js|md)(?![A-Za-z0-9.])|\.github\/workflows\/[A-Za-z0-9._/-]+\.ya?ml(?![A-Za-z0-9.]))/g,
   ) || [];
   return [...new Set(matches.map((value) => normalizeReviewContextPath(value)))];
 }
@@ -125,6 +171,111 @@ function installedPathForGuidanceReference(reference, source, root) {
   return fs.existsSync(path.join(root, managed)) ? managed : normalized;
 }
 
+function referenceResponsibilitySurface(source, from) {
+  if (/^(?:docs\/plans|releases)\//.test(source)) return "AUDIT_REFERENCE";
+  if (/^scripts\/check-[^/]+\.mjs$/.test(source)) {
+    return ["EXECUTION_ORCHESTRATION", "EXECUTION_CONSUMER"].includes(from?.responsibilitySurface)
+      ? "EXECUTION_CONSUMER"
+      : "DIAGNOSTIC_OUTPUT";
+  }
+  if (/^scripts\//.test(source)) return "RUNTIME_OPERATION";
+  return "USER_OR_AGENT_GUIDANCE";
+}
+
+function cliGuidanceRows(root) {
+  const cliPath = "scripts/cli.mjs";
+  const absolute = path.join(root, cliPath);
+  if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) return [];
+  const content = fs.readFileSync(absolute, "utf8");
+  const routes = [...content.matchAll(/\bscript:\s*["'](scripts\/[A-Za-z0-9._/-]+\.mjs)["']/g)]
+    .map((match) => normalizeReviewContextPath(match[1]))
+    .filter(Boolean);
+  return [...new Set(routes)].map((source) => ({
+    source,
+    file: source,
+    registration: "CLI_ROUTE",
+    responsibilitySurface: /(?:^|\/)check-[^/]+\.mjs$/.test(source)
+      ? "DIAGNOSTIC_OUTPUT"
+      : /(?:^|\/)(?:resolve-|start-project|workflow-next|baseline-project|new-workflow-item|summarize-|workflow-daily-summary)/.test(source)
+        ? "USER_OR_AGENT_GUIDANCE"
+        : "RUNTIME_OPERATION",
+  }));
+}
+
+function distributedRuntimeGuidanceRows(root, installedLayout) {
+  const manifestPath = installedLayout
+    ? path.join(root, ".intentos", "intentos-manifest.json")
+    : path.join(root, "intentos-manifest.json");
+  if (!fs.existsSync(manifestPath) || !fs.statSync(manifestPath).isFile()) return [];
+  let manifest;
+  try {
+    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  } catch {
+    return [];
+  }
+  return (manifest.copyRules?.files || [])
+    .filter((item) => /^scripts\/[A-Za-z0-9._/-]+\.mjs$/.test(String(item.source || "")))
+    .map((item) => ({
+      source: normalizeReviewContextPath(item.source),
+      file: normalizeReviewContextPath(installedLayout ? item.target : item.source),
+    }))
+    .filter((item) => item.source && item.file && fs.existsSync(path.join(root, item.file)))
+    .map((item) => ({
+      ...item,
+      registration: STRICT_EXECUTION_CONSUMERS.has(item.source) ? "WORKFLOW_CONSUMER" : "DISTRIBUTED_RUNTIME",
+      responsibilitySurface: STRICT_EXECUTION_CONSUMERS.has(item.source)
+        ? "EXECUTION_CONSUMER"
+        : /(?:^|\/)check-[^/]+\.mjs$/.test(item.source)
+        ? "DIAGNOSTIC_OUTPUT"
+        : /(?:^|\/)(?:resolve-|start-project|workflow-next|baseline-project|new-workflow-item|summarize-|workflow-daily-summary)/.test(item.source)
+          ? "USER_OR_AGENT_GUIDANCE"
+          : "RUNTIME_OPERATION",
+    }));
+}
+
+function workflowGuidanceRows(root, installedLayout) {
+  const manifestPath = installedLayout
+    ? path.join(root, ".intentos", "intentos-manifest.json")
+    : path.join(root, "intentos-manifest.json");
+  if (!fs.existsSync(manifestPath) || !fs.statSync(manifestPath).isFile()) return [];
+  let manifest;
+  try {
+    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  } catch {
+    return [];
+  }
+
+  const rows = [];
+  if (!installedLayout) {
+    for (const source of manifest.groups?.sourceRequired || []) {
+      const normalized = normalizeReviewContextPath(source);
+      if (!/^\.github\/workflows\/[A-Za-z0-9._/-]+\.ya?ml$/.test(normalized)) continue;
+      if (!fs.existsSync(path.join(root, normalized))) continue;
+      rows.push({
+        source: normalized,
+        file: normalized,
+        registration: "SOURCE_WORKFLOW",
+        responsibilitySurface: "EXECUTION_ORCHESTRATION",
+      });
+    }
+  }
+  for (const item of manifest.copyRules?.files || []) {
+    const source = normalizeReviewContextPath(item.source);
+    const target = normalizeReviewContextPath(item.target);
+    if (!/^platforms\/github\/[A-Za-z0-9._/-]+\.ya?ml$/.test(source)
+      || !/^\.github\/workflows\/[A-Za-z0-9._/-]+\.ya?ml$/.test(target)) continue;
+    const file = installedLayout ? target : source;
+    if (!fs.existsSync(path.join(root, file))) continue;
+    rows.push({
+      source,
+      file,
+      registration: installedLayout ? "DISTRIBUTED_WORKFLOW" : "DISTRIBUTION_WORKFLOW_SOURCE",
+      responsibilitySurface: "EXECUTION_ORCHESTRATION",
+    });
+  }
+  return rows;
+}
+
 export function effectiveGuidanceGraph(
   authority = loadReviewContextAuthority(),
   installedLayout = false,
@@ -137,16 +288,52 @@ export function effectiveGuidanceGraph(
   const nodes = new Map();
   const edges = [];
   const queue = [];
+  const processedSurfaces = new Map();
 
-  const addNode = (source, file, registration, discoveredFrom = null) => {
+  const surfacePriority = {
+    AUDIT_REFERENCE: 0,
+    DIAGNOSTIC_OUTPUT: 1,
+    RUNTIME_OPERATION: 2,
+    USER_OR_AGENT_GUIDANCE: 3,
+    EXECUTION_CONSUMER: 4,
+    EXECUTION_ORCHESTRATION: 5,
+  };
+  const registrationPriority = {
+    REFERENCE: 0,
+    DISTRIBUTED_RUNTIME: 1,
+    CLI_ROUTE: 2,
+    DISTRIBUTION_WORKFLOW_SOURCE: 3,
+    SOURCE_WORKFLOW: 3,
+    DISTRIBUTED_WORKFLOW: 3,
+    WORKFLOW_CONSUMER: 4,
+    GENERATOR: 5,
+    ACTIVE_ROOT: 6,
+  };
+  const addNode = (source, file, registration, discoveredFrom = null, responsibilitySurface = "USER_OR_AGENT_GUIDANCE") => {
     const normalizedSource = normalizeReviewContextPath(source);
     const normalizedFile = normalizeReviewContextPath(file);
-    if (!normalizedSource || !normalizedFile || nodes.has(normalizedFile)) return;
+    if (!normalizedSource || !normalizedFile) return;
+    const existing = nodes.get(normalizedFile);
+    if (existing) {
+      let upgraded = false;
+      if ((surfacePriority[responsibilitySurface] ?? -1) > (surfacePriority[existing.responsibilitySurface] ?? -1)) {
+        existing.responsibilitySurface = responsibilitySurface;
+        upgraded = true;
+      }
+      if ((registrationPriority[registration] ?? -1) > (registrationPriority[existing.registration] ?? -1)) {
+        existing.registration = registration;
+        existing.discoveredFrom = discoveredFrom;
+        upgraded = true;
+      }
+      if (upgraded && processedSurfaces.get(normalizedFile) !== existing.responsibilitySurface) queue.push(normalizedFile);
+      return;
+    }
     nodes.set(normalizedFile, {
       source: normalizedSource,
       path: normalizedFile,
       registration,
       discoveredFrom,
+      responsibilitySurface,
       classification: baseGuidanceClassification(normalizedSource, authority),
     });
     queue.push(normalizedFile);
@@ -161,10 +348,27 @@ export function effectiveGuidanceGraph(
       addNode(producer.source, producer.source, "GENERATOR");
     }
   }
+  // Installed distributions are defined by manifest copy rules. The shared CLI
+  // intentionally retains source-only routes that reject execution outside the
+  // source checkout, so treating every lexical CLI route as an installed asset
+  // would manufacture missing Guidance nodes.
+  if (!installedLayout) {
+    for (const route of cliGuidanceRows(resolvedRoot)) {
+      addNode(route.source, route.file, route.registration, "scripts/cli.mjs", route.responsibilitySurface);
+    }
+  }
+  for (const workflow of workflowGuidanceRows(resolvedRoot, installedLayout)) {
+    addNode(workflow.source, workflow.file, workflow.registration, "intentos-manifest.json", workflow.responsibilitySurface);
+  }
+  for (const runtime of distributedRuntimeGuidanceRows(resolvedRoot, installedLayout)) {
+    addNode(runtime.source, runtime.file, runtime.registration, "intentos-manifest.json", runtime.responsibilitySurface);
+  }
 
   for (let index = 0; index < queue.length; index += 1) {
     const fromPath = queue[index];
     const from = nodes.get(fromPath);
+    if (processedSurfaces.get(fromPath) === from.responsibilitySurface) continue;
+    processedSurfaces.set(fromPath, from.responsibilitySurface);
     const absolute = path.join(resolvedRoot, from.path);
     if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) continue;
     // Registry JSON contains asset paths as metadata, not user-facing guidance
@@ -173,7 +377,10 @@ export function effectiveGuidanceGraph(
     if (path.extname(from.path).toLowerCase() === ".json") continue;
     for (const reference of guidanceReferences(fs.readFileSync(absolute, "utf8"))) {
       const source = sourcePathForGuidanceReference(reference);
-      const allowed = prefixes.some((prefix) => source.startsWith(prefix));
+      const executionReference = ["EXECUTION_ORCHESTRATION", "EXECUTION_CONSUMER"].includes(from.responsibilitySurface)
+        && (/^scripts\/check-[A-Za-z0-9._/-]+\.mjs$/.test(source)
+          || /^\.github\/workflows\/[A-Za-z0-9._/-]+\.ya?ml$/.test(source));
+      const allowed = prefixes.some((prefix) => source.startsWith(prefix)) || executionReference;
       if (!allowed) continue;
       const classification = baseGuidanceClassification(source, authority);
       const targetPath = installedLayout
@@ -183,8 +390,18 @@ export function effectiveGuidanceGraph(
       const targetExists = fs.existsSync(path.join(resolvedRoot, targetPath));
       if (!referenceIsManaged && !targetExists) continue;
       const active = !["HISTORICAL", "COMPATIBILITY"].includes(classification);
-      edges.push({ from: from.path, to: targetPath, source, classification, active });
-      if (active) addNode(source, targetPath, "REFERENCE", from.path);
+      const responsibilitySurface = referenceResponsibilitySurface(source, from);
+      const registration = responsibilitySurface === "EXECUTION_CONSUMER" ? "WORKFLOW_CONSUMER" : "REFERENCE";
+      edges.push({ from: from.path, to: targetPath, source, classification, active, responsibilitySurface });
+      if (active) {
+        addNode(
+          source,
+          targetPath,
+          registration,
+          from.path,
+          responsibilitySurface,
+        );
+      }
     }
   }
 
@@ -210,7 +427,9 @@ export function effectiveGuidanceGraph(
 }
 
 function guidanceCycles(nodes, edges) {
-  const known = new Set(nodes.map((node) => node.path));
+  const known = new Set(nodes
+    .filter((node) => node.responsibilitySurface === "USER_OR_AGENT_GUIDANCE")
+    .map((node) => node.path));
   const graph = new Map([...known].map((value) => [value, []]));
   for (const edge of edges) {
     if (edge.active && known.has(edge.from) && known.has(edge.to)) graph.get(edge.from).push(edge.to);
@@ -278,7 +497,9 @@ export function classifyReviewContextAsset(relativePath, authority = loadReviewC
 }
 
 export function activeGuidancePaths(authority = loadReviewContextAuthority(), installedLayout = false, root = defaultRoot) {
-  return effectiveGuidanceGraph(authority, installedLayout, root).activePaths;
+  return effectiveGuidanceGraph(authority, installedLayout, root).nodes
+    .filter((node) => node.classification === "CURRENT" && node.responsibilitySurface === "USER_OR_AGENT_GUIDANCE")
+    .map((node) => node.path);
 }
 
 const ACTIVE_GUIDANCE_CONFLICT_RULES = [
@@ -314,7 +535,7 @@ const ACTIVE_GUIDANCE_CONFLICT_RULES = [
   },
   {
     code: "TECHNICAL_CHOICE_TABLE",
-    pattern: /^\|[^\n]*(?:architecture|stack|profile|baseline|BL[012]|industrial pack|test strategy|reviewer|subagent|hook|checker|workflow|架构|技术栈|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流)[^\n]*\|[^\n]*(?:user|human|用户|人工)[^\n]*(?:choose|select|confirm|approve|选择|确认|批准)[^\n]*\|/i,
+    pattern: /^\|[^\n]*(?:architecture|stack|profile|baseline|BL[012]|industrial pack|test strategy|reviewer|subagent|hook|checker|workflow|架构|技术栈|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流)[^\n]*\|[^\n]*(?:\buser\b|\bhuman\b|用户|人工)[^\n]*(?:choose|select|confirm|approve|选择|确认|批准)[^\n]*\|/i,
     message: "Active guidance exposes a technical-choice table to the user.",
   },
   {
@@ -338,6 +559,11 @@ const ACTIVE_GUIDANCE_CONFLICT_RULES = [
     message: "Active guidance gives the user generic authority over technical work.",
   },
   {
+    code: "TECHNICAL_REPLAN_DELEGATED_TO_USER",
+    pattern: /(?:(?:new|added?|upgraded?)\s+(?:technical\s+)?dependenc(?:y|ies)|dependenc(?:y|ies)\s+(?:addition|upgrade|selection|choice)|architecture\s+(?:change|choice|decision)|migration\s+(?:design|strategy|mechanics|path|approach)|technical\s+scope\s+(?:expansion|change)|(?:verification|tests?)\s+(?:fails?|failed|failing|failure)\s+(?:repeatedly|again|twice|multiple\s+times)|repeated\s+(?:verification|test)\s+failures?|新增依赖|依赖升级|架构(?:变更|选择|决定)|迁移(?:设计|策略|机制|路径|方案)|技术范围(?:扩大|变更)|(?:验证|测试)(?:反复|重复|多次)失败).{0,100}(?:ask|route|stop\s+for|requires?|needs?|must|交给|询问|等待|需要|必须).{0,30}(?:human decision|human approval|human confirmation|user decision|user approval|user confirmation|人工决定|人工批准|人工确认|用户决定|用户批准|用户确认)|(?:human decision|human approval|human confirmation|user decision|user approval|user confirmation|人工决定|人工批准|人工确认|用户决定|用户批准|用户确认).{0,100}(?:(?:new|added?|upgraded?)\s+(?:technical\s+)?dependenc(?:y|ies)|dependenc(?:y|ies)\s+(?:addition|upgrade|selection|choice)|architecture\s+(?:change|choice|decision)|migration\s+(?:design|strategy|mechanics|path|approach)|technical\s+scope\s+(?:expansion|change)|(?:verification|tests?)\s+(?:fails?|failed|failing|failure)\s+(?:repeatedly|again|twice|multiple\s+times)|repeated\s+(?:verification|test)\s+failures?|新增依赖|依赖升级|架构(?:变更|选择|决定)|迁移(?:设计|策略|机制|路径|方案)|技术范围(?:扩大|变更)|(?:验证|测试)(?:反复|重复|多次)失败)/i,
+    message: "Active guidance delegates technical replanning or failure recovery to the user.",
+  },
+  {
     code: "INTERNAL_TECHNICAL_ROUTE_DELEGATED_TO_USER",
     pattern: /(?:\b(?:human|humans|user|users|the user)\b|人工|人类|用户).{0,45}(?:choose|select|decide|approve|confirm|review|merge|选择|决定|批准|确认|审查|合并).{0,90}(?:project profile|platform profile|architecture|technology strategy|technical stack|baseline|BL[012]|industrial pack|workflow asset|governance appendix|agent instructions|PR template|native migration|adapter docs?|apply plan|hook policy|archive plan|work queue takeover|release readiness|项目档案|平台档案|架构|技术策略|技术栈|基线|工业包|工作流资产|治理附录|代理指令|迁移路径|适配文档|应用计划|钩子策略|归档计划|任务队列接管|发布准备度)|(?:project profile|platform profile|architecture|technology strategy|technical stack|baseline|BL[012]|industrial pack|workflow asset|governance appendix|agent instructions|PR template|native migration|adapter docs?|apply plan|hook policy|archive plan|work queue takeover|release readiness|项目档案|平台档案|架构|技术策略|技术栈|基线|工业包|工作流资产|治理附录|代理指令|迁移路径|适配文档|应用计划|钩子策略|归档计划|任务队列接管|发布准备度).{0,90}(?:\b(?:human|humans|user|users|the user)\b|人工|人类|用户).{0,35}(?:choose|select|decide|approve|confirm|review|merge|选择|决定|批准|确认|审查|合并)/i,
     message: "Active guidance delegates an internal technical route or readiness judgment to the user.",
@@ -351,6 +577,21 @@ const ACTIVE_GUIDANCE_CONFLICT_RULES = [
     code: "CURRENT_USER_IS_UNIVERSAL_EXTERNAL_AUTHORITY",
     pattern: /(?:CURRENT_CONVERSATION_USER|current user|当前用户|用户本人).{0,40}(?:authorizes?|approves?|overrides?|授权|批准|可以绕过).{0,35}(?:legal|provider|platform|production|release|regulator|法律|供应商|平台|生产|发布|监管)/i,
     message: "Active guidance gives the current user universal external authority.",
+  },
+  {
+    code: "UNCLASSIFIED_TECHNICAL_HUMAN_DECISION",
+    pattern: /(?:high[- ]risk\s+(?:technical\s+)?(?:scope|boundary|area|debt)|technical\s+debt|hook\s+(?:policy|installation|behavior)|(?:closure|close-out)\s+(?:needs?|requires?))\s+(?:needs?\s+|requires?\s+|must\s+|an?\s+|explicit\s+|distinct\s+|specific\s+|separate\s+|recorded\s+){0,6}(?:human|user)\s+(?:risk\s+)?(?:decision|confirmation|approval)|(?:task|work)\s+needs?\s+(?:an?\s+)?(?:human|user)\s+(?:decision|confirmation|approval)\s+before\s+(?:closure|close-out)|(?:高风险(?:范围|边界|区域|债务)|技术债务|钩子(?:策略|安装|行为)|收口)\s*(?:需要|要求|必须)\s*(?:人工|用户)(?:决定|确认|批准)/i,
+    message: "Active guidance requests an unclassified human decision for technical governance.",
+  },
+  {
+    code: "TECHNICAL_RISK_OR_REVIEW_DELEGATED_TO_USER",
+    pattern: /(?:the\s+user|user|用户).{0,35}(?:decides?|chooses?|selects?|approves?|confirms?|决定|选择|批准|确认).{0,55}(?:risk acceptance|reviewer|review depth|expert review|high[- ]risk decision|technical remediation scope|风险接受|审核人|审查深度|专家复核|高风险决定|技术治理范围)|(?:risk acceptance|reviewer|review depth|expert review|high[- ]risk decision|technical remediation scope|风险接受|审核人|审查深度|专家复核|高风险决定|技术治理范围).{0,55}(?:the\s+user|user|用户).{0,25}(?:decides?|chooses?|selects?|approves?|confirms?|决定|选择|批准|确认)/i,
+    message: "Active guidance delegates technical risk treatment or review orchestration to the user.",
+  },
+  {
+    code: "INTERNAL_WRITE_OR_MIGRATION_APPROVAL_DELEGATED_TO_USER",
+    pattern: /(?:the\s+user|user|human|用户|人工).{0,45}(?:decides?|approves?|confirms?|allows?|决定|批准|确认|允许).{0,60}(?:bridge write|target write|adapter write|migration mechanics|remediation scope|docs-only bridge|operational bridge|桥接写入|目标写入|适配写入|迁移机制|治理范围)|(?:bridge write|target write|adapter write|migration mechanics|remediation scope|docs-only bridge|operational bridge|桥接写入|目标写入|适配写入|迁移机制|治理范围).{0,60}(?:human approval|user approval|user decision|人工批准|用户批准|用户决定)/i,
+    message: "Active guidance delegates an internal controlled-write or migration decision to the user.",
   },
 ];
 
@@ -371,6 +612,8 @@ export function analyzeActiveGuidanceConflicts(text) {
       evidence: ambiguousAuthority[0],
     });
   }
+  const technicalMenu = technicalOptionMenuConflict(value);
+  if (technicalMenu) findings.push(technicalMenu);
   for (const section of humanOnlyDecisionSections(value)) {
     const technical = section.body.split(/\r?\n/).find((line) => technicalDecisionTerm(line) && !isExplicitSafetyNegation(line));
     if (technical) {
@@ -383,6 +626,31 @@ export function analyzeActiveGuidanceConflicts(text) {
     }
   }
   return findings;
+}
+
+function technicalOptionMenuConflict(text) {
+  const value = String(text || "");
+  const menuLines = [];
+  const labels = new Set();
+  for (const line of value.split(/\r?\n/)) {
+    const match = line.trim().match(/^(?:[-*+]\s*)?(?:\|\s*)?(?:(?:Option|Choice|方案|选项)\s*)?([A-D])(?:\s*[.):|]|\s+-)/i);
+    if (match) {
+      labels.add(match[1].toUpperCase());
+      menuLines.push(line.trim());
+    }
+  }
+  const inlineChoices = /(?:recommended\s+choice|choose|select|请选择|选择|推荐选择)\s*:?\s*[A-D](?:\s*[/|,、]\s*[A-D])+/i.test(value);
+  const delegated = /(?:human\s+(?:decision|approval)|user\s+(?:decision|approval)|what\s+i\s+need\s+from\s+you|ask\s+(?:the\s+)?user\s+to\s+choose|用户(?:决定|批准|选择)|人工(?:决定|批准)|需要你选择)/i.test(value);
+  const menuContent = menuLines.join("\n");
+  if (!(labels.size >= 2 || inlineChoices) || !delegated || !technicalDecisionTerm(menuContent)) return null;
+  const evidence = menuLines.find((line) => technicalDecisionTerm(line))
+    || value.match(/.{0,80}(?:human decision|human approval|user decision|用户决定|人工批准).{0,120}/i)?.[0]
+    || "technical option menu";
+  return {
+    code: "TECHNICAL_OPTION_MENU_DELEGATED_TO_USER",
+    message: "Active guidance exposes a technical A/B-style option menu to the user.",
+    evidence,
+  };
 }
 
 function semanticSegments(text) {
@@ -414,12 +682,22 @@ function humanOnlyDecisionSections(text) {
   const sections = [];
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].trim();
-    const heading = /^#{1,6}\s+(?:Human-Only Decisions|Human Decisions|Decisions For The Human|用户决定|仅限人工决定)\s*$/i.test(line);
-    const label = /^(?:\*\*)?(?:Humans? decides?|The human decides?|The human is responsible for|Decisions for the human|Human decisions|用户决定|用户负责|人工决定)(?:\*\*)?\s*:\s*$/i.test(line);
+    const heading = /^#{1,6}\s+(?:Human-Only Decisions|Human Decisions?|Human Decision Summary|Human Decision Queue|Human Approvals?|Human Approval Summary|Human Approval Queue|Decisions For The Human|用户决定|用户决定摘要|用户决定队列|人工决定|人工批准|仅限人工决定)\s*$/i.test(line);
+    const label = /^(?:\*\*)?(?:Humans? decides?|The human decides?|The human is responsible for|Decisions for the human|Human decisions?|Human approvals?|User decisions?|Stop and ask (?:the )?(?:human|user)(?: when any condition appears)?|Stop for (?:a )?human decision|用户决定|用户负责|人工决定|人工批准|停止并询问用户|交给人工决定)(?:\*\*)?\s*:\s*$/i.test(line);
     if (!heading && !label) continue;
     const body = [];
+    let labelSawBlank = false;
     for (let cursor = index + 1; cursor < lines.length && !/^#{1,6}\s+/.test(lines[cursor].trim()); cursor += 1) {
-      if (label && lines[cursor].trim() && !/^[-*+]\s+|^\d+[.)]\s+/.test(lines[cursor].trim())) break;
+      const candidate = lines[cursor].trim();
+      if (label && !candidate) {
+        labelSawBlank = true;
+        body.push(lines[cursor]);
+        continue;
+      }
+      if (label && candidate && !/^[-*+]\s+|^\d+[.)]\s+/.test(candidate)) {
+        if (!labelSawBlank && !/^[A-Za-z][A-Za-z /-]{0,60}:\s*$/.test(candidate)) body.push(lines[cursor]);
+        break;
+      }
       body.push(lines[cursor]);
     }
     sections.push({ heading: line, body: body.join("\n") });
@@ -428,7 +706,7 @@ function humanOnlyDecisionSections(text) {
 }
 
 function technicalDecisionTerm(text) {
-  return /(?:architecture|technical stack|technology stack|stack approval|database|schema|profile|baseline|BL[012]|industrial pack|test strategy|reviewer|subagent|hook|checker|workflow|risk acceptance|high-risk boundar|first vertical slice approval|onboarding is ready|goal mode|工程架构|技术栈|数据库|数据结构|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流|风险接受|高风险边界)/i.test(String(text || ""));
+  return /(?:architecture|technical stack|technology stack|stack approval|database|schema|profile|baseline|BL[012]|industrial pack|test strategy|verification strategy|reviewer|review depth|subagent|hook|checker|workflow|risk acceptance|risk treatment|risk approval|human approval|approval scope|technical scope|scope expansion|new dependency|dependency (?:addition|upgrade|selection|choice)|migration (?:design|strategy|mechanics|path|approach)|same finding appears twice|repeated findings?|repeated (?:verification|test) failure|merge readiness|release readiness|high-risk boundar|first vertical slice approval|onboarding is ready|goal mode|工程架构|技术栈|数据库|数据结构|平台档案|基线|工业包|测试策略|验证策略|审查方式|审查深度|子代理|钩子|检查器|工作流|风险接受|风险处理|风险批准|人工批准|批准范围|技术范围|范围扩大|新增依赖|依赖升级|迁移(?:设计|策略|机制|路径|方案)|同一问题出现两次|重复发现|(?:反复|重复|多次)(?:验证|测试)失败|合并准备度|发布准备度|高风险边界)/i.test(String(text || ""));
 }
 
 function isExplicitSafetyNegation(text) {

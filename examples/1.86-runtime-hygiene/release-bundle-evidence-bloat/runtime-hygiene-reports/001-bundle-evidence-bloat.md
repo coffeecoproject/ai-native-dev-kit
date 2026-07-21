@@ -20,6 +20,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Field | Value |
 | --- | --- |
 | Task ref | `task:current` |
+| Intent digest | `N/A` |
 | Work Queue item ref | `N/A` |
 | Task Governance ref | `N/A` |
 
@@ -106,8 +107,9 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "schema_version": "1.86.0",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/001-bundle-evidence-bloat.md",
-  "runtime_hygiene_digest": "sha256:2e3ab8d8cf3ee79349b96d549df6ec1895124e02323ce7e7e7a50b47f001ae04",
+  "runtime_hygiene_digest": "sha256:65e39cd543fd8c2331088aa9f37a341071d0b0705752165ccd8c700e9d202e04",
   "task_ref": "task:current",
+  "intent_digest": "N/A",
   "work_queue_item_ref": "N/A",
   "task_governance_ref": "N/A",
   "operation": "bundle-slimming",

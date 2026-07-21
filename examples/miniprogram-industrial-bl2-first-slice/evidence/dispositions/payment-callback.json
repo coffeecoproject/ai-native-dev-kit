@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "kind": "INTENTOS_BL2_DISPOSITION",
+  "packId": "wechat-miniprogram-industrial",
+  "selectedProfiles": [
+    "wechat-miniprogram"
+  ],
+  "projectEvidence": [
+    {
+      "path": "specs/001-miniprogram-login-cloud-read.md",
+      "sha256": "sha256:8856346315b7f5fea3f099d0bb453ca4c3cf83560d1b7823b325fcffd6e7a811",
+      "claim": "The current specification excludes this capability from the first protected read slice."
+    }
+  ],
+  "reviewTriggers": [
+    "PROFILE_CHANGE",
+    "PROJECT_SCOPE_CHANGE",
+    "REQUIREMENT_CHANGE",
+    "PROJECT_EVIDENCE_CHANGE"
+  ],
+  "determinedBy": "CODEX_PROJECT_EVIDENCE",
+  "requirementId": "bl2:wechat-miniprogram-industrial:payment:payment-callback-idempotency-evidence",
+  "evidenceType": "payment",
+  "requirement": "payment callback idempotency evidence",
+  "disposition": "NOT_APPLICABLE",
+  "scope": "The selected slice contains no payment callback.",
+  "basis": "Payment, refund, balance, and value transfer are explicit non-goals."
+}

@@ -94,12 +94,11 @@
     ]
   },
   "humanApprovalRequiredFor": [
-    "admin-role",
-    "privileged-operation",
-    "production-data",
-    "manual-override",
-    "destructive-operation",
-    "value-transfer"
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release",
+    "real-user-communication",
+    "regulated-data-export-to-external-recipient"
   ],
   "maturity": {
     "stage": "draft",

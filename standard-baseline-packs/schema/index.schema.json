@@ -85,7 +85,7 @@
         "appliesToProfiles",
         "recommendedWhen",
         "canBeRecommendedByAI",
-        "selectionRequiresHumanDecision",
+        "selectionOwnedByCodex",
         "canAuthorizeWrites",
         "canApproveImplementation",
         "canApproveRelease",
@@ -159,7 +159,7 @@
           "type": "boolean",
           "const": true
         },
-        "selectionRequiresHumanDecision": {
+        "selectionOwnedByCodex": {
           "type": "boolean",
           "const": true
         },

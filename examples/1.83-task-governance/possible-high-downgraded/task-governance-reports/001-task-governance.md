@@ -42,18 +42,18 @@ This report classifies task impact and routes required governance. It does not a
 | --- | --- |
 | Scope check | `Yes` |
 | Short plan | `Yes` |
-| Business Rule Closure | `No` |
-| Change Impact Coverage | `No` |
+| Business Rule Closure | `Yes` |
+| Change Impact Coverage | `Yes` |
 | Execution Plan | `No` |
-| Verification Plan | `No` |
+| Verification Plan | `Yes` |
 
 ## Required Before Completion Claim
 
 | Requirement | Required |
 | --- | --- |
-| Test Evidence | `No` |
-| Execution Assurance | `No` |
-| Completion Evidence | `No` |
+| Test Evidence | `Yes` |
+| Execution Assurance | `Yes` |
+| Completion Evidence | `Yes` |
 
 ## Review Policy
 
@@ -64,7 +64,7 @@ This report classifies task impact and routes required governance. It does not a
 | Independent review required | `Yes` |
 | Review must happen before | `implementation_review` |
 | Review source | `human_or_read_only_inspection` |
-| Review must cover | clarification or read-only inspection; high-impact surface decision; upgrade or downgrade rationale |
+| Review must cover | clarification or read-only inspection; high-impact surface decision; upgrade or downgrade rationale; business rule closure; change impact coverage; verification plan |
 | Skip full review reason | POSSIBLE_HIGH tasks cannot skip full review until clarification proves the task is not high impact. |
 
 ## Existing Project Mapping
@@ -121,7 +121,7 @@ This report classifies task impact and routes required governance. It does not a
   "intent": "possibly change list filter rule, may touch data state",
   "intent_digest": "sha256:68c2e064ec03462e4bb7fb8c3e679134c2dc9b3cc74efbeaf917e615a34d63e5",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:8d17c4bf8b898ea4f4bab839fb275537a2ca64d3e12c744da4a1187cb54b38fa",
+  "task_governance_digest": "sha256:637f07d82ded484434f9234106ea9a4d219f52d32f302b42d2c0e8e792ada298",
   "task_ref": "task:possibly-change-list-filter-rule-may-touch-data-state",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -192,15 +192,15 @@ This report classifies task impact and routes required governance. It does not a
   "required_before_implementation_review": {
     "scope_check_required": "Yes",
     "short_plan_required": "Yes",
-    "business_rule_closure_required": "No",
-    "change_impact_coverage_required": "No",
+    "business_rule_closure_required": "Yes",
+    "change_impact_coverage_required": "Yes",
     "execution_plan_required": "No",
-    "verification_plan_required": "No"
+    "verification_plan_required": "Yes"
   },
   "required_before_completion_claim": {
-    "test_evidence_required": "No",
-    "execution_assurance_required": "No",
-    "completion_evidence_required": "No"
+    "test_evidence_required": "Yes",
+    "execution_assurance_required": "Yes",
+    "completion_evidence_required": "Yes"
   },
   "source_chain": [
     {
@@ -262,7 +262,10 @@ This report classifies task impact and routes required governance. It does not a
     "review_must_cover": [
       "clarification or read-only inspection",
       "high-impact surface decision",
-      "upgrade or downgrade rationale"
+      "upgrade or downgrade rationale",
+      "business rule closure",
+      "change impact coverage",
+      "verification plan"
     ],
     "review_source": "human_or_read_only_inspection",
     "skip_full_review_reason": "POSSIBLE_HIGH tasks cannot skip full review until clarification proves the task is not high impact."

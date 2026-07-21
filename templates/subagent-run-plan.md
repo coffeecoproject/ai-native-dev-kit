@@ -2,24 +2,33 @@
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Use read-only subagents | Let helpers research or review without writing | No, unless reports are saved | low | Choose when independent review is useful |
-| B | Use controlled writer plan | Assign one bounded writer and close helpers after handoff | Approved scope only | medium | Choose for larger tasks with clear ownership |
-| C | Stop for orchestration decision | Pause until roles, write scope, or closure are approved | Plan only | medium/high | Choose when multiple writers or sensitive files are involved |
-| D | Do not use subagents | Keep work in the main thread | No | low | Choose when the task is small or slots should be preserved |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Orchestration Decision And Evidence
+
+Selected mode: READ_ONLY_RESEARCH / PLAN_THEN_BUILD / REVIEW_LOOP / AUTO_FIX_REPAIR / REPORTING / NO_SUBAGENT
+
+Can Codex continue now: yes / limited / no
+
+Why this mode is the smallest safe route:
+
+Writer and path ownership:
+
+Risk response and closure evidence:
+
+Verification and technical recovery:
 
 ## Human Summary
 
@@ -41,7 +50,7 @@ Non-goals:
 
 Selected: READ_ONLY_RESEARCH
 
-Allowed values:
+Codex records one schema-compatible value:
 
 ```text
 READ_ONLY_RESEARCH
@@ -71,7 +80,7 @@ Single active writer: Yes / No
 
 Disjoint write ownership used: No
 
-If disjoint write ownership is used, human-approved exception:
+If disjoint write ownership is used, Codex-authorized evidence and expiry:
 
 | Agent ID | Path Scope | Reason | Owner | Expiry |
 |---|---|---|---|---|
@@ -125,21 +134,23 @@ Recovery notes:
 - Do not keep standby subagents open for future work.
 - Do not run multiple active writers on the same files.
 - Do not let reviewer agents edit files.
-- Do not let repair agents handle `NEEDS_HUMAN_DECISION`.
-- Do not bypass Goal Mode, task cards, Engineering Baseline, Review Loop, Risk Gate, Human Approval, or Approval scope.
+- Do not let repair agents treat `NEEDS_HUMAN_DECISION` as technical authority; the compatibility value is limited to bounded user input.
+- Do not bypass Goal Mode, task cards, Engineering Baseline, Review Loop, Risk Gate, exact real-world consent, or the recorded scope.
 - Do not create persistent monitors, schedules, active Skills, automations, or external GPT/API reviewer calls from this run plan.
 
 ## Handoff / Findings
 
 | Agent ID | Output | Routed To | Status |
 |---|---|---|---|
-|  |  | Review Loop / Decision Brief / Follow-up Proposal / Final Report / Human Decisions Needed / no action | Open / Closed |
+|  |  | Review Loop / Codex Decision Record / Follow-up Proposal / Final Report / User Input Queue / no action | Open / Closed |
 
 ## Human Decisions Needed
 
-| Decision | Reason | Owner | Needed Before | Status |
-|---|---|---|---|---|
-|  |  | human | next writer action / final response | Pending / Not needed |
+Compatibility heading: semantically this is the bounded `User Input Queue`; orchestration, writer routing, and recovery are excluded.
+
+| Input class | Missing business fact, exact prepared effect, or external fact | Why project evidence is insufficient | Source | Needed before | Status |
+|---|---|---|---|---|---|
+| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  |  | user / external authority / N/A | dependent action / final response | Pending / Provided / Consented / Not needed |
 
 ## Next Safe Step
 

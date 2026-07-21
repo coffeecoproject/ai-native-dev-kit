@@ -84,16 +84,13 @@ This task touches:
 - [x] performance
 - [ ] dependency change
 
-If any item is checked, implementation requires explicit human approval before code changes.
+Checked project-local technical risks require Codex to apply the corresponding verification controls. Human consent is required only if the task later introduces a concrete real-world effect.
 
 ## Human Approval
 
-Required: Yes
-Status: Approved
-Approval scope: Example-only Web BL2 slice covering permission, form interaction, API failure, accessibility, and performance evidence. No production release, production config, secrets, dependency addition, destructive behavior, framework decision, or hosting decision approved.
-Approved by: human-review
-Approved at: 2026-06-26T00:00:00.000Z
-Approval notes: Evidence-only dogfood example accepted.
+Required: No
+Status: Not Required
+Reason: This example performs only reversible project-local verification and has no production, paid, destructive, legal, or other real-world effect.
 
 ## Stop Conditions
 

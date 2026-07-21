@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "1.113.0",
+  "artifactType": "request_bound_apply_authority",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "authority_mode",
+    "authority_basis",
+    "issued_by",
+    "issued_at",
+    "expires_at",
+    "single_use",
+    "request",
+    "project",
+    "execution_plan",
+    "actions",
+    "effect_class",
+    "external_effect",
+    "boundary",
+    "authority_digest"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.113.0"] },
+    "artifact_type": { "type": "string", "enum": ["request_bound_apply_authority"] },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "authority_mode": { "type": "string", "enum": ["REQUEST_BOUND_LOCAL"] },
+    "authority_basis": { "type": "string", "enum": ["CURRENT_NATURAL_LANGUAGE_REQUEST"] },
+    "issued_by": { "type": "string", "enum": ["INTENTOS_POLICY"] },
+    "issued_at": { "type": "string", "minLength": 1 },
+    "expires_at": { "type": "string", "minLength": 1 },
+    "single_use": { "type": "boolean", "enum": [true] },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_digest", "intent_digest", "task_ref", "original_request_present"],
+      "properties": {
+        "request_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "task_ref": { "type": "string", "pattern": "^task:[a-f0-9]{64}$" },
+        "original_request_present": { "type": "string", "enum": ["Yes"] }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fingerprint", "revision", "source_state_digest"],
+      "properties": {
+        "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "revision": { "type": "string", "minLength": 1 },
+        "source_state_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "execution_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "plan_digest", "operation_kind"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "operation_kind": { "type": "string", "enum": ["NEW_BOOTSTRAP", "NATIVE_ADOPTION", "CONTROLLED_UPDATE"] }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "classification", "target_paths"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^A-[0-9]{3,}$" },
+          "classification": { "type": "string", "enum": ["REVERSIBLE_LOCAL_GOVERNANCE"] },
+          "target_paths": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    },
+    "effect_class": { "type": "string", "enum": ["REVERSIBLE_LOCAL_GOVERNANCE"] },
+    "external_effect": { "type": "string", "enum": ["NONE"] },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorizes_business_implementation",
+        "authorizes_release_or_production",
+        "authorizes_ci_or_hook_changes",
+        "authorizes_secrets_or_paid_resources",
+        "authorizes_irreversible_data_changes",
+        "authorizes_unlisted_paths",
+        "authorizes_absent_intentos_agent_entry"
+      ],
+      "properties": {
+        "authorizes_business_implementation": { "type": "boolean", "enum": [false] },
+        "authorizes_release_or_production": { "type": "boolean", "enum": [false] },
+        "authorizes_ci_or_hook_changes": { "type": "boolean", "enum": [false] },
+        "authorizes_secrets_or_paid_resources": { "type": "boolean", "enum": [false] },
+        "authorizes_irreversible_data_changes": { "type": "boolean", "enum": [false] },
+        "authorizes_unlisted_paths": { "type": "boolean", "enum": [false] },
+        "authorizes_absent_intentos_agent_entry": { "type": "boolean" }
+      }
+    },
+    "authority_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+  }
+}

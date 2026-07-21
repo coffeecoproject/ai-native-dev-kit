@@ -196,6 +196,40 @@ test("LOW runtime plan is automatic, lightweight, and strict", () => {
   assert.equal(checked.status, 0, `${checked.stdout}\n${checked.stderr}`);
 });
 
+test("LOW runtime plan ignores another task's Verification Plan", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-runtime-low-unrelated-plan-"));
+  fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ name: "low-unrelated-plan-fixture" }));
+  fs.mkdirSync(path.join(root, "verification-plans"), { recursive: true });
+  fs.writeFileSync(path.join(root, "verification-plans/999-unrelated.md"), [
+    "# Verification Plan",
+    "",
+    "## Machine-Readable Evidence",
+    "",
+    "```json",
+    JSON.stringify({
+      artifact_type: "verification_plan",
+      verification_state: "VERIFICATION_PLAN_READY",
+      verification_plan_digest: digestText("unrelated-plan"),
+      task_ref: "tasks/unrelated.md",
+      intent: "verify an unrelated task",
+      intent_digest: digestText("verify an unrelated task"),
+    }, null, 2),
+    "```",
+    "",
+  ].join("\n"));
+
+  const generated = run("scripts/resolve-verification-runtime-plan.mjs", [
+    root, "--intent", "change home page copy", "--task-ref", "tasks/low.md",
+    "--task-tier", "LOW", "--out", "verification-runtime-plans/low.md",
+  ]);
+  assert.equal(generated.status, 0, `${generated.stdout}\n${generated.stderr}`);
+  const plan = readEvidence(path.join(root, "verification-runtime-plans/low.md"));
+  assert.equal(plan.task_ref, "tasks/low.md");
+  assert.equal(plan.intent, "change home page copy");
+  assert.equal(plan.verification_plan_source.status, "NOT_REQUIRED");
+  assert.equal(plan.outcome, "RUNTIME_PLAN_READY");
+});
+
 test("explicit task tier cannot downgrade classifier risk", () => {
   assert.equal(effectiveTaskTier("HIGH", "LOW"), "HIGH");
   assert.equal(effectiveTaskTier("MEDIUM", "LOW"), "MEDIUM");

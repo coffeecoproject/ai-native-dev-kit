@@ -218,6 +218,362 @@ export function runManifestSemanticErrors(manifest, runtimePlan, currentProjectI
   return errors;
 }
 
+const LIFECYCLE_TERMINAL_EVENTS = new Set([
+  "COMPLETED",
+  "FAILED_CLEANED",
+  "INTERRUPTED_CLEANED",
+  "CLEANUP_BLOCKED",
+]);
+const LIFECYCLE_ACTION_EVENTS = new Set([
+  "ACTION_STARTING",
+  "ACTION_FINISHED",
+  "SERVICE_OBSERVED",
+]);
+const LIFECYCLE_JOURNAL_EVENTS = new Set([
+  "PREFLIGHT_RUNNING",
+  "PREFLIGHT_PROBE_OBSERVED",
+  "EXECUTABLE_RESOLVED",
+  "PREFLIGHT_PASSED",
+  "RESOURCE_CREATED",
+  "ACTION_STARTING",
+  "ACTION_FINISHED",
+  "SERVICE_OBSERVED",
+  "EXECUTION_FAILED",
+  "INTERRUPTED",
+  "CLEANUP_EVIDENCE_BEFORE_RECORDED",
+  "CLEANING_UP",
+  "PROCESS_CLEANED",
+  "PROCESS_CLEANUP_BLOCKED",
+  "RESOURCE_CLEANED",
+  "RESOURCE_CLEANUP_BLOCKED",
+  ...LIFECYCLE_TERMINAL_EVENTS,
+]);
+
+export function lifecycleManifestReplayErrors(manifest, lifecyclePlan, journalRows) {
+  // This detects stale or internally inconsistent local evidence. External attestation is a separate trust boundary.
+  const errors = [];
+  const actions = Array.isArray(lifecyclePlan?.actions) ? lifecyclePlan.actions : [];
+  const resources = Array.isArray(lifecyclePlan?.resources) ? lifecyclePlan.resources : [];
+  const rows = Array.isArray(journalRows) ? journalRows : [];
+  const actionById = new Map(actions.map((item) => [item.id, item]));
+  const resourceById = new Map(resources.map((item) => [item.resource_id, item]));
+
+  if (manifest?.run_id !== lifecyclePlan?.run_id) errors.push("lifecycle replay run_id must match the Lifecycle Plan");
+  if (manifest?.adapter_contract_digest !== lifecyclePlan?.adapter_contract_digest) errors.push("lifecycle replay adapter_contract_digest must match the Lifecycle Plan");
+  if (rows.length === 0) return [...errors, "lifecycle journal must contain observed events"];
+
+  validateJournalEnvelope(manifest, rows, errors);
+  const terminalEvent = terminalJournalEvent(rows);
+
+  const preflightStarted = eventRows(rows, "PREFLIGHT_RUNNING");
+  const preflightObserved = eventRows(rows, "PREFLIGHT_PROBE_OBSERVED");
+  const preflightPassed = eventRows(rows, "PREFLIGHT_PASSED");
+  if (preflightStarted.length !== 1) errors.push("lifecycle journal must contain exactly one PREFLIGHT_RUNNING event");
+  if (terminalEvent === "COMPLETED" && preflightPassed.length !== 1) errors.push("completed lifecycle journal must contain exactly one PREFLIGHT_PASSED event");
+  if (terminalEvent !== "COMPLETED" && preflightPassed.length > 1) errors.push("lifecycle journal must not contain duplicate PREFLIGHT_PASSED events");
+  if (preflightStarted[0]?.row?.run_id !== lifecyclePlan?.run_id) errors.push("PREFLIGHT_RUNNING run_id must match the Lifecycle Plan");
+  if (preflightStarted[0] && preflightPassed[0] && preflightStarted[0].index >= preflightPassed[0].index) {
+    errors.push("PREFLIGHT_RUNNING must precede PREFLIGHT_PASSED");
+  }
+  compareExactSequence(
+    preflightObserved.map(({ row }) => `${row.probe}:${row.result}:${row.reason}`),
+    (manifest?.preflight_results || []).map((item) => `${item.probe}:${item.result}:${item.reason}`),
+    "observed preflight probe results",
+    errors,
+  );
+  if (preflightStarted[0] && preflightObserved.some(({ index }) => index <= preflightStarted[0].index)) {
+    errors.push("all PREFLIGHT_PROBE_OBSERVED events must follow PREFLIGHT_RUNNING");
+  }
+  if (preflightPassed[0] && preflightObserved.some(({ index }) => index >= preflightPassed[0].index)) {
+    errors.push("all PREFLIGHT_PROBE_OBSERVED events must precede PREFLIGHT_PASSED");
+  }
+
+  const executableRows = eventRows(rows, "EXECUTABLE_RESOLVED");
+  if (preflightPassed.length === 1) {
+    compareExactSequence(
+      executableRows.map(({ row }) => row.action_id),
+      actions.map((item) => item.id),
+      "resolved lifecycle action ids",
+      errors,
+    );
+  } else {
+    comparePrefix(
+      executableRows.map(({ row }) => row.action_id),
+      actions.map((item) => item.id),
+      "resolved lifecycle action ids",
+      errors,
+    );
+  }
+  if (preflightPassed[0] && executableRows.some(({ index }) => index >= preflightPassed[0].index)) {
+    errors.push("all EXECUTABLE_RESOLVED events must precede PREFLIGHT_PASSED");
+  }
+
+  const actionEvents = rows
+    .map((row, index) => ({ row, index }))
+    .filter(({ row }) => LIFECYCLE_ACTION_EVENTS.has(row.event));
+  const expectedActionEvents = actions.flatMap((action) => [
+    `${action.id}:ACTION_STARTING`,
+    `${action.id}:${action.kind === "SERVICE" ? "SERVICE_OBSERVED" : "ACTION_FINISHED"}`,
+  ]);
+  const actualActionEvents = actionEvents.map(({ row }) => `${row.action_id}:${row.event}`);
+  if (terminalEvent === "COMPLETED") compareExactSequence(actualActionEvents, expectedActionEvents, "lifecycle action event sequence", errors);
+  else comparePrefix(actualActionEvents, expectedActionEvents, "lifecycle action event sequence", errors);
+  if (preflightPassed.length === 0 && actionEvents.length > 0) errors.push("lifecycle actions cannot run before PREFLIGHT_PASSED");
+  if (preflightPassed[0] && actionEvents.some(({ index }) => index <= preflightPassed[0].index)) errors.push("all lifecycle actions must follow PREFLIGHT_PASSED");
+
+  for (const { row } of actionEvents) {
+    if (!actionById.has(row.action_id)) errors.push(`lifecycle journal contains unknown action ${row.action_id || "<missing>"}`);
+  }
+  for (const action of actions) {
+    const starts = actionEvents.filter(({ row }) => row.event === "ACTION_STARTING" && row.action_id === action.id);
+    const finishes = actionEvents.filter(({ row }) => row.event === "ACTION_FINISHED" && row.action_id === action.id);
+    const observations = actionEvents.filter(({ row }) => row.event === "SERVICE_OBSERVED" && row.action_id === action.id);
+    if (starts.length > 1) errors.push(`action ${action.id} has duplicate ACTION_STARTING events`);
+    if (action.kind === "SERVICE" && observations.length > 1) errors.push(`service action ${action.id} has duplicate SERVICE_OBSERVED events`);
+    if (action.kind !== "SERVICE" && finishes.length > 1) errors.push(`action ${action.id} has duplicate ACTION_FINISHED events`);
+    if (finishes.length && action.kind === "SERVICE") errors.push(`service action ${action.id} must not emit ACTION_FINISHED`);
+    if (observations.length && action.kind !== "SERVICE") errors.push(`non-service action ${action.id} must not emit SERVICE_OBSERVED`);
+  }
+
+  const observedServices = actionEvents
+    .filter(({ row }) => row.event === "SERVICE_OBSERVED")
+    .map(({ row, index }) => ({ actionId: row.action_id, id: `service:${row.action_id}`, row, index }));
+  const finishedExecutions = actionEvents
+    .filter(({ row }) => row.event === "ACTION_FINISHED")
+    .map(({ row, index }) => ({ actionId: row.action_id, row, index }));
+
+  const manifestServices = Array.isArray(manifest?.service_instances) ? manifest.service_instances : [];
+  const manifestExecutions = Array.isArray(manifest?.verification_executions) ? manifest.verification_executions : [];
+  compareExactSequence(manifestServices.map((item) => item.id), observedServices.map((item) => item.id), "manifest service instance ids", errors);
+  compareExactSequence(manifestExecutions.map((item) => item.id), finishedExecutions.map((item) => item.actionId), "manifest verification execution ids", errors);
+
+  const serviceById = new Map(manifestServices.map((item) => [item.id, item]));
+  for (const observed of observedServices) {
+    const action = actionById.get(observed.actionId);
+    const service = serviceById.get(observed.id);
+    if (!action || !service) continue;
+    if (service.adapter_kind !== lifecyclePlan.adapter_kind) errors.push(`service ${service.id} adapter_kind must match the Lifecycle Plan`);
+    if (service.owned_by_run !== "Yes") errors.push(`service ${service.id} must be owned by this run`);
+    if (!replayEvidenceRefMatches(service.evidence_ref, action.output_ref, manifest.run_id)) {
+      errors.push(`service ${service.id} evidence_ref must match action ${action.id} output_ref`);
+    }
+    if (!validTime(service.started_at) || Date.parse(service.started_at) < Date.parse(actionStartRow(actionEvents, action.id)?.at || "")
+      || Date.parse(service.started_at) > Date.parse(observed.row.at || "")) {
+      errors.push(`service ${service.id} started_at must be bounded by ACTION_STARTING and SERVICE_OBSERVED`);
+    }
+  }
+
+  const executionById = new Map(manifestExecutions.map((item) => [item.id, item]));
+  for (const finished of finishedExecutions) {
+    const action = actionById.get(finished.actionId);
+    const execution = executionById.get(finished.actionId);
+    if (!action || !execution) continue;
+    const expectedServices = observedServices.filter((item) => item.index < actionStartIndex(actionEvents, action.id)).map((item) => item.id);
+    if (execution.command_digest !== digestText(JSON.stringify(action.argv))) errors.push(`execution ${action.id} command_digest must match lifecycle argv`);
+    if (!replayEvidenceRefMatches(execution.output_ref, action.output_ref, manifest.run_id)) {
+      errors.push(`execution ${action.id} output_ref must match lifecycle action`);
+    }
+    compareExactSequence(execution.covers_obligations, action.obligation_ids, `execution ${action.id} obligation ids`, errors);
+    compareExactSequence(execution.resource_ids, action.resource_ids, `execution ${action.id} resource ids`, errors);
+    compareExactSequence(execution.service_instance_ids, expectedServices, `execution ${action.id} service instance ids`, errors);
+    if (execution.positive_path !== action.positive_path) errors.push(`execution ${action.id} positive_path must match lifecycle action`);
+    if (execution.negative_path !== action.negative_path) errors.push(`execution ${action.id} negative_path must match lifecycle action`);
+    if (execution.exit_code !== finished.row.exit_code) errors.push(`execution ${action.id} exit_code must match ACTION_FINISHED`);
+    const expectedResult = finished.row.exit_code === 0 && finished.row.timed_out === false ? "PASSED" : "FAILED";
+    if (execution.result !== expectedResult) errors.push(`execution ${action.id} result must match ACTION_FINISHED`);
+    const started = actionStartRow(actionEvents, action.id);
+    if (!validTime(execution.started_at) || !validTime(execution.finished_at)
+      || Date.parse(execution.started_at) < Date.parse(started?.at || "")
+      || Date.parse(execution.finished_at) > Date.parse(finished.row.at || "")
+      || Date.parse(execution.started_at) > Date.parse(execution.finished_at)) {
+      errors.push(`execution ${action.id} timestamps must be bounded by its lifecycle journal events`);
+    }
+  }
+
+  validateResourceReplay(manifest, lifecyclePlan, rows, resourceById, observedServices, terminalEvent, errors);
+  validateCleanupReplay(manifest, lifecyclePlan, rows, observedServices, terminalEvent, errors);
+
+  return errors;
+}
+
+function replayEvidenceRefMatches(actual, planned, runId) {
+  if (actual === planned) return true;
+  const ephemeralPrefix = `file:.intentos/runtime-runs/${runId}/`;
+  const durablePrefix = `file:evidence/runtime-runs/${runId}/`;
+  return String(planned || "").startsWith(ephemeralPrefix)
+    && actual === `${durablePrefix}${String(planned).slice(ephemeralPrefix.length)}`;
+}
+
+function validateJournalEnvelope(manifest, rows, errors) {
+  let previous = Number.NEGATIVE_INFINITY;
+  for (const [index, row] of rows.entries()) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) {
+      errors.push(`lifecycle journal row ${index + 1} must be an object`);
+      continue;
+    }
+    if (!validTime(row.at)) {
+      errors.push(`lifecycle journal row ${index + 1} has an invalid timestamp`);
+      continue;
+    }
+    const current = Date.parse(row.at);
+    if (current < previous) errors.push(`lifecycle journal timestamps must be nondecreasing at row ${index + 1}`);
+    previous = current;
+    if (typeof row.event !== "string" || !row.event) errors.push(`lifecycle journal row ${index + 1} requires an event`);
+    else if (!LIFECYCLE_JOURNAL_EVENTS.has(row.event)) errors.push(`lifecycle journal row ${index + 1} contains unknown event ${row.event}`);
+  }
+  const terminalRows = rows.filter((row) => LIFECYCLE_TERMINAL_EVENTS.has(row.event));
+  if (terminalRows.length !== 1) errors.push("lifecycle journal must contain exactly one terminal event");
+  if (!LIFECYCLE_TERMINAL_EVENTS.has(rows.at(-1)?.event)) errors.push("lifecycle journal terminal event must be the final row");
+  const terminal = terminalRows[0]?.event;
+  const expected = terminal === "COMPLETED"
+    ? { state: "COMPLETED", outcome: "RUNTIME_TRUST_COMPLETE" }
+    : terminal === "CLEANUP_BLOCKED"
+      ? { state: "CLEANUP_FAILED", outcome: "RUNTIME_TRUST_BLOCKED" }
+      : terminal
+        ? { state: "FAILED", outcome: "RUNTIME_TRUST_PARTIAL" }
+        : null;
+  if (expected && manifest?.run_window?.state !== expected.state) errors.push(`run_window.state must be ${expected.state} for terminal event ${terminal}`);
+  if (expected && manifest?.outcome !== expected.outcome) errors.push(`outcome must be ${expected.outcome} for terminal event ${terminal}`);
+  if (terminal === "COMPLETED" && rows.some((row) => ["EXECUTION_FAILED", "INTERRUPTED", "RESOURCE_CLEANUP_BLOCKED", "PROCESS_CLEANUP_BLOCKED"].includes(row.event))) {
+    errors.push("completed lifecycle journal must not contain failure, interruption, or blocked cleanup events");
+  }
+  const firstAt = Date.parse(rows[0]?.at || "");
+  const lastAt = Date.parse(rows.at(-1)?.at || "");
+  const startedAt = Date.parse(manifest?.run_window?.started_at || "");
+  const finishedAt = Date.parse(manifest?.run_window?.finished_at || "");
+  if (!Number.isFinite(startedAt) || !Number.isFinite(finishedAt) || startedAt > firstAt || finishedAt > lastAt || startedAt > finishedAt) {
+    errors.push("run_window must bound the lifecycle journal observation window");
+  }
+}
+
+function validateResourceReplay(manifest, lifecyclePlan, rows, resourceById, observedServices, terminalEvent, errors) {
+  const created = eventRows(rows, "RESOURCE_CREATED");
+  const createdIds = created.map(({ row }) => row.resource_id);
+  for (const { row } of created) {
+    const planned = resourceById.get(row.resource_id);
+    if (!planned) errors.push(`lifecycle journal contains unknown resource ${row.resource_id || "<missing>"}`);
+    else if (row.resource_type !== planned.resource_type) errors.push(`resource ${row.resource_id} type must match the Lifecycle Plan`);
+  }
+  if (terminalEvent === "COMPLETED") compareExactSequence(createdIds, lifecyclePlan.resources.map((item) => item.resource_id), "created lifecycle resource ids", errors);
+  else comparePrefix(createdIds, lifecyclePlan.resources.map((item) => item.resource_id), "created lifecycle resource ids", errors);
+  const preflightPassed = eventRows(rows, "PREFLIGHT_PASSED")[0];
+  const firstActionIndex = rows.findIndex((row) => row.event === "ACTION_STARTING");
+  if (!preflightPassed && created.length) errors.push("lifecycle resources cannot be created before PREFLIGHT_PASSED");
+  if (preflightPassed && created.some(({ index }) => index <= preflightPassed.index)) errors.push("all RESOURCE_CREATED events must follow PREFLIGHT_PASSED");
+  if (firstActionIndex >= 0 && created.some(({ index }) => index >= firstActionIndex)) errors.push("all RESOURCE_CREATED events must precede lifecycle actions");
+
+  const expectedLedgerIds = [...createdIds, ...observedServices.map((item) => item.id)];
+  const ledger = Array.isArray(manifest?.resource_ledger) ? manifest.resource_ledger : [];
+  compareExactSequence(ledger.map((item) => item.resource_id), expectedLedgerIds, "manifest resource ledger ids", errors);
+  const ledgerById = new Map(ledger.map((item) => [item.resource_id, item]));
+  const ownerMarkerDigest = digestText(`${manifest.run_id}|${manifest.owner_token_digest}`);
+  for (const resourceId of createdIds) {
+    const planned = resourceById.get(resourceId);
+    const item = ledgerById.get(resourceId);
+    if (!planned || !item) continue;
+    if (item.resource_type !== ledgerResourceType(planned.resource_type)) errors.push(`resource ledger ${resourceId} type must match the Lifecycle Plan`);
+    if (item.created_by_run !== "Yes") errors.push(`resource ledger ${resourceId} must be created by this run`);
+    if (item.owner_marker_digest !== ownerMarkerDigest) errors.push(`resource ledger ${resourceId} owner marker must match this run`);
+  }
+  for (const service of observedServices) {
+    const item = ledgerById.get(service.id);
+    if (!item) continue;
+    if (item.resource_type !== "PROCESS") errors.push(`service ledger ${service.id} must use PROCESS resource type`);
+    if (item.created_by_run !== "Yes") errors.push(`service ledger ${service.id} must be created by this run`);
+    if (item.owner_marker_digest !== ownerMarkerDigest) errors.push(`service ledger ${service.id} owner marker must match this run`);
+  }
+
+  const expectedSessionIds = createdIds.filter((id) => resourceById.get(id)?.resource_type === "SESSION_NAMESPACE");
+  const expectedDataIds = createdIds.filter((id) => resourceById.get(id)?.resource_type !== "SESSION_NAMESPACE");
+  const sessions = Array.isArray(manifest?.session_contexts) ? manifest.session_contexts : [];
+  const data = Array.isArray(manifest?.data_resources) ? manifest.data_resources : [];
+  compareExactSequence(sessions.map((item) => item.id), expectedSessionIds, "manifest session resource ids", errors);
+  compareExactSequence(data.map((item) => item.id), expectedDataIds, "manifest data resource ids", errors);
+  for (const item of [...sessions, ...data]) {
+    const planned = resourceById.get(item.id);
+    if (!planned) continue;
+    const expectedNamespace = digestText(`${manifest.run_id}|${planned.relative_path}`);
+    if (item.namespace_digest !== expectedNamespace) errors.push(`resource ${item.id} namespace digest must match the Lifecycle Plan`);
+    if (item.owned_by_run !== "Yes") errors.push(`resource ${item.id} must be owned by this run`);
+  }
+}
+
+function validateCleanupReplay(manifest, lifecyclePlan, rows, observedServices, terminalEvent, errors) {
+  const before = eventRows(rows, "CLEANUP_EVIDENCE_BEFORE_RECORDED");
+  const cleanup = eventRows(rows, "CLEANING_UP");
+  if (before.length !== 1) errors.push("lifecycle journal must contain exactly one CLEANUP_EVIDENCE_BEFORE_RECORDED event");
+  if (cleanup.length !== 1) errors.push("lifecycle journal must contain exactly one CLEANING_UP event");
+  if (before[0] && cleanup[0] && before[0].index >= cleanup[0].index) errors.push("cleanup evidence before must precede CLEANING_UP");
+  const lastActionIndex = rows.reduce((latest, row, index) => LIFECYCLE_ACTION_EVENTS.has(row.event) ? index : latest, -1);
+  if (before[0] && before[0].index <= lastActionIndex) errors.push("cleanup evidence before must follow all lifecycle action events");
+  if (cleanup[0]) {
+    const cleanupDispositionRows = rows
+      .map((row, index) => ({ row, index }))
+      .filter(({ row }) => ["PROCESS_CLEANED", "PROCESS_CLEANUP_BLOCKED", "RESOURCE_CLEANED", "RESOURCE_CLEANUP_BLOCKED"].includes(row.event));
+    if (cleanupDispositionRows.some(({ index }) => index <= cleanup[0].index)) errors.push("process and resource cleanup dispositions must follow CLEANING_UP");
+  }
+
+  if (terminalEvent !== "COMPLETED") return;
+  const cleanupEvents = rows
+    .filter((row) => ["PROCESS_CLEANED", "RESOURCE_CLEANED"].includes(row.event))
+    .map((row) => row.event === "PROCESS_CLEANED" ? `process:${row.action_id}` : `resource:${row.resource_id}`);
+  const expectedCleanup = [
+    ...observedServices.slice().reverse().map((item) => `process:${item.actionId}`),
+    ...lifecyclePlan.resources.slice().reverse().map((item) => `resource:${item.resource_id}`),
+  ];
+  compareExactSequence(cleanupEvents, expectedCleanup, "lifecycle cleanup event sequence", errors);
+  const ledger = new Map((manifest?.resource_ledger || []).map((item) => [item.resource_id, item]));
+  for (const id of [...lifecyclePlan.resources.map((item) => item.resource_id), ...observedServices.map((item) => item.id)]) {
+    if (ledger.get(id)?.cleanup_state !== "CLEANED") errors.push(`completed lifecycle resource ${id} must be recorded CLEANED`);
+  }
+  if (manifest?.cleanup_summary?.state !== "VERIFIED"
+    || manifest?.cleanup_summary?.owned_resources_remaining !== 0
+    || manifest?.cleanup_summary?.unrelated_resources_touched !== "No") {
+    errors.push("completed lifecycle cleanup summary must be verified with zero owned resources and no unrelated changes");
+  }
+}
+
+function terminalJournalEvent(rows) {
+  return rows.find((row) => LIFECYCLE_TERMINAL_EVENTS.has(row.event))?.event || "";
+}
+
+function eventRows(rows, event) {
+  return rows.map((row, index) => ({ row, index })).filter(({ row }) => row.event === event);
+}
+
+function actionStartRow(actionEvents, actionId) {
+  return actionEvents.find(({ row }) => row.event === "ACTION_STARTING" && row.action_id === actionId)?.row;
+}
+
+function actionStartIndex(actionEvents, actionId) {
+  return actionEvents.find(({ row }) => row.event === "ACTION_STARTING" && row.action_id === actionId)?.index ?? Number.POSITIVE_INFINITY;
+}
+
+function compareExactSequence(actualValue, expectedValue, label, errors) {
+  const actual = Array.isArray(actualValue) ? actualValue : [];
+  const expected = Array.isArray(expectedValue) ? expectedValue : [];
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) errors.push(`${label} must exactly match lifecycle replay; expected [${expected.join(", ")}], got [${actual.join(", ")}]`);
+}
+
+function comparePrefix(actualValue, expectedValue, label, errors) {
+  const actual = Array.isArray(actualValue) ? actualValue : [];
+  const expected = Array.isArray(expectedValue) ? expectedValue : [];
+  if (actual.length > expected.length || actual.some((item, index) => item !== expected[index])) {
+    errors.push(`${label} must be an ordered prefix of the Lifecycle Plan`);
+  }
+}
+
+function ledgerResourceType(type) {
+  if (type === "DATABASE_FILE") return "DATABASE";
+  if (type === "CACHE_NAMESPACE") return "CACHE";
+  if (type === "SESSION_NAMESPACE") return "SESSION";
+  return "FILE";
+}
+
+function validTime(value) {
+  return Number.isFinite(Date.parse(String(value || "")));
+}
+
 function controlReason(control, requirement, tier) {
   if (requirement === "BLOCKED") return `${control} cannot be resolved until POSSIBLE_HIGH classification is complete.`;
   if (requirement === "NOT_REQUIRED") return `${control} is not mandatory for ${tier} unless project facts raise the tier.`;

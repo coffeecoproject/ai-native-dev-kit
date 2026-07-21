@@ -42,18 +42,18 @@ This report classifies task impact and routes required governance. It does not a
 | --- | --- |
 | Scope check | `Yes` |
 | Short plan | `Yes` |
-| Business Rule Closure | `No` |
-| Change Impact Coverage | `No` |
+| Business Rule Closure | `Yes` |
+| Change Impact Coverage | `Yes` |
 | Execution Plan | `No` |
-| Verification Plan | `No` |
+| Verification Plan | `Yes` |
 
 ## Required Before Completion Claim
 
 | Requirement | Required |
 | --- | --- |
-| Test Evidence | `No` |
-| Execution Assurance | `No` |
-| Completion Evidence | `No` |
+| Test Evidence | `Yes` |
+| Execution Assurance | `Yes` |
+| Completion Evidence | `Yes` |
 
 ## Review Policy
 
@@ -64,7 +64,7 @@ This report classifies task impact and routes required governance. It does not a
 | Independent review required | `Conditional` |
 | Review must happen before | `completion_claim` |
 | Review source | `targeted_checker_or_project_review` |
-| Review must cover | short plan; bounded impact surface; excluded high-impact surfaces; targeted verification; unrelated edits check |
+| Review must cover | short plan; bounded impact surface; business rule closure; change impact coverage; verification plan; excluded high-impact surfaces; targeted verification; unrelated edits check |
 | Skip full review reason | MEDIUM tasks do not require the full high-impact chain when the affected surface stays local and bounded. |
 
 ## Existing Project Mapping
@@ -121,7 +121,7 @@ This report classifies task impact and routes required governance. It does not a
   "intent": "add local frontend component interaction for a details modal",
   "intent_digest": "sha256:ac2f6fd57676e487353430109ff48ebaf4b8a2ea66b80ecfb89d0bab8017a8b4",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:c9902d002b0aa400eb7efa0f2f899b5042d0d947a0012bdb3ef0a2d3e2001bc6",
+  "task_governance_digest": "sha256:4e01fbf6fd1673c09f614d53919ffdf0f8df8ef8d984ce709cc5cbc6b986115c",
   "task_ref": "task:add-local-frontend-component-interaction-for-a-details-modal",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -192,15 +192,15 @@ This report classifies task impact and routes required governance. It does not a
   "required_before_implementation_review": {
     "scope_check_required": "Yes",
     "short_plan_required": "Yes",
-    "business_rule_closure_required": "No",
-    "change_impact_coverage_required": "No",
+    "business_rule_closure_required": "Yes",
+    "change_impact_coverage_required": "Yes",
     "execution_plan_required": "No",
-    "verification_plan_required": "No"
+    "verification_plan_required": "Yes"
   },
   "required_before_completion_claim": {
-    "test_evidence_required": "No",
-    "execution_assurance_required": "No",
-    "completion_evidence_required": "No"
+    "test_evidence_required": "Yes",
+    "execution_assurance_required": "Yes",
+    "completion_evidence_required": "Yes"
   },
   "source_chain": [
     {
@@ -260,6 +260,9 @@ This report classifies task impact and routes required governance. It does not a
     "review_must_cover": [
       "short plan",
       "bounded impact surface",
+      "business rule closure",
+      "change impact coverage",
+      "verification plan",
       "excluded high-impact surfaces",
       "targeted verification",
       "unrelated edits check"

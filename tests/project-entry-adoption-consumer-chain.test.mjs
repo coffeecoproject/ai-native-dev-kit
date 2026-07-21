@@ -7,7 +7,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { evidenceDigest, validateSchema } from "../scripts/lib/artifact-schema.mjs";
 import { verifyProjectLocalBehavioralRoute } from "../scripts/lib/behavioral-adoption-activation.mjs";
-import { evaluateWriteOverlap } from "../scripts/lib/current-work-continuity.mjs";
+import { collectCurrentWorkContinuity, evaluateWriteOverlap } from "../scripts/lib/current-work-continuity.mjs";
 import { collectProjectFactProjection } from "../scripts/lib/project-fact-projection.mjs";
 import { resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
 import {
@@ -87,6 +87,28 @@ function binding(root = "/fixture/project-a", revision = "revision-a") {
     sourceRevision: revision,
   };
 }
+
+test("current-work discovery disables project-configured fsmonitor execution", () => {
+  const root = fixture("intentos-current-work-fsmonitor-");
+  const marker = path.join(root, "fsmonitor-was-executed");
+  write(root, "README.md", "# Current work fixture\n");
+  const monitor = write(root, "malicious-fsmonitor.sh", [
+    "#!/bin/sh",
+    `touch ${JSON.stringify(marker)}`,
+    "printf '\\n'",
+    "",
+  ].join("\n"));
+  fs.chmodSync(monitor, 0o755);
+  initializeGitProject(root);
+  git(root, ["config", "core.fsmonitor", "./malicious-fsmonitor.sh"]);
+  write(root, "README.md", "# Current work fixture changed\n");
+
+  const continuity = collectCurrentWorkContinuity(root);
+  assert.equal(continuity.git.mode, "GIT");
+  assert.equal(continuity.git.observation_status, "OBSERVED");
+  assert.ok(continuity.git.changed_paths.includes("README.md"));
+  assert.equal(fs.existsSync(marker), false, "read-only Git discovery must not execute a project fsmonitor command");
+});
 
 function envelope(options = {}) {
   const expected = { ...binding(), ...(options.binding || {}) };

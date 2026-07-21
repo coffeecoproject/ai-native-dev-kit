@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { canonicalFileDigest, createEvidenceAuthorityBinding, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
@@ -11,7 +12,7 @@ import { planSemanticErrors } from "./lib/verification-runtime-trust.mjs";
 import { executeLifecyclePlan, lifecyclePlanSemanticErrors, readLifecycleDeclaration } from "./lib/verification-runtime-lifecycle.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["plan", "out"]));
+const unknown = unknownOptions(args, new Set(["plan", "out", "durable-evidence-out"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 if (unknown.length) fatal(`unknown option: --${unknown.join(", --")}`);
 const lifecycleRef = String(args.plan || "");
@@ -23,17 +24,35 @@ const outputRelative = String(args.out || `verification-run-manifests/${plan.run
 if (!isSafeRelativePath(outputRelative) || !/^verification-run-manifests\/[a-zA-Z0-9._/-]+\.md$/.test(outputRelative)) fatal("--out must stay under verification-run-manifests/");
 const outputFile = resolveUnderRoot(projectRoot, outputRelative, "Verification Run Manifest output");
 assertNoSymlinkInPath(projectRoot, outputFile, "Verification Run Manifest output");
+const durableEvidenceRelative = String(args["durable-evidence-out"] || "");
+if (durableEvidenceRelative && durableEvidenceRelative !== `evidence/runtime-runs/${plan.run_id}`) {
+  fatal(`--durable-evidence-out must be evidence/runtime-runs/${plan.run_id}`);
+}
 
 const controller = new AbortController();
 const stop = () => controller.abort();
 process.once("SIGINT", stop);
 process.once("SIGTERM", stop);
 let result;
+const sourceFreeze = verifySourceFreeze();
+if (!sourceFreeze.ok) fatal(sourceFreeze.errors.join("; "));
 try {
-  result = await executeLifecyclePlan(projectRoot, plan, { signal: controller.signal });
+  result = await executeLifecyclePlan(projectRoot, plan, {
+    signal: controller.signal,
+    sourceIdentity: sourceFreeze.identity,
+    preflightRequirements: runtimePlan.preflight_requirements,
+  });
 } finally {
   process.removeListener("SIGINT", stop);
   process.removeListener("SIGTERM", stop);
+}
+if (durableEvidenceRelative) result = archiveRunEvidence(result, durableEvidenceRelative);
+const sourceAfter = projectIdentity(projectRoot);
+result.sourceIdentity = sourceFreeze.identity;
+result.sourceIdentityAfter = sourceAfter;
+if (JSON.stringify(sourceAfter) !== JSON.stringify(sourceFreeze.identity)) {
+  result.ok = false;
+  result.failure = "project source identity changed while the verification runtime was executing";
 }
 
 const manifest = buildManifest(result);
@@ -127,10 +146,10 @@ function buildManifest(run) {
     intent_digest: plan.intent_digest,
     task_tier: plan.task_tier,
     runtime_trust_level: plan.runtime_trust_level,
-    source_identity: { ...projectIdentity(projectRoot), current_project_match: "Yes" },
+    source_identity: { ...run.sourceIdentity, current_project_match: "Yes" },
     build_artifacts: [],
     run_window: { started_at: run.startedAt, finished_at: run.finishedAt, state },
-    preflight_results: runtimePlan.preflight_requirements.map((item) => ({ probe: item.probe, required: item.required, result: run.ok || !run.cleanupBlocked ? "PASS" : "BLOCKED", evidence_ref: preflightRef, evidence_digest: canonicalFileDigest(run.preflightFile), reason: item.reason })),
+    preflight_results: (run.preflightResults || []).map((item) => ({ probe: item.probe, required: item.required, result: item.result, evidence_ref: preflightRef, evidence_digest: canonicalFileDigest(run.preflightFile), reason: item.reason })),
     service_instances: serviceInstances,
     data_resources: dataResources,
     session_contexts: sessions,
@@ -221,7 +240,63 @@ ${value.next_step}
 }
 
 function fileRef(file) { return `file:${path.relative(projectRoot, file).split(path.sep).join("/")}`; }
+function archiveRunEvidence(run, relative) {
+  const destination = resolveUnderRoot(projectRoot, relative, "durable verification evidence archive");
+  assertNoSymlinkInPath(projectRoot, path.dirname(destination), "durable verification evidence archive parent");
+  if (fs.existsSync(destination)) fatal("durable verification evidence archive already exists; refusing evidence reuse");
+  assertArchiveSource(run.workspace);
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.cpSync(run.workspace, destination, { recursive: true, force: false, errorOnExist: true });
+  const remap = (file) => path.join(destination, path.relative(run.workspace, file));
+  return {
+    ...run,
+    workspace: destination,
+    journalFile: remap(run.journalFile),
+    preflightFile: remap(run.preflightFile),
+    cleanupBefore: remap(run.cleanupBefore),
+    cleanupAfter: remap(run.cleanupAfter),
+    resourceEvidence: remap(run.resourceEvidence),
+    serviceInstances: run.serviceInstances.map((item) => ({ ...item, evidence_file: remap(item.evidence_file) })),
+    executions: run.executions.map((item) => ({ ...item, output_file: remap(item.output_file) })),
+  };
+}
+function assertArchiveSource(root) {
+  const visit = (current) => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const file = path.join(current, entry.name);
+      const stat = fs.lstatSync(file);
+      if (stat.isSymbolicLink()) fatal("durable verification evidence archive refuses symbolic links");
+      if (stat.isDirectory()) visit(file);
+      else if (!stat.isFile()) fatal("durable verification evidence archive accepts regular files only");
+    }
+  };
+  visit(root);
+}
 function normalizeRef(ref) { return /^(artifact|file):/.test(ref) ? ref : `artifact:${ref}`; }
 function ledgerType(type) { return type === "DATABASE_FILE" ? "DATABASE" : type === "CACHE_NAMESPACE" ? "CACHE" : type === "SESSION_NAMESPACE" ? "SESSION" : "FILE"; }
 function digestString(value) { return `sha256:${crypto.createHash("sha256").update(String(value)).digest("hex")}`; }
+function verifySourceFreeze() {
+  const identity = projectIdentity(projectRoot);
+  if (identity.kind !== "GIT") return { ok: true, identity, errors: [] };
+  const errors = [];
+  const staged = git(["diff", "--cached", "--quiet", "--"]);
+  const unstaged = git(["diff", "--quiet", "--"]);
+  if (![0, 1].includes(staged.status) || ![0, 1].includes(unstaged.status)) {
+    errors.push("cannot establish a stable Git candidate before runtime verification");
+  } else if (staged.status === 1 && unstaged.status !== 0) {
+    errors.push("staged runtime candidate differs from tracked worktree bytes");
+  } else if (staged.status === 0 && unstaged.status !== 0) {
+    errors.push("runtime verification requires a committed or staged candidate, not unstaged tracked changes");
+  }
+  const untracked = git(["ls-files", "--others", "--exclude-standard"]);
+  if (untracked.status !== 0) {
+    errors.push("cannot enumerate untracked candidate inputs");
+  } else {
+    const unsafe = untracked.stdout.split(/\r?\n/).map((item) => item.trim()).filter(Boolean)
+      .filter((item) => !/^docs\/plans\/[a-zA-Z0-9._/-]+\.md$/.test(item));
+    if (unsafe.length > 0) errors.push(`untracked executable or configuration inputs are not frozen: ${unsafe.join(", ")}`);
+  }
+  return { ok: errors.length === 0, identity, errors };
+}
+function git(argv) { return spawnSync("git", argv, { cwd: projectRoot, encoding: "utf8" }); }
 function fatal(message) { console.error(`FAIL ${message}`); process.exit(1); }

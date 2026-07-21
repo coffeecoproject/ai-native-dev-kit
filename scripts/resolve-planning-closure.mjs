@@ -5,8 +5,9 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { createEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
+import { validateTaskGovernanceLineage } from "./lib/task-entry-binding.mjs";
 import {
   buildExecutionEntryContract,
   derivePlanningState,
@@ -45,28 +46,20 @@ function buildReport() {
   const workQueue = runJson("scripts/resolve-work-queue.mjs", [projectRoot, "--json"]);
   const currentCandidates = workQueue.value?.currentTaskCandidates || [];
   const current = currentCandidates.length === 1 ? currentCandidates[0] : null;
-  const requestedTaskRef = String(args["task-ref"] || current?.taskRef || `task:${slug(intent)}`);
-  const requestedIntentDigest = String(args["intent-digest"] || current?.intentDigest || digest(intent));
-  const currentTaskMatch = current
-    ? current.taskRef === requestedTaskRef && (!current.intentDigest || current.intentDigest === requestedIntentDigest) ? "Yes" : "No"
-    : "Unknown";
-  const currentTask = {
-    work_queue_ref: current?.source || "N/A",
-    work_queue_item_digest: current ? digest(JSON.stringify(current)) : "N/A",
-    current_task_count: currentCandidates.length,
-    task_ref: current?.taskRef || "",
-    intent_digest: current?.intentDigest || "",
-    current_task_match: currentTaskMatch,
-  };
+  const preliminaryTaskRef = String(args["task-ref"] || current?.taskRef || "");
+  const preliminaryIntentDigest = String(args["intent-digest"] || current?.intentDigest || digest(intent));
   const entryState = String(args["entry-state"] || projectEntryState());
   const entryReady = entryState === "READY_FOR_INTENTOS_OPERATION";
   const taskGovernanceFile = findSourceReport(
     projectRoot,
     "TASK_GOVERNANCE",
     args["task-governance-report"],
-    requestedTaskRef,
-    requestedIntentDigest,
+    preliminaryTaskRef,
+    preliminaryIntentDigest,
   );
+  const taskGovernanceIdentity = readTaskGovernanceIdentity(taskGovernanceFile);
+  const requestedTaskRef = String(args["task-ref"] || taskGovernanceIdentity.taskRef || preliminaryTaskRef || `task:${slug(intent)}`);
+  const requestedIntentDigest = String(args["intent-digest"] || taskGovernanceIdentity.intentDigest || preliminaryIntentDigest);
   const taskGovernance = validatePlanningSource({
     projectRoot,
     sourceKind: "TASK_GOVERNANCE",
@@ -74,6 +67,14 @@ function buildReport() {
     taskRef: requestedTaskRef,
     intentDigest: requestedIntentDigest,
     kitRoot,
+  });
+  const currentTask = resolveCurrentTask({
+    current,
+    currentTaskCount: currentCandidates.length,
+    requestedTaskRef,
+    requestedIntentDigest,
+    taskGovernanceFile,
+    taskGovernanceEvidence: taskGovernance.evidence,
   });
   const matrix = requirementMatrix(taskGovernance.evidence);
   const sourceRows = matrix.map((item) => {
@@ -139,6 +140,7 @@ function buildReport() {
   const contract = state.outcome === "PLANNING_READY"
     ? buildExecutionEntryContract({
       authorityBinding,
+      sourceGitCommit: currentGitCommit(),
       taskRef: requestedTaskRef,
       intentDigest: requestedIntentDigest,
       taskImpact,
@@ -161,6 +163,56 @@ function buildReport() {
     blockers: state.blockers.map(withoutOutcome),
     structuredEvidence,
     outcome: structuredEvidence.outcome,
+  };
+}
+
+function readTaskGovernanceIdentity(file) {
+  if (!file) return { taskRef: "", intentDigest: "" };
+  try {
+    const parsed = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
+    if (!parsed?.ok || parsed.value?.artifact_type !== "task_governance") return { taskRef: "", intentDigest: "" };
+    return {
+      taskRef: String(parsed.value.task_ref || ""),
+      intentDigest: String(parsed.value.intent_digest || ""),
+    };
+  } catch {
+    return { taskRef: "", intentDigest: "" };
+  }
+}
+
+function currentGitCommit() {
+  const result = spawnSync("git", ["rev-parse", "--verify", "HEAD^{commit}"], { cwd: projectRoot, encoding: "utf8" });
+  return result.status === 0 ? result.stdout.trim() : "N/A";
+}
+
+function resolveCurrentTask({ current, currentTaskCount, requestedTaskRef, requestedIntentDigest, taskGovernanceFile, taskGovernanceEvidence }) {
+  const lineage = taskGovernanceEvidence && taskGovernanceFile
+    ? validateTaskGovernanceLineage(projectRoot, taskGovernanceEvidence, {
+      fromFile: taskGovernanceFile,
+      requireCurrent: true,
+    })
+    : { ok: false };
+  if (lineage.ok) {
+    const identity = lineage.workQueue.identity;
+    return {
+      work_queue_ref: identity.work_queue_item_ref,
+      work_queue_item_digest: identity.work_queue_item_digest,
+      current_task_count: currentTaskCount,
+      task_ref: identity.task_ref,
+      intent_digest: identity.intent_digest,
+      current_task_match: identity.task_ref === requestedTaskRef && identity.intent_digest === requestedIntentDigest ? "Yes" : "No",
+    };
+  }
+  const currentTaskMatch = current
+    ? current.taskRef === requestedTaskRef && (!current.intentDigest || current.intentDigest === requestedIntentDigest) ? "Yes" : "No"
+    : "Unknown";
+  return {
+    work_queue_ref: current?.source || "N/A",
+    work_queue_item_digest: current ? digest(JSON.stringify(current)) : "N/A",
+    current_task_count: currentTaskCount,
+    task_ref: current?.taskRef || "",
+    intent_digest: current?.intentDigest || "",
+    current_task_match: currentTaskMatch,
   };
 }
 

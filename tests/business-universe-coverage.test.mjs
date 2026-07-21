@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -10,6 +11,7 @@ import {
   BUSINESS_UNIVERSE_LIFECYCLE_STAGES,
   businessUniverseChallengerDigest,
   coverageScenarioIdentity,
+  runBusinessUniversePreflight,
 } from "../scripts/lib/business-universe.mjs";
 import { createEvidenceAuthorityBinding } from "../scripts/lib/evidence-authority.mjs";
 
@@ -27,7 +29,7 @@ function run(script, args, cwd = kitRoot) {
   return spawnSync(process.execPath, [path.join(kitRoot, script), ...args], {
     cwd,
     encoding: "utf8",
-    timeout: 90_000,
+    timeout: 180_000,
     maxBuffer: 32 * 1024 * 1024,
   });
 }
@@ -35,13 +37,14 @@ function run(script, args, cwd = kitRoot) {
 function project() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-business-universe-"));
   for (const dir of [
-    "src", "src/components", "reviews", "evidence", "task-governance-reports", "work-queue-takeover-reports",
+    "src", "src/components", "tests", "reviews", "evidence", "task-governance-reports", "work-queue-takeover-reports",
     "business-universe-coverage-reports", "business-rule-closures",
     "change-impact-coverage-reports", "plan-review-reports", "verification-plans",
     "test-evidence-reports", "execution-assurance-reports", "completion-evidence-reports",
-    "review-surface-cards", "implementation-plans",
+    "review-surface-cards", "implementation-plans", "planning-closure-reports",
+    "verification-runtime-plans", "verification-runtime-lifecycle-plans", "verification-run-manifests",
+    ".intentos",
   ]) fs.mkdirSync(path.join(root, dir), { recursive: true });
-  fs.cpSync(path.join(kitRoot, "schemas"), path.join(root, "schemas"), { recursive: true });
   fs.writeFileSync(
     path.join(root, "src/components/interactive-entry.tsx"),
     "export function validateInteractiveSubmissionsAndDerivedStatus() { return 'shared validation'; }\n",
@@ -50,10 +53,31 @@ function project() {
     path.join(root, "src/scheduled-import.ts"),
     "export function retryScheduledImportsWithSchedulerAndCompensate() { return 'recovery path'; }\n",
   );
-  fs.writeFileSync(
-    path.join(root, "review-surface-cards/current.md"),
-    "# Review Surface Card\n\nThe current task requires scope, verification, lifecycle, provenance, and reverse-path review.\n",
-  );
+  fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({
+    name: "business-universe-runtime-fixture",
+    private: true,
+    scripts: { dev: "node runtime-service.mjs" },
+  }, null, 2));
+  fs.writeFileSync(path.join(root, "runtime-service.mjs"), `
+import fs from "node:fs";
+import path from "node:path";
+if (!process.env.TEST_ISOLATION_PATH) process.exit(2);
+fs.writeFileSync(path.join(process.env.TEST_ISOLATION_PATH, "ready"), "ready");
+setInterval(() => {}, 1000);
+`);
+  fs.writeFileSync(path.join(root, "verify-current-task.mjs"), `
+import fs from "node:fs";
+import path from "node:path";
+if (!process.env.INTENTOS_RUN_ID || !process.env.INTENTOS_OWNER_TOKEN) process.exit(2);
+const session = process.env.TEST_ISOLATION_PATH;
+const ready = session && fs.existsSync(path.join(session, "ready"));
+const forbidden = session && fs.existsSync(path.join(session, "forbidden"));
+if (process.argv[2] === "positive" ? !ready : forbidden) process.exit(3);
+console.log("Business Universe runtime verified", process.argv[2], process.env.INTENTOS_RUN_ID);
+`);
+  const reviewSurface = run("scripts/resolve-review-surface.mjs", [root, "--intent", intent]);
+  assert.equal(reviewSurface.status, 0, `${reviewSurface.stdout}\n${reviewSurface.stderr}`);
+  fs.writeFileSync(path.join(root, "review-surface-cards/current.md"), reviewSurface.stdout);
   writeMachineEvidence(path.join(root, "reviews/challenger.md"), "Business Universe Challenger", {
     schema_version: "1.108.0",
     artifact_type: "business_universe_challenger",
@@ -88,16 +112,35 @@ function writeMachineEvidence(file, title, value) {
   fs.writeFileSync(file, `# ${title}\n\n## Machine-Readable Evidence\n\n\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\`\n`);
 }
 
-function generateTaskGovernance(root, taskIntent = intent) {
-  const result = run("scripts/resolve-task-governance.mjs", [
+function generateTaskGovernance(root, taskIntent = intent, workQueueItemRef = "") {
+  const args = [
     root, "--intent", taskIntent, "--out", "task-governance-reports/current.md",
-  ]);
+  ];
+  if (workQueueItemRef) args.push("--work-queue-item", workQueueItemRef);
+  const result = run("scripts/resolve-task-governance.mjs", args);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   return evidence(path.join(root, "task-governance-reports/current.md"));
 }
 
 function writeCurrentWorkQueue(root, governance) {
-  const sourceDigest = evidenceDigest({ task_ref: governance.task_ref, intent_digest: governance.intent_digest }, []);
+  const sourceRef = "work-queue/current-task.md";
+  const sourceContent = `# Work Queue Report
+
+## Current Task
+
+| Task ID | Title | State | Task ref | Intent digest | Notes |
+| --- | --- | --- | --- | --- | --- |
+| \`WQ-001\` | ${governance.intent} | \`CURRENT\` | \`${sourceRef}\` | \`${governance.intent_digest}\` | Current governed task. |
+
+## Work Items
+
+| Task ID | Title | State | Task ref | Intent digest | Resume review | Owner | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| \`WQ-001\` | ${governance.intent} | \`CURRENT\` | \`${sourceRef}\` | \`${governance.intent_digest}\` | \`N/A\` | \`Codex\` | Current governed task. |
+`;
+  fs.mkdirSync(path.join(root, "work-queue"), { recursive: true });
+  fs.writeFileSync(path.join(root, sourceRef), sourceContent);
+  const sourceDigest = `sha256:${crypto.createHash("sha256").update(`${sourceRef}\n${sourceContent}`).digest("hex")}`;
   const base = {
     schema_version: "1.84.1",
     artifact_type: "work_queue_takeover",
@@ -110,7 +153,7 @@ function writeCurrentWorkQueue(root, governance) {
     future_task_authority: "INTENTOS_WORK_QUEUE",
     plain_user_summary: "The current task is bound to one IntentOS Work Queue item.",
     source_inventory: [{
-      source_ref: "conversation:current-task",
+      source_ref: sourceRef,
       source_digest: sourceDigest,
       source_type: "other",
       status: "CURRENT",
@@ -122,7 +165,7 @@ function writeCurrentWorkQueue(root, governance) {
       reason: "This fixture has one exact current task.",
     }],
     migration_dispositions: [{
-      source_item: "conversation:current-task",
+      source_item: sourceRef,
       source_digest: sourceDigest,
       disposition: "MIGRATE_CURRENT",
       target_queue_state: "CURRENT",
@@ -132,7 +175,7 @@ function writeCurrentWorkQueue(root, governance) {
       item_id: "WQ-001",
       state: "CURRENT",
       title: governance.intent,
-      source_item: "conversation:current-task",
+      source_item: sourceRef,
       source_item_digest: sourceDigest,
       task_governance_ref: "task-governance-reports/current.md",
       task_governance_digest: governance.task_governance_digest,
@@ -188,10 +231,26 @@ function generateCandidateUniverse(root, options = {}) {
 }
 
 function prepareReadyUniverse(root) {
-  const governance = generateTaskGovernance(root);
+  let governance = generateTaskGovernance(root);
   assert.equal(governance.business_universe_routing.required, "Yes");
   assert.equal(governance.business_universe_routing.routing_result, "REQUIRED_WITH_EVIDENCE");
   writeCurrentWorkQueue(root, governance);
+  governance = generateTaskGovernance(
+    root,
+    intent,
+    "artifact:work-queue-takeover-reports/current.md#WQ-001",
+  );
+  writeCurrentWorkQueue(root, governance);
+  const reviewSurfaceFile = path.join(root, "review-surface-cards/current.md");
+  const reviewSurfaceEvidence = {
+    schema_version: "1.113.0",
+    artifact_type: "review_surface_card",
+    task_ref: governance.task_ref,
+    intent_digest: governance.intent_digest,
+    reviewed_surfaces: ["scope", "verification", "lifecycle", "provenance", "reverse_path"],
+    outcome: "READY",
+  };
+  fs.appendFileSync(reviewSurfaceFile, `\n## Machine-Readable Evidence\n\n\`\`\`json\n${JSON.stringify(reviewSurfaceEvidence, null, 2)}\n\`\`\`\n`);
   const value = generateCandidateUniverse(root);
   const sourceLocators = value.evidence_locators.filter((item) => item.evidence_kind === "PROJECT_SOURCE");
   assert.ok(sourceLocators.length >= 2, "fixture must discover two task-relevant project sources");
@@ -380,11 +439,57 @@ function scenarioPlan(universe) {
     `Expected ${scenario.expected_behavior}`,
     `Reverse ${scenario.negative_or_reverse_behavior}`,
   ].join("\n")).join("\n\n");
+  const highImpactControls = expectedTier === "HIGH"
+    ? `
+## Permission And Destructive-Data Controls
+
+Resolve authorization before existence checks so unauthorized actors cannot infer
+whether a protected record exists; this explicitly prevents existence leakage and
+preserves error priority. Return the authorization failure before any not-found or
+validation detail, and verify both allowed and denied actor paths.
+
+Before deletion, check historical associations and block deletion while protected
+history remains. Write the immutable audit event before the destructive mutation;
+if audit persistence fails, abort without deleting. Verify the blocked-history,
+audit-failure, and successful-delete sequences independently.
+`
+    : "";
   return `# Implementation Plan
 
-The implementation remains inside the current task boundary. It checks permission existence leakage and error priority, preserves the history guard, and records audit before delete behavior where those generic review surfaces are not applicable to the fixture.
+Intent: ${intent}
+Task reference: ${universe.task_ref}
+
+## Scope
+
+Update the shared interactive and scheduled validation paths in
+\`src/components/interactive-entry.tsx\` and \`src/scheduled-import.ts\` while
+preserving every Business Universe scenario and its reverse behavior.
+
+## Boundaries
+
+Keep the change inside the current fixture. Do not use production resources,
+external effects, unrelated files, or user-selected technical exceptions.
+
+## Implementation Sequence
+
+1. Update the interactive validation path and its visible failure behavior.
+2. Update scheduled retries, duplicate handling, compensation, and derived state.
+3. Verify current runtime behavior, interruption handling, and safe recovery.
 
 ${scenarioRows}
+
+${highImpactControls}
+
+## Verification
+
+Run \`git diff --check\` and bind focused current-task evidence for every
+generated verification obligation, including background and recovery paths.
+
+## Rollback And Recovery
+
+Restore \`src/components/interactive-entry.tsx\` and
+\`src/scheduled-import.ts\` together if any scenario, runtime, retry, or
+compensation proof fails; partial restoration is not accepted.
 
 Verification command: node --test tests/current-task.test.mjs
 `;
@@ -394,11 +499,21 @@ function writeObligationEvidence(root, verification) {
   const refs = [];
   for (const [index, obligation] of verification.verification_obligations.filter((item) => item.required === "Yes").entries()) {
     const relative = `evidence/obligation-${index + 1}.txt`;
+    const childEnvironment = { ...process.env };
+    delete childEnvironment.NODE_TEST_CONTEXT;
+    const observed = spawnSync(process.execPath, ["--test", "tests/current-task.test.cjs"], {
+      cwd: root,
+      env: childEnvironment,
+      encoding: "utf8",
+      timeout: 30_000,
+      maxBuffer: 4 * 1024 * 1024,
+    });
+    assert.equal(observed.status, 0, `${observed.stdout}\n${observed.stderr}`);
     fs.writeFileSync(path.join(root, relative), [
       `id: evidence:${index + 1}`,
       "evidence_type: TEST_REPORT",
       "result_state: PASSED",
-      `command: node --test --test-name-pattern=${obligation.id}`,
+      "command: node --test tests/current-task.test.cjs",
       "owner: codex",
       "environment: isolated-local",
       "ran_at: 2026-07-13T00:00:00.000Z",
@@ -408,11 +523,153 @@ function writeObligationEvidence(root, verification) {
       `covers_obligations: ${obligation.id}`,
       "limitations: Bound only to the named verification obligation.",
       "",
-      `PASS ${obligation.id}`,
+      observed.stdout.trim(),
+      observed.stderr.trim(),
     ].join("\n"));
     refs.push(`artifact:${relative}`);
   }
   return refs;
+}
+
+function installExactObligationTest(root, verification) {
+  const obligations = verification.verification_obligations.filter((item) => item.required === "Yes");
+  const cases = obligations.flatMap((obligation) => [
+    `test(${JSON.stringify(`[${obligation.id}] tests/current-task.test.cjs :: exact current obligation has observed positive and reverse behavior`)}, () => {`,
+    "  const interactive = fs.readFileSync(path.join(process.cwd(), \"src/components/interactive-entry.tsx\"), \"utf8\");",
+    "  const scheduled = fs.readFileSync(path.join(process.cwd(), \"src/scheduled-import.ts\"), \"utf8\");",
+    "  assert.match(interactive, /shared validation/);",
+    "  assert.match(scheduled, /recovery path/);",
+    "  assert.doesNotMatch(interactive, /bypass validation/i);",
+    "  assert.doesNotMatch(scheduled, /skip recovery/i);",
+    "});",
+  ]);
+  fs.writeFileSync(path.join(root, "tests/current-task.test.cjs"), [
+    'const assert = require("node:assert/strict");',
+    'const fs = require("node:fs");',
+    'const path = require("node:path");',
+    'const test = require("node:test");',
+    "",
+    ...cases,
+    "",
+  ].join("\n"));
+}
+
+function refreshUniverseAuthority(root, universe) {
+  universe.authority_binding = createEvidenceAuthorityBinding(root, {
+    taskRef: universe.task_ref,
+    intentDigest: universe.intent_digest,
+    sourceRefs: universe.authority_binding.sources.map((item) => item.ref),
+  });
+  universe.coverage_digest = evidenceDigest(universe, ["coverage_digest"]);
+  fs.writeFileSync(path.join(root, "business-universe-coverage-reports/current.md"), renderUniverse(universe));
+}
+
+function completeVerificationRuntime(root, governance, verification) {
+  const obligationIds = verification.verification_obligations
+    .filter((item) => item.required === "Yes")
+    .map((item) => item.id);
+  const runtimeResources = [{
+    resource_id: "session",
+    resource_type: "SESSION_NAMESPACE",
+    relative_path: "resources/session",
+    environment_name: "TEST_ISOLATION_PATH",
+    created_by_action: "executor:preflight",
+    cleanup_strategy: "REMOVE_OWNED_PATH",
+    production_instance: "No",
+    shared_resource: "No",
+    role: "test-user",
+    migration_revision: "not-recorded",
+  }];
+  if (expectedTier === "HIGH") {
+    runtimeResources.push({
+      resource_id: "data",
+      resource_type: "CACHE_NAMESPACE",
+      relative_path: "resources/data",
+      environment_name: "TEST_DATA_NAMESPACE",
+      created_by_action: "executor:preflight",
+      cleanup_strategy: "REMOVE_OWNED_PATH",
+      production_instance: "No",
+      shared_resource: "No",
+      role: "test-user",
+      migration_revision: "not-recorded",
+    });
+  }
+  fs.writeFileSync(path.join(root, ".intentos/verification-runtime-lifecycle.json"), JSON.stringify({
+    version: "1.103.0",
+    adapter_kind: "LOCAL_PROCESS",
+    actions: [
+      {
+        id: "business-universe-service",
+        phase: "START_SERVICE",
+        kind: "SERVICE",
+        argv: ["node", "runtime-service.mjs"],
+        cwd: ".",
+        timeout_ms: 10_000,
+        environment: [],
+        obligation_ids: [],
+        positive_path: "No",
+        negative_path: "No",
+        resource_ids: ["session"],
+        external_effect: "No",
+        depends_on: [],
+      },
+      {
+        id: "verify-business-universe-positive",
+        phase: "VERIFY",
+        kind: "PROBE",
+        argv: ["node", "--test", "tests/current-task.test.cjs"],
+        cwd: ".",
+        timeout_ms: 10_000,
+        environment: [],
+        obligation_ids: obligationIds,
+        positive_path: "Yes",
+        negative_path: "No",
+        resource_ids: ["session"],
+        external_effect: "No",
+        depends_on: ["business-universe-service"],
+      },
+      {
+        id: "verify-business-universe-negative",
+        phase: "VERIFY",
+        kind: "PROBE",
+        argv: ["node", "--test", "tests/current-task.test.cjs"],
+        cwd: ".",
+        timeout_ms: 10_000,
+        environment: [],
+        obligation_ids: obligationIds,
+        positive_path: "No",
+        negative_path: "Yes",
+        resource_ids: ["session"],
+        external_effect: "No",
+        depends_on: ["business-universe-service"],
+      },
+    ],
+    resources: runtimeResources,
+  }, null, 2));
+  const runtimePlan = run("scripts/resolve-verification-runtime-plan.mjs", [
+    root,
+    "--intent", intent,
+    "--task-ref", governance.task_ref,
+    "--task-tier", expectedTier,
+    "--task-governance-ref", "artifact:task-governance-reports/current.md",
+    "--verification-plan-ref", "artifact:verification-plans/current.md",
+    "--out", "verification-runtime-plans/current.md",
+  ]);
+  assert.equal(runtimePlan.status, 0, `${runtimePlan.stdout}\n${runtimePlan.stderr}`);
+  const lifecycle = run("scripts/resolve-verification-runtime-lifecycle.mjs", [
+    root,
+    "--runtime-plan-ref", "artifact:verification-runtime-plans/current.md",
+    "--run-id", "vrun-business-universe-current",
+    "--out", "verification-runtime-lifecycle-plans/current.md",
+  ]);
+  assert.equal(lifecycle.status, 0, `${lifecycle.stdout}\n${lifecycle.stderr}`);
+  const executed = run("scripts/run-verification-runtime.mjs", [
+    root,
+    "--plan", "artifact:verification-runtime-lifecycle-plans/current.md",
+    "--out", "verification-run-manifests/current.md",
+  ]);
+  assert.equal(executed.status, 0, `${executed.stdout}\n${executed.stderr}`);
+  return "artifact:verification-run-manifests/current.md";
 }
 
 function rewriteEmbeddedEvidence(file, value) {
@@ -449,6 +706,25 @@ test("1.108 keeps ambiguous behavioral work in technical inspection instead of a
   assert.equal(governance.business_universe_routing.routing_result, "TECHNICAL_INSPECTION_REQUIRED");
   assert.equal(governance.business_universe_routing.technical_terms_required_from_user, "No");
   assert.equal(governance.readiness.ready_for_implementation_review, "No");
+});
+
+test("1.113 discovery includes ESM implementation and test sources", () => {
+  const root = project();
+  fs.mkdirSync(path.join(root, "scripts"), { recursive: true });
+  fs.mkdirSync(path.join(root, "tests"), { recursive: true });
+  fs.writeFileSync(path.join(root, "scripts", "apply-policy.mjs"), "export const applyPolicy = 'atomic recovery';\n");
+  fs.writeFileSync(path.join(root, "tests", "apply-policy.test.mjs"), "// atomic recovery verification\n");
+
+  const preflight = runBusinessUniversePreflight({
+    projectRoot: root,
+    intent: "Complete atomic apply recovery behavior and verification",
+    taskKind: "code_behavior",
+  });
+
+  assert.ok(preflight.discovery_projection.inspected_roots.includes("scripts"));
+  assert.ok(preflight.discovery_projection.inspected_roots.includes("tests"));
+  assert.ok(preflight.discovery_projection.scan_segments.some((item) => item.root === "scripts" && item.status === "COMPLETE"));
+  assert.ok(preflight.discovery_projection.scan_segments.some((item) => item.root === "tests" && item.status === "COMPLETE"));
 });
 
 test("1.108 candidate output fails closed without exact Work Queue, semantic inspection, and Challenger closure", () => {
@@ -540,6 +816,14 @@ test("1.108 preserves every scenario through Business Rule, Impact, and Verifica
   assert.equal(businessRule.status, 0, `${businessRule.stdout}\n${businessRule.stderr}`);
   const businessRuleValue = evidence(path.join(root, "business-rule-closures/current.md"));
   assert.equal(businessRuleValue.state, "READY_FOR_IMPACT_COVERAGE");
+  assert.ok(
+    businessRuleValue.dimensions.every((item) => item.evidence_refs.includes("artifact:business-universe-coverage-reports/current.md")),
+    "Universe-routed rule dimensions must use current Universe evidence instead of an abstract human-decision placeholder",
+  );
+  assert.doesNotMatch(
+    businessRuleValue.dimensions.find((item) => item.dimension === "HUMAN_DECISION")?.summary || "",
+    /low-risk/i,
+  );
   assert.deepEqual(
     new Set(businessRuleValue.business_rule_scenario_mappings.flatMap((item) => item.source_coverage_scenario_ids)),
     new Set(universe.coverage_scenarios.map((item) => item.coverage_scenario_id)),
@@ -573,6 +857,64 @@ test("1.108 preserves every scenario through Business Rule, Impact, and Verifica
     "--require-business-rule-ready",
   ]);
   assert.equal(impactCheck.status, 0, `${impactCheck.stdout}\n${impactCheck.stderr}`);
+
+  const highRiskImpact = run("scripts/resolve-change-impact-coverage.mjs", [
+    root,
+    "--intent", intent,
+    "--business-rule-ref", "artifact:business-rule-closures/current.md",
+    "--changed-files", "prisma/schema.prisma,src/auth/permissions.ts,.github/workflows/release.yml",
+    "--out", "change-impact-coverage-reports/high-risk.md",
+  ]);
+  assert.equal(highRiskImpact.status, 0, `${highRiskImpact.stdout}\n${highRiskImpact.stderr}`);
+  const highRiskImpactValue = evidence(path.join(root, "change-impact-coverage-reports/high-risk.md"));
+  assert.equal(highRiskImpactValue.outcome, "CHANGE_IMPACT_RECORDED");
+  for (const surface of ["DATA_MODEL", "PERMISSION_RISK", "RELEASE_IMPACT"]) {
+    assert.equal(
+      highRiskImpactValue.affected_surface_map.find((item) => item.surface === surface)?.status,
+      "REQUIRED",
+      `${surface} must remain a Codex-owned verification obligation instead of a user technical decision`,
+    );
+  }
+  assert.equal(
+    highRiskImpactValue.affected_surface_map.some((item) => item.status === "NEEDS_HUMAN_DECISION"),
+    false,
+  );
+
+  const highRiskVerification = run("scripts/resolve-verification-plan.mjs", [
+    root,
+    "--intent", intent,
+    "--business-rule-ref", "artifact:business-rule-closures/current.md",
+    "--impact-ref", "artifact:change-impact-coverage-reports/high-risk.md",
+    "--change-kind", "REFACTOR",
+    "--out", "verification-plans/high-risk.md",
+  ]);
+  assert.equal(highRiskVerification.status, 0, `${highRiskVerification.stdout}\n${highRiskVerification.stderr}`);
+  const highRiskVerificationValue = evidence(path.join(root, "verification-plans/high-risk.md"));
+  for (const surface of ["DATA_MODEL", "PERMISSION_RISK", "RELEASE_IMPACT"]) {
+    const obligation = highRiskVerificationValue.verification_obligations.find((item) => item.source_surface === surface);
+    assert.ok(obligation, `${surface} must produce a verification obligation`);
+    assert.equal(obligation.owner, "codex", `${surface} technical verification must remain Codex-owned`);
+    assert.equal(obligation.decision_ref, "", `${surface} must not require a user technical decision`);
+  }
+  assert.equal(
+    highRiskVerificationValue.manual_verification.some((item) => /domain-owner|release-owner|verification-scope/i.test([
+      item.owner,
+      item.decision_ref,
+      item.expected_manual_evidence,
+    ].join(" "))),
+    false,
+    "technical risk verification must not be delegated to a domain or release owner",
+  );
+  const highRiskVerificationCheck = run("scripts/check-verification-plan.mjs", [
+    root,
+    "--report", "verification-plans/high-risk.md",
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+    "--require-evidence-authority",
+  ]);
+  assert.equal(highRiskVerificationCheck.status, 0, `${highRiskVerificationCheck.stdout}\n${highRiskVerificationCheck.stderr}`);
 
   const verification = run("scripts/resolve-verification-plan.mjs", [
     root,
@@ -652,7 +994,18 @@ test("1.108 preserves every scenario through Plan Review, Test Evidence, Executi
   assert.equal(governance.review_policy.review_level, expectedTier === "HIGH" ? "FULL" : "TARGETED");
   let universeCheck = strictUniverseCheck(root);
   assert.equal(universeCheck.status, 0, `Business Universe became stale before downstream planning:\n${universeCheck.stdout}\n${universeCheck.stderr}`);
-  const { verification } = generateVerificationChain(root);
+  let { verification } = generateVerificationChain(root);
+  const initialObligationIds = verification.verification_obligations
+    .filter((item) => item.required === "Yes")
+    .map((item) => item.id);
+  installExactObligationTest(root, verification);
+  refreshUniverseAuthority(root, universe);
+  ({ verification } = generateVerificationChain(root));
+  assert.deepEqual(
+    verification.verification_obligations.filter((item) => item.required === "Yes").map((item) => item.id),
+    initialObligationIds,
+    "installing exact tests must not alter the reviewed obligation set",
+  );
   universeCheck = strictUniverseCheck(root);
   assert.equal(universeCheck.status, 0, `Business Universe became stale after downstream evidence generation:\n${universeCheck.stdout}\n${universeCheck.stderr}`);
   fs.writeFileSync(path.join(root, "implementation-plans/current.md"), scenarioPlan(universe));
@@ -687,12 +1040,37 @@ test("1.108 preserves every scenario through Plan Review, Test Evidence, Executi
     "--require-structured-evidence",
   ]);
   assert.equal(planReviewCheck.status, 0, `${planReviewCheck.stdout}\n${planReviewCheck.stderr}`);
+  assert.equal(planReviewValue.plan_review_state, "PLAN_REVIEW_PASSED");
 
+  const planningClosure = run("scripts/resolve-planning-closure.mjs", [
+    root,
+    "--intent", intent,
+    "--task-ref", governance.task_ref,
+    "--intent-digest", governance.intent_digest,
+    "--entry-state", "READY_FOR_INTENTOS_OPERATION",
+    "--task-governance-report", "task-governance-reports/current.md",
+    "--business-universe-report", "business-universe-coverage-reports/current.md",
+    "--business-rule-report", "business-rule-closures/current.md",
+    "--impact-report", "change-impact-coverage-reports/current.md",
+    "--verification-plan-report", "verification-plans/current.md",
+    "--plan-review-report", "plan-review-reports/current.md",
+    "--out", "planning-closure-reports/current.md",
+  ]);
+  assert.equal(planningClosure.status, 0, `${planningClosure.stdout}\n${planningClosure.stderr}`);
+  const planningClosureCheck = run("scripts/check-planning-closure.mjs", [
+    root,
+    "--report", "planning-closure-reports/current.md",
+    "--require-ready",
+  ]);
+  assert.equal(planningClosureCheck.status, 0, `${planningClosureCheck.stdout}\n${planningClosureCheck.stderr}`);
+
+  const runtimeManifestRef = completeVerificationRuntime(root, governance, verification);
   const evidenceRefs = writeObligationEvidence(root, verification);
   const testEvidence = run("scripts/resolve-test-evidence.mjs", [
     root,
     "--intent", intent,
     "--verification-plan-ref", "artifact:verification-plans/current.md",
+    "--runtime-manifest-ref", runtimeManifestRef,
     "--evidence", evidenceRefs.join(","),
     "--out", "test-evidence-reports/current.md",
   ]);
@@ -757,12 +1135,38 @@ test("1.108 preserves every scenario through Plan Review, Test Evidence, Executi
     "--require-source-refs",
   ]);
   assert.equal(completionCheck.status, 0, `${completionCheck.stdout}\n${completionCheck.stderr}`);
+
+  assuranceValue.assurance_state = "VERIFIED_DONE";
+  assuranceValue.can_claim_done = "Yes";
+  assuranceValue.outcome = "VERIFIED_DONE";
+  assuranceValue.patch_assessment.state = "PATCH_SMELL";
+  assuranceValue.patch_assessment.reason = "Adversarial fixture keeps a blocking patch smell while self-reporting completion.";
+  rewriteEmbeddedEvidence(path.join(root, "execution-assurance-reports/current.md"), assuranceValue);
+  const adversarialCompletion = run("scripts/resolve-completion-evidence.mjs", [
+    root,
+    "--intent", intent,
+    "--task", governance.task_ref,
+    "--business-rule-ref", "artifact:business-rule-closures/current.md",
+    "--verification-plan-ref", "artifact:verification-plans/current.md",
+    "--test-evidence-ref", "artifact:test-evidence-reports/current.md",
+    "--execution-assurance-ref", "artifact:execution-assurance-reports/current.md",
+    "--out", "completion-evidence-reports/adversarial.md",
+  ]);
+  assert.equal(adversarialCompletion.status, 0, `${adversarialCompletion.stdout}\n${adversarialCompletion.stderr}`);
+  const adversarialValue = evidence(path.join(root, "completion-evidence-reports/adversarial.md"));
+  assert.notEqual(adversarialValue.completion_state, "COMPLETION_EVIDENCE_READY");
+  const assuranceGate = adversarialValue.gate_checks.find((item) => item.id === "check:execution_assurance");
+  assert.equal(assuranceGate.status, "FAIL");
+  assert.match(assuranceGate.reason, /authoritative Execution Assurance checker failed/i);
 });
 
 test("1.108 rejects a scenario removed from a downstream completion consumer", () => {
   const root = project();
-  const { governance } = prepareReadyUniverse(root);
-  const { verification } = generateVerificationChain(root);
+  const { governance, universe } = prepareReadyUniverse(root);
+  let { verification } = generateVerificationChain(root);
+  installExactObligationTest(root, verification);
+  refreshUniverseAuthority(root, universe);
+  ({ verification } = generateVerificationChain(root));
   const evidenceRefs = writeObligationEvidence(root, verification);
   run("scripts/resolve-test-evidence.mjs", [
     root, "--intent", intent,

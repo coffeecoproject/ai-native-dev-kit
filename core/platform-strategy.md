@@ -35,9 +35,8 @@ Learning
 
 1. 明确的项目文件和 task card
 2. 自动检查脚本和 CI
-3. PR template 和人工 review
+3. PR template 和 IntentOS/Codex review；真实外部影响仍使用具体同意记录
 4. AGENTS.md / rules / instructions
 5. Skill 或 prompt
 
 Skill 是软约束，CI 和 tests 是硬约束。
-

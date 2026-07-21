@@ -312,33 +312,33 @@ function choiceFor(adapterMode, classification) {
   if (adapterMode === "READ_ONLY_MAP") {
     return {
       choice: "A. Read-only map",
-      canAiContinueNow: "limited",
-      needFromHuman: "Confirm whether to keep this as guidance only or allow a later docs-only adapter.",
-      ifNothing: "No project files are changed; Codex should keep using read-only mapping before task work.",
+      canAiContinueNow: "yes",
+      needFromHuman: "No technical choice. Codex should map existing authority, compare rules, and prepare the bounded native-adoption path.",
+      ifNothing: "No project files are changed; Codex continues with read-only evidence and planning.",
     };
   }
   if (adapterMode === "DOCS_ONLY_BRIDGE") {
     return {
       choice: "B. Docs-only bridge",
-      canAiContinueNow: "limited",
-      needFromHuman: "Confirm whether Codex may draft an adapter doc before writing it into the project.",
-      ifNothing: "No project files are changed; Codex can still use this map as guidance.",
+      canAiContinueNow: "yes",
+      needFromHuman: "No technical choice. Codex should prepare the exact docs-only action and prove its boundary before controlled apply.",
+      ifNothing: "No project files are changed; Codex continues preparing bounded evidence.",
     };
   }
   if (adapterMode === "BLOCKED_NEEDS_OWNER") {
     return {
       choice: "D. Pause",
-      canAiContinueNow: "no",
+      canAiContinueNow: classification.projectState === "DIRTY_WORKTREE_PROJECT" ? "limited" : "no",
       needFromHuman: classification.projectState === "DIRTY_WORKTREE_PROJECT"
-        ? "Confirm how to handle the dirty worktree before adoption or task execution."
-        : "Confirm the project owner and safe adoption boundary.",
-      ifNothing: "Codex should not write workflow assets or start implementation.",
+        ? "No technical choice. Codex must attribute and protect existing changes; ask only if their business ownership cannot be inferred."
+        : "Provide a valid target path or unavailable project fact.",
+      ifNothing: "Codex does not write workflow assets until the target and existing work are attributable.",
     };
   }
   return {
     choice: "A. Read-only map",
-    canAiContinueNow: "no",
-    needFromHuman: "Confirm whether this target is an adoption target.",
+    canAiContinueNow: "yes",
+    needFromHuman: "No technical choice. Codex routes this target through the appropriate new-project or source-repository entry.",
     ifNothing: "No project files are changed.",
   };
 }
@@ -351,7 +351,7 @@ function nativeMigrationFor(adapterMode, classification) {
       posture: "FULL_MANAGED_INTENTOS_NATIVE",
       reason: "The target is not an old-project migration target.",
       writes: "No",
-      approvalNeeded: "Yes before any target-project writes",
+      approvalNeeded: "Controlled apply readiness; exact real-world consent only for an external effect",
     };
   }
   if (adapterMode === "BLOCKED_NEEDS_OWNER") {
@@ -363,7 +363,7 @@ function nativeMigrationFor(adapterMode, classification) {
         : "BLOCKED_NEEDS_OWNER",
       reason: "Native migration planning can record the block, but cannot write target files.",
       writes: "No",
-      approvalNeeded: "Yes before any target-project writes",
+      approvalNeeded: "Attribution and controlled apply readiness",
     };
   }
   if (classification.projectState === "EXISTING_PRODUCTION_PROJECT") {
@@ -373,7 +373,7 @@ function nativeMigrationFor(adapterMode, classification) {
       posture: "PRODUCTION_SAFE_NATIVE_OVERLAY",
       reason: "IntentOS can become the planning workflow while production controls remain external.",
       writes: "No",
-      approvalNeeded: "Yes before any governance replacement",
+      approvalNeeded: "Rule reconciliation, controlled apply readiness, and rollback evidence",
     };
   }
   if (classification.projectState === "EXISTING_GOVERNED_PROJECT") {
@@ -383,16 +383,16 @@ function nativeMigrationFor(adapterMode, classification) {
       posture: "NATIVE_FIRST_WITH_GOVERNANCE_CONFLICT_REVIEW",
       reason: "Existing governance should be classified rather than left in adapter-only limbo.",
       writes: "No",
-      approvalNeeded: "Yes before any governance replacement",
+      approvalNeeded: "Rule reconciliation, controlled apply readiness, and rollback evidence",
     };
   }
   return {
     nextStep: "Generate a Native Migration Plan for a light existing project.",
     command: "node scripts/cli.mjs native-migration <project>",
     posture: "NATIVE_FIRST_MIGRATION",
-    reason: "Light projects can use IntentOS-native planning after human confirmation.",
+    reason: "Light projects can use IntentOS-native planning after Codex proves the bounded migration path.",
     writes: "No",
-    approvalNeeded: "Yes before any target-project writes",
+    approvalNeeded: "Controlled apply readiness",
   };
 }
 
@@ -439,19 +439,19 @@ function recommendedWorkflowUse(classification) {
     || classification.projectState === "EXISTING_PRODUCTION_PROJECT"
     || classification.projectState === "DIRTY_WORKTREE_PROJECT";
   return [
-    workflowUse("New request or feature", "Request / Spec / Task Card", nowForGoverned ? "Yes" : "Later", "Use only after adapter boundary is clear.", "Yes"),
-    workflowUse("Risk or baseline choice", "Baseline Decision Card", "Yes", "Use before changing baseline, platform, or risk scope.", "Yes"),
+    workflowUse("New request or feature", "Request / Spec / Task Card", nowForGoverned ? "Yes" : "Later", "Use after Codex establishes the adapter boundary.", "No"),
+    workflowUse("Risk or baseline choice", "Baseline Decision Card", "Yes", "Codex derives and verifies platform, baseline, and risk scope.", "No"),
     workflowUse("Existing governance mapping", "Workflow Adoption Map", "Yes", "Use as the first old-project routing artifact.", "No"),
-    workflowUse("IntentOS adoption for old projects", "Native Migration Plan", "Yes", "Use after workflow-map when the user asks to adopt or configure IntentOS.", "Yes"),
-    workflowUse("Actual file-change boundary", "Change Boundary Report", "Yes", "Use before multi-file changes or when scope may drift.", "Yes"),
-    workflowUse("Complex repair", "Patch Classification", "Yes", "Use before non-trivial fixes, hardcuts, or remediation.", "Yes"),
+    workflowUse("IntentOS adoption for old projects", "Native Migration Plan", "Yes", "Use after workflow-map when adoption intent is present.", "No"),
+    workflowUse("Actual file-change boundary", "Change Boundary Report", "Yes", "Use before multi-file changes or when scope may drift.", "No"),
+    workflowUse("Complex repair", "Patch Classification", "Yes", "Use before non-trivial fixes, hardcuts, or remediation.", "No"),
     workflowUse("Completion review", "Review Loop", "Yes", "Use after task completion, not after every small edit.", "No"),
-    workflowUse("Delivery / handoff", "Safe Launch / Launch Readiness", "Later", "Use when demo, handoff, staging, or release is claimed.", "Yes"),
+    workflowUse("Delivery / handoff", "Safe Launch / Launch Readiness", "Later", "Use when demo, handoff, staging, or release is claimed; request consent only for the prepared external action.", "Only exact real-world consent"),
     workflowUse("Scope drift", "Conversation Turn / Scope Change Report", "Yes", "Use when the user switches tasks or asks a new direction.", "No"),
     workflowUse("Context correction", "Context Governance", "Yes", "Use when Codex detects stale or wrong context.", "No"),
-    workflowUse("Interrupted or long-running work", "Work queue / pause report when available", "Later", "Recommended later; do not invent hidden continuation.", "Yes"),
-    workflowUse("Stale or conflicting docs", "Doc lifecycle report when available", "Later", "Recommended later; do not delete docs by default.", "Yes"),
-    workflowUse("Hook / CI changes", "Hook orchestration plan when available", "Later", "Recommended later; never install hooks from this map.", "Yes"),
+    workflowUse("Interrupted or long-running work", "Work queue / pause report when available", "Later", "Recommended later; do not invent hidden continuation.", "No"),
+    workflowUse("Stale or conflicting docs", "Doc lifecycle report when available", "Later", "Recommended later; do not delete docs by default.", "No"),
+    workflowUse("Hook / CI changes", "Hook orchestration plan when available", "Later", "Recommended later; hook changes require an internal plan and proof, not a user technical choice.", "Only exact external effect consent"),
   ];
 }
 
@@ -466,7 +466,7 @@ function reuseList(signals, classification) {
   if (signals.ciGates.length > 0) items.push(`Existing CI / gates: ${signals.ciGates.slice(0, 5).join(", ")}`);
   if (signals.releaseRollback.length > 0) items.push(`Existing release / rollback process: ${signals.releaseRollback.slice(0, 5).join(", ")}`);
   if (signals.reviewEvidence.length > 0) items.push(`Existing review / evidence process: ${signals.reviewEvidence.slice(0, 5).join(", ")}`);
-  if (items.length === 0) items.push("No strong workflow authority detected; keep project files unchanged until the human confirms adoption intent.");
+  if (items.length === 0) items.push("No strong workflow authority detected; Codex should prepare the bounded native-adoption path without changing project files.");
   if (classification.projectState === "EXISTING_PRODUCTION_PROJECT") {
     items.push("Production or release process stays authoritative; IntentOS can only map to it.");
   }
@@ -477,20 +477,20 @@ function additionsFor(adapterMode) {
   if (adapterMode === "READ_ONLY_MAP") {
     return [
       addition("Workflow Adoption Map report", "Record how IntentOS should route future work.", "No", "No", "Recommended"),
-      addition("Native Migration Plan", "Move from adapter mapping into IntentOS-native planning after the user asks to adopt.", "No", "Yes", "Recommended"),
-      addition("Docs-only bridge", "Optional shared adapter document after review.", "Docs only", "Yes", "Later"),
+      addition("Native Migration Plan", "Move from adapter mapping into IntentOS-native planning when adoption intent is present.", "No", "Internal gates", "Recommended"),
+      addition("Docs-only bridge", "Optional shared adapter document after evidence review.", "Docs only", "Internal gates", "Later"),
     ];
   }
   if (adapterMode === "DOCS_ONLY_BRIDGE") {
     return [
       addition("Workflow Adoption Map report", "Record current workflow and routing.", "No", "No", "Recommended"),
-      addition("Native Migration Plan", "Classify old rules and plan IntentOS-native adoption.", "No", "Yes", "Recommended"),
-      addition("Docs-only bridge", "Add an approved adapter doc without changing gates or code.", "Docs only", "Yes", "Candidate"),
+      addition("Native Migration Plan", "Classify old rules and plan IntentOS-native adoption.", "No", "Internal gates", "Recommended"),
+      addition("Docs-only bridge", "Add a bounded adapter doc without changing gates or code.", "Docs only", "Internal gates", "Candidate"),
     ];
   }
   return [
     addition("Workflow Adoption Map report", "Record safe boundary only.", "No", "No", "Recommended"),
-    addition("Native Migration Plan", "Record blocked native migration posture without writing target files.", "No", "Yes", "Later"),
+    addition("Native Migration Plan", "Record blocked native migration posture without writing target files.", "No", "Internal gates", "Later"),
   ];
 }
 
@@ -500,8 +500,8 @@ function addition(name, why, writes, approvalNeeded, status) {
 
 function forbiddenTouchList(classification) {
   const base = [
-    "Existing agent rules unless separately approved.",
-    "Existing PR templates, CI workflows, hooks, and release gates unless separately approved.",
+    "Existing agent rules until rule reconciliation, bounded apply readiness, and rollback evidence prove a safe replacement.",
+    "Existing PR templates, CI workflows, hooks, and release gates until an exact controlled apply proves a safe replacement.",
     "Business code, production config, data, migrations, secrets, permissions, payment, finance, tax, HR, security, privacy, or compliance surfaces.",
     "Release evidence, audit evidence, historical session records, and signed-off reports.",
   ];
@@ -514,7 +514,7 @@ function forbiddenTouchList(classification) {
 function conflictsFor(signals) {
   const conflicts = [];
   if (signals.agentRules.length > 0) {
-    conflicts.push(conflict("Agent rules", "IntentOS AGENTS/governance appendix", "possible", "Keep existing authority; add adapter only after owner approval."));
+    conflicts.push(conflict("Agent rules", "IntentOS AGENTS/governance appendix", "possible", "Compare rule by rule, preserve the stronger valid rule, and change only through controlled apply."));
   }
   if (signals.ciGates.length > 0) {
     conflicts.push(conflict("CI / gates", "IntentOS workflow checks", "possible", "Map first; do not add blocking gates from this report."));
@@ -526,7 +526,7 @@ function conflictsFor(signals) {
     conflicts.push(conflict("Release / rollback", "Safe Launch / Launch Readiness", "possible", "Use launch readiness as evidence wrapper, not release approval."));
   }
   if (conflicts.length === 0) {
-    conflicts.push(conflict("No strong duplicate detected", "IntentOS workflow", "none", "Keep read-only until adoption intent is confirmed."));
+    conflicts.push(conflict("No strong duplicate detected", "IntentOS workflow", "none", "Prepare the bounded native-adoption path; keep writes gated by controlled apply readiness."));
   }
   return conflicts;
 }
@@ -537,16 +537,16 @@ function conflict(existingAsset, overlap, conflictLevel, handling) {
 
 function adapterPlan(adapterMode, classification) {
   const steps = [
-    planStep(1, "Keep existing workflow authoritative", "No", "No", "PROPOSED"),
+    planStep(1, "Map existing workflow authority and compare it with IntentOS", "No", "No", "PROPOSED"),
     planStep(2, "Use workflow-map before recommending old-project writes", "No", "No", "PROPOSED"),
-    planStep(3, "If user wants IntentOS adoption, generate Native Migration Plan", "No", "Yes", "PROPOSED"),
+    planStep(3, "When adoption intent is present, generate Native Migration Plan", "No", "No", "PROPOSED"),
   ];
   if (adapterMode === "DOCS_ONLY_BRIDGE") {
-    steps.push(planStep(4, "Draft docs-only bridge after review", "Docs only", "Yes", "PENDING"));
+    steps.push(planStep(4, "Draft docs-only bridge after internal evidence review", "Docs only", "No", "PENDING"));
   } else if (adapterMode === "READ_ONLY_MAP") {
-    steps.push(planStep(4, "Prepare docs-only bridge only if approved later", "Docs only", "Yes", "PENDING"));
+    steps.push(planStep(4, "Prepare docs-only bridge only after controlled readiness", "Docs only", "No", "PENDING"));
   } else if (classification.projectState === "DIRTY_WORKTREE_PROJECT") {
-    steps.push(planStep(4, "Resolve dirty worktree boundary before adoption", "No", "Yes", "BLOCKED"));
+    steps.push(planStep(4, "Attribute and protect dirty-worktree changes before adoption", "No", "No", "BLOCKED"));
   }
   return steps;
 }
@@ -557,11 +557,11 @@ function planStep(step, action, writesTargetFiles, requiresHumanApproval, status
 
 function humanDecisions(adapterMode, classification) {
   return [
-    decision("Adapter mode", "READ_ONLY_MAP / DOCS_ONLY_BRIDGE / THIN_OPERATIONAL_BRIDGE / BLOCKED_NEEDS_OWNER", adapterMode, "human", adapterMode === "BLOCKED_NEEDS_OWNER" ? "NEEDED_NOW" : "PENDING"),
-    decision("Write scope", "none / docs-only / approved assets", "none", "human", "PENDING"),
-    decision("Public evidence", "LOCAL_ONLY / SANITIZED_APPROVED / PUBLIC_APPROVED", "LOCAL_ONLY", "human", "PENDING"),
+    decision("Adapter mode", "READ_ONLY_MAP / DOCS_ONLY_BRIDGE / THIN_OPERATIONAL_BRIDGE / BLOCKED_NEEDS_OWNER", adapterMode, "Codex", "RESOLVED_FROM_PROJECT_EVIDENCE"),
+    decision("Write scope", "none / docs-only / controlled assets", "none until controlled readiness", "Codex", "NO_USER_ACTION"),
+    decision("Public evidence", "LOCAL_ONLY / SANITIZED / PUBLIC", "LOCAL_ONLY", "User only at actual publication", "REAL_WORLD_CONSENT_NEEDED_LATER"),
     ...(classification.projectState === "DIRTY_WORKTREE_PROJECT"
-      ? [decision("Dirty worktree handling", "commit / stash / ignore with explicit scope / stop", "stop", "human", "NEEDED_NOW")]
+      ? [decision("Dirty worktree handling", "attribute / preserve / isolate / stop", "attribute and preserve", "Codex", "TECHNICAL_REVIEW_REQUIRED")]
       : []),
   ];
 }
@@ -572,14 +572,14 @@ function decision(name, options, recommended, owner, status) {
 
 function outcomeFor(adapterMode) {
   if (adapterMode === "BLOCKED_NEEDS_OWNER") return "BLOCKED";
-  if (adapterMode === "NOT_APPLICABLE") return "NEEDS_HUMAN_DECISION";
+  if (adapterMode === "NOT_APPLICABLE") return "WORKFLOW_MAP_RECORDED";
   return "WORKFLOW_MAP_RECORDED";
 }
 
 function printHuman(report) {
   console.log("# Workflow Adoption Map Recommendation");
   console.log("");
-  console.log("## Human Decision Summary");
+  console.log("## Compatibility Decision Summary");
   console.log("");
   console.log(`Conclusion: ${report.humanDecisionSummary.conclusion}`);
   console.log("");
@@ -587,7 +587,7 @@ function printHuman(report) {
   console.log("");
   console.log(`Can AI continue now: ${report.humanDecisionSummary.canAiContinueNow}`);
   console.log("");
-  console.log(`What I need from you: ${report.humanDecisionSummary.needFromHuman}`);
+  console.log(`User input boundary: ${report.humanDecisionSummary.needFromHuman}`);
   console.log("");
   console.log(`What happens if you do nothing: ${report.humanDecisionSummary.ifNothing}`);
   console.log("");
@@ -614,7 +614,7 @@ function printHuman(report) {
   console.log("");
   console.log("## Recommended IntentOS Workflow Use");
   console.log("");
-  console.log("| Situation | Recommended workflow | Use now? | How to connect | Human decision needed |");
+  console.log("| Situation | Recommended workflow | Use now? | How to connect | User input needed |");
   console.log("|---|---|---|---|---|");
   for (const item of report.recommendedIntentOSWorkflowUse) {
     console.log(`| ${item.situation} | ${item.workflow} | ${item.useNow} | ${item.howToConnect} | ${item.humanDecisionNeeded} |`);
@@ -663,7 +663,7 @@ function printHuman(report) {
     console.log(`| ${item.step} | ${item.action} | ${item.writesTargetFiles} | ${item.requiresHumanApproval} | ${item.status} |`);
   }
   console.log("");
-  console.log("## Human Decisions Needed");
+  console.log("## Classified Inputs And Internal Decisions");
   console.log("");
   console.log("| Decision | Options | Recommended | Owner | Status |");
   console.log("|---|---|---|---|---|");

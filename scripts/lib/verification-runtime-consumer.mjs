@@ -9,6 +9,29 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const checkerPath = path.resolve(__dirname, "..", "check-verification-run-manifest.mjs");
 const bindingChecker = "scripts/check-verification-run-manifest.mjs --require-complete";
 
+export function verificationPlanRequiresRuntimeTrust(plan) {
+  if (!plan || typeof plan !== "object" || Array.isArray(plan)) return false;
+  const affectedSurfaces = Array.isArray(plan.affected_surfaces) ? plan.affected_surfaces : [];
+  if (affectedSurfaces.some((item) => (
+    item?.surface === "RUNTIME_BEHAVIOR"
+    && item?.status === "REQUIRED"
+  ))) return true;
+  const obligations = Array.isArray(plan.verification_obligations) ? plan.verification_obligations : [];
+  if (obligations.some((item) => (
+    item?.required === "Yes"
+    && (item?.source_surface === "RUNTIME_BEHAVIOR"
+      || item?.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF")
+  ))) return true;
+  if (plan.project_level === "BL2") return true;
+  if (plan.business_universe_binding?.required === "Yes") return true;
+  return (plan.risk_domains || []).some((item) => [
+    "high-risk-domain",
+    "permission",
+    "security-or-privacy",
+    "release",
+  ].includes(String(item || "").toLowerCase()));
+}
+
 export function resolveRuntimeTrustBinding(projectRoot, options = {}) {
   if (options.required === false) {
     return notRequiredBinding(options.notRequiredReason);
@@ -20,11 +43,19 @@ export function resolveRuntimeTrustBinding(projectRoot, options = {}) {
   }
 
   const failures = [];
+  const matches = [];
   for (const candidate of candidates) {
     const checked = checkCandidate(root, candidate, options);
-    if (checked.ok) return checked;
-    failures.push(checked.binding.reason);
-    if (options.manifestRef) break;
+    if (checked.ok) {
+      if (options.manifestRef) return checked;
+      matches.push(checked);
+    } else {
+      failures.push(checked.binding.reason);
+    }
+  }
+  if (matches.length === 1) return matches[0];
+  if (matches.length > 1) {
+    return blockedBinding("Multiple current Verification Run Manifests match this task and intent; the consumer must bind one explicit manifest reference.");
   }
   return blockedBinding(failures[0] || "No current Verification Run Manifest passed Runtime Trust authority checks.");
 }
@@ -44,7 +75,14 @@ export function validateRuntimeTrustBinding(projectRoot, binding, options = {}) 
   for (const key of runtimeIdentityKeys()) {
     if (binding[key] !== expected[key]) errors.push(`runtime_trust_binding.${key} does not match the authoritative current run`);
   }
-  return { ok: errors.length === 0, errors, binding: expected, manifest: resolved.manifest, file: resolved.file };
+  return {
+    ok: errors.length === 0,
+    errors,
+    binding: expected,
+    manifest: resolved.manifest,
+    lifecyclePlan: resolved.lifecyclePlan,
+    file: resolved.file,
+  };
 }
 
 export function runtimeTrustBindingErrors(binding, options = {}) {
@@ -139,14 +177,15 @@ function notRequiredBinding(reason) {
   };
 }
 
-export function runtimeEvidenceItems(manifest) {
+export function runtimeEvidenceItems(manifest, lifecyclePlan = null) {
   if (!manifest || !Array.isArray(manifest.verification_executions)) return [];
+  const actions = new Map((lifecyclePlan?.actions || []).map((action) => [action.id, action]));
   return manifest.verification_executions.map((execution) => ({
     id: `runtime:${execution.id}`,
     evidence_type: "COMMAND_OUTPUT",
     result_state: execution.result,
     ref: asArtifactRef(execution.output_ref),
-    command: `runtime-command-digest:${execution.command_digest}`,
+    command: runtimeEvidenceCommand(execution, actions.get(execution.id)),
     owner: "IntentOS bounded verification runtime",
     environment: manifest.runtime_trust_level,
     ran_at: execution.finished_at,
@@ -208,10 +247,13 @@ function checkCandidate(root, candidate, options) {
   if (manifest.schema_version !== "1.103.0") return blockedBinding("Strict Runtime Trust consumption requires Verification Run Manifest schema 1.103.0.");
   const mismatches = manifestMismatches(manifest, options);
   if (mismatches.length > 0) return blockedBinding(mismatches[0]);
+  const lifecyclePlan = loadLifecyclePlan(root, resolved.file, manifest);
+  if (!lifecyclePlan.ok) return blockedBinding(lifecyclePlan.error);
   return {
     ok: true,
     file: resolved.file,
     manifest,
+    lifecyclePlan: lifecyclePlan.value,
     binding: {
       requirement: "REQUIRED",
       status: "VERIFIED",
@@ -237,6 +279,36 @@ function checkCandidate(root, candidate, options) {
   };
 }
 
+function loadLifecyclePlan(root, manifestFile, manifest) {
+  const resolved = resolveAuthoritativeEvidenceReference(root, manifestFile, manifest.lifecycle_plan_ref, { markdownOnly: true });
+  if (!resolved.ok) return { ok: false, error: `Verification Runtime Lifecycle Plan is unsafe or unresolved: ${resolved.error}` };
+  const checked = validateEvidenceBlock(
+    fs.readFileSync(resolved.file, "utf8"),
+    loadSchema(root, "schemas/artifacts/verification-runtime-lifecycle-plan.schema.json"),
+    "Verification Runtime Lifecycle Plan",
+    { require: true, digestField: "lifecycle_plan_digest" },
+  );
+  if (!checked.ok) return { ok: false, error: checked.errors[0] || "Verification Runtime Lifecycle Plan structured evidence is invalid." };
+  if (checked.value.lifecycle_plan_digest !== manifest.lifecycle_plan_digest) {
+    return { ok: false, error: "Verification Runtime Lifecycle Plan digest does not match the current run manifest." };
+  }
+  return { ok: true, value: checked.value };
+}
+
+function runtimeEvidenceCommand(execution, action) {
+  if (!action || !Array.isArray(action.argv) || action.argv.length === 0) {
+    return `runtime-command-digest:${execution.command_digest}`;
+  }
+  return action.argv.map(commandToken).join(" ");
+}
+
+function commandToken(value) {
+  const token = String(value || "");
+  return /^[A-Za-z0-9_./:@%+=,-]+$/.test(token)
+    ? token
+    : JSON.stringify(token);
+}
+
 function runtimeManifestCandidates(root, explicitRef) {
   if (explicitRef) return [{ ref: String(explicitRef) }];
   const files = [];
@@ -247,11 +319,10 @@ function runtimeManifestCandidates(root, explicitRef) {
       const file = path.join(dir, entry.name);
       files.push({
         ref: `artifact:${path.relative(root, file).split(path.sep).join("/")}`,
-        mtimeMs: fs.statSync(file).mtimeMs,
       });
     }
   }
-  return files.sort((a, b) => b.mtimeMs - a.mtimeMs || b.ref.localeCompare(a.ref));
+  return files.sort((a, b) => a.ref.localeCompare(b.ref));
 }
 
 function manifestMismatches(manifest, options) {

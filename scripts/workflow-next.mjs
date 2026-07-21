@@ -17,6 +17,7 @@ import {
   walkRelativePaths as walkRelativePathsForRoot,
 } from "./lib/project-signals.mjs";
 import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
+import { resolvePlatformBaseline } from "./resolve-platform-baseline.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -461,7 +462,8 @@ function governanceSignals() {
     .slice(0, 50)
     .sort();
   const productionSignals = unique([...directProductionSignals, ...pathSignals]);
-  const git = gitWorktreeState(projectRoot);
+  const rawGit = gitWorktreeState(projectRoot);
+  const git = activationScopedGitState(rawGit);
   const hasAgentRules = ["AGENTS.md", "agent.md", ".agent.md"].some((rel) => basicSignals.includes(rel));
   const hasCi = basicSignals.includes(".github/workflows");
   const hasGuard = basicSignals.some((rel) => rel.startsWith("scripts/"));
@@ -482,6 +484,30 @@ function governanceSignals() {
     isGovernedExisting,
     isProductionGoverned,
     isDirtyWorktree: git.isDirty,
+  };
+}
+
+function activationScopedGitState(git) {
+  const allowed = new Set((initialEntryTrust?.project_identity?.temporary_activation_paths || [])
+    .map((value) => String(value || "").replaceAll("\\", "/"))
+    .filter(Boolean));
+  const changedPaths = Array.isArray(git.changedPaths) ? git.changedPaths : [];
+  if (git.observationStatus !== "CURRENT" || allowed.size === 0 || changedPaths.length === 0) {
+    return {
+      ...git,
+      transactionOwnedChangedPaths: [],
+      unownedChangedPaths: changedPaths,
+    };
+  }
+  const transactionOwnedChangedPaths = changedPaths.filter((item) => allowed.has(item));
+  const unownedChangedPaths = changedPaths.filter((item) => !allowed.has(item));
+  return {
+    ...git,
+    isDirty: unownedChangedPaths.length > 0,
+    changedFileCount: unownedChangedPaths.length,
+    changedFilesSample: unownedChangedPaths.slice(0, 12),
+    transactionOwnedChangedPaths,
+    unownedChangedPaths,
   };
 }
 
@@ -689,9 +715,6 @@ function industrialBaselineState() {
   if (missingProjectDocs.length > 0) {
     return { ...base, state: "EVIDENCE_MISSING", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks, missingProjectDocs };
   }
-  if (humanApprovalStatus !== "APPROVED") {
-    return { ...base, state: "NEEDS_HUMAN_APPROVAL", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks, missingProjectDocs };
-  }
   const strictIndustrial = spawnSync(process.execPath, [
     path.join(__dirname, "check-industrial-baseline.mjs"),
     projectRoot,
@@ -717,27 +740,28 @@ function firstUsefulLine(value) {
 }
 
 function platformBaselineState() {
-  if (!exists("docs/project-profile.md")) {
-    return { state: "MISSING_PROFILE", selectedProfiles: [], missingProfiles: [], missingRequiredDocs: [] };
+  try {
+    const resolved = resolvePlatformBaseline(projectRoot);
+    return {
+      state: resolved.strictState,
+      selectedProfiles: resolved.selectedProfiles,
+      missingProfiles: resolved.missingProfiles.map((item) => item.profileId),
+      missingRequiredDocs: resolved.missingRequiredDocs,
+      incompatibleStarters: resolved.incompatibleStarters,
+      environmentBaseline: resolved.environmentBaseline,
+      blockingReasons: resolved.strictStatus.blockingReasons,
+    };
+  } catch (error) {
+    return {
+      state: "BASELINE_RESOLUTION_FAILED",
+      selectedProfiles: [],
+      missingProfiles: [],
+      missingRequiredDocs: [],
+      incompatibleStarters: [],
+      environmentBaseline: null,
+      blockingReasons: [error.message],
+    };
   }
-  const selected = selectedProfiles();
-  if (selected.length === 0) {
-    return { state: "MISSING_PROFILE", selectedProfiles: [], missingProfiles: [], missingRequiredDocs: [] };
-  }
-  const missingProfiles = selected.filter((profileId) => !exists(path.join(".intentos", "profiles", profileId, "baseline.json")));
-  if (missingProfiles.length > 0) {
-    return { state: "PROFILE_INVALID", selectedProfiles: selected, missingProfiles, missingRequiredDocs: [] };
-  }
-  const requiredDocs = new Set();
-  for (const profileId of selected) {
-    const baseline = readJson(path.join(".intentos", "profiles", profileId, "baseline.json"));
-    for (const rel of baseline?.requiredDocs || []) requiredDocs.add(rel);
-  }
-  const missingRequiredDocs = [...requiredDocs].filter((rel) => !exists(rel)).sort();
-  if (missingRequiredDocs.length > 0) {
-    return { state: "BASELINE_DOCS_MISSING", selectedProfiles: selected, missingProfiles: [], missingRequiredDocs };
-  }
-  return { state: "BASELINE_READY", selectedProfiles: selected, missingProfiles: [], missingRequiredDocs: [] };
 }
 
 function workflowArtifactCount() {
@@ -945,7 +969,7 @@ function buildResult() {
     "PACKS_NOT_AVAILABLE",
     "PACKS_INCOMPATIBLE",
     "EVIDENCE_MISSING",
-    "NEEDS_HUMAN_APPROVAL",
+    "EVIDENCE_INVALID",
   ].includes(industrialBaseline.state)) {
     nextAction = "RUN_INDUSTRIAL_BASELINE_SETUP";
   } else if (artifactCount === 0) {
@@ -991,6 +1015,8 @@ function buildResult() {
   if (platformBaseline.state === "MISSING_PROFILE") notes.push("Project profile has not selected platform profiles.");
   if (platformBaseline.state === "PROFILE_INVALID") notes.push(`${platformBaseline.missingProfiles.length} selected platform profile(s) are missing.`);
   if (platformBaseline.state === "BASELINE_DOCS_MISSING") notes.push(`${platformBaseline.missingRequiredDocs.length} platform baseline doc(s) are missing.`);
+  if (platformBaseline.state === "ENVIRONMENT_BASELINE_INCOMPLETE") notes.push("The selected platform baseline is incomplete because its environment baseline did not pass strict validation.");
+  if (platformBaseline.state === "BASELINE_RESOLUTION_FAILED") notes.push(`Platform baseline resolution failed: ${platformBaseline.blockingReasons.join("; ")}.`);
   if (platformBaseline.selectedProfiles.length > 0) notes.push(`Selected platform profiles: ${platformBaseline.selectedProfiles.join(", ")}.`);
   if (industrialBaseline.baselineLevel) notes.push(`Selected baseline level: ${industrialBaseline.baselineLevel}.`);
   if (industrialBaseline.selectedIndustrialPacks.length > 0) notes.push(`Selected industrial packs: ${industrialBaseline.selectedIndustrialPacks.join(", ")}.`);
@@ -1001,7 +1027,8 @@ function buildResult() {
   if (industrialBaseline.state === "PACKS_NOT_AVAILABLE") notes.push("One or more selected industrial packs are planned but not executable yet.");
   if (industrialBaseline.state === "PACKS_INCOMPATIBLE") notes.push("One or more selected industrial packs do not match selected platform profiles.");
   if (industrialBaseline.state === "EVIDENCE_MISSING") notes.push(`${industrialBaseline.missingProjectDocs.length} BL2 project evidence doc(s) are missing.`);
-  if (industrialBaseline.state === "NEEDS_HUMAN_APPROVAL") notes.push("BL2 compatibility approval is present as a legacy state, but current activation still requires evidence, compatibility, and internal baseline gates.");
+  if (industrialBaseline.state === "EVIDENCE_INVALID") notes.push(`BL2 evidence failed strict validation: ${industrialBaseline.strictEvidenceError}.`);
+  if (industrialBaseline.humanApprovalStatus) notes.push("BL2 compatibility approval metadata is retained for old records but does not control technical baseline selection.");
   if (artifactCount > 0) notes.push(`${artifactCount} workflow artifact file(s) exist.`);
   if (!nativeNewProject && signals.isGovernedExisting) notes.push(`${signals.basicSignals.length} existing governance signal(s) detected.`);
   if (signals.isProductionGoverned) notes.push(`${signals.productionSignals.length} production governance signal(s) detected.`);
@@ -1036,7 +1063,7 @@ function buildResult() {
     canWriteWorkflowAssets: ["RUN_ADOPTION_ASSESSMENT", "REVIEW_DIRTY_WORKTREE"].includes(nextAction)
       ? "no"
       : ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction) ? "yes_with_execution_intent" : "not_without_more_input",
-    mustStopForHuman: humanStopActions.has(nextAction) || pendingReports.length > 0 || industrialBaseline.state === "NEEDS_HUMAN_APPROVAL" ? "yes" : "no",
+    mustStopForHuman: humanStopActions.has(nextAction) || pendingReports.length > 0 ? "yes" : "no",
     pendingMigrationReports: pendingReports,
     missingWorkflowAssets,
     missingAgentSections: agentMissing,
@@ -1071,10 +1098,10 @@ if (outputJson) {
 }
 
 if (enforce && enforceFailures.length > 0) {
-  process.exit(2);
+  process.exitCode = 2;
 }
 if (result.projectEntryTrust?.entry_state === "BLOCKED_REPAIR_REQUIRED") {
-  process.exit(2);
+  process.exitCode = 2;
 }
 
 function resolveInitialProjectEntryTrust() {

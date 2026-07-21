@@ -13,10 +13,11 @@ test("Operating Model consumes ready Planning Closure before implementation revi
   try {
     const initialized = run("scripts/init-project.mjs", [
       "--target", projectRoot,
-      "--starter", "generic-project",
-      "--goal", "create a bounded test project",
+      "--starter", "codex-web-app",
+      "--goal", "create a bounded local web project",
     ]);
     assert.equal(initialized.status, 0, combined(initialized));
+    confirmGeneratedOnboarding(projectRoot);
 
     const governanceRef = "task-governance-reports/current.md";
     const governance = run("scripts/resolve-task-governance.mjs", [
@@ -61,6 +62,54 @@ test("Operating Model consumes ready Planning Closure before implementation revi
     fs.rmSync(projectRoot, { recursive: true, force: true });
   }
 });
+
+test("Execution Assurance fails closed when Planning Closure authority is missing", () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-execution-planning-"));
+  try {
+    const result = run("scripts/resolve-execution-assurance.mjs", [
+      projectRoot,
+      "--intent", intent,
+      "--task", "task:missing-planning-closure",
+      "--json",
+    ]);
+    assert.equal(result.status, 0, combined(result));
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.structuredEvidence.planning_closure_binding.requirement, "REQUIRED");
+    assert.equal(report.structuredEvidence.planning_closure_binding.status, "BLOCKED");
+    assert.notEqual(report.outcome, "VERIFIED_DONE");
+    assert.equal(report.structuredEvidence.can_claim_done, "No");
+  } finally {
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  }
+});
+
+function confirmGeneratedOnboarding(projectRoot) {
+  for (const name of [
+    "project-onboarding.md",
+    "project-profile.md",
+    "tech-stack-strategy.md",
+    "business-spec-index.md",
+    "sample-policy.md",
+    "onboarding-decisions.md",
+  ]) {
+    const file = path.join(projectRoot, "docs", name);
+    const content = fs.readFileSync(file, "utf8")
+      .replace(/<[^>\n]+>/g, "fixture-confirmed")
+      .replace(/PENDING_CONFIRMATION|NOT_READY|PENDING\b|TBD|TODO/g, "CONFIRMED");
+    fs.writeFileSync(file, content);
+  }
+  for (const name of ["baseline-selection.md", "baseline-evidence.md"]) {
+    const file = path.join(projectRoot, "docs", name);
+    const content = fs.readFileSync(file, "utf8")
+      .replace(/PENDING_EVIDENCE|EVIDENCE_PENDING/g, "VERIFIED");
+    fs.writeFileSync(file, content);
+  }
+  const environment = path.join(projectRoot, "docs/environment-baseline.md");
+  fs.writeFileSync(
+    environment,
+    fs.readFileSync(environment, "utf8").replace(/PENDING_CONFIRMATION/g, "CONFIRMED"),
+  );
+}
 
 function workQueue(taskRef, intentDigest) {
   return `# Work Queue\n\n## Work Items\n\n| Task ID | Title | State | Task Ref | Intent Digest | Evidence | Resume Review | Notes |\n|---|---|---|---|---|---|---|---|\n| TASK-001 | ${intent} | CURRENT | ${taskRef} | ${intentDigest} | current Task Governance | N/A | bounded fixture |\n`;

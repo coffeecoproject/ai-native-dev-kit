@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "kind": "INTENTOS_BL2_DISPOSITION",
+  "requirementId": "bl2:web-app-industrial:dependency-change:dependency-rationale-and-vulnerability-review",
+  "packId": "web-app-industrial",
+  "evidenceType": "dependency-change",
+  "requirement": "dependency rationale and vulnerability review",
+  "disposition": "NOT_APPLICABLE",
+  "selectedProfiles": [
+    "web-app"
+  ],
+  "scope": "The selected browser slice changes only existing read-only flow behavior and introduces no package dependency.",
+  "basis": "The current project specification explicitly excludes dependency additions, so there is no new dependency rationale or vulnerability review scope in this slice.",
+  "projectEvidence": [
+    {
+      "path": "specs/001-web-runtime-quality.md",
+      "sha256": "sha256:e88a50e2e761b68afc1a78fc3a53efa030c89222f13388caeec5ed16b96e783f",
+      "claim": "The current specification lists dependency addition as a non-goal and requires only existing project capabilities."
+    }
+  ],
+  "reviewTriggers": [
+    "PROFILE_CHANGE",
+    "PROJECT_SCOPE_CHANGE",
+    "REQUIREMENT_CHANGE",
+    "PROJECT_EVIDENCE_CHANGE"
+  ],
+  "determinedBy": "CODEX_PROJECT_EVIDENCE"
+}

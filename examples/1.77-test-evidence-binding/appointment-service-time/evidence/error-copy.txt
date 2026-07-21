@@ -1,0 +1,22 @@
+id: evidence:error-copy
+evidence_type: COMMAND_OUTPUT
+result_state: PASSED
+command: node --test --test-name-pattern "verify:error-copy-error-copy-check-blocked-users-receive-clear-bounded-" tests/appointment-service-time.test.mjs
+owner: automated-test-command
+environment: node-v23.11.0
+ran_at: 2026-07-19T00:03:32.630Z
+exit_code: 0
+failure_reason: N/A
+ran_after_change: Yes
+current_task_match: Yes
+covers_obligations: verify:error-copy-error-copy-check-blocked-users-receive-clear-bounded-
+limitations: Bounded validation-copy evidence; localization is outside this example.
+✔ [verify:error-copy-error-copy-check-blocked-users-receive-clear-bounded-] tests/appointment-service-time.test.mjs :: blocked submission receives bounded error copy (0.456917ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.824

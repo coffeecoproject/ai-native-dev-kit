@@ -14,6 +14,7 @@ What I need from you: Confirm whether this affects persisted state.
 |---|---|
 | Decision | `BLOCKED` |
 | Task ref | `task:possibly-change-list-filter-rule-may-touch-data-state` |
+| Intent digest | `sha256:41246c09558f1a6323e99c08aa7d1208c05ab25bae9d104e00a6a7e91e755e1a` |
 | Can count as done | No |
 | Plain reason | Impact is not clear enough to close this task. |
 | Final closure source | `UNIFIED_CLOSURE_DECISION` |

@@ -103,13 +103,12 @@
     ]
   },
   "humanApprovalRequiredFor": [
-    "auth",
-    "permission",
-    "production-config",
-    "migration",
-    "destructive-operation",
-    "value-transfer",
-    "regulated-data"
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release",
+    "real-user-communication",
+    "regulated-data-export-to-external-recipient"
   ],
   "maturity": {
     "stage": "draft",

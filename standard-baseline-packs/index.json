@@ -39,7 +39,7 @@
         "Android app module structure, navigation, state ownership, Gradle build, emulator, or device behavior is in scope"
       ],
       "canBeRecommendedByAI": true,
-      "selectionRequiresHumanDecision": true,
+      "selectionOwnedByCodex": true,
       "canAuthorizeWrites": false,
       "canApproveImplementation": false,
       "canApproveRelease": false,
@@ -72,7 +72,7 @@
         "server API, domain DTOs, database schema, migrations, or API integration is in scope"
       ],
       "canBeRecommendedByAI": true,
-      "selectionRequiresHumanDecision": true,
+      "selectionOwnedByCodex": true,
       "canAuthorizeWrites": false,
       "canApproveImplementation": false,
       "canApproveRelease": false,
@@ -109,7 +109,7 @@
         "runtime, package manager, build, test, CI, deployment environment, or environment variable inventory is in scope"
       ],
       "canBeRecommendedByAI": true,
-      "selectionRequiresHumanDecision": true,
+      "selectionOwnedByCodex": true,
       "canAuthorizeWrites": false,
       "canApproveImplementation": false,
       "canApproveRelease": false,
@@ -141,7 +141,7 @@
         "admin console, CRM, ERP, management dashboard, approval workflow, finance console, HR console, or internal operations system is in scope"
       ],
       "canBeRecommendedByAI": true,
-      "selectionRequiresHumanDecision": true,
+      "selectionOwnedByCodex": true,
       "canAuthorizeWrites": false,
       "canApproveImplementation": false,
       "canApproveRelease": false,
@@ -174,7 +174,7 @@
         "iOS app structure, navigation, state ownership, build, simulator, or device behavior is in scope"
       ],
       "canBeRecommendedByAI": true,
-      "selectionRequiresHumanDecision": true,
+      "selectionOwnedByCodex": true,
       "canAuthorizeWrites": false,
       "canApproveImplementation": false,
       "canApproveRelease": false,
@@ -207,7 +207,7 @@
         "WeChat Mini Program pages, components, lifecycle, platform API, or runtime behavior is in scope"
       ],
       "canBeRecommendedByAI": true,
-      "selectionRequiresHumanDecision": true,
+      "selectionOwnedByCodex": true,
       "canAuthorizeWrites": false,
       "canApproveImplementation": false,
       "canApproveRelease": false,
@@ -240,7 +240,7 @@
         "handoff or launch readiness is claimed"
       ],
       "canBeRecommendedByAI": true,
-      "selectionRequiresHumanDecision": true,
+      "selectionOwnedByCodex": true,
       "canAuthorizeWrites": false,
       "canApproveImplementation": false,
       "canApproveRelease": false,
@@ -274,7 +274,7 @@
         "web UI, routing, state, API client, forms, or runtime behavior is in scope"
       ],
       "canBeRecommendedByAI": true,
-      "selectionRequiresHumanDecision": true,
+      "selectionOwnedByCodex": true,
       "canAuthorizeWrites": false,
       "canApproveImplementation": false,
       "canApproveRelease": false,

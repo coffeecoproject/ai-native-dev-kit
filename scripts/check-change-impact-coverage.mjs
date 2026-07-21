@@ -14,7 +14,13 @@ import {
 } from "./lib/artifact-schema.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { resolveBoundBusinessUniverse } from "./lib/business-universe.mjs";
+import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
+import {
+  normalizeTaskIntent,
+  taskIntentDigest,
+  validateEmbeddedTaskGovernanceLineage,
+} from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -27,9 +33,14 @@ const knownFlags = new Set([
   "require-precise-evidence",
   "require-business-rule-ref",
   "require-business-rule-ready",
+  "require-task-lineage",
+  "strict",
 ]);
 const unknown = unknownOptions(args, knownFlags);
-const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const projectRoot = fs.existsSync(requestedProjectRoot)
+  ? fs.realpathSync(requestedProjectRoot)
+  : requestedProjectRoot;
 const outputJson = Boolean(args.json);
 const requestedMode = args.mode ? String(args.mode).trim().toLowerCase() : "";
 const requestedReport = args.report ? String(args.report).trim() : "";
@@ -38,7 +49,8 @@ const strictEvidence = Boolean(args["strict-evidence"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
 const requireBusinessRuleRef = Boolean(args["require-business-rule-ref"] || args["require-business-rule-ready"]);
 const requireBusinessRuleReady = Boolean(args["require-business-rule-ready"]);
-const effectiveRequireStructuredEvidence = requireStructuredEvidence || requireBusinessRuleRef || requireBusinessRuleReady;
+const requireTaskLineage = Boolean(args["require-task-lineage"] || args.strict);
+const effectiveRequireStructuredEvidence = requireStructuredEvidence || requireBusinessRuleRef || requireBusinessRuleReady || requireTaskLineage;
 const resolveEvidenceRefs = Boolean(args["resolve-evidence-refs"] || requirePreciseEvidence);
 const requireCoverageReport = Boolean(
   requestedReport
@@ -47,6 +59,7 @@ const requireCoverageReport = Boolean(
   || strictEvidence
   || resolveEvidenceRefs
   || requirePreciseEvidence
+  || requireTaskLineage
 );
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/change-impact-coverage.schema.json");
 const businessRuleClosureSchema = loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json");
@@ -108,12 +121,24 @@ const allowedSurfaces = new Set([
   "DOCS_HANDOFF",
   "PERMISSION_RISK",
   "RELEASE_IMPACT",
+  "BACKGROUND_WORK",
+  "EXTERNAL_INTEGRATION",
+  "RUNTIME_BEHAVIOR",
+  "ROLLBACK_RECOVERY",
 ]);
 
 const allowedMapStatuses = new Set(["REQUIRED", "OPTIONAL", "NOT_APPLICABLE", "NEEDS_HUMAN_DECISION"]);
 const allowedCoverageStatuses = new Set(["DONE", "NOT_APPLICABLE", "OUT_OF_SCOPE", "NEEDS_HUMAN_DECISION", "NOT_STARTED"]);
 const allowedOutcomes = new Set(["CHANGE_IMPACT_RECORDED", "NEEDS_HUMAN_DECISION", "BLOCKED"]);
-const highRiskSurfaces = new Set(["DATA_MODEL", "PERMISSION_RISK", "RELEASE_IMPACT"]);
+const highRiskSurfaces = new Set([
+  "DATA_MODEL",
+  "PERMISSION_RISK",
+  "RELEASE_IMPACT",
+  "BACKGROUND_WORK",
+  "EXTERNAL_INTEGRATION",
+  "RUNTIME_BEHAVIOR",
+  "ROLLBACK_RECOVERY",
+]);
 
 const forbiddenClaims = [
   /\bwrites target files:\s*Yes\b/i,
@@ -271,11 +296,14 @@ function checkReport(file) {
   const effectiveMode = requestedMode || structured?.mode || markdownMode || "preflight";
   const changedFiles = structured?.changed_files || markdownChangedFiles;
 
-  if (effectiveMode === "closure") checkClosureMode(label, mapRows, coverageRows);
+  const decisionAllowed = structured?.outcome === "NEEDS_HUMAN_DECISION"
+    && (structured?.pending_decisions || []).length > 0;
+  if (effectiveMode === "closure") checkClosureMode(label, mapRows, coverageRows, decisionAllowed);
   checkCrossSurfaceCoverage(content, label, mapRows, coverageRows, verificationRows, {
     mode: effectiveMode,
     changedFiles,
     universeBound: structured?.business_universe_binding?.required === "Yes",
+    decisionAllowed,
   });
 }
 
@@ -290,7 +318,7 @@ function checkCrossSurfaceCoverage(content, label, mapRows, coverageRows, verifi
     for (const surface of ["USER_FLOW", "FRONTEND_UI", "API_CONTRACT", "BACKEND_RULE", "ERROR_COPY", "TEST_COVERAGE", "DOCS_HANDOFF"]) {
       if (!map.has(surface)) fail(`${label} rule change missing affected surface ${surface}`);
       if (!coverage.has(surface)) fail(`${label} rule change missing implementation coverage ${surface}`);
-      else if (!closedOrPendingDecision(coverage.get(surface), true)) {
+      else if (!closedOrPendingDecision(coverage.get(surface), true, options.decisionAllowed)) {
         fail(`${label} rule change surface ${surface} is not closed or decision-bound`);
       }
     }
@@ -303,14 +331,14 @@ function checkCrossSurfaceCoverage(content, label, mapRows, coverageRows, verifi
   if (isRuleChange && !options.universeBound && backendDone) {
     for (const surface of ["FRONTEND_UI", "API_CONTRACT", "ERROR_COPY", "TEST_COVERAGE"]) {
       const row = coverage.get(surface);
-      if (!closedOrPendingDecision(row, false)) fail(`${label} backend rule change must close ${surface}`);
+      if (!closedOrPendingDecision(row, false, options.decisionAllowed)) fail(`${label} backend rule change must close ${surface}`);
     }
   }
 
   if (isRuleChange && !options.universeBound && frontendDone) {
     for (const surface of ["BACKEND_RULE", "API_CONTRACT", "TEST_COVERAGE"]) {
       const row = coverage.get(surface);
-      if (!closedOrPendingDecision(row, false)) fail(`${label} frontend rule change must close ${surface}`);
+      if (!closedOrPendingDecision(row, false, options.decisionAllowed)) fail(`${label} frontend rule change must close ${surface}`);
     }
   }
 
@@ -327,11 +355,11 @@ function checkCrossSurfaceCoverage(content, label, mapRows, coverageRows, verifi
   }
 
   if (options.mode === "closure") {
-    checkChangedFileImplications(label, isRuleChange, coverage, changedSurfaces);
+    checkChangedFileImplications(label, isRuleChange, coverage, changedSurfaces, options.decisionAllowed);
   }
 }
 
-function checkClosureMode(label, mapRows, coverageRows) {
+function checkClosureMode(label, mapRows, coverageRows, decisionAllowed) {
   const coverage = new Map(coverageRows.map((row) => [row.surface, row]));
   for (const row of mapRows) {
     if (row.status !== "REQUIRED") continue;
@@ -343,18 +371,18 @@ function checkClosureMode(label, mapRows, coverageRows) {
     if (covered.status === "NOT_STARTED") {
       fail(`${label} closure mode cannot leave required surface ${row.surface} NOT_STARTED`);
     }
-    if (!closedOrPendingDecision(covered, false)) {
+    if (!closedOrPendingDecision(covered, false, decisionAllowed)) {
       fail(`${label} closure mode requires required surface ${row.surface} to be closed, out-of-scope, not-applicable with reason, or decision-bound`);
     }
   }
 }
 
-function checkChangedFileImplications(label, isRuleChange, coverage, changedSurfaces) {
+function checkChangedFileImplications(label, isRuleChange, coverage, changedSurfaces, decisionAllowed = false) {
   if (changedSurfaces.size === 0) return;
 
   if (isRuleChange && changedSurfaces.has("BACKEND_RULE")) {
     for (const surface of ["FRONTEND_UI", "API_CONTRACT", "ERROR_COPY", "TEST_COVERAGE"]) {
-      if (!closedOrPendingDecision(coverage.get(surface), false)) {
+      if (!closedOrPendingDecision(coverage.get(surface), false, decisionAllowed)) {
         fail(`${label} closure changed-files backend rule work must close ${surface}`);
       }
     }
@@ -362,7 +390,7 @@ function checkChangedFileImplications(label, isRuleChange, coverage, changedSurf
 
   if (isRuleChange && changedSurfaces.has("FRONTEND_UI")) {
     for (const surface of ["BACKEND_RULE", "API_CONTRACT", "TEST_COVERAGE"]) {
-      if (!closedOrPendingDecision(coverage.get(surface), false)) {
+      if (!closedOrPendingDecision(coverage.get(surface), false, decisionAllowed)) {
         fail(`${label} closure changed-files frontend rule work must close ${surface}`);
       }
     }
@@ -379,6 +407,10 @@ function checkChangedFileImplications(label, isRuleChange, coverage, changedSurf
     ["DATA_MODEL", "data model changed files cannot be weakly excluded"],
     ["PERMISSION_RISK", "permission/security changed files cannot be weakly excluded"],
     ["RELEASE_IMPACT", "release/CI changed files cannot be weakly excluded"],
+    ["BACKGROUND_WORK", "background execution changed files cannot be weakly excluded"],
+    ["EXTERNAL_INTEGRATION", "external integration changed files cannot be weakly excluded"],
+    ["RUNTIME_BEHAVIOR", "runtime behavior changed files cannot be weakly excluded"],
+    ["ROLLBACK_RECOVERY", "rollback/recovery changed files cannot be weakly excluded"],
   ]) {
     if (!changedSurfaces.has(surface)) continue;
     const row = coverage.get(surface);
@@ -394,10 +426,10 @@ function checkChangedFileImplications(label, isRuleChange, coverage, changedSurf
   }
 }
 
-function closedOrPendingDecision(row, allowNotStarted = false) {
+function closedOrPendingDecision(row, allowNotStarted = false, decisionAllowed = false) {
   if (!row) return false;
   if (row.status === "DONE") return meaningful(row.evidence);
-  if (row.status === "NEEDS_HUMAN_DECISION") return true;
+  if (row.status === "NEEDS_HUMAN_DECISION") return decisionAllowed;
   if (row.status === "NOT_APPLICABLE" || row.status === "OUT_OF_SCOPE") return meaningful(row.reason);
   return allowNotStarted && row.status === "NOT_STARTED";
 }
@@ -418,6 +450,9 @@ function checkMachineReadableEvidence(content, label, markdown) {
 
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
+  const normalizedIntent = normalizeTaskIntent(evidence.user_request?.intent);
+  if (evidence.user_request?.intent === normalizedIntent) pass(`${label} task intent text is normalized`);
+  else fail(`${label} task intent text must be normalized`);
 
   if (requestedMode && evidence.mode !== requestedMode) {
     fail(`${label} structured mode ${evidence.mode} must match --mode ${requestedMode}`);
@@ -457,6 +492,33 @@ function checkMachineReadableEvidence(content, label, markdown) {
     for (const row of evidence.verification_coverage || []) {
       if (row.status === "DONE" && placeholderEvidence(row.evidence)) {
         fail(`${label} structured DONE verification ${row.surface} uses placeholder evidence`);
+      }
+    }
+  }
+
+  if (evidence.schema_version === "1.113.0") {
+    const expectedIntentDigest = taskIntentDigest(evidence.user_request?.intent || "");
+    if (evidence.task_ref === evidence.user_request?.task_ref && evidence.task_ref !== "not provided") pass(`${label} current Change Impact binds an explicit task_ref`);
+    else fail(`${label} current Change Impact task_ref must match user_request.task_ref and cannot be missing`);
+    if (evidence.intent_digest === expectedIntentDigest) pass(`${label} current Change Impact binds the normalized intent digest`);
+    else fail(`${label} current Change Impact intent_digest must match user_request.intent`);
+    const pending = Array.isArray(evidence.pending_decisions) ? evidence.pending_decisions : [];
+    const allowedDecisionClasses = new Set(["BUSINESS_FACT_NEEDED", "EXTERNAL_FACT_NEEDED", "REAL_WORLD_CONSENT_NEEDED"]);
+    for (const decision of pending) {
+      if (allowedDecisionClasses.has(decision.decision_class) && decision.status === "PENDING") pass(`${label} pending decision ${decision.decision_id} is a non-technical user input class`);
+      else fail(`${label} pending decision ${decision.decision_id || "<missing>"} delegates an invalid or technical decision`);
+    }
+    const decisionBoundRows = [...(evidence.affected_surface_map || []), ...(evidence.implementation_coverage || []), ...(evidence.verification_coverage || [])]
+      .filter((row) => row.status === "NEEDS_HUMAN_DECISION");
+    if (decisionBoundRows.length > 0 && pending.length === 0) fail(`${label} NEEDS_HUMAN_DECISION surfaces require a structured non-technical pending decision`);
+    if (pending.length > 0 && evidence.outcome !== "NEEDS_HUMAN_DECISION") fail(`${label} pending decisions require NEEDS_HUMAN_DECISION outcome`);
+    if (pending.length === 0 && evidence.outcome === "NEEDS_HUMAN_DECISION") fail(`${label} NEEDS_HUMAN_DECISION outcome requires a structured pending decision`);
+    if (resolveEvidenceRefs && evidence.mode === "closure") {
+      for (const row of evidence.implementation_coverage || []) {
+        if (["NOT_APPLICABLE", "OUT_OF_SCOPE"].includes(row.status)) requireResolvableEvidenceRef(label, markdown.file, row, "structured implementation exclusion");
+      }
+      for (const row of evidence.verification_coverage || []) {
+        if (["NOT_APPLICABLE", "OUT_OF_SCOPE"].includes(row.status)) requireResolvableEvidenceRef(label, markdown.file, row, "structured verification exclusion");
       }
     }
   }
@@ -572,6 +634,27 @@ function checkBusinessRuleBinding(label, reportFile, evidence) {
       else fail(`${label} referenced Business Rule Closure boundary ${field} must be No`);
     }
   }
+  const exactTaskBinding = businessRule.user_request === evidence.user_request?.intent
+    && businessRule.source_request_digest === taskIntentDigest(evidence.user_request?.intent)
+    && businessRule.task_ref === evidence.user_request?.task_ref;
+  if (exactTaskBinding) {
+    pass(`${label} Business Rule and Change Impact share exact task_ref, intent text, and digest`);
+  } else if (requireTaskLineage) {
+    fail(`${label} Change Impact task_ref and intent must exactly match Business Rule Closure`);
+  } else {
+    pass(`${label} historical Business Rule task binding remains readable but cannot satisfy strict task lineage`);
+  }
+  const lineage = validateEmbeddedTaskGovernanceLineage(projectRoot, businessRule.source_rule_refs, {
+    taskRef: evidence.user_request?.task_ref,
+    intent: evidence.user_request?.intent,
+    intentDigest: businessRule.source_request_digest,
+  }, { fromFile: resolved, requireCurrent: requireTaskLineage });
+  if (lineage.ok) pass(`${label} Business Rule preserves exact Task Governance lineage`);
+  else if (requireTaskLineage || (businessRule.source_rule_refs || []).some((item) => String(item).startsWith("lineage:task_governance:"))) {
+    lineage.errors.forEach((error) => fail(`${label} ${error}`));
+  } else {
+    pass(`${label} historical Business Rule lineage remains readable without current authority`);
+  }
   checkBusinessUniverseCoverage(label, resolved, businessRule, evidence);
 }
 
@@ -665,23 +748,8 @@ function normalizeOptionalRef(value) {
 }
 
 function resolveBusinessRuleReport(reportFile, ref) {
-  const match = String(ref || "").trim().match(/^artifact:(.+)$/i);
-  if (!match) return null;
-  const relativeRef = match[1].trim();
-  if (!relativeRef || path.isAbsolute(relativeRef)) return null;
-  const candidates = [
-    path.resolve(projectRoot, relativeRef),
-    path.resolve(path.dirname(reportFile), relativeRef),
-  ];
-  if (!relativeRef.startsWith(".intentos/")) {
-    candidates.push(path.resolve(projectRoot, ".intentos", relativeRef));
-  }
-  for (const candidate of candidates) {
-    const relative = path.relative(projectRoot, candidate);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
-    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile() && /\.md$/i.test(candidate)) return candidate;
-  }
-  return null;
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, reportFile, ref, { markdownOnly: true });
+  return resolved.ok ? resolved.file : null;
 }
 
 function businessRuleRefCandidates(file) {
@@ -766,6 +834,10 @@ function inferChangedFileSurfaces(files) {
     if (/(migration|database|db|model|models|enum|lookup|seed|prisma|drizzle|sql)/.test(normalized)) surfaces.add("DATA_MODEL");
     if (/(auth|permission|rbac|tenant|privacy|security|audit|role)/.test(normalized)) surfaces.add("PERMISSION_RISK");
     if (/(\.github\/workflows|ci|deploy|deployment|release|rollback|feature-flag|feature_flag|production)/.test(normalized)) surfaces.add("RELEASE_IMPACT");
+    if (/(worker|queue|job|cron|schedule|scheduler|batch|hook|background|async)/.test(normalized)) surfaces.add("BACKGROUND_WORK");
+    if (/(webhook|third-party|external|provider|vendor|integration|sdk|oauth|callback)/.test(normalized)) surfaces.add("EXTERNAL_INTEGRATION");
+    if (/(runtime|process|container|port|session|cache|redis|startup|shutdown)/.test(normalized)) surfaces.add("RUNTIME_BEHAVIOR");
+    if (/(rollback|revert|restore|recovery|compensat|undo|failover|retry)/.test(normalized)) surfaces.add("ROLLBACK_RECOVERY");
     if (/(test|spec|fixture|e2e|playwright|vitest|jest)/.test(normalized)) surfaces.add("TEST_COVERAGE");
     if (/(readme|docs?|handoff|release-note|changelog)/.test(normalized)) surfaces.add("DOCS_HANDOFF");
   }

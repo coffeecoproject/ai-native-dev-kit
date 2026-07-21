@@ -17,8 +17,10 @@ import {
   resolveAuthoritativeEvidenceReference,
 } from "./lib/evidence-authority.mjs";
 import {
+  controlledApplyImpactFlags,
   initExecutableActions,
   isWorkflowActivationState,
+  validateVerifiedApplyReceiptFile,
   validateApprovalRecordForInitApplyPlan,
   validateReadinessForInitApplyPlan,
 } from "./lib/adoption-apply-chain.mjs";
@@ -62,6 +64,18 @@ function checkReceipt(file) {
   }
   const receipt = validated.value;
   pass(`${relative} matches apply receipt schema`);
+  if (receipt.schema_version === "1.113.0") {
+    const current = validateVerifiedApplyReceiptFile(projectRoot, relative, { schemasRoot: projectRoot });
+    if (!current.ok) {
+      for (const error of current.errors) fail(`${relative}: ${error}`);
+      return;
+    }
+    pass(`${relative} binds one current request authority, exact action graph, current targets, and full behavioral activation`);
+    const planResolved = resolveLocal(file, receipt.execution_plan.path, "execution plan");
+    const plan = planResolved ? readJson(planResolved.file, `${relative} execution plan`) : null;
+    if (plan) checkActivation(receipt, plan, relative);
+    return;
+  }
   if (receipt.outcome === receipt.receipt_state) pass(`${relative} outcome matches receipt state`);
   else fail(`${relative} outcome must match receipt_state`);
 
@@ -69,7 +83,6 @@ function checkReceipt(file) {
   if (receipt.project_identity.root_digest === identity.fingerprint) pass(`${relative} matches current project identity`);
   else fail(`${relative} belongs to another project`);
 
-  checkBoundary(receipt, relative);
   const planResolved = resolveLocal(file, receipt.execution_plan.path, "execution plan");
   const approvalResolved = resolveLocal(file, receipt.approval_record.path, "approval record");
   const readinessResolved = resolveLocal(file, receipt.readiness_report.path, "readiness report");
@@ -79,6 +92,7 @@ function checkReceipt(file) {
   const approval = readMarkdownEvidence(approvalResolved.file, approvalSchema, `${relative} approval record`);
   const readiness = readMarkdownEvidence(readinessResolved.file, readinessSchema, `${relative} readiness report`);
   if (!plan || !approval || !readiness) return;
+  checkBoundary(receipt, plan, relative);
 
   const actualPlanDigest = evidenceDigest(plan, ["planDigest"]);
   if (plan.planDigest === actualPlanDigest && receipt.execution_plan.plan_digest === actualPlanDigest) {
@@ -106,20 +120,23 @@ function checkReceipt(file) {
   checkActivation(receipt, plan, relative);
 }
 
-function checkBoundary(receipt, label) {
+function checkBoundary(receipt, plan, label) {
   const boundary = receipt.boundary || {};
   if (boundary.only_approved_actions_executed === true) pass(`${label} records approved-only execution`);
   else fail(`${label} must record approved-only execution`);
   for (const key of [
     "approves_business_implementation",
     "approves_release_or_production",
-    "modifies_ci_or_hooks",
-    "changes_project_authority",
     "proves_product_correctness",
   ]) {
     if (boundary[key] === false) pass(`${label} boundary ${key} is false`);
     else fail(`${label} boundary ${key} must be false`);
   }
+  const expectedImpact = controlledApplyImpactFlags(initExecutableActions(plan));
+  if (boundary.modifies_ci_or_hooks === expectedImpact.modifiesCiOrHooks) pass(`${label} CI/hook impact matches the execution plan`);
+  else fail(`${label} CI/hook impact must match the execution plan`);
+  if (boundary.changes_project_authority === expectedImpact.changesProjectAuthority) pass(`${label} project-authority impact matches the execution plan`);
+  else fail(`${label} project-authority impact must match the execution plan`);
 }
 
 function checkActionSet(receipt, plan, label) {

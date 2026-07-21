@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "./lib/args.mjs";
 import { parseFrontmatter, validateFrontmatter } from "./lib/frontmatter.mjs";
 import { changedFiles } from "./lib/git.mjs";
+import { requiresRealWorldConsent } from "./lib/baseline-selection.mjs";
 import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
 import { resolveIndustrialBaseline } from "./resolve-industrial-baseline.mjs";
 import { resolvePlatformBaseline } from "./resolve-platform-baseline.mjs";
@@ -217,16 +218,15 @@ function labeledValue(content, section, label) {
   return match ? match[1].trim() : "";
 }
 
-function checkedRiskCount(content) {
-  const body = sectionBody(content, "Risk Gate") || "";
-  return [...body.matchAll(/-\s*\[[xX]\]/g)].length;
-}
-
 function checkedRiskLabels(content) {
   const body = sectionBody(content, "Risk Gate") || "";
   return [...body.matchAll(/-\s*\[[xX]\]\s*(.+?)\s*$/gm)]
     .map((match) => match[1].trim())
     .filter(Boolean);
+}
+
+function checkedRealWorldConsentRiskLabels(content) {
+  return checkedRiskLabels(content).filter(requiresRealWorldConsent);
 }
 
 function normalizeRiskTerm(value) {
@@ -467,13 +467,15 @@ function requireBaselineImplementationGates(file, taskContent) {
   if (mode !== "implementation") return;
 
   const platformBaseline = resolvePlatformBaseline(projectRoot);
-  if (platformBaseline.selectedProfiles.length > 0 && platformBaseline.state !== "BASELINE_READY") {
-    fail(`${file} platform baseline is not ready: ${platformBaseline.state}`);
+  const platformSelectionApplies = platformBaseline.selectedProfiles.length > 0
+    || platformBaseline.inferredProfiles.length > 0;
+  if (platformSelectionApplies && platformBaseline.strictState !== "BASELINE_READY") {
+    fail(`${file} platform baseline is not satisfied: ${platformBaseline.strictState}`);
   }
 
   const industrialBaseline = resolveIndustrialBaseline(projectRoot);
-  if (industrialBaseline.baselineLevel === "BL2_INDUSTRIAL" && industrialBaseline.state !== "BASELINE_READY") {
-    fail(`${file} industrial baseline is not ready: ${industrialBaseline.state}`);
+  if (industrialBaseline.baselineLevel === "BL2_INDUSTRIAL" && industrialBaseline.strictState !== "BASELINE_READY") {
+    fail(`${file} industrial baseline is not satisfied: ${industrialBaseline.strictState}`);
   }
 
   const requiredLevel = baselineRequiredTaskLevel(taskContent, platformBaseline, industrialBaseline);
@@ -619,8 +621,7 @@ function requireTaskGraph(file, content) {
 
 function requireHumanApproval(file, content) {
   if (mode === "draft") return;
-  const riskCount = checkedRiskCount(content);
-  const manyExclusions = riskGateExclusions(content).length > 3;
+  const consentRiskLabels = checkedRealWorldConsentRiskLabels(content);
   const approval = sectionBody(content, "Human Approval");
   if (approval === null) {
     fail(`${file} missing section: Human Approval`);
@@ -633,8 +634,8 @@ function requireHumanApproval(file, content) {
   const approvedBy = labeledValue(content, "Human Approval", "Approved by");
   const approvedAt = labeledValue(content, "Human Approval", "Approved at");
 
-  if (riskCount > 0 || (mode === "implementation" && manyExclusions)) {
-    const reason = riskCount > 0 ? "checked risk items" : "more than three Risk Gate Exclusions";
+  if (consentRiskLabels.length > 0) {
+    const reason = `real-world consent risk item(s) ${consentRiskLabels.join(", ")}`;
     if (!/^Yes$/i.test(required)) {
       fail(`${file} ${reason} require Human Approval Required: Yes`);
     }
@@ -649,10 +650,10 @@ function requireHumanApproval(file, content) {
     }
   } else {
     if (!/^No$/i.test(required)) {
-      fail(`${file} no checked risk items should use Human Approval Required: No`);
+      fail(`${file} reversible project-local technical risks do not require Human Approval; use Required: No`);
     }
     if (!/^Not Required$/i.test(status)) {
-      fail(`${file} no checked risk items should use Human Approval Status: Not Required`);
+      fail(`${file} no real-world consent effect should use Human Approval Status: Not Required`);
     }
   }
 
@@ -667,16 +668,13 @@ function requireRiskGateExclusionGovernance(file, content) {
   const exclusions = riskGateExclusions(content);
   if (exclusions.length <= 3) return;
 
-  const message = `${file} has ${exclusions.length} accepted Risk Gate Exclusions; approval scope must explicitly cover Risk Gate Exclusions before implementation.`;
+  const message = `${file} has ${exclusions.length} accepted Risk Gate Exclusions; Codex must reduce or technically reclassify them before implementation. Human Approval cannot satisfy this technical evidence gap.`;
   if (mode !== "implementation") {
     warn(message);
     return;
   }
 
-  const approvalScope = labeledValue(content, "Human Approval", "Approval scope");
-  if (!/(?:risk gate exclusions|exclusion)/i.test(approvalScope)) {
-    fail(message);
-  }
+  fail(message);
 }
 
 function checkRequest(file, content) {

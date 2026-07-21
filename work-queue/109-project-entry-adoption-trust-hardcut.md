@@ -2,11 +2,11 @@
 
 ## Human Decision Summary
 
-Conclusion: IntentOS 1.109 is the only current task.
+Conclusion: IntentOS 1.109 and its parked 1.110 follow-up are complete and no longer current.
 
-Recommended choice: Continue the current reviewed task.
+Recommended choice: Keep this report as closed historical queue evidence.
 
-Can AI continue now: limited to Phase 0 until Plan Review passes.
+Can AI continue now: no action is needed for these completed tasks.
 
 What I need from you: none.
 
@@ -14,7 +14,7 @@ What happens if you do nothing: no task state or production code changes.
 
 ## Human Summary
 
-IntentOS 1.109 is the only current task. The separate 1.110 proposal remains parked and is not implementation authority.
+IntentOS 1.109 and 1.110 are complete. This historical report grants neither task current execution authority.
 
 ## Queue Policy
 
@@ -25,9 +25,7 @@ IntentOS 1.109 is the only current task. The separate 1.110 proposal remains par
 
 ## Current Task
 
-| Task ID | Title | State | Task / spec reference | Intent digest | Last evidence | Notes |
-|---|---|---|---|---|---|---|
-| `109` | Project Entry And Behavior-Complete Adoption Trust Hardcut | `CURRENT` | `tasks/109-project-entry-adoption-trust-hardcut.md` | `sha256:e1770561d374673aae487d26c6fedb9d71d3d0ccb53e2d8285ef1ee0c250e3f6` | `docs/plans/project-entry-adoption-trust-hardcut-1.109-plan.md` | Phase 0 governance first; 1.110 excluded. |
+None. This report contains only completed historical work.
 
 ## Paused Tasks
 
@@ -35,9 +33,7 @@ None.
 
 ## Backlog / Parking Lot
 
-| Task ID | Title | State | Source | Why parked | Promotion needed |
-|---|---|---|---|---|---|
-| `110` | Control Effectiveness | `BACKLOG` | `docs/plans/control-effectiveness-1.110-plan.md` | Explicitly outside 1.109 | Separate reviewed task |
+None.
 
 ## Resume Review
 
@@ -53,8 +49,8 @@ None.
 
 | Task ID | Title | State | Task ref | Intent digest | Resume review | Owner | Notes |
 |---|---|---|---|---|---|---|---|
-| `109` | Project Entry And Behavior-Complete Adoption Trust Hardcut | `CURRENT` | `tasks/109-project-entry-adoption-trust-hardcut.md` | `sha256:e1770561d374673aae487d26c6fedb9d71d3d0ccb53e2d8285ef1ee0c250e3f6` | `N/A` | `Codex` | Execute only the reviewed 1.109 boundary. |
-| `110` | Control Effectiveness | `BACKLOG` | `docs/plans/control-effectiveness-1.110-plan.md` | `PENDING` | `Required before promotion` | `Codex` | Explicitly excluded from 1.109. |
+| `109` | Project Entry And Behavior-Complete Adoption Trust Hardcut | `DONE` | `tasks/109-project-entry-adoption-trust-hardcut.md` | `sha256:e1770561d374673aae487d26c6fedb9d71d3d0ccb53e2d8285ef1ee0c250e3f6` | `N/A` | `Codex` | Completed and closed with release evidence. |
+| `110` | Control Effectiveness | `DONE` | `docs/plans/control-effectiveness-1.110-plan.md` | `PENDING` | `N/A` | `Codex` | Completed in the subsequent reviewed release. |
 
 ## Human Decisions Needed
 

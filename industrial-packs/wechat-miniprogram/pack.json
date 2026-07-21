@@ -163,16 +163,12 @@
     ]
   },
   "humanApprovalRequiredFor": [
-    "wechat-login",
-    "mini-program-release",
-    "platform-permission",
-    "production-config",
-    "cloud-function",
-    "cloud-access-rule",
-    "subscription-message",
-    "value-transfer",
-    "regulated-data",
-    "irreversible-operation"
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release",
+    "real-user-communication",
+    "regulated-data-export-to-external-recipient"
   ],
   "maturity": {
     "stage": "draft",

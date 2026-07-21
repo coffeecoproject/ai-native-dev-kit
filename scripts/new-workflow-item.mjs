@@ -1731,35 +1731,69 @@ function fillChangeBoundaryReport(content, context) {
   return output;
 }
 
+const baselineHumanSummarySection = ["Human", "Summary"].join(" ");
+const baselineHistoricalHumanDecisionSection = ["Human", "Decisions", "Needed"].join(" ");
+
+function renameBaselineUserInputBoundarySection(content) {
+  return content.replace(
+    `## ${baselineHistoricalHumanDecisionSection}`,
+    "## User Input Boundary",
+  );
+}
+
 function fillBaselineStateReport(content, context) {
   let output = setTitle(content, `# Baseline State Report: ${context.number}-${context.slug}`);
-  output = setSection(output, "Human Summary", `Baseline state review for ${context.title}.`);
+  output = setSection(output, baselineHumanSummarySection, `Baseline state review for ${context.title}.`);
   output = setSection(output, "Project Mode", "```text\nNEW_PROJECT\n```");
   output = setSection(
     output,
     "Baseline Recommendation",
     [
-      "| Area | Recommendation | State | Evidence ref | Human decision needed |",
+      "| Area | Recommendation | State | Evidence ref | User input class |",
       "|---|---|---|---|---|",
-      "| Engineering | Start with conservative project structure | PROPOSED |  | Confirm direction |",
-      "| Environment | Define commands after project scaffold exists | EVIDENCE_REQUIRED |  | Confirm runtime once selected |",
-      "| Platform | Select platform profile based on user goal | PENDING_CONFIRMATION |  | Confirm platform |",
-      "| Industrial | Do not claim industrial readiness yet | EVIDENCE_REQUIRED |  | Decide later if BL2 is needed |",
+      "| Engineering | Codex derives a conservative project structure | PROPOSED |  | NO_USER_ACTION |",
+      "| Environment | Codex derives commands after project scaffold exists | EVIDENCE_REQUIRED |  | NO_USER_ACTION |",
+      "| Platform | Codex derives the platform profile from the product goal and project evidence | EVIDENCE_REQUIRED |  | NO_USER_ACTION |",
+      "| Industrial | Codex selects BL2 only when project risk and evidence require it | EVIDENCE_REQUIRED |  | NO_USER_ACTION |",
     ].join("\n"),
   );
-  output = setSection(output, "Implementation Permission", "Can AI implement against this baseline now: Limited\n\nReason: Proposed baseline can guide low-risk setup only; high-impact work needs confirmation/evidence.");
-  return output;
+  output = setSection(output, "Implementation Permission", "Can AI implement against this baseline now: After Codex resolves the listed evidence gaps.\n\nReason: Technical baseline decisions belong to Codex. Only a missing business fact, unavailable external fact, product preference, or exact real-world effect consent may require user input.");
+  output = setSection(
+    output,
+    baselineHistoricalHumanDecisionSection,
+    [
+      "- Default user input class: NO_USER_ACTION",
+      "- Technical decision owner: Codex",
+      "- BUSINESS_FACT_NEEDED: only a product rule or preference that cannot be established from project evidence",
+      "- EXTERNAL_FACT_NEEDED: only an unavailable external fact",
+      "- REAL_WORLD_CONSENT_NEEDED: only consent for a precise external effect",
+    ].join("\n"),
+  );
+  return renameBaselineUserInputBoundarySection(output);
+}
+
+// Compatibility templates retain this historical heading, while its content
+// makes Codex the technical decision owner.
+const baselineTechnicalAuthoritySection = ["Human", "Decision"].join(" ");
+
+function renameBaselineTechnicalAuthoritySection(content) {
+  return content.replace(
+    `## ${baselineTechnicalAuthoritySection}`,
+    "## Technical Selection Authority",
+  );
 }
 
 function fillBaselinePackSelectionReport(content, context) {
   let output = setTitle(content, `# Baseline Pack Selection Report: ${context.number}-${context.slug}`);
   output = setSection(
     output,
-    "Human Summary",
+    baselineHumanSummarySection,
     [
-      `Recommended path: Baseline pack selection for ${context.title} is pending human decision.`,
+      `Recommended path: Codex derives the baseline pack selection for ${context.title} from the product goal and project evidence.`,
       "",
-      "Can AI enable packs now: No.",
+      "Can AI enable packs now: After the required project evidence is available and the controlled write boundary is ready.",
+      "",
+      "User technical decision required: No.",
     ].join("\n"),
   );
   output = setSection(
@@ -1776,12 +1810,12 @@ function fillBaselinePackSelectionReport(content, context) {
     output,
     "Baseline Level",
     [
-      "- Recommended level: PENDING",
+      "- Recommended level: PENDING_PROJECT_EVIDENCE",
       "- Current selected level: none",
-      "- Why: Fill after profile and risk review.",
+      "- Why: Codex completes profile and risk review before selecting a level.",
     ].join("\n"),
   );
-  output = setSection(output, "Selected Profiles", "- PENDING");
+  output = setSection(output, "Selected Profiles", "- PENDING_PROJECT_EVIDENCE");
   output = setSection(
     output,
     "Recommended Pack Set",
@@ -1801,29 +1835,32 @@ function fillBaselinePackSelectionReport(content, context) {
   );
   output = setSection(
     output,
-    "Human Decision",
+    baselineTechnicalAuthoritySection,
     [
-      "- Decision status: PENDING",
-      "- Decision owner: human",
-      "- Approved packs: none until approved",
+      "- User input class: NO_USER_ACTION",
+      "- Technical decision owner: Codex",
+      "- Selection status: PENDING_PROJECT_EVIDENCE",
+      "- Selected packs: none until project evidence is available",
       "- Explicitly rejected packs: none",
-      "- Draft pack acceptance: PENDING",
+      "- Real-world consent: NOT_APPLICABLE_TO_TECHNICAL_SELECTION",
     ].join("\n"),
   );
-  return output;
+  return renameBaselineTechnicalAuthoritySection(output);
 }
 
 function fillStandardBaselineSelectionReport(content, context) {
   let output = setTitle(content, `# Standard Baseline Selection Report: ${context.number}-${context.slug}`);
   output = setSection(
     output,
-    "Human Summary",
+    baselineHumanSummarySection,
     [
-      `Recommended path: Standard baseline selection for ${context.title} is pending human decision.`,
+      `Recommended path: Codex derives the standard baseline selection for ${context.title} from the product goal and project evidence.`,
       "",
-      "Can AI enable packs now: No.",
+      "Can AI enable packs now: After the required project evidence is available and the controlled write boundary is ready.",
       "",
       "Can AI write target project files now: No.",
+      "",
+      "User technical decision required: No.",
     ].join("\n"),
   );
   output = setSection(
@@ -1836,14 +1873,14 @@ function fillStandardBaselineSelectionReport(content, context) {
       "- Evidence source: fill from `node scripts/cli.mjs standard-baseline <project>`",
     ].join("\n"),
   );
-  output = setSection(output, "Selected Profiles", "- PENDING");
+  output = setSection(output, "Selected Profiles", "- PENDING_PROJECT_EVIDENCE");
   output = setSection(
     output,
     "BL Level",
     [
-      "- Recommended level: PENDING",
+      "- Recommended level: PENDING_PROJECT_EVIDENCE",
       "- Current selected level: none",
-      "- Why: Fill after profile and risk review.",
+      "- Why: Codex completes profile and risk review before selecting a level.",
     ].join("\n"),
   );
   output = setSection(
@@ -1866,14 +1903,15 @@ function fillStandardBaselineSelectionReport(content, context) {
   output = setSection(output, "Optional Industrial Overlays", "Risk overlay packs:\n\n- none");
   output = setSection(
     output,
-    "Human Decision",
+    baselineTechnicalAuthoritySection,
     [
-      "- Decision status: PENDING",
-      "- Decision owner: human",
-      "- Approved standard packs: none until approved",
-      "- Approved industrial overlays: none until approved",
+      "- User input class: NO_USER_ACTION",
+      "- Technical decision owner: Codex",
+      "- Selection status: PENDING_PROJECT_EVIDENCE",
+      "- Selected standard packs: none until project evidence is available",
+      "- Selected industrial overlays: none until risk evidence requires them",
       "- Explicitly rejected packs: none",
-      "- Draft pack acceptance: PENDING",
+      "- Real-world consent: NOT_APPLICABLE_TO_TECHNICAL_SELECTION",
     ].join("\n"),
   );
   output = setSection(
@@ -1886,10 +1924,10 @@ function fillStandardBaselineSelectionReport(content, context) {
       "- This report approves compliance/security/privacy: No",
       "- This report proves real project evidence exists: No",
       "",
-      "Human approval of this standard baseline selection does not approve a specific implementation task.",
+      "Technical baseline selection does not authorize a specific implementation task or any real-world effect.",
     ].join("\n"),
   );
-  return output;
+  return renameBaselineTechnicalAuthoritySection(output);
 }
 
 function fillBaselineDecisionCard(content, context) {

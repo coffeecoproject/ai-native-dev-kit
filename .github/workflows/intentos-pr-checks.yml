@@ -8,6 +8,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      base_sha:
+        description: Full commit SHA to compare against the dispatched candidate
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -20,16 +25,72 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      - name: Resolve Consumer Chain comparison base
+        id: consumer-base
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE_SHA: ${{ github.event.before }}
+          DISPATCH_BASE_SHA: ${{ inputs.base_sha }}
+        run: |
+          set -euo pipefail
+
+          zero=0000000000000000000000000000000000000000
+          case "${EVENT_NAME:-}" in
+            pull_request)
+              base="${PR_BASE_SHA:-}"
+              ;;
+            push)
+              base="${PUSH_BASE_SHA:-}"
+              ;;
+            workflow_dispatch)
+              base="${DISPATCH_BASE_SHA:-}"
+              ;;
+            *)
+              echo "::error title=Unsupported event::Cannot resolve a comparison base for ${EVENT_NAME:-unknown}."
+              exit 1
+              ;;
+          esac
+
+          if [[ -z "$base" || "$base" == "$zero" ]]; then
+            echo "::error title=Missing comparison base::The event must provide one exact non-zero base commit SHA."
+            exit 1
+          fi
+          if [[ ! "$base" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error title=Invalid comparison base::The comparison base must be a full 40-character commit SHA."
+            exit 1
+          fi
+          if ! base="$(git rev-parse --verify "${base}^{commit}" 2>/dev/null)"; then
+            echo "::error title=Unknown comparison base::The comparison base commit is not available in the checkout."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$base" HEAD; then
+            echo "::error title=Unsafe comparison base::The comparison base is not an ancestor of the checked-out candidate."
+            exit 1
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce current task, completion, and release consumers
+        run: node scripts/check-consumer-chain.mjs . --base "${{ steps.consumer-base.outputs.base }}" --phase candidate
+
+      - name: Exact candidate diff check
+        run: git diff --check "${{ steps.consumer-base.outputs.base }}"...HEAD
+
       - name: IntentOS self-check
         run: node scripts/check-intentos.mjs
 
       - name: Release verify
+        env:
+          INTENTOS_CONSUMER_BASE: ${{ steps.consumer-base.outputs.base }}
         run: npm run verify
 
       - name: Manifest check

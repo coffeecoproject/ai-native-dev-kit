@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.92.0",
+  "schemaVersion": "1.113.0",
   "artifactType": "apply_execution_receipt",
   "type": "object",
   "additionalProperties": false,
@@ -10,7 +10,6 @@
     "receipt_state",
     "project_identity",
     "execution_plan",
-    "approval_record",
     "readiness_report",
     "actions",
     "unexpected_changed_paths",
@@ -20,7 +19,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.92.0"] },
+    "schema_version": { "type": "string", "enum": ["1.92.0", "1.113.0"] },
     "artifact_type": { "type": "string", "enum": ["apply_execution_receipt"] },
     "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
     "receipt_state": {
@@ -33,6 +32,7 @@
         "ACTIVATION_NOT_VERIFIED"
       ]
     },
+    "executed_at": { "type": "string", "minLength": 1 },
     "project_identity": {
       "type": "object",
       "additionalProperties": false,
@@ -53,7 +53,21 @@
         "path": { "type": "string", "minLength": 1 },
         "plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
         "intentos_version": { "type": "string", "minLength": 1 },
-        "manifest_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+        "manifest_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "operation_kind": { "type": "string", "enum": ["NEW_BOOTSTRAP", "NATIVE_ADOPTION", "CONTROLLED_UPDATE"] },
+        "adoption_assessment_digest": { "type": "string", "pattern": "^(sha256:[a-f0-9]{64}|N/A)$" }
+      }
+    },
+    "apply_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "artifact_id", "authority_mode", "authority_digest", "expires_at"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "authority_mode": { "type": "string", "enum": ["REQUEST_BOUND_LOCAL", "HUMAN_APPROVAL"] },
+        "authority_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "expires_at": { "type": "string", "minLength": 1 }
       }
     },
     "approval_record": {
@@ -75,7 +89,7 @@
         "path": { "type": "string", "minLength": 1 },
         "artifact_id": { "type": "string", "minLength": 1 },
         "evidence_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-        "readiness_state": { "type": "string", "enum": ["READY_FOR_HUMAN_APPROVED_APPLY"] }
+        "readiness_state": { "type": "string", "enum": ["READY_FOR_HUMAN_APPROVED_APPLY", "READY_FOR_REQUEST_BOUND_LOCAL_APPLY"] }
       }
     },
     "actions": {
@@ -120,7 +134,14 @@
         "output_digest": { "type": "string" },
         "project_state": { "type": "string" },
         "next_action": { "type": "string" },
-        "read_only": { "type": "boolean" }
+        "read_only": { "type": "boolean" },
+        "cold_start_state": { "type": "string" },
+        "cold_start_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "route_state": { "type": "string" },
+        "route_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "project_work_queue_unchanged": { "type": "string", "enum": ["Yes", "No"] },
+        "synthetic_current_items_created": { "type": "string", "enum": ["Yes", "No", "Unknown"] },
+        "behavioral_results_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
       }
     },
     "rollback": {
@@ -138,7 +159,6 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "only_approved_actions_executed",
         "approves_business_implementation",
         "approves_release_or_production",
         "modifies_ci_or_hooks",
@@ -147,6 +167,7 @@
       ],
       "properties": {
         "only_approved_actions_executed": { "type": "boolean" },
+        "only_authorized_actions_executed": { "type": "boolean" },
         "approves_business_implementation": { "type": "boolean" },
         "approves_release_or_production": { "type": "boolean" },
         "modifies_ci_or_hooks": { "type": "boolean" },

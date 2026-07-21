@@ -20,7 +20,11 @@ Request
 
 - No vague implementation without preflight.
 - No non-trivial implementation without acceptance criteria.
-- No high-risk iOS change without explicit human approval.
+- High-risk iOS work requires stricter internal planning, review, verification,
+  and rollback evidence. Codex owns signing, entitlement, architecture,
+  security, and release-readiness decisions.
 - No merge without verification evidence.
-- No release/archive/upload without release approval and rollback notes.
-
+- Local build, signing configuration, and archive preparation are technical
+  work. A real App Store Connect upload, TestFlight distribution, App Store
+  release, or other external effect requires exact consent after rollback and
+  verification are ready.

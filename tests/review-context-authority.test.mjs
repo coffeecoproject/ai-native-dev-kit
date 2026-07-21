@@ -31,7 +31,9 @@ test("current product contract overrides compatibility and historical material",
   assert.equal(classifyReviewContextAsset("docs/plans/review-context-enforcement-1.99.2-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/review-context-authority-1.99.1-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/zero-experience-solo-operating-model-1.99-plan.md", authority), "HISTORICAL");
-  assert.equal(classifyReviewContextAsset("releases/1.111.1/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.113.0/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.112.0/release-record.md", authority), "HISTORICAL");
+  assert.equal(classifyReviewContextAsset("releases/1.111.1/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.111.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.110.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.109.0/release-record.md", authority), "HISTORICAL");
@@ -47,6 +49,8 @@ test("current product contract overrides compatibility and historical material",
   assert.equal(classifyReviewContextAsset("prompts/new-reviewer.md", authority), "CURRENT");
   assert.equal(classifyReviewContextAsset("prompts/new-reviewer.md", authority, { productDirection: true }), "UNCLASSIFIED");
   assert.equal(classifyReviewContextAsset("platforms/codex/quickstart.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("standard-baseline-packs/selection-guide.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("industrial-packs/selection-guide.md", authority), "CURRENT");
   assert.equal(classifyReviewContextAsset("platforms/claude/instructions.md", authority), "COMPATIBILITY");
   assert.equal(classifyReviewContextAsset("platforms/cursor/rules-template.md", authority), "COMPATIBILITY");
 });
@@ -59,6 +63,126 @@ test("effective guidance follows current references and stops at compatibility b
   assert.ok(!graph.nodes.some((node) => node.source === "docs/plans/project-entry-adoption-trust-hardcut-1.109-plan.md"));
   assert.ok(!graph.nodes.some((node) => node.source === "platforms/claude/instructions.md"));
   assert.ok(!graph.nodes.some((node) => node.source === "platforms/cursor/rules-template.md"));
+  for (const workflow of [
+    ".github/workflows/intentos-pr-checks.yml",
+    ".github/workflows/intentos-release-checks.yml",
+  ]) {
+    assert.ok(graph.nodes.some((node) => node.source === workflow
+      && node.responsibilitySurface === "EXECUTION_ORCHESTRATION"), workflow);
+  }
+  assert.ok(!graph.nodes.some((node) => node.source === "platforms/github/ci-ai-workflow.yml"
+    && node.responsibilitySurface === "EXECUTION_ORCHESTRATION"));
+  for (const consumer of [
+    "scripts/check-consumer-chain.mjs",
+    "scripts/check-work-queue-takeover.mjs",
+    "scripts/check-task-governance.mjs",
+    "scripts/check-change-boundary.mjs",
+    "scripts/check-execution-assurance.mjs",
+    "scripts/check-completion-evidence.mjs",
+    "scripts/check-release-evidence-gate.mjs",
+    "scripts/check-release-execution.mjs",
+  ]) {
+    const node = graph.nodes.find((item) => item.source === consumer);
+    assert.equal(node?.registration, "WORKFLOW_CONSUMER", consumer);
+    assert.equal(node?.responsibilitySurface, "EXECUTION_CONSUMER", consumer);
+    assert.ok(graph.edges.some((edge) => edge.source === consumer && edge.active), consumer);
+  }
+});
+
+test("every copied starter guidance file is registered for source and installed layouts", () => {
+  const root = path.resolve(".");
+  const graph = effectiveGuidanceGraph(authority, false, root);
+  const registrations = new Map(authority.activeGuidance.map((row) => [row.source, row.installed || null]));
+  const starterDocs = new Map();
+  for (const starter of ["codex-android-app", "codex-ios-app", "codex-web-app", "generic-project"]) {
+    const starterRoot = path.join(root, "starters", starter);
+    const docs = fs.readdirSync(path.join(starterRoot, "docs"))
+      .filter((name) => name.endsWith(".md"))
+      .sort();
+    starterDocs.set(starter, docs);
+    const sources = [
+      `starters/${starter}/AGENTS.md`,
+      ...docs.map((name) => `starters/${starter}/docs/${name}`),
+      `starters/${starter}/README.md`,
+    ];
+    for (const source of sources) {
+      const expectedInstalled = source.endsWith("/AGENTS.md")
+        ? "AGENTS.md"
+        : source.endsWith("/README.md")
+          ? "README.md"
+          : `docs/${path.posix.basename(source)}`;
+      assert.equal(registrations.get(source), expectedInstalled, source);
+      assert.ok(graph.nodes.some((node) => node.source === source
+        && node.registration === "ACTIVE_ROOT"
+        && node.file_state === "CURRENT"), source);
+    }
+  }
+
+  for (const [starter, docs] of starterDocs) {
+    const installedRoot = fs.mkdtempSync(path.join(os.tmpdir(), `intentos-guidance-${starter}-`));
+    try {
+      fs.mkdirSync(path.join(installedRoot, ".intentos"), { recursive: true });
+      fs.writeFileSync(path.join(installedRoot, ".intentos/version.json"), `${JSON.stringify({ starter })}\n`);
+      fs.cpSync(path.join(root, "starters", starter, "AGENTS.md"), path.join(installedRoot, "AGENTS.md"));
+      fs.cpSync(path.join(root, "starters", starter, "README.md"), path.join(installedRoot, "README.md"));
+      fs.cpSync(path.join(root, "starters", starter, "docs"), path.join(installedRoot, "docs"), { recursive: true });
+      const installedGraph = effectiveGuidanceGraph(authority, true, installedRoot);
+      for (const installedPath of ["AGENTS.md", "README.md", ...docs.map((name) => `docs/${name}`)]) {
+        assert.ok(installedGraph.nodes.some((node) => node.path === installedPath
+          && node.registration === "ACTIVE_ROOT"
+          && node.file_state === "CURRENT"), `${starter}:${installedPath}`);
+      }
+      const foreignOnlyDocs = [...new Set([...starterDocs.entries()]
+        .filter(([candidate]) => candidate !== starter)
+        .flatMap(([, names]) => names)
+        .filter((name) => !docs.includes(name)))];
+      for (const name of foreignOnlyDocs) {
+        assert.ok(!installedGraph.nodes.some((node) => node.path === `docs/${name}`), `${starter}:docs/${name}`);
+      }
+    } finally {
+      fs.rmSync(installedRoot, { recursive: true, force: true });
+    }
+  }
+
+  const adoptedRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-guidance-existing-adoption-"));
+  try {
+    fs.mkdirSync(path.join(adoptedRoot, ".intentos"), { recursive: true });
+    fs.writeFileSync(path.join(adoptedRoot, ".intentos/version.json"), `${JSON.stringify({
+      starter: "generic-project",
+      projectEntryOrigin: "EXISTING_PROJECT",
+    })}\n`);
+    fs.writeFileSync(path.join(adoptedRoot, "AGENTS.md"), "# Existing Project Agent\n");
+    const installedGraph = effectiveGuidanceGraph(authority, true, adoptedRoot);
+    assert.ok(!installedGraph.nodes.some((node) => node.source.startsWith("starters/")));
+    assert.ok(!installedGraph.nodes.some((node) => node.path === "README.md" || node.path === "docs/ai-workflow.md"));
+  } finally {
+    fs.rmSync(adoptedRoot, { recursive: true, force: true });
+  }
+});
+
+test("source workflows and the optional GitHub adapter enforce the actual-diff consumer chain", () => {
+  const workflows = [
+    ".github/workflows/intentos-pr-checks.yml",
+    ".github/workflows/intentos-release-checks.yml",
+    "platforms/github/ci-ai-workflow.yml",
+  ];
+  for (const relative of workflows) {
+    const content = fs.readFileSync(path.join(path.resolve("."), relative), "utf8");
+    assert.match(content, /fetch-depth:\s*0/, relative);
+    assert.match(content, /check-consumer-chain\.mjs\s+\.\s+--base/, relative);
+  }
+  const prWorkflow = fs.readFileSync(path.join(path.resolve("."), ".github/workflows/intentos-pr-checks.yml"), "utf8");
+  assert.match(prWorkflow, /base_sha:\n\s+description:.*\n\s+required: true\n\s+type: string/);
+  assert.match(prWorkflow, /PR_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
+  assert.match(prWorkflow, /DISPATCH_BASE_SHA: \$\{\{ inputs\.base_sha \}\}/);
+  assert.match(prWorkflow, /steps\.consumer-base\.outputs\.base/);
+  assert.match(prWorkflow, /git merge-base --is-ancestor "\$base" HEAD/);
+  assert.doesNotMatch(prWorkflow, /github\.base_ref|origin\/\$|HEAD\^|base=["']?HEAD\b/);
+
+  const optionalAdapter = fs.readFileSync(path.join(path.resolve("."), "platforms/github/ci-ai-workflow.yml"), "utf8");
+  assert.match(optionalAdapter, /PR_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
+  assert.match(optionalAdapter, /DISPATCH_BASE_SHA: \$\{\{ inputs\.base_sha \}\}/);
+  assert.doesNotMatch(optionalAdapter, /github\.base_ref|origin\/\$|HEAD\^|base=["']?HEAD\b/);
 });
 
 test("direct contradictory active guidance fails closed", () => {
@@ -99,6 +223,17 @@ test("implicit technical decisions in questions, menus, slogans, and sections fa
     "Unknown technical risk must stop for human confirmation.",
     "Architecture and dependency changes require human judgment.",
     "Release readiness requires a user decision.",
+    "The user decides risk acceptance and who must review high-risk decisions.",
+    "The user should only decide whether a later bridge write is allowed.",
+    "A docs-only bridge may be written only after human approval.",
+    "The user approves the technical remediation scope.",
+    "## Human Decision Summary\n\nRecommended choice: A / B\n\n- A: add a new dependency\n- B: change the architecture",
+    "| Option | When to choose |\n|---|---|\n| A | Keep the current stack |\n| B | Change the migration strategy |\n\nAsk the user to choose A or B.",
+    "## Human Approval\n\n- migration design\n- verification strategy",
+    "Fix requires a new dependency, so stop and ask for Human Approval.",
+    "Verification failed repeatedly; route the recovery strategy to a Human Decision.",
+    "A technical scope expansion requires a user decision.",
+    "## Stop Conditions\n\nStop and ask the human when any condition appears:\n\n- Same finding appears twice.\n- Fix requires a new dependency.",
   ];
   for (const guidance of contradictory) {
     assert.notEqual(analyzeActiveGuidanceConflicts(guidance).length, 0, guidance);
@@ -112,6 +247,9 @@ test("semantic hardcut preserves technical delegation and bounded real-world con
     "Ask which refund period the business requires.",
     "Codex resolves unknown technical risk through evidence and independent review.",
     "Codex determines release readiness; ask only for consent to the prepared production effect.",
+    "Codex evaluates new dependencies and migration mechanics through internal planning and evidence.",
+    "Repeated verification failure triggers internal root-cause analysis and does not create a user decision.",
+    "User input class: BUSINESS_FACT_NEEDED. Ask which cancellation period the business requires.",
   ];
   for (const guidance of aligned) assert.deepEqual(analyzeActiveGuidanceConflicts(guidance), [], guidance);
 });
@@ -222,7 +360,7 @@ test("a self-asserted boss identity cannot bypass the real release path", () => 
     assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
     const report = JSON.parse(result.stdout);
     assert.equal(report.operatingLoop.operation, "PREPARE_RELEASE");
-    assert.equal(report.operatingDecision.actionCode, "PREPARE_RELEASE_REVIEW");
+    assert.equal(report.operatingDecision.actionCode, "COMPLETE_RELEASE_EVIDENCE");
     assert.equal(report.decisionResponsibility.userResponsibilityClass, "REAL_WORLD_CONSENT_NEEDED");
     assert.equal(report.decisionResponsibility.userActionRequiredNow, "No");
     assert.equal(report.boundaries.approvesReleaseOrProduction, "No");

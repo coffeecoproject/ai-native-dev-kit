@@ -1,0 +1,44 @@
+{
+  "version": "1.103.0",
+  "adapter_kind": "COMMAND_ONLY",
+  "actions": [
+    {
+      "id": "miniprogram-bl2-all",
+      "phase": "VERIFY",
+      "kind": "COMMAND",
+      "argv": ["node", "scripts/bl2-proof.mjs", "all"],
+      "cwd": ".",
+      "timeout_ms": 10000,
+      "environment": [],
+      "obligation_ids": [
+        "bl2:wechat-miniprogram-industrial:client-storage:client-storage-minimization-evidence",
+        "bl2:wechat-miniprogram-industrial:client-storage:sensitive-data-handling-evidence",
+        "bl2:wechat-miniprogram-industrial:cloud-function-access-rule:api-failure-and-recovery-evidence",
+        "bl2:wechat-miniprogram-industrial:cloud-function-access-rule:cloud-access-rule-evidence",
+        "bl2:wechat-miniprogram-industrial:cloud-function-access-rule:cloud-function-boundary-evidence",
+        "bl2:wechat-miniprogram-industrial:cloud-function-access-rule:production-configuration-review",
+        "bl2:wechat-miniprogram-industrial:platform-permission:denied-permission-evidence",
+        "bl2:wechat-miniprogram-industrial:platform-permission:platform-permission-prompt-evidence",
+        "bl2:wechat-miniprogram-industrial:platform-permission:privacy-authorization-evidence",
+        "bl2:wechat-miniprogram-industrial:release:experience-version-evidence",
+        "bl2:wechat-miniprogram-industrial:release:monitoring-evidence",
+        "bl2:wechat-miniprogram-industrial:release:platform-review-readiness",
+        "bl2:wechat-miniprogram-industrial:release:release-submission-readiness",
+        "bl2:wechat-miniprogram-industrial:release:rollback-or-mitigation-plan",
+        "bl2:wechat-miniprogram-industrial:ui-state:critical-flow-behavior-evidence",
+        "bl2:wechat-miniprogram-industrial:ui-state:mini-program-lifecycle-evidence",
+        "bl2:wechat-miniprogram-industrial:ui-state:mini-program-loading-empty-error-forbidden-evidence",
+        "bl2:wechat-miniprogram-industrial:ui-state:navigation-and-return-path-evidence",
+        "bl2:wechat-miniprogram-industrial:wechat-login:denied-permission-evidence",
+        "bl2:wechat-miniprogram-industrial:wechat-login:session-binding-evidence",
+        "bl2:wechat-miniprogram-industrial:wechat-login:wechat-login-state-evidence"
+      ],
+      "positive_path": "Yes",
+      "negative_path": "No",
+      "resource_ids": [],
+      "external_effect": "No",
+      "depends_on": []
+    }
+  ],
+  "resources": []
+}

@@ -6,24 +6,35 @@ This assessment is read-only by default. It does not authorize workflow asset in
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Keep read-only | Only map current governance and risks | No | low | Choose for production, dirty, or strongly governed projects |
-| B | Adapter docs | Draft mapping documents that preserve existing governance | Docs/report only | low/medium | Choose when you want durable adoption records without replacing current rules |
-| C | Reviewed workflow setup | Prepare or apply approved workflow assets after review | Yes, approved assets only | medium/high | Choose for projects that are ready to adopt the kit directly |
-| D | Pause | Stop adoption assessment and wait | No | low | Choose when ownership or risk is unclear |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Adoption Decision And Evidence
+
+Selected adoption mode: READ_ONLY / ADAPTER_DOCS / CONTROLLED_WORKFLOW_SETUP / BLOCKED_BY_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Project and governance evidence:
+
+Scope and exact write boundary:
+
+Risk response and rollback:
+
+Verification and review route:
+
+Technical recovery path:
 
 ## Human Summary
 
@@ -31,7 +42,9 @@ One-sentence conclusion:
 
 ## Decision Needed
 
-Should AI stay read-only, write adapter docs, or proceed to workflow asset setup after approval:
+Codex decision status: PENDING_EVIDENCE / SELECTED / BLOCKED
+
+Bounded user input, if any: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
 ## Next Safe Step
 
@@ -116,14 +129,11 @@ Primary gaps:
 
 - 
 
-## Safe Adoption Options
+## Safe Adoption Decision
 
-| Option | Writes Allowed | When Safe | Human Approval Required |
-|---|---|---|---|
-| Read-only assessment only | None | Before understanding existing governance | No |
-| Adapter docs only | `docs/intentos-adoption.md`, `docs/existing-governance-map.md`, or approved equivalent | After human approves mapping destination | Yes |
-| Workflow asset update | `.intentos/`, workflow scripts, migration reports | Only after governance owner accepts adapter plan | Yes |
-| Full workflow bootstrap | Standard workflow assets | Usually not appropriate for strong governed production projects | Yes, exceptional |
+| Codex-selected mode | Writes allowed | Required evidence | Risk controls | Status |
+|---|---|---|---|---|
+|  |  |  |  | PENDING_EVIDENCE / SELECTED / REJECTED |
 
 ## Recommended Adoption Path
 
@@ -131,11 +141,11 @@ Recommended option:
 
 Rationale:
 
-Files safe to create or update after approval:
+Files inside the Codex-selected controlled boundary:
 
 - 
 
-Files that must not be changed without separate approval:
+Files outside this assessment boundary and requiring a separate evidence-backed task:
 
 - agent rules:
 - PR template:
@@ -149,15 +159,11 @@ Files that must not be changed without separate approval:
 
 ## Required Human Decisions
 
-| Decision | Options | Recommended | Owner | Status |
-|---|---|---|---|---|
-| Adoption mode | read-only / adapter docs / workflow assets |  |  | PENDING |
-| Mapping destination | chat only / docs / `.intentos/adoption` |  |  | PENDING |
-| Agent rule handling | keep / append with migration report / manual merge |  |  | PENDING |
-| PR template handling | keep / migration report / manual merge |  |  | PENDING |
-| BL level | BL0 / BL1 / BL2 |  |  | PENDING |
-| Selected profiles |  |  |  | PENDING |
-| Selected industrial packs |  |  |  | PENDING |
+Compatibility heading: semantically this is the bounded `User Input Queue`; internal adoption mechanics are excluded.
+
+| Input class | Missing business fact, exact prepared effect, or external fact | Why project evidence is insufficient | Plain-language question | Source | Status |
+|---|---|---|---|---|---|
+| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  |  |  | user / external authority / N/A | PENDING / PROVIDED / CONSENTED / NOT_REQUIRED |
 
 ## No-write Recommendation
 
@@ -167,7 +173,7 @@ Do not run `--update-workflow-assets`.
 
 Do not create migration reports.
 
-Do not modify project files until the human approves adapter setup.
+Do not modify project files until Codex records the exact boundary, rollback, and verification evidence. Ask the user only for a classified business fact, exact prepared real-world effect, or unavailable external fact.
 
 Reason:
 
@@ -175,9 +181,9 @@ Reason:
 
 Next action:
 
-Suggested prompt to human:
+Bounded user-input prompt, only if classified above:
 
 ```text
-I detected an existing governed or production-sensitive project. I will not write files yet.
-Please confirm whether I should create adapter documentation, and where it should live.
+I detected a missing fact or prepared real-world effect that project evidence cannot resolve.
+<ask one plain-language question tied to the recorded user-input class>
 ```

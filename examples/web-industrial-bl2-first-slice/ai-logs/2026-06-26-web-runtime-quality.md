@@ -2,7 +2,7 @@
 
 ## Task
 
-`examples/web-industrial-bl2-first-slice/tasks/001-web-runtime-quality.md`
+`tasks/001-web-runtime-quality.md`
 
 ## Agent / Tool
 

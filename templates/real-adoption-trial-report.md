@@ -2,24 +2,35 @@
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Read-only trial | Record what the kit detected and where it should stop | Report only | low | Choose for first contact with real projects |
-| B | Adapter map | Draft governance mapping and adoption notes | Docs/report only | low/medium | Choose when the project has existing governance |
-| C | Controlled setup | Apply reviewed workflow assets after approval | Yes, approved assets only | medium/high | Choose only for projects ready to adopt directly |
-| D | Pause | Stop trial and wait | No | low | Choose when the project is sensitive or unclear |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Trial Decision And Evidence
+
+Selected mode: READ_ONLY_TRIAL / ADAPTER_MAP / CONTROLLED_SETUP / BLOCKED_BY_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Project-state evidence:
+
+Scope and exact write boundary:
+
+Risk response and rollback:
+
+Verification and review route:
+
+Technical recovery path:
 
 ## Human Summary
 
@@ -67,7 +78,7 @@ One-sentence read-only conclusion.
 | AGENTS.md proposed | No |
 | Existing agent.md considered | Yes / Existing agent.md absent |
 | .intentos proposed | No |
-| Human approval required before bridge writes | Yes |
+| Codex readiness required before bridge writes | Yes |
 
 ## Governance Map
 
@@ -91,11 +102,19 @@ Patch classification status: NOT_STARTED / PARTIAL / COMPLETE
 
 ## Human Decisions
 
-| Decision | Options | Recommended | Owner | Status |
+Compatibility heading: semantically this is the bounded `User Input Queue`; adoption mode and bridge mechanics are Codex-owned.
+
+| Input class | Missing business fact, exact prepared effect, or external fact | Why project evidence is insufficient | Plain-language question | Source | Status |
+|---|---|---|---|---|---|
+| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  |  |  | user / external authority / N/A | PENDING / PROVIDED / CONSENTED / NOT_REQUIRED |
+
+## Codex Adoption And Publication Decision
+
+| Decision | Evidence | Codex disposition | Safety boundary | Status |
 |---|---|---|---|---|
-| Adoption mode | read-only / docs-only bridge / thin operational bridge | read-only | human | PENDING |
-| Public evidence | LOCAL_ONLY / SANITIZED_APPROVED / PUBLIC_APPROVED | LOCAL_ONLY | human | PENDING |
-| Bridge write | none / docs-only / adapter | none | human | PENDING |
+| Adoption mode |  | READ_ONLY / DOCS_ONLY_BRIDGE / THIN_OPERATIONAL_BRIDGE |  | PENDING_EVIDENCE / SELECTED / BLOCKED |
+| Public evidence |  | LOCAL_ONLY by default; prepare an exact publication effect before requesting consent |  | LOCAL_ONLY / READY_FOR_CONSENT / PUBLISHED |
+| Bridge write |  | NONE / DOCS_ONLY / ADAPTER |  | PENDING_EVIDENCE / SELECTED / BLOCKED |
 
 ## Subagent Orchestration
 

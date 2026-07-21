@@ -1,0 +1,2 @@
+run_id=vrun-miniprogram-bl2-001
+owner_marker_digest=sha256:852d5902f0536b2e189b9297c5f41faf4921a0d92ef74de7c4e01b99f8beb90d

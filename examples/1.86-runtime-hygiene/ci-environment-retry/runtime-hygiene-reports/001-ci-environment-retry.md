@@ -20,6 +20,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Field | Value |
 | --- | --- |
 | Task ref | `task:current` |
+| Intent digest | `N/A` |
 | Work Queue item ref | `N/A` |
 | Task Governance ref | `N/A` |
 
@@ -125,8 +126,9 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "schema_version": "1.86.1",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/001-ci-environment-retry.md",
-  "runtime_hygiene_digest": "sha256:d3a4fa29c3a418fd28b80277a9b160c2c4e19aea44d05e8f2aa7e01a77110f2e",
+  "runtime_hygiene_digest": "sha256:bfeda77439268892dea2c09e51d1ec72d60352267f48785509c6cbae5f8ea525",
   "task_ref": "task:current",
+  "intent_digest": "N/A",
   "work_queue_item_ref": "N/A",
   "task_governance_ref": "N/A",
   "task_entry_binding": {

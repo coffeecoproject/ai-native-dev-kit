@@ -22,7 +22,7 @@
     "iOS app structure, navigation, state ownership, build, simulator, or device behavior is in scope"
   ],
   "canBeRecommendedByAI": true,
-  "selectionRequiresHumanDecision": true,
+  "selectionOwnedByCodex": true,
   "canAuthorizeWrites": false,
   "canApproveImplementation": false,
   "canApproveRelease": false,

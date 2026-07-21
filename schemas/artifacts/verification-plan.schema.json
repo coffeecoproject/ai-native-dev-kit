@@ -148,18 +148,22 @@
         "properties": {
           "surface": {
             "type": "string",
-            "enum": [
-              "USER_FLOW",
-              "FRONTEND_UI",
-              "API_CONTRACT",
-              "BACKEND_RULE",
-              "DATA_MODEL",
-              "ERROR_COPY",
-              "TEST_COVERAGE",
-              "DOCS_HANDOFF",
-              "PERMISSION_RISK",
-              "RELEASE_IMPACT"
-            ]
+          "enum": [
+            "USER_FLOW",
+            "FRONTEND_UI",
+            "API_CONTRACT",
+            "BACKEND_RULE",
+            "DATA_MODEL",
+            "ERROR_COPY",
+            "TEST_COVERAGE",
+            "DOCS_HANDOFF",
+            "PERMISSION_RISK",
+            "RELEASE_IMPACT",
+            "BACKGROUND_WORK",
+            "EXTERNAL_INTEGRATION",
+            "RUNTIME_BEHAVIOR",
+            "ROLLBACK_RECOVERY"
+          ]
           },
           "status": { "type": "string", "enum": ["REQUIRED", "OPTIONAL", "NOT_APPLICABLE", "NEEDS_HUMAN_DECISION"] },
           "reason": { "type": "string" },

@@ -192,12 +192,25 @@ function checkRoutingBinding(label, evidence, governance) {
 
 function checkLocators(fromFile, label, evidence, locators) {
   const bindingRefs = new Set((evidence.authority_binding.sources || []).map((item) => item.ref));
+  const inspectedRoots = new Set(evidence.discovery_projection.inspected_roots || []);
+  const completeSegments = new Set((evidence.discovery_projection.scan_segments || [])
+    .filter((item) => item.status === "COMPLETE")
+    .map((item) => item.root));
   const rolesBySource = new Map();
   for (const locator of evidence.evidence_locators) {
     if (locator.authority_binding_ref === locator.source_ref) pass(`${label} ${locator.locator_id} points to its Evidence Authority source`);
     else fail(`${label} ${locator.locator_id} authority_binding_ref must equal its source_ref`);
     if (bindingRefs.has(locator.source_ref)) pass(`${label} ${locator.locator_id} source is present in Evidence Authority binding`);
     else fail(`${label} ${locator.locator_id} source is missing from Evidence Authority binding`);
+    if (locator.evidence_kind === "PROJECT_SOURCE" && locator.source_ref.startsWith("file:")) {
+      const relative = locator.source_ref.slice("file:".length).replaceAll("\\", "/");
+      const [sourceRoot] = relative.split("/");
+      if (inspectedRoots.has(sourceRoot) && completeSegments.has(sourceRoot)) {
+        pass(`${label} ${locator.locator_id} source belongs to a completed discovery segment`);
+      } else {
+        fail(`${label} ${locator.locator_id} source is outside the completed discovery boundary`);
+      }
+    }
     const resolved = resolveAuthoritativeEvidenceReference(projectRoot, fromFile, locator.source_ref);
     if (!resolved.ok) {
       fail(`${label} ${locator.locator_id} source is unsafe or unresolved: ${resolved.error}`);
@@ -598,5 +611,5 @@ function abort(message) {
 function emit() {
   if (outputJson) process.stdout.write(`${JSON.stringify({ ok: !failed, checks }, null, 2)}\n`);
   else if (!failed) console.log("\nBusiness Universe Coverage check passed.");
-  process.exit(failed ? 1 : 0);
+  process.exitCode = failed ? 1 : 0;
 }

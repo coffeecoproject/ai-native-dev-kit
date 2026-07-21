@@ -2,40 +2,46 @@
 
 ## Status
 
-Draft status: DRAFT / CONFIRMED
-
-Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED
+Onboarding status: DRAFT / READY / BLOCKED_BY_MISSING_FACT
 
 Last updated:
 
-## Onboarding Level
+## Onboarding Depth
 
-O0 / O1 / O2:
+Codex-selected depth: O0 / O1 / O2
 
-Rationale:
+Evidence and rationale:
 
 ## Source Conversation
 
-Summarize the human-provided context in plain terms.
+Summarize the user's business goal, product preferences, and supplied facts in
+plain language.
 
-- 
+-
 
-## AI Draft Responsibility
+## Codex Responsibility
 
-AI is responsible for drafting and keeping this onboarding pack consistent.
+Codex reads the project, chooses the onboarding depth, target platform profile,
+technical approach, baseline level, verification strategy, and first valuable
+slice. Codex records those choices with project evidence and resolves technical
+uncertainty through inspection, safe defaults, review, tests, or a bounded
+spike.
 
-AI must not ask the human to manually fill all project files. AI should ask focused questions, propose options, record decisions, and update documents after confirmation.
+The user does not fill workflow files or approve technical choices.
 
-## Human Decision Responsibility
+## User Input Boundary
 
-The human is responsible for confirming or rejecting:
+Ask the user only when one of these classes applies:
 
-- project direction
-- target platforms
-- technology choices
-- high-risk boundaries
-- first vertical slice
-- assumptions that affect scope, cost, risk, or architecture
+- `BUSINESS_FACT_NEEDED`: a real business rule or product preference cannot be
+  inferred from project evidence;
+- `REAL_WORLD_CONSENT_NEEDED`: the next concrete external action may create
+  cost, affect production or real data, use a real account, or communicate with
+  real users;
+- `EXTERNAL_FACT_NEEDED`: a legal, tax, compliance, provider, or other external
+  fact cannot be proved by the project.
+
+All other onboarding work is `NO_USER_ACTION`.
 
 ## Required Onboarding Documents
 
@@ -53,27 +59,30 @@ The human is responsible for confirming or rejecting:
 - Primary problem:
 - First valuable outcome:
 - Constraints:
+- Evidence refs:
 
-## Open Decisions
+## Open Facts And Effects
 
-| Decision | Options | Recommended | Human decision | Status |
+| Item | Classification | Codex recommendation | Dependent scope | Status |
 |---|---|---|---|---|
-|  |  |  |  | PENDING |
+|  | NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  |  | OPEN |
 
-## First Vertical Slice Candidate
+Technical questions must remain `NO_USER_ACTION` and be resolved by Codex.
 
-- Goal:
+## First Vertical Slice
+
+- Codex-selected goal:
 - User value:
 - Scope:
 - Non-goals:
 - Verification:
 - Risks:
+- Evidence refs:
 
-## Ready For First Request Card
+## Ready For First Request
 
-Choose one:
-
-- [ ] READY
-- [ ] NOT_READY
+Readiness: READY / NOT_READY
 
 Reason:
+
+Next automatic action:

@@ -2,6 +2,15 @@ name: AI Workflow Checks
 
 on:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: Full commit SHA to compare against the dispatched candidate
+        required: true
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
   workflow-check:
@@ -13,10 +22,50 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Resolve comparison base
+        id: consumer-base
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          DISPATCH_BASE_SHA: ${{ inputs.base_sha }}
+        run: |
+          set -euo pipefail
+
+          case "${EVENT_NAME:-}" in
+            pull_request)
+              base="${PR_BASE_SHA:-}"
+              ;;
+            workflow_dispatch)
+              base="${DISPATCH_BASE_SHA:-}"
+              if [[ -z "$base" ]]; then
+                echo "::error title=Missing comparison base::workflow_dispatch requires the base_sha input."
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error title=Unsupported event::Cannot resolve a comparison base for ${EVENT_NAME:-unknown}."
+              exit 1
+              ;;
+          esac
+
+          if [[ ! "$base" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error title=Invalid comparison base::The comparison base must be a full 40-character commit SHA."
+            exit 1
+          fi
+          if ! base="$(git rev-parse --verify "${base}^{commit}" 2>/dev/null)"; then
+            echo "::error title=Unknown comparison base::The comparison base commit is not available in the checkout."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$base" HEAD; then
+            echo "::error title=Unsafe comparison base::The comparison base is not an ancestor of the checked-out candidate."
+            exit 1
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
       - name: Check AI workflow files
         run: node scripts/check-ai-workflow.mjs . --mode core
       - name: Check current task, completion, and release consumers
-        run: node scripts/check-consumer-chain.mjs . --base origin/${{ github.base_ref }}
+        run: node scripts/check-consumer-chain.mjs . --base "${{ steps.consumer-base.outputs.base }}" --phase candidate
       - name: Check verification runtime plans
         run: node scripts/check-verification-runtime-plan.mjs . --allow-empty
       - name: Check verification runtime lifecycle plans
@@ -263,7 +312,7 @@ jobs:
       - name: Check baseline recommendation syntax
         run: node --check scripts/baseline-project.mjs
       - name: Check workflow artifact quality
-        run: node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base origin/${{ github.base_ref }}
+        run: node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base ${{ steps.consumer-base.outputs.base }}
       - name: Check review loop semantics
         run: node scripts/check-review-loop.mjs .
       - name: Check next-step boundary semantics

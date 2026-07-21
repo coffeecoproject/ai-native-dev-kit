@@ -18,7 +18,8 @@ It creates a report that says:
 - what surfaces may be affected
 - what must be handled before the task is complete
 - what is intentionally out of scope
-- what needs a human decision
+- which unavailable business/external fact or exact real-world action still
+  requires the user's plain-language input
 - what evidence proves each surface was checked
 
 ## What It Does Not Do
@@ -26,7 +27,7 @@ It creates a report that says:
 - It does not edit files by itself.
 - It does not approve implementation.
 - It does not approve release or production.
-- It does not replace human product judgment.
+- It does not invent unavailable business or external facts.
 - It does not prove that every possible impact was discovered.
 
 ## Typical Use
@@ -108,18 +109,21 @@ Use it for:
 - data model changes
 - visible error messages
 - payment, finance, tax, HR, approval, or operational workflows
+- background jobs, queues, schedulers, retries, or batch work
+- third-party APIs, webhooks, providers, or synchronization boundaries
+- runtime configuration, services, caches, sessions, or containers
+- rollback, compensation, restore, or partial-failure recovery
 
 For simple copy-only or docs-only work, it can stay lightweight. Codex should still explain why broader impact coverage is not needed.
 
-## Human Role
+## User Role
 
-The user should not need to choose technical surfaces manually.
+The user does not choose technical surfaces, implementation scope, validation
+layers, or release treatment. Codex derives and closes those obligations.
 
-Codex should propose the surface map and ask only decision-level questions, such as:
-
-- Is frontend behavior in scope for this change?
-- Is this rule enforced only locally, or also by the server?
-- Is this connected to permissions, production data, or release?
+Codex may ask only for a business fact unavailable from the project, an
+external authoritative fact it cannot obtain, or consent for one prepared
+real-world action. Technical uncertainty remains Codex-owned.
 
 ## Output
 
@@ -148,4 +152,7 @@ When strict reference resolution is enabled, `DONE` evidence may be:
 - `artifact:<id-or-ref>` for a recorded workflow artifact
 - `human-decision:<id-or-ref>` for a recorded human decision
 
-Changed files and evidence paths are still evidence signals, not implementation approval.
+For current strict closure records, `NOT_APPLICABLE` and `OUT_OF_SCOPE` also
+require resolvable project-local evidence. A prose reason by itself cannot hide
+an affected surface. Changed files and evidence paths are still evidence
+signals, not implementation approval.

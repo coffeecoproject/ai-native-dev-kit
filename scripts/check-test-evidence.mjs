@@ -14,7 +14,12 @@ import {
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
-import { asArtifactRef, validateRuntimeTrustBinding } from "./lib/verification-runtime-consumer.mjs";
+import {
+  asArtifactRef,
+  runtimeEvidenceItems,
+  validateRuntimeTrustBinding,
+  verificationPlanRequiresRuntimeTrust,
+} from "./lib/verification-runtime-consumer.mjs";
 import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -230,7 +235,14 @@ function checkReport(file) {
 function checkRuntimeTrust(label, file, evidence) {
   const runtimeRequiredByScenario = (evidence.scenario_coverage_map || [])
     .some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF");
-  const runtimeRequired = requireRuntimeTrust || runtimeRequiredByScenario;
+  const planRef = resolveAuthoritativeEvidenceReference(projectRoot, file, evidence.verification_plan_ref, { markdownOnly: true });
+  const planExtracted = planRef.ok
+    ? extractMachineReadableEvidence(fs.readFileSync(planRef.file, "utf8"))
+    : null;
+  const verificationPlan = planExtracted?.ok ? planExtracted.value : null;
+  const runtimeRequiredByPlan = verificationPlan?.schema_version === "1.110.0"
+    && verificationPlanRequiresRuntimeTrust(verificationPlan);
+  const runtimeRequired = requireRuntimeTrust || runtimeRequiredByScenario || runtimeRequiredByPlan;
   if (!["1.104.0", "1.108.0", "1.110.0"].includes(evidence.schema_version)) {
     if (runtimeRequired) fail(`${label} --require-runtime-trust requires Test Evidence schema 1.104.0 or 1.108.0`);
     return;
@@ -239,6 +251,9 @@ function checkRuntimeTrust(label, file, evidence) {
     const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, { required: false });
     if (validation.ok) pass(`${label} Runtime Trust is explicitly not required by the current Verification Plan`);
     else validation.errors.forEach((error) => fail(`${label} ${error}`));
+    if ((evidence.evidence_items || []).some(isRuntimeEvidenceItem)) {
+      fail(`${label} cannot contain Runtime Trust evidence when the current plan marks it not required`);
+    }
     return;
   }
   const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, {
@@ -254,28 +269,50 @@ function checkRuntimeTrust(label, file, evidence) {
     return;
   }
   pass(`${label} Runtime Trust binding matches the authoritative current run`);
-  if (!runtimeRequiredByScenario) return;
-  const planRef = resolveAuthoritativeEvidenceReference(projectRoot, file, evidence.verification_plan_ref, { markdownOnly: true });
-  const planExtracted = planRef.ok
-    ? extractMachineReadableEvidence(fs.readFileSync(planRef.file, "utf8"))
-    : null;
-  const verificationObligations = planExtracted?.ok && Array.isArray(planExtracted.value?.verification_obligations)
-    ? planExtracted.value.verification_obligations
+  const expectedRuntimeItems = new Map(runtimeEvidenceItems(validation.manifest, validation.lifecyclePlan).map((item) => [item.id, item]));
+  const actualRuntimeItems = new Map((evidence.evidence_items || []).filter(isRuntimeEvidenceItem).map((item) => [item.id, item]));
+  for (const [id, expected] of expectedRuntimeItems) {
+    const actual = actualRuntimeItems.get(id);
+    if (!actual) {
+      fail(`${label} is missing Runtime Trust evidence ${id} from the authoritative run`);
+    } else if (evidenceDigest(actual, []) === evidenceDigest(expected, [])) {
+      pass(`${label} Runtime Trust evidence ${id} exactly replays the authoritative run manifest`);
+    } else {
+      fail(`${label} Runtime Trust evidence ${id} must exactly replay the authoritative run manifest`);
+    }
+  }
+  for (const id of actualRuntimeItems.keys()) {
+    if (!expectedRuntimeItems.has(id)) fail(`${label} contains unbound Runtime Trust evidence ${id}`);
+  }
+  if (!runtimeRequired) return;
+  const verificationObligations = Array.isArray(verificationPlan?.verification_obligations)
+    ? verificationPlan.verification_obligations
     : [];
   const runtimeObligationIds = new Set(verificationObligations
-    .filter((item) => item.required === "Yes" && item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF")
+    .filter((item) => item.required === "Yes" && obligationRequiresRuntimeTrust(item))
     .map((item) => item.id));
   const executionById = new Map((validation.manifest.verification_executions || []).map((item) => [`runtime:${item.id}`, item]));
+  const runtimeProofParent = new Map();
+  for (const [runtimeId, runtimeItem] of expectedRuntimeItems) {
+    const output = resolveArtifact(file, runtimeItem.ref, { markdownOnly: false });
+    if (!output) continue;
+    for (const proof of observedProofItemsFor(runtimeItem, fs.readFileSync(output, "utf8"))) {
+      runtimeProofParent.set(proof.id, runtimeId);
+    }
+  }
   const evidenceById = new Map((evidence.evidence_items || []).map((item) => [item.id, item]));
   for (const row of evidence.coverage_map || []) {
     if (row.coverage_state !== "COVERED" || !runtimeObligationIds.has(row.obligation_id)) continue;
-    const runtimeIds = (row.evidence_ids || []).filter((id) => executionById.has(id));
-    if (runtimeIds.length === 0) {
+    const runtimeEvidenceIds = (row.evidence_ids || []).filter((id) => (
+      executionById.has(id) || runtimeProofParent.has(id)
+    ));
+    if (runtimeEvidenceIds.length === 0) {
       fail(`${label} covered obligation ${row.obligation_id} requires evidence from the bound Runtime Trust run`);
       continue;
     }
-    for (const id of runtimeIds) {
-      const execution = executionById.get(id);
+    for (const id of runtimeEvidenceIds) {
+      const runtimeId = executionById.has(id) ? id : runtimeProofParent.get(id);
+      const execution = executionById.get(runtimeId);
       const item = evidenceById.get(id);
       if (!item || execution.result !== "PASSED" || item.result_state !== "PASSED") {
         fail(`${label} Runtime Trust evidence ${id} must be PASSED in both manifest and Test Evidence`);
@@ -291,6 +328,11 @@ function checkRuntimeTrust(label, file, evidence) {
   }
 }
 
+function obligationRequiresRuntimeTrust(obligation) {
+  return obligation?.source_surface === "RUNTIME_BEHAVIOR"
+    || obligation?.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF";
+}
+
 function checkBusinessUniverseScenarioCoverage(label, evidence, verificationPlan) {
   if (!["1.108.0", "1.110.0"].includes(evidence.schema_version)) return;
   const binding = evidence.business_universe_binding;
@@ -300,7 +342,13 @@ function checkBusinessUniverseScenarioCoverage(label, evidence, verificationPlan
     return;
   }
   if (!planBinding) {
-    if (verificationPlan?.schema_version === "1.76.0"
+    if (!verificationPlan
+      && evidence.test_evidence_state === "TEST_EVIDENCE_BLOCKED"
+      && !artifactRef(evidence.verification_plan_ref)
+      && /^not provided$/i.test(String(evidence.verification_plan_digest || ""))
+      && isBoundedNotRequiredUniverseProjection(binding, evidence)) {
+      pass(`${label} missing Verification Plan remains a bounded blocked projection`);
+    } else if (verificationPlan?.schema_version === "1.76.0"
       && isBoundedNotRequiredUniverseProjection(binding, evidence)) {
       pass(`${label} trusted legacy Verification Plan is projected as Business Universe not required`);
     } else {
@@ -432,9 +480,10 @@ function checkStructuredEvidence(label, file, evidence, markdown) {
   }
 
   const verificationPlan = checkVerificationPlanBinding(label, file, evidence);
+  const observedProofRequired = requiresObservedObligationProof(verificationPlan);
   checkSourceSystemsConsistency(label, evidence, verificationPlan);
-  checkEvidenceItems(label, file, evidence, verificationPlan);
-  checkCoverageMap(label, evidence, verificationPlan);
+  const observedProofIds = checkEvidenceItems(label, file, evidence, verificationPlan, observedProofRequired);
+  checkCoverageMap(label, evidence, verificationPlan, observedProofRequired, observedProofIds);
   checkBusinessUniverseScenarioCoverage(label, evidence, verificationPlan);
   checkControlEffectiveness(label, file, evidence, verificationPlan);
   checkTestQualityControls(label, evidence, verificationPlan);
@@ -519,6 +568,11 @@ function checkVerificationPlanBinding(label, file, evidence) {
   } else {
     fail(`${label} verification_plan_state ${evidence.verification_plan_state || "<missing>"} must match Verification Plan ${plan.verification_state || "<missing>"}`);
   }
+  if (evidence.test_evidence_state === "TEST_EVIDENCE_COMPLETE" && plan.verification_state !== "VERIFICATION_PLAN_READY") {
+    fail(`${label} TEST_EVIDENCE_COMPLETE requires a VERIFICATION_PLAN_READY source`);
+  } else if (plan.verification_state === "VERIFICATION_PLAN_READY") {
+    pass(`${label} completion-capable evidence consumes a ready Verification Plan`);
+  }
   return plan;
 }
 
@@ -555,9 +609,314 @@ function checkSourceSystemsConsistency(label, evidence, verificationPlan) {
   }
 }
 
-function checkEvidenceItems(label, file, evidence, verificationPlan) {
+function requiresObservedObligationProof(verificationPlan) {
+  const strictConsumer = strictSourceBinding && requireCurrentEvidence && requireTestQualityControls;
+  if (!strictConsumer) return false;
+  if (!verificationPlan) return true;
+  return (verificationPlan.verification_obligations || []).some((item) => item?.required === "Yes");
+}
+
+function checkCommandEvidenceMetadata(label, item, content) {
+  const metadata = evidenceMetadata(content);
+  if (metadata.id === item.id) pass(`${label} command evidence ${item.id} matches raw evidence id`);
+  else fail(`${label} command evidence ${item.id} must match raw evidence id ${metadata.id || "<missing>"}`);
+  if (metadata.command === item.command) pass(`${label} command evidence ${item.id} matches raw command`);
+  else fail(`${label} command evidence ${item.id} must match raw command`);
+  if (metadata.result_state === item.result_state) pass(`${label} command evidence ${item.id} matches raw result_state`);
+  else fail(`${label} command evidence ${item.id} must match raw result_state ${metadata.result_state || "<missing>"}`);
+  const rawObligations = splitList(metadata.covers_obligations || metadata.covers || "");
+  if (sameStringSet(rawObligations, item.covers_obligations || [])) {
+    pass(`${label} command evidence ${item.id} matches raw covers_obligations`);
+  } else {
+    fail(`${label} command evidence ${item.id} must match raw covers_obligations`);
+  }
+}
+
+// This intentionally replays resolver normalization without trusting the report's derived LOG_EXCERPT items.
+function observedProofItemsFor(item, content) {
+  const contract = commandContractFor(item.command);
+  return observedProofEntries(content, contract)
+    .filter((entry) => item.covers_obligations.includes(entry.obligation_id))
+    .filter((entry) => observedEntryMatchesCommand(entry, contract))
+    .map((entry) => {
+      const passed = entry.result_state === "PASSED" && item.result_state === "PASSED";
+      return {
+        ...item,
+        id: observedProofItemId(item.id, entry),
+        evidence_type: "LOG_EXCERPT",
+        result_state: passed ? "PASSED" : "FAILED",
+        covers_obligations: [entry.obligation_id],
+        failure_reason: passed ? "N/A" : `Observed proof entry did not pass at source line ${entry.line_number}.`,
+        limitations: observedProofLimitations(entry),
+      };
+    });
+}
+
+function observedProofEntries(content, contract) {
+  const entries = [];
+  for (const [index, rawLine] of String(content || "").split(/\r?\n/).entries()) {
+    const line = rawLine.trim();
+    const tap = line.match(/^(ok|not ok)\s+\d+\s*-\s*\[([^\]]+)\]\s+(\S+)\s+::\s+(.+?)\s*$/i);
+    if (tap) {
+      entries.push({
+        obligation_id: tap[2].trim(),
+        test_target: normalizeCommandTarget(tap[3]),
+        test_name: tap[4].trim(),
+        result_state: tap[1].toLowerCase() === "ok" && !/#\s*(?:SKIP|TODO)\b/i.test(tap[4]) ? "PASSED" : "FAILED",
+        line_number: index + 1,
+        source_line: line,
+      });
+      continue;
+    }
+    const spec = line.match(/^([\u2713\u2714\u2716])\s+\[([^\]]+)\]\s+(\S+)\s+::\s+(.+?)\s*$/u);
+    if (spec) {
+      entries.push({
+        obligation_id: spec[2].trim(),
+        test_target: normalizeCommandTarget(spec[3]),
+        test_name: spec[4].replace(/\s+\([^()]*ms\)\s*$/, "").trim(),
+        result_state: spec[1] === "\u2716" ? "FAILED" : "PASSED",
+        line_number: index + 1,
+        source_line: line,
+      });
+      continue;
+    }
+    const named = line.match(/^(PASS|FAIL)\s+(verify:[^\s]+)\s*$/i);
+    if (!named) continue;
+    const obligationId = named[2].trim();
+    if (!contract.test_name_patterns.some((pattern) => pattern.includes(obligationId))) continue;
+    entries.push({
+      obligation_id: obligationId,
+      test_target: `test-name-pattern:${obligationId}`,
+      test_name: obligationId,
+      result_state: named[1].toUpperCase() === "PASS" ? "PASSED" : "FAILED",
+      line_number: index + 1,
+      source_line: line,
+    });
+  }
+  return entries;
+}
+
+function commandContractFor(command) {
+  const tokens = shellTokens(command);
+  const testTargets = [];
+  const testNamePatterns = [];
+  let afterSeparator = false;
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token === "--") {
+      afterSeparator = true;
+      continue;
+    }
+    if (token === "--test-name-pattern" && tokens[index + 1]) {
+      testNamePatterns.push(tokens[index + 1]);
+      index += 1;
+      continue;
+    }
+    if (token.startsWith("--test-name-pattern=")) {
+      testNamePatterns.push(token.slice("--test-name-pattern=".length));
+      continue;
+    }
+    if (isTestTargetToken(token) || (afterSeparator && !token.startsWith("-"))) {
+      testTargets.push(normalizeCommandTarget(token));
+    }
+  }
+  const broad = /(?:^|\s)(?:node\s+--test|npm\s+(?:run\s+)?test|pnpm\s+(?:run\s+)?test|yarn\s+test|bun\s+test)(?:\s|$)/i.test(String(command || ""));
+  return {
+    scope: testTargets.length > 0 || testNamePatterns.length > 0 ? "NARROW" : (broad ? "BROAD" : "UNRESOLVED"),
+    test_targets: [...new Set(testTargets)],
+    test_name_patterns: [...new Set(testNamePatterns)],
+  };
+}
+
+function shellTokens(command) {
+  return (String(command || "").match(/"(?:\\.|[^"\\])*"|'[^']*'|[^\s]+/g) || [])
+    .map((token) => token.replace(/^(?:"([\s\S]*)"|'([\s\S]*)')$/, (_, doubleQuoted, singleQuoted) => doubleQuoted ?? singleQuoted ?? token));
+}
+
+function isTestTargetToken(token) {
+  return /(?:^|\/)(?:tests?|__tests__)(?:\/|$)/i.test(token)
+    || /\.(?:test|spec)\.[cm]?[jt]sx?$/i.test(token)
+    || /[*?].*\.(?:test|spec)\.[cm]?[jt]sx?$/i.test(token);
+}
+
+function normalizeCommandTarget(value) {
+  return String(value || "").trim().replace(/^\.\//, "").replace(/\\/g, "/");
+}
+
+function observedEntryMatchesCommand(entry, contract) {
+  if (!entry.obligation_id.startsWith("verify:")) return false;
+  if (entry.test_target.startsWith("test-name-pattern:")) {
+    return contract.scope === "NARROW"
+      && contract.test_name_patterns.some((pattern) => pattern.includes(entry.obligation_id));
+  }
+  if (!safeObservedTarget(entry.test_target)) return false;
+  if (!observedTargetDeclaresObligation(entry.test_target, entry.obligation_id)) return false;
+  if (!observedTargetHasBehavior(entry.test_target)) return false;
+  if (contract.scope === "NARROW"
+    && !contract.test_targets.some((target) => commandTargetMatches(target, entry.test_target))) return false;
+  if (contract.scope === "UNRESOLVED") return false;
+  if (contract.test_name_patterns.length > 0
+    && !contract.test_name_patterns.some((pattern) => pattern.includes(entry.obligation_id) || entry.test_name.includes(pattern))) return false;
+  return true;
+}
+
+function observedTargetHasBehavior(target) {
+  try {
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", `artifact:${normalizeCommandTarget(target)}`);
+    if (!resolved.ok) return false;
+    const content = fs.readFileSync(resolved.file, "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    const behavior = /(?:from\s+["'](?:\.\.?\/|node:)|require\(\s*["'](?:\.\.?\/|node:)|\b(?:spawn|exec|fetch|readFile|writeFile|request|evaluate|validate|resolve|check)[A-Za-z0-9_]*\s*\()/m.test(content);
+    const onlyTrivial = /assert\.(?:equal|deepEqual|ok)\(\s*(?:true|false|1|0|["'][^"']*["'])\s*(?:,\s*(?:true|false|1|0|["'][^"']*["'])\s*)?\)/.test(content)
+      && !/assert\.(?:throws|rejects|match|notEqual|notDeepEqual)\s*\(/.test(content)
+      && !behavior;
+    return behavior && !onlyTrivial;
+  } catch {
+    return false;
+  }
+}
+
+function safeObservedTarget(target) {
+  const normalized = normalizeCommandTarget(target);
+  if (!normalized
+    || path.posix.isAbsolute(normalized)
+    || normalized.split("/").includes("..")
+    || !isTestTargetToken(normalized)) return false;
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", `artifact:${normalized}`);
+  if (!resolved.ok) return false;
+  try {
+    return fs.lstatSync(resolved.file).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function observedTargetDeclaresObligation(target, obligationId) {
+  try {
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", `artifact:${normalizeCommandTarget(target)}`);
+    if (!resolved.ok) return false;
+    return containsBoundedIdentifier(
+      fs.readFileSync(resolved.file, "utf8"),
+      obligationId,
+    );
+  } catch {
+    return false;
+  }
+}
+
+function containsBoundedIdentifier(content, identifier) {
+  let offset = String(content || "").indexOf(identifier);
+  while (offset >= 0) {
+    const before = content[offset - 1] || "";
+    const after = content[offset + identifier.length] || "";
+    if (!/[A-Za-z0-9:_-]/.test(before) && !/[A-Za-z0-9:_-]/.test(after)) return true;
+    offset = content.indexOf(identifier, offset + identifier.length);
+  }
+  return false;
+}
+
+function commandTargetMatches(contractTarget, observedTarget) {
+  const normalizedContract = normalizeCommandTarget(contractTarget);
+  const normalizedObserved = normalizeCommandTarget(observedTarget);
+  if (!/[*?]/.test(normalizedContract)) return normalizedContract === normalizedObserved;
+  const pattern = normalizedContract
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*/g, ".*")
+    .replace(/\?/g, ".");
+  return new RegExp(`^${pattern}$`).test(normalizedObserved);
+}
+
+function observedProofItemId(parentId, entry) {
+  const value = `${parentId}\n${entry.line_number}\n${entry.source_line}`;
+  const kind = String(parentId || "").startsWith("runtime:")
+    ? "runtime-observed-proof"
+    : "observed-proof";
+  return `evidence:${kind}-${crypto.createHash("sha256").update(value).digest("hex").slice(0, 20)}`;
+}
+
+function observedProofLimitations(entry) {
+  const testName = entry.test_name.replace(/\|/g, "/");
+  return `Observed test target ${entry.test_target}; test name ${testName}; source line ${entry.line_number}.`;
+}
+
+function isObservedProofItem(item) {
+  return item?.evidence_type === "LOG_EXCERPT"
+    && /^evidence:(?:runtime-)?observed-proof-[a-f0-9]{20}$/.test(String(item.id || ""))
+    && item.covers_obligations?.length === 1;
+}
+
+function isRuntimeObservedProofItem(item) {
+  return isObservedProofItem(item)
+    && /^evidence:runtime-observed-proof-[a-f0-9]{20}$/.test(String(item.id || ""));
+}
+
+function sameObservedProofItem(actual, expected) {
+  return JSON.stringify(observedProofSignature(actual)) === JSON.stringify(observedProofSignature(expected));
+}
+
+function observedProofSignature(item) {
+  return {
+    id: item.id,
+    evidence_type: item.evidence_type,
+    result_state: item.result_state,
+    ref: item.ref,
+    command: item.command,
+    owner: item.owner,
+    environment: item.environment,
+    ran_at: item.ran_at,
+    exit_code: item.exit_code,
+    ran_after_change: item.ran_after_change,
+    current_task_match: item.current_task_match,
+    covers_obligations: item.covers_obligations,
+    output_digest: item.output_digest,
+    failure_reason: item.failure_reason,
+    limitations: item.limitations,
+  };
+}
+
+function evidenceMetadata(content) {
+  const metadata = {};
+  for (const line of String(content || "").split(/\r?\n/)) {
+    const match = line.match(/^\s*([a-zA-Z0-9_-]+)\s*:\s*(.+?)\s*$/);
+    if (!match) continue;
+    metadata[match[1].trim().toLowerCase().replace(/-/g, "_")] = match[2].trim();
+  }
+  return metadata;
+}
+
+function splitList(value) {
+  return String(value || "")
+    .split(/\s*,\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function summarizeIds(ids) {
+  const shown = ids.slice(0, 5).join(", ");
+  return ids.length > 5 ? `${shown}, and ${ids.length - 5} more obligation(s)` : shown;
+}
+
+function checkEvidenceItems(label, file, evidence, verificationPlan, observedProofRequired) {
   const ids = new Set();
   const obligationIds = new Set((verificationPlan?.verification_obligations || []).map((item) => item.id));
+  const evidenceItems = evidence.evidence_items || [];
+  const actualById = new Map(evidenceItems.map((item) => [item.id, item]));
+  const expectedProofById = new Map();
+  const expectedProofIdsByParent = new Map();
+  const validObservedProofIds = new Set();
+
+  for (const item of evidenceItems) {
+    if (!["COMMAND_OUTPUT", "TEST_REPORT"].includes(item.evidence_type)) continue;
+    const resolved = resolveArtifact(file, item.ref, { markdownOnly: false });
+    if (!resolved) continue;
+    const content = fs.readFileSync(resolved, "utf8");
+    if (observedProofRequired && !isRuntimeEvidenceItem(item)) checkCommandEvidenceMetadata(label, item, content);
+    const expected = observedProofItemsFor(item, content);
+    expectedProofIdsByParent.set(item.id, expected.map((proof) => proof.id));
+    for (const proof of expected) expectedProofById.set(proof.id, proof);
+  }
+
   for (const item of evidence.evidence_items || []) {
     if (ids.has(item.id)) fail(`${label} duplicate evidence item ${item.id}`);
     ids.add(item.id);
@@ -585,7 +944,8 @@ function checkEvidenceItems(label, file, evidence, verificationPlan) {
       if (!meaningful(item.command)) fail(`${label} command evidence ${item.id} needs command`);
       if (!meaningful(item.environment)) fail(`${label} command evidence ${item.id} needs environment`);
       if (!meaningful(item.ran_at)) fail(`${label} command evidence ${item.id} needs ran_at`);
-      if (!Array.isArray(item.covers_obligations) || item.covers_obligations.length === 0) {
+      if ((!Array.isArray(item.covers_obligations) || item.covers_obligations.length === 0)
+        && !isRuntimeEvidenceItem(item)) {
         fail(`${label} command evidence ${item.id} needs covers_obligations`);
       }
     }
@@ -596,6 +956,17 @@ function checkEvidenceItems(label, file, evidence, verificationPlan) {
     }
     for (const obligation of item.covers_obligations || []) {
       if (!obligationIds.has(obligation)) fail(`${label} evidence ${item.id} covers unknown obligation ${obligation}`);
+    }
+    if (isObservedProofItem(item)) {
+      const expected = expectedProofById.get(item.id);
+      if (!expected) {
+        fail(`${label} observed proof ${item.id} is not derived from a selected test target in its raw command log`);
+      } else if (sameObservedProofItem(item, expected)) {
+        validObservedProofIds.add(item.id);
+        pass(`${label} observed proof ${item.id} replays from the raw command log`);
+      } else {
+        fail(`${label} observed proof ${item.id} does not exactly match the raw command log entry`);
+      }
     }
     const resolved = resolveArtifact(file, item.ref, { markdownOnly: false });
     if (resolved) {
@@ -609,13 +980,34 @@ function checkEvidenceItems(label, file, evidence, verificationPlan) {
       fail(`${label} evidence ${item.id} ref is not resolvable: ${item.ref}`);
     }
   }
+
+  if (observedProofRequired) {
+    for (const item of evidenceItems) {
+      if (!["COMMAND_OUTPUT", "TEST_REPORT"].includes(item.evidence_type)) continue;
+      const proven = new Set((expectedProofIdsByParent.get(item.id) || [])
+        .filter((id) => validObservedProofIds.has(id))
+        .flatMap((id) => actualById.get(id)?.covers_obligations || []));
+      const missing = (item.covers_obligations || []).filter((id) => !proven.has(id));
+      if (missing.length > 0) {
+        fail(`${label} strict command evidence ${item.id} lacks observed command/log proof for ${summarizeIds(missing)}`);
+      }
+    }
+  }
+  return validObservedProofIds;
 }
 
-function checkCoverageMap(label, evidence, verificationPlan) {
+function isRuntimeEvidenceItem(item) {
+  return /^runtime:[A-Za-z0-9._:-]+$/.test(String(item?.id || ""))
+    && item?.evidence_type === "COMMAND_OUTPUT"
+    && item?.owner === "IntentOS bounded verification runtime";
+}
+
+function checkCoverageMap(label, evidence, verificationPlan, observedProofRequired, validObservedProofIds) {
   const requiredObligations = (verificationPlan?.verification_obligations || []).filter((item) => item.required === "Yes");
   const requiredIds = new Set(requiredObligations.map((item) => item.id));
   const coverageById = new Map((evidence.coverage_map || []).map((row) => [row.obligation_id, row]));
   const evidenceById = new Map((evidence.evidence_items || []).map((item) => [item.id, item]));
+  const missingObservedProof = [];
 
   for (const obligation of requiredObligations) {
     const row = coverageById.get(obligation.id);
@@ -626,6 +1018,14 @@ function checkCoverageMap(label, evidence, verificationPlan) {
     if (row.verification_plan_required !== "Yes") fail(`${label} coverage_map ${obligation.id} must mark verification_plan_required Yes`);
     if (row.coverage_state === "COVERED") {
       if (!row.evidence_ids.length) fail(`${label} covered obligation ${obligation.id} needs evidence_ids`);
+      if (observedProofRequired) {
+        const observed = row.evidence_ids
+          .map((id) => evidenceById.get(id))
+          .filter((item) => (validObservedProofIds.has(item?.id)
+              && item.covers_obligations.length === 1
+              && item.covers_obligations[0] === obligation.id));
+        if (observed.length === 0) missingObservedProof.push(obligation.id);
+      }
       for (const id of row.evidence_ids) {
         const item = evidenceById.get(id);
         if (!item) {
@@ -649,6 +1049,10 @@ function checkCoverageMap(label, evidence, verificationPlan) {
     if (row.coverage_state !== "COVERED" && evidence.test_evidence_state === "TEST_EVIDENCE_COMPLETE") {
       fail(`${label} TEST_EVIDENCE_COMPLETE cannot include ${row.coverage_state} for ${obligation.id}`);
     }
+  }
+
+  if (missingObservedProof.length > 0) {
+    fail(`${label} strict coverage_map lacks auditable observed proof for ${summarizeIds(missingObservedProof)}`);
   }
 
   for (const row of evidence.coverage_map || []) {
@@ -885,7 +1289,9 @@ function checkMarkdownSourceSystems(label, evidence, rows) {
     compareScalar(label, `Markdown source ${source.name} digest`, row.digest, source.digest);
   }
   for (const row of rows) {
-    if (!structuredNames.has(row.source)) fail(`${label} Markdown Source Systems has extra row ${row.source}`);
+    if (!structuredNames.has(row.source) && !placeholderRowId(row.source)) {
+      fail(`${label} Markdown Source Systems has extra row ${row.source}`);
+    }
   }
 }
 
@@ -912,7 +1318,9 @@ function compareEvidenceRows(label, structuredRows, markdownRows) {
     compareScalar(label, `Markdown evidence ${row.id} failure reason`, markdown.failure_reason, row.failure_reason);
   }
   for (const row of markdownRows) {
-    if (!structuredIds.has(row.id)) fail(`${label} Markdown Evidence Items has extra row ${row.id}`);
+    if (!structuredIds.has(row.id) && !placeholderRowId(row.id)) {
+      fail(`${label} Markdown Evidence Items has extra row ${row.id}`);
+    }
   }
 }
 
@@ -930,8 +1338,14 @@ function compareCoverageRows(label, structuredRows, markdownRows) {
     compareScalar(label, `Markdown coverage ${row.obligation_id} reason`, markdown.reason, row.reason);
   }
   for (const row of markdownRows) {
-    if (!structuredIds.has(row.obligation_id)) fail(`${label} Markdown Coverage Map has extra row ${row.obligation_id}`);
+    if (!structuredIds.has(row.obligation_id) && !placeholderRowId(row.obligation_id)) {
+      fail(`${label} Markdown Coverage Map has extra row ${row.obligation_id}`);
+    }
   }
+}
+
+function placeholderRowId(value) {
+  return /^(?:none|n\/a)$/i.test(String(value || "").trim());
 }
 
 function compareQualityControlRows(label, structuredRows, markdownRows) {

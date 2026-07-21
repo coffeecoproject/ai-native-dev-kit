@@ -1,34 +1,98 @@
 # Codex Quickstart
 
-This adapter is for projects where Codex is the daily coding agent.
+This adapter is for one zero-experience user working with Codex. The user states
+the product goal and real business facts; Codex owns technical discovery,
+architecture, profiles, baselines, implementation, tests, review, repair, and
+rollback preparation.
 
-## Install Into A Project
+## Start In Natural Language
 
-If you want Codex to choose the setup path, provide the intentos path or repo URL and say:
+Give Codex the IntentOS source path or repository URL and the target project,
+then say what outcome you want:
 
 ```text
-Read this IntentOS and configure the current project yourself.
+Read this IntentOS and configure the current project yourself. I want a small
+booking app that runs locally first.
 ```
 
-Codex should use `.intentos/prompts/bootstrap-agent.md` or `prompts/bootstrap-agent.md` to classify intent, then run:
+For an existing project:
+
+```text
+Read this existing project under IntentOS, preserve its proven rules, and
+continue the current work safely.
+```
+
+Codex enters through the shared `work` route. It must not ask the user to pick
+a starter, command, profile, BL level, pack, database, test strategy, reviewer,
+signing strategy, CI provider, or migration mechanism.
+
+## Public Command Evidence
+
+When a command transcript is useful, use only `work`:
 
 ```bash
-node intentos/scripts/start-project.mjs .
+node intentos/scripts/cli.mjs work ../my-project "开始这个项目并完成第一个可用功能"
+node intentos/scripts/cli.mjs work ../my-project "继续完成预约时间规则"
+node intentos/scripts/cli.mjs work ../my-project "检查当前任务做到哪里了"
+node intentos/scripts/cli.mjs work ../my-project "这个任务做完了吗"
+node intentos/scripts/cli.mjs work ../old-project "让这个老项目按 IntentOS 工作"
 ```
 
-`start-project.mjs` is read-only by default. It recommends the adoption path before any init, update, or write-plan action.
+The route is read-only and selects lower-level source systems internally. A
+normal natural-language implementation request is sufficient intent for
+ordinary reversible project-local engineering after internal gates pass; no
+second technical approval is required.
 
-Then ask for baseline recommendation:
+## Source And Installed Authority
+
+Before an old project has IntentOS installed, a source-run uses the source
+checkout's authoritative profiles for read-only diagnosis. It does not trust a
+target-local lookalike profile.
+
+After installation, Codex uses the target's `.intentos` manifest, profiles, and
+guidance. Missing installed authority fails closed instead of falling back to
+the source checkout. Every starter guidance file copied into `AGENTS.md`,
+`README.md`, or `docs/*.md` is part of the effective installed guidance graph.
+
+## Signing And Release Boundary
+
+Signing configuration, entitlement/manifest design, provisioning or keystore
+integration, local builds, archives, bundles, and readiness verification are
+technical preparation owned by Codex. They do not require the user to approve
+a technical strategy.
+
+Codex asks only for an unavailable external account fact or exact consent
+immediately before a prepared real store/provider action, hosted execution,
+production change, real-user distribution, external cost, or irreversible
+real-data effect. Local readiness never implies that an upload or release was
+authorized or performed.
+
+## Hosted Automation
+
+Generated projects receive local checker scripts as core assets. They do not
+receive a GitHub-hosted Actions workflow by default.
+
+`platforms/github/ci-ai-workflow.yml` is an optional adapter template. Codex may
+prepare it only after repository/provider facts prove the fit and the exact
+trigger, runner, permissions, usage/cost, artifact/cache, and release-side-
+effect boundaries are known. Enabling or running it requires consent to the
+concrete external effect when applicable. Local checker enforcement remains
+available when the adapter is absent.
+
+## Maintainer Debugging
+
+The commands below expose internal stages for diagnostics, CI development, and
+controlled installation. They are not an ordinary-user workflow or a menu of
+technical choices.
 
 ```bash
-node intentos/scripts/cli.mjs baseline .
+node intentos/scripts/cli.mjs --help-advanced
+node intentos/scripts/start-project.mjs ../my-project
+node intentos/scripts/cli.mjs baseline ../my-project
+node intentos/scripts/workflow-next.mjs ../my-project
 ```
 
-`baseline` is also read-only. It tells Codex which engineering and environment evidence must be resolved before tasks.
-
-If you ask Codex to review or discuss first, it should not write files.
-
-From the parent directory:
+Controlled empty-project initialization:
 
 ```bash
 node intentos/scripts/init-project.mjs \
@@ -36,77 +100,15 @@ node intentos/scripts/init-project.mjs \
   --target ../my-project
 ```
 
-For a platform-specific project:
-
-```bash
-node intentos/scripts/init-project.mjs --starter codex-web-app --target ../my-web-app
-node intentos/scripts/init-project.mjs --starter codex-ios-app --target ../my-ios-app
-node intentos/scripts/init-project.mjs --starter codex-android-app --target ../my-android-app
-```
-
-## First Codex Conversation
-
-Use this instruction:
-
-```text
-Use AGENTS.md and the .intentos workflow.
-Start with project onboarding.
-Draft the project profile, technology strategy, business spec index, sample policy, onboarding decisions, and first vertical slice.
-Do not implement code yet.
-```
-
-The expected result is a completed onboarding set plus bounded user input only
-when a business fact, product preference, real-world consent, or external fact
-is unavailable.
-
-Before the first non-trivial implementation, Codex should also derive and verify:
-
-- `docs/engineering-baseline.md`
-- `docs/environment-baseline.md`
-
-Then run:
+Project-local diagnostic checks:
 
 ```bash
 node scripts/check-engineering-baseline.mjs .
 node scripts/check-environment-baseline.mjs .
 node scripts/check-baseline-enforcement.mjs . --mode ready
-```
-
-## First Implementation Conversation
-
-After onboarding passes its evidence checks, create a workflow package:
-
-```bash
-node scripts/new-workflow-item.mjs --type request --name first-slice
-node scripts/new-workflow-item.mjs --type preflight --from requests/001-first-slice.md
-node scripts/new-workflow-item.mjs --type spec --request requests/001-first-slice.md --preflight preflight/001-first-slice.md
-node scripts/new-workflow-item.mjs --type eval --spec specs/001-first-slice.md
-node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md --eval evals/001-first-slice.md --level L1
-```
-
-Ask Codex to fill the artifacts from conversation. Then run:
-
-```bash
 node scripts/check-workflow-artifacts.mjs . --mode ready
 ```
 
-Implementation should happen only after the task card passes the applicable
-evidence authority, plan review, and task-entry checks.
-
-## Review
-
-Codex final reports should include:
-
-- what changed
-- what did not change
-- verification commands and results
-- risks remaining
-- suggested next step
-
-For L1/L2/L3 work, write an AI task log and run the summary scripts:
-
-```bash
-node scripts/new-workflow-item.mjs --type ai-log --task tasks/001-first-slice.md
-node scripts/summarize-ai-logs.mjs .
-node scripts/workflow-daily-summary.mjs .
-```
+Artifact generators and summary commands remain available under
+`node scripts/cli.mjs --help-advanced`. Codex invokes them when evidence requires
+them; the user does not assemble or approve the internal workflow package.

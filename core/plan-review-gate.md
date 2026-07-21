@@ -87,12 +87,13 @@ acceptance.
 | --- | --- | --- |
 | `P0` | Unsafe, contradictory, or unauthorized plan | Yes |
 | `P1` | Required before implementation review | Yes |
-| `P2` | Should be fixed or explicitly accepted before implementation review | Yes for high-impact tasks unless accepted by a real owner |
+| `P2` | Should be fixed before implementation review; only a permitted unavailable business/external fact or prepared real-world consent may remain externally blocked | Yes for high-impact tasks unless backed by that exact permitted input |
 | `P3` | Non-blocking improvement | No |
 
-Codex cannot accept blocking `P2` findings on behalf of the user or domain
-owner. Acceptance requires a human or owner decision reference, acceptance
-reason, scope, expiry or revisit condition, and task impact.
+Codex fixes technical `P2` findings itself. It may bind a blocking `P2` to user
+input only when the missing item is a business fact, an unavailable external
+authoritative fact, or consent for one prepared real-world action. The record
+must name that exact input, scope, expiry or revisit condition, and task impact.
 
 ## Required Review Surfaces
 
@@ -108,6 +109,11 @@ Every review checks:
 - verification command review;
 - rollback or recovery expectations;
 - whether the plan accidentally authorizes implementation.
+
+For current plans, the review recomputes semantic completeness from the exact
+plan file. A pass requires bounded scope, explicit boundaries, an ordered
+implementation sequence, verification, rollback/recovery, and concrete target
+references. A non-empty or intent-matching file alone is not a valid plan.
 
 High-impact plans also require explicit coverage for selected risk surfaces,
 such as permissions, data-destructive behavior, business rules, workflow state,
@@ -155,13 +161,18 @@ Rules:
 
 Plan Review Gate reviews commands statically. It does not execute tests.
 
-The report must distinguish:
+The report must statically resolve:
 
 - whether commands are listed;
 - whether commands appear project-native;
 - whether commands appear to target the required behavior;
 - whether later Test Evidence is still required;
 - whether a fake or unstable command was found.
+
+`Unknown` cannot satisfy `PLAN_REVIEW_PASSED`. Package scripts must exist in the
+current `package.json`; project-local scripts and tool markers must resolve;
+working-directory changes and unsafe shell composition fail closed. Test
+execution remains a later evidence obligation.
 
 ## Boundaries
 

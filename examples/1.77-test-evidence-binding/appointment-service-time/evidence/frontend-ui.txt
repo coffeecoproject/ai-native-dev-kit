@@ -1,16 +1,22 @@
 id: evidence:frontend-ui
 evidence_type: COMMAND_OUTPUT
 result_state: PASSED
-command: npm run test:ui -- appointment-service-time
+command: node --test --test-name-pattern "verify:frontend-ui-ui-interaction-test-visible-form-or-screen-behavior-" tests/appointment-service-time.test.mjs
 owner: automated-test-command
-environment: local-ci-node-20
-ran_at: 2026-07-06T10:01:00Z
+environment: node-v23.11.0
+ran_at: 2026-07-19T00:03:32.564Z
 exit_code: 0
-failure_reason: not recorded
+failure_reason: N/A
 ran_after_change: Yes
 current_task_match: Yes
-covers_obligations: verify:frontend-ui-ui-interaction-test-visible-form-or-screen-behavior-, verify:error-copy-error-copy-check-blocked-users-receive-clear-bounded-
-limitations: Component-level UI evidence; browser visual regression is not included.
-
-PASS service time field blocks submit when empty.
-PASS validation copy is bounded and user-readable.
+covers_obligations: verify:frontend-ui-ui-interaction-test-visible-form-or-screen-behavior-
+limitations: Form-state behavior evidence; browser visual regression is not included.
+✔ [verify:frontend-ui-ui-interaction-test-visible-form-or-screen-behavior-] tests/appointment-service-time.test.mjs :: form disables submission when service time is missing (0.435792ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39.12925

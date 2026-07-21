@@ -14,7 +14,11 @@ import {
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { isSafeRelativePath } from "./lib/path-safety.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
-import { planSemanticErrors, runManifestSemanticErrors } from "./lib/verification-runtime-trust.mjs";
+import {
+  lifecycleManifestReplayErrors,
+  planSemanticErrors,
+  runManifestSemanticErrors,
+} from "./lib/verification-runtime-trust.mjs";
 import { lifecyclePlanSemanticErrors, readLifecycleDeclaration } from "./lib/verification-runtime-lifecycle.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -122,6 +126,40 @@ function checkLifecyclePlan(manifest, runtimePlan, fromFile, label) {
   const semantic = lifecyclePlanSemanticErrors(checked.value, runtimePlan, declaration.status === "RECORDED" ? declaration : null, projectIdentity(projectRoot), projectRoot);
   if (semantic.length) semantic.forEach((error) => fail(`${label} Lifecycle Plan ${error}`));
   else pass(`${label} referenced Lifecycle Plan is valid and current`);
+  const journalRows = loadLifecycleJournal(manifest, fromFile, label);
+  if (!journalRows) return;
+  const replayErrors = lifecycleManifestReplayErrors(manifest, checked.value, journalRows);
+  if (replayErrors.length) replayErrors.forEach((error) => fail(`${label} Lifecycle Replay ${error}`));
+  else {
+    pass(`${label} Lifecycle Plan, journal, executions, services, resources, and cleanup replay exactly`);
+    pass(`${label} lifecycle replay proves current local consistency, not external signing or malicious-candidate attestation`);
+  }
+}
+
+function loadLifecycleJournal(manifest, fromFile, label) {
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, fromFile, manifest.lifecycle_journal_ref);
+  if (!resolved.ok) {
+    fail(`${label} lifecycle journal ref is unsafe or unresolved: ${resolved.error}`);
+    return null;
+  }
+  const rows = [];
+  const lines = fs.readFileSync(resolved.file, "utf8").split(/\r?\n/);
+  for (const [index, raw] of lines.entries()) {
+    if (!raw.trim()) continue;
+    try {
+      const row = JSON.parse(raw);
+      if (!row || typeof row !== "object" || Array.isArray(row)) throw new Error("row must be a JSON object");
+      rows.push(row);
+    } catch (error) {
+      fail(`${label} lifecycle journal line ${index + 1} is invalid JSONL: ${error.message}`);
+      return null;
+    }
+  }
+  if (!rows.length) {
+    fail(`${label} lifecycle journal must contain observed JSONL events`);
+    return null;
+  }
+  return rows;
 }
 
 function resolveReportPath(value) {

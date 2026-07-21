@@ -42,6 +42,10 @@ It is optional for clearly isolated copy-only or docs-only tasks, but Codex must
 | `DOCS_HANDOFF` | docs, handoff note, release note, operator note, user decision record |
 | `PERMISSION_RISK` | auth, role, visibility, audit, compliance, privacy, data sensitivity |
 | `RELEASE_IMPACT` | deployment, rollback, migration, feature flag, production data concern |
+| `BACKGROUND_WORK` | queue, worker, scheduled job, retry, asynchronous side effect, or batch execution |
+| `EXTERNAL_INTEGRATION` | third-party API, webhook, provider, external account, callback, or synchronization boundary |
+| `RUNTIME_BEHAVIOR` | service startup, process/container behavior, configuration, cache, session, or runtime dependency |
+| `ROLLBACK_RECOVERY` | rollback, compensation, retry recovery, partial-write repair, restore, or failure recovery path |
 
 ## Statuses
 
@@ -50,16 +54,19 @@ It is optional for clearly isolated copy-only or docs-only tasks, but Codex must
 - `REQUIRED`: this surface must be handled or explicitly closed.
 - `OPTIONAL`: this surface may be affected, but current evidence is weak.
 - `NOT_APPLICABLE`: this surface is intentionally ruled out with a reason.
-- `NEEDS_HUMAN_DECISION`: compatibility state for a missing business/external
-  fact, exact real-world consent, or unresolved Codex-owned technical evidence.
+- `NEEDS_HUMAN_DECISION`: compatibility state only for a missing business fact,
+  missing external authoritative fact, or exact real-world consent. Technical
+  uncertainty remains Codex-owned and cannot be converted into a user decision.
 
 ### Implementation Coverage
 
 - `DONE`: handled and linked to evidence.
 - `NOT_APPLICABLE`: not relevant, with a concrete reason.
-- `OUT_OF_SCOPE`: relevant but intentionally excluded from this task, with owner or follow-up.
-- `NEEDS_HUMAN_DECISION`: cannot close until its current four-class
-  interpretation or technical blocker is resolved.
+- `OUT_OF_SCOPE`: relevant but intentionally excluded from this task, with a
+  project-local evidence reference and a concrete bounded follow-up.
+- `NEEDS_HUMAN_DECISION`: cannot close until its structured
+  `BUSINESS_FACT_NEEDED`, `EXTERNAL_FACT_NEEDED`, or
+  `REAL_WORLD_CONSENT_NEEDED` record is resolved.
 - `NOT_STARTED`: pre-execution report only; implementation has not started.
 
 ## Modes
@@ -111,7 +118,8 @@ After implementation, Codex should:
 
 1. Close every required surface.
 2. Link evidence for every `DONE` surface.
-3. Explain every `NOT_APPLICABLE` or `OUT_OF_SCOPE` surface.
+3. Bind every `NOT_APPLICABLE` or `OUT_OF_SCOPE` surface to current,
+   project-local evidence; prose alone is not close-out evidence.
 4. Stop the dependent action when permission, data, migration, payment,
    production, or compliance lacks technical evidence, external authority, or
    exact real-world consent; do not ask the user to choose technical treatment.
@@ -123,8 +131,12 @@ When `--changed-files`, `--from-git-diff`, `--cached`, `--base`, or another chan
 - frontend form/view files imply backend, API, and test closure for rule changes
 - API/DTO/schema files imply API and test closure
 - migration/schema/model files imply data-model review
-- auth/permission/security files imply human permission-risk review unless clearly closed
+- auth/permission/security files imply permission-risk review unless clearly closed
 - deploy/release/rollback/CI files imply release-impact review unless clearly closed
+- worker/queue/scheduler/batch files imply background-work and recovery review
+- provider/webhook/integration/client files imply external-integration review
+- startup/config/cache/session/container files imply runtime-behavior review
+- retry/rollback/compensation/restore files imply rollback-recovery review
 
 Changed files reduce manual copying but do not prove correctness.
 
@@ -148,7 +160,7 @@ Stop the dependent action when:
 - This report writes target files: No
 - This report authorizes implementation: No
 - This report approves release or production: No
-- This report replaces human product judgment: No
+- This report replaces unavailable business or external facts: No
 - This report proves every possible impact was found: No
 
 ## Relationship To Other Layers

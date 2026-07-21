@@ -57,15 +57,16 @@ if (outputFormat === "json") {
 }
 
 function buildReport(root, options) {
-  const signals = collectSignals(root);
   const entryTrust = resolveProjectEntryTrust({
     projectRoot: root,
     sourceRoot: kitRoot,
     goal: options.intent,
   });
+  const applyChain = evaluateVerifiedAdoptionApplyChain(root, { schemasRoot: kitRoot });
+  const signals = collectSignals(root, entryTrust, applyChain);
   const sources = resolveSources(root, options);
   const sameRunEvidence = sameRunEvidenceFor(sources._sameRun);
-  const simulation = simulationFor(root, signals);
+  const simulation = simulationFor(root, signals, entryTrust);
   const entryBinding = sameRunBindingFromTrust(entryTrust);
   const controlEffectiveness = resolveCurrentControlEffectivenessBinding(root, {
     required: true,
@@ -74,13 +75,13 @@ function buildReport(root, options) {
     intentDigest: entryBinding.goalDigest,
     requiredClaimIds: [],
   });
-  const surfaces = surfacesFor(root, signals, sources, simulation, controlEffectiveness);
+  const surfaces = surfacesFor(root, signals, sources, simulation, controlEffectiveness, entryTrust, applyChain);
   const dirty = entryTrust?.project_fact_projection?.current_work_continuity?.state === "CURRENT_CONFLICTED";
   const pendingDecisions = pendingDecisionsFor(surfaces, dirty, sources);
   const assuranceState = assuranceStateFor({ surfaces, simulation, dirty, sources });
   const canClaimFullAdoption = assuranceState === "VERIFIED_ACTIVE" ? "Yes" : "No";
   const targetProfile = targetProjectProfileFor(root, signals);
-  const evidenceRefs = evidenceRefsFor(surfaces, sources, simulation);
+  const evidenceRefs = evidenceRefsFor(surfaces, sources, simulation, applyChain);
   const boundary = boundaryFor();
 
   const structuredEvidence = {
@@ -150,20 +151,33 @@ function sameRunEvidenceFor(chain) {
   };
 }
 
-function collectSignals(root) {
+function collectSignals(root, entryTrust, applyChain) {
   const exists = fs.existsSync(root);
-  const has = (relativePath) => exists && fs.existsSync(path.join(root, relativePath));
-  const hasAny = (items) => items.some((item) => has(item));
-  const isSourceRepo = has("intentos-manifest.json") && has("core/workflow.md");
-  const hasIntentOSAssets = has(".intentos/version.json") || has(".intentos/intentos-manifest.json") || isSourceRepo;
+  const durable = (relativePath) => exists && durablePathRefs(root, relativePath).length > 0;
+  const hasAny = (items) => items.some((item) => durable(item));
+  const isSourceRepo = durable("intentos-manifest.json")
+    && durable("core/workflow.md")
+    && entryTrust.project_identity?.form === "SOURCE";
+  const identityCurrent = entryTrust.entry_state === "READY_FOR_INTENTOS_OPERATION"
+    && ["INSTALLED_CURRENT", "BRIDGE_CURRENT"].includes(entryTrust.project_identity?.state);
+  const agentAuthorityPaths = entryTrust.guidance_authority?.agent_authority_paths || [];
+  const agentAuthorityCurrent = entryTrust.guidance_authority?.agent_authority_state === "CURRENT"
+    && agentAuthorityPaths.length > 0
+    && entryTrust.guidance_authority?.state === "CURRENT";
+  const versionBindingState = durableVersionBindingState(root, entryTrust, isSourceRepo);
   return {
     exists: exists ? "Yes" : "No",
     dirtyWorktree: isDirty(root) ? "Yes" : "No",
     isSourceRepo: isSourceRepo ? "Yes" : "No",
-    intentOsOperatingMode: hasIntentOSAssets || has("native-migration-plans") || has("governance-convergence-reports")
+    intentOsOperatingMode: identityCurrent && versionBindingState === "CURRENT" && entryTrust.guidance_authority?.state === "CURRENT"
       ? "ACTIVE"
       : "READ_ONLY_DIAGNOSIS",
-    hasAiRules: hasAny(["AGENTS.md", "agent.md", ".agent.md", ".codex", ".cursor", ".claude"]),
+    projectBindingState: identityCurrent ? "CURRENT" : "UNVERIFIED",
+    versionBindingState,
+    agentAuthorityState: agentAuthorityCurrent ? "CURRENT" : agentAuthorityPaths.length > 0 ? "INVALID" : "MISSING",
+    agentAuthorityDigest: entryTrust.guidance_authority?.agent_authority_digest || "N/A",
+    agentAuthorityRefs: agentAuthorityPaths,
+    hasAiRules: agentAuthorityCurrent,
     hasEngineeringBaseline: hasAny([
       "docs/engineering-baseline.md",
       "docs/WEB_ENGINEERING_BASELINE.md",
@@ -185,7 +199,8 @@ function collectSignals(root) {
     hasDocuments: hasAny(["docs", "core", "README.md"]),
     hasWorkQueue: hasAny(["work-queue", "active-work-threads", "core/work-queue.md"]),
     hasAiLogs: hasAny(["ai-logs", "core/claim-control.md", "docs/claim-control.md"]),
-    hasApplyChain: hasAny(["apply-plans", "approval-records", "apply-readiness-reports"]),
+    hasApplyChain: applyChain.status === "VERIFIED",
+    applyChainState: applyChain.status,
     hasAdoptionReports: hasAny(["adoption-assurance-reports", "governance-convergence-reports", "native-migration-plans"]),
     productionSensitive: hasAny([
       "docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
@@ -560,24 +575,37 @@ function sourceContribution(name, parsed) {
   return parsed.outcome || parsed.nextAction || parsed.projectState || parsed.reportType || "recorded";
 }
 
-function surfacesFor(root, signals, sources, simulation, controlEffectiveness) {
+function surfacesFor(root, signals, sources, simulation, controlEffectiveness, entryTrust, applyChain) {
   const hasConvergence = sources.governance_convergence.status === "RECORDED";
   const hasReconciliation = sources.existing_rule_reconciliation.status === "RECORDED";
   const hasMigration = sources.native_migration.status === "RECORDED";
-  const applyChain = applyChainStateFor(root, signals);
+  const behavioral = simulation._verification;
+  const behaviorVerified = behavioral?.state === "VERIFIED_ACTIVE"
+    && behavioral?.workQueueTakeover?.state === "VERIFIED";
+  const workflowVerified = signals.intentOsOperatingMode === "ACTIVE"
+    && signals.projectBindingState === "CURRENT"
+    && signals.versionBindingState === "CURRENT"
+    && entryTrust.guidance_authority?.state === "CURRENT"
+    && behaviorVerified;
+  const agentStatus = signals.agentAuthorityState === "CURRENT"
+    ? "MAPPED"
+    : signals.agentAuthorityState === "INVALID" ? "BLOCKED" : "PENDING_APPLY";
+  const queueStatus = behavioral?.workQueueTakeover?.state === "VERIFIED"
+    ? "MAPPED"
+    : signals.hasWorkQueue ? "BLOCKED" : "PENDING_APPLY";
   return [
-    surface("workflow_entry", signals.intentOsOperatingMode === "ACTIVE" && controlEffectiveness.status === "VERIFIED" ? "VERIFIED" : signals.intentOsOperatingMode === "ACTIVE" ? "PRESENT_UNVERIFIED" : "MAPPED", "checker:workflow-next", "IntentOS route is available without granting hidden write authority.", controlEffectiveness),
-    surface("ai_rules_agents", signals.hasAiRules ? "MAPPED" : "PENDING_APPLY", signals.hasAiRules ? "file:AGENTS.md" : "checker:native-migration", signals.hasAiRules ? "Existing AI rules are preserved or mapped." : "AI rule merge remains pending."),
+    surface("workflow_entry", workflowVerified && controlEffectiveness.status === "VERIFIED" ? "VERIFIED" : signals.intentOsOperatingMode === "ACTIVE" ? "PRESENT_UNVERIFIED" : "MAPPED", "checker:workflow-next", workflowVerified ? "Current project identity, IntentOS version, installed guidance, and project-local behavioral route are bound." : "Workflow presence is not treated as activation until project, version, guidance, and behavior all verify.", controlEffectiveness),
+    surface("ai_rules_agents", agentStatus, signals.hasAiRules ? "checker:workflow-next" : "checker:native-migration", signals.hasAiRules ? `All scoped agent authorities are identity-bound by ${signals.agentAuthorityDigest}.` : "Agent authority is missing, incomplete, or semantically conflicted; Codex continues technical reconciliation."),
     surface("engineering_baseline", signals.hasEngineeringBaseline || hasReconciliation ? "MAPPED" : "MISSING", hasReconciliation ? "checker:reconcile-rules" : "checker:baseline", "Existing vs IntentOS engineering baseline comparison must be recorded."),
     surface("environment_baseline", signals.hasEnvironmentBaseline || hasReconciliation ? "MAPPED" : "MISSING", hasReconciliation ? "checker:reconcile-rules" : "checker:baseline", "Environment baseline comparison must be recorded."),
     surface("release_rollback", "PROJECT_OWNED", "checker:release-plan", signals.hasReleaseRollback ? "Release and rollback remain project-owned." : "Release readiness is not yet assessed and does not block behavioral adoption."),
     surface("ci_hooks", "PROJECT_OWNED", "checker:convergence", signals.hasCiHooks ? "Existing CI/hooks remain project-owned and are compared before mutation." : "No CI/hook authority was observed; Codex keeps this release-scoped surface separate from behavioral adoption."),
     surface("documents", signals.hasDocuments || hasConvergence ? "MAPPED" : "MISSING", "checker:convergence", "Document source-of-truth and archive posture must be known."),
-    surface("work_queue", signals.hasWorkQueue ? "MAPPED" : "PENDING_APPLY", "checker:work-queue", "Current, paused, and backlog behavior must be known."),
+    surface("work_queue", queueStatus, "checker:work-queue", queueStatus === "MAPPED" ? `Exactly one durable CURRENT item is Task-Governance-bound and fresh-process resumable (${behavioral.workQueueTakeover.current_item_ref}).` : "A directory or placeholder is not Work Queue takeover evidence; Codex must verify one durable governed CURRENT item."),
     surface("ai_logs_audit", signals.hasAiLogs || hasConvergence ? "MAPPED" : "PENDING_APPLY", "checker:convergence", "AI logs are governance notes only, not routine command logs."),
     surface("risk_authority", "PROJECT_OWNED", "checker:native-migration", hasMigration || hasConvergence ? "Protected authority remains project-owned and mapped." : "Protected authority remains project-owned while Codex continues evidence mapping."),
     surface("apply_chain", applyChain.status, applyChain.evidence, applyChain.notes),
-    surface("simulation_task", simulation.state === "SIMULATION_PASSED" && controlEffectiveness.status === "VERIFIED" ? "VERIFIED" : simulation.state === "SIMULATION_PASSED" ? "PRESENT_UNVERIFIED" : "MISSING", simulation.id, "Read-only synthetic task routing must pass before full adoption can be claimed.", controlEffectiveness),
+    surface("simulation_task", simulation.state === "SIMULATION_PASSED" && controlEffectiveness.status === "VERIFIED" ? "VERIFIED" : simulation.state === "SIMULATION_PASSED" ? "PRESENT_UNVERIFIED" : "MISSING", simulation.id, "Project-local routing, governed CURRENT recovery, and fail-closed finish behavior must pass before full adoption can be claimed.", controlEffectiveness),
   ];
 }
 
@@ -595,15 +623,15 @@ function surface(surfaceName, status, evidence, notes, controlBinding = null) {
   };
 }
 
-function applyChainStateFor(root, signals) {
-  return evaluateVerifiedAdoptionApplyChain(root, { schemasRoot: kitRoot });
-}
-
-function simulationFor(root, signals) {
+function simulationFor(root, signals, entryTrust) {
+  const allowProjectLocalExecution = signals.projectBindingState === "CURRENT"
+    && signals.versionBindingState === "CURRENT"
+    && entryTrust.guidance_authority?.state === "CURRENT";
   const verification = verifyProjectLocalBehavioralRoute({
     targetRoot: root,
     sourceRoot: kitRoot,
     goal: simulationTask,
+    allowProjectLocalExecution,
   });
   const steps = verification.results.map((item) => ({
     step: item.name,
@@ -620,7 +648,7 @@ function simulationFor(root, signals) {
   const state = verification.ok
     ? verification.state === "VERIFIED_ACTIVE" ? "SIMULATION_PASSED" : "SIMULATION_READ_ONLY_PASSED"
     : signals.exists === "Yes" ? "SIMULATION_BLOCKED" : "SIMULATION_PARTIAL";
-  return {
+  const result = {
     id: "simulation:synthetic-required-field-validation",
     state,
     task: simulationTask,
@@ -630,6 +658,8 @@ function simulationFor(root, signals) {
     behavioral_activation_state: verification.state,
     blockers: verification.errors,
   };
+  Object.defineProperty(result, "_verification", { enumerable: false, value: verification });
+  return result;
 }
 
 function simulationStep(step, script, scriptArgs) {
@@ -765,9 +795,8 @@ function pendingDecisionsFor(surfaces, dirty, sources) {
   return [...new Set(pending)];
 }
 
-function evidenceRefsFor(surfaces, sources, simulation) {
+function evidenceRefsFor(surfaces, sources, simulation, applyChain) {
   const refs = surfaces.map((item) => item.evidence).filter(Boolean);
-  const applyChain = applyChainStateFor(projectRoot, collectSignals(projectRoot));
   for (const ref of applyChain.refs || []) refs.push(ref);
   refs.push(simulation.id);
   for (const source of Object.values(sources)) refs.push(source.ref);
@@ -816,6 +845,80 @@ function nextSafeStepFor(state) {
   if (state === "READ_ONLY_DIAGNOSIS_ONLY") return "Codex records and closes missing adoption surfaces before claiming adoption";
   if (state === "FAILED_ASSURANCE") return "remove unsupported adoption claims and rerun assurance";
   return "prepare or verify a bounded apply plan for missing surfaces, then rerun adoption assurance";
+}
+
+function durableVersionBindingState(root, entryTrust, sourceRepo) {
+  const identity = entryTrust?.project_identity || {};
+  if (entryTrust?.entry_state !== "READY_FOR_INTENTOS_OPERATION") return "UNVERIFIED";
+  if (sourceRepo) {
+    const packageJson = readJsonFile(path.join(root, "package.json"));
+    const manifest = readJsonFile(path.join(root, "intentos-manifest.json"));
+    return /^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/.test(String(packageJson?.version || ""))
+      && packageJson.version === identity.source_version
+      && manifest?.mode === "authoritative"
+      ? "CURRENT"
+      : "UNVERIFIED";
+  }
+  if (identity.form === "BRIDGE") {
+    return durablePathRefs(root, ".intentos-bridge.json").length === 1
+      && /^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/.test(String(identity.source_version || ""))
+      ? "CURRENT"
+      : "UNVERIFIED";
+  }
+  const version = readJsonFile(path.join(root, ".intentos", "version.json"));
+  let canonicalRoot = "";
+  try { canonicalRoot = fs.realpathSync(root); } catch { canonicalRoot = ""; }
+  const recordedRoot = version?.projectRoot ? path.resolve(root, version.projectRoot) : canonicalRoot;
+  return identity.form === "INSTALLED"
+    && /^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/.test(String(version?.intentOSVersion || ""))
+    && version.intentOSVersion === identity.source_version
+    && Array.isArray(version.workflowAssets)
+    && version.workflowAssets.length > 0
+    && recordedRoot === canonicalRoot
+    ? "CURRENT"
+    : "UNVERIFIED";
+}
+
+function durablePathRefs(root, relativePath) {
+  const full = path.join(root, relativePath);
+  let stat;
+  try { stat = fs.lstatSync(full); } catch { return []; }
+  if (stat.isSymbolicLink()) return [];
+  if (stat.isFile()) return durableFile(full) ? [relativePath.replaceAll(path.sep, "/")] : [];
+  if (!stat.isDirectory()) return [];
+  const refs = [];
+  walkDurableFiles(root, full, refs);
+  return refs;
+}
+
+function walkDurableFiles(root, current, refs) {
+  let entries;
+  try { entries = fs.readdirSync(current, { withFileTypes: true }); } catch { return; }
+  for (const entry of entries) {
+    if ([".git", "node_modules", ".next", "dist", "build", "coverage"].includes(entry.name)) continue;
+    const full = path.join(current, entry.name);
+    if (entry.isSymbolicLink()) continue;
+    if (entry.isDirectory()) walkDurableFiles(root, full, refs);
+    else if (entry.isFile() && durableFile(full)) refs.push(path.relative(root, full).replaceAll(path.sep, "/"));
+  }
+}
+
+function durableFile(file) {
+  if ([".gitkeep", ".DS_Store"].includes(path.basename(file))) return false;
+  let stat;
+  try { stat = fs.lstatSync(file); } catch { return false; }
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.size === 0) return false;
+  if (!/\.(?:md|mdc|txt|json|ya?ml|mjs|c?js|ts|tsx|sh)$/i.test(file)) return true;
+  try {
+    const content = fs.readFileSync(file, "utf8").trim();
+    return content.length >= 8 && !/^(?:TODO|TBD|placeholder|pending)$/i.test(content);
+  } catch {
+    return false;
+  }
+}
+
+function readJsonFile(file) {
+  try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return null; }
 }
 
 function isDirty(root) {

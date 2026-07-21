@@ -142,7 +142,7 @@ function checkCoreContent() {
 function checkRecords() {
   const files = markdownFiles("approval-records");
   if (files.length === 0) {
-    if (allowEmpty) {
+    if (allowEmpty && !requireStructuredEvidence) {
       pass("approval record check skipped: no approval records and --allow-empty was provided");
     } else if (requireStructuredEvidence) {
       fail("no approval records found while strict approval record evidence was required");

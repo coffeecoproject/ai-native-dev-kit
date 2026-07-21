@@ -60,6 +60,20 @@ This report is a read-only derived verification view. It does not write target f
 | Unexpected Files | `none` |
 | Target Diff Status | `MATCHED_PLAN` |
 
+## Pre-Write Revalidation
+
+| Field | Value |
+| --- | --- |
+| Status | `BLOCKED` |
+| Checked At | `2026-01-01T00:00:00.000Z` |
+| Planning Closure | `artifact:planning-closure-reports/001-contract.md` |
+| Source Revision | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
+| Candidate Base | `N/A` |
+| Planned Paths Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
+| Changed Paths Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
+| Result | `BLOCKED` |
+| Reason | Regenerate this derived report from a current Planning Closure and exact candidate. |
+
 ## Evidence Binding
 
 | Criterion | Evidence Ref | Resolved | Current Task Match |

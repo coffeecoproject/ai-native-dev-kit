@@ -20,6 +20,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Field | Value |
 | --- | --- |
 | Task ref | `task:current` |
+| Intent digest | `N/A` |
 | Work Queue item ref | `N/A` |
 | Task Governance ref | `N/A` |
 
@@ -106,8 +107,9 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "schema_version": "1.86.0",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/001-artifact-quota.md",
-  "runtime_hygiene_digest": "sha256:027dc40b59936bb4385447c2a19eb71208c8d9a47fdda11ea6d4943087979762",
+  "runtime_hygiene_digest": "sha256:b97679f61283445d210c6a5f0bbbca79be6b5d69444dc8de0307f94d0f874790",
   "task_ref": "task:current",
+  "intent_digest": "N/A",
   "work_queue_item_ref": "N/A",
   "task_governance_ref": "N/A",
   "operation": "artifact-cleanup",

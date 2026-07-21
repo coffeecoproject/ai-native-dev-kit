@@ -2,28 +2,39 @@
 
 Use this file to capture a bounded next-step suggestion that should not be implemented inside the current task.
 
-This file is not approval and not a task card. It is an entry point for a future request, preflight, human decision, or explicit do-not-proceed record.
+This file is not approval and not a task card. It is an entry point for a future request, preflight, bounded user input, or explicit do-not-proceed record.
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Keep as suggestion | Record the follow-up only | Proposal only | low | Choose when the current task should stay closed |
-| B | Open a new request | Start a separate workflow entry | New request/preflight only | low/medium | Choose when the follow-up is worth pursuing |
-| C | Require bounded user input | Stop only for a missing business fact, product preference, prepared real-world consent, or external authority fact; Codex replans technical risk, architecture, and migration internally | Decision/proposal only | medium/high | Choose only when one of the four user-input classes applies |
-| D | Do not proceed | Mark the suggestion as out of bounds | Proposal only | low | Choose when the follow-up should not be implemented |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Follow-up Decision And Evidence
+
+Selected disposition: KEEP_AS_SUGGESTION / OPEN_NEW_REQUEST / REPLAN_CURRENT_WORK / DO_NOT_PROCEED
+
+Can Codex continue now: yes / limited / no
+
+Decision rationale:
+
+Scope relationship and entry route:
+
+Risk response:
+
+Evidence and verification required:
+
+Technical recovery path:
 
 ## Source
 
@@ -47,7 +58,7 @@ IN_SCOPE_NEXT_STEP / DIRECT_FOLLOW_UP / RISK_DECISION / OUT_OF_SCOPE_OBSERVATION
 
 ## Mainline Placement
 
-`Parking Lot` / `New Request` / `Risk Decision` / `Do Not Proceed`
+`Parking Lot` / `New Request` / `Codex Risk Treatment` / `Do Not Proceed`
 
 Re-entry path:
 
@@ -84,22 +95,23 @@ Does not include:
 
 ## Required Entry
 
-- [ ] current task
-- [ ] new request
-- [ ] preflight first
-- [ ] follow-up proposal only
-- [ ] human decision first
-- [ ] do not proceed
+Codex-selected entry: current task / new request / preflight first / follow-up proposal only / bounded user input / do not proceed
+
+Selection evidence:
 
 ## Human Decision Needed
 
-Decision:
+Compatibility heading: semantically this is the bounded `User Input Record`.
 
-Options:
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Recommended:
+Missing fact or exact prepared effect:
 
-Status: PENDING / APPROVED / REJECTED / NOT_REQUIRED
+Plain-language question or consent request:
+
+Why project evidence is insufficient:
+
+Status: PENDING / PROVIDED / CONSENTED / NOT_REQUIRED
 
 ## Next Safe Action
 

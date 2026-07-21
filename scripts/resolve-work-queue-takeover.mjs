@@ -4,20 +4,34 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import {
+  deriveWorkQueueTaskIdentity,
+  normalizeTaskIntent,
+  taskIntentDigest,
+  validateTaskGovernanceLineage,
+} from "./lib/task-entry-binding.mjs";
+import { validateTaskObligationProjection } from "./lib/task-obligations.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
+import {
+  canonicalizeWorkQueueItems,
+  parseWorkQueueReport,
+} from "./resolve-work-queue.mjs";
 import {
   defaultIgnoredDirs,
   walkRelativePaths,
 } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["intent", "json", "format", "out"]);
+const knownFlags = new Set(["intent", "json", "format", "out", "task-governance-ref", "current-item-id"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
-const intent = String(args.intent || args._.slice(1).join(" ") || "review existing project task records");
+const intent = normalizeTaskIntent(args.intent || args._.slice(1).join(" ") || "review existing project task records");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const outputPath = args.out ? resolveOutputPath(projectRoot, String(args.out)) : null;
+const taskGovernanceRef = String(args["task-governance-ref"] || "").trim();
+const currentItemId = String(args["current-item-id"] || "").trim();
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -43,45 +57,71 @@ if (outputFormat === "json") {
 
 function buildReport() {
   const exists = fs.existsSync(projectRoot);
+  const taskSourceIgnoredDirs = new Set([
+    ...defaultIgnoredDirs,
+    "examples",
+    "test-fixtures",
+    "fixtures",
+  ]);
   const paths = exists ? walkRelativePaths(projectRoot, ".", {
-    maxDepth: 20,
-    maxEntries: 100000,
-    ignoredDirs: defaultIgnoredDirs,
+    maxDepth: 1024,
+    maxEntries: 1000000,
+    ignoredDirs: taskSourceIgnoredDirs,
   }) : [];
-  const sourceInventory = exists ? discoverTaskSources(projectRoot, paths) : [];
+  const discovery = exists ? discoverTaskSources(projectRoot, paths) : { sources: [], rejected: [] };
+  const taskSources = discovery.sources;
+  const sourceInventory = taskSources.map(sourceEvidence);
   const gitState = exists ? gitWorktreeState(projectRoot) : { isGitRepository: false, isDirty: false };
-  const explicitUnsafe = sourceInventory.some((source) => source.status === "RISKY"
-    || /UNSAFE_TO_TAKE_OVER|production incident|dirty worktree|release conflict/i.test(source.summary));
+  const explicitUnsafe = discovery.rejected.length > 0
+    || discovery.multipleCurrentCount > 1
+    || taskSources.some((source) => isBlockingTaskAuthoritySource(source)
+    && (source.status === "RISKY"
+      || /UNSAFE_TO_TAKE_OVER|production incident|release conflict/i.test(source.summary)));
   const rootGitDirty = fs.existsSync(path.join(projectRoot, ".git")) && gitState.isDirty;
-  const hasExistingQueue = sourceInventory.some((source) => source.source_type === "work_queue");
-  const hasTaskSources = sourceInventory.length > 0;
-  const taskClass = classFor({ exists, explicitUnsafe, rootGitDirty, hasExistingQueue, hasTaskSources, sourceInventory });
+  const hasExistingQueue = taskSources.some((source) => source.source_type === "work_queue");
+  const hasTaskSources = taskSources.length > 0;
+  const taskClass = classFor({
+    exists,
+    explicitUnsafe,
+    rootGitDirty,
+    hasExistingQueue,
+    hasTaskSources,
+    sourceInventory: taskSources,
+    hasTaskGovernanceRef: Boolean(taskGovernanceRef),
+  });
   const recommendedAction = actionFor(taskClass);
   const futureAuthority = authorityFor(taskClass);
-  const dispositions = dispositionsFor(taskClass, sourceInventory);
-  const queueItems = queueItemsFor(taskClass, dispositions);
+  const dispositions = dispositionsFor(taskClass, taskSources);
+  const queueItems = queueItemsFor(taskClass, dispositions, taskSources);
   const takeoverRef = outputPath
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "work-queue-takeover-reports/generated.md";
-  const blockedBy = blockedByFor({ exists, taskClass, rootGitDirty, explicitUnsafe });
+  const reviewBlockedBy = blockedByFor({ exists, taskClass, rootGitDirty, explicitUnsafe });
+  reviewBlockedBy.push(...discovery.rejected.map((item) => `unsafe task evidence source ${item.ref}: ${item.error}`));
+  if (discovery.multipleCurrentCount > 1) {
+    reviewBlockedBy.push(`multiple CURRENT task rows detected: ${discovery.multipleCurrentRefs.join(", ")}`);
+  }
+  const governanceBinding = bindCurrentTaskGovernance(queueItems, takeoverRef);
+  const blockedBy = [...reviewBlockedBy];
+  if (!governanceBinding.ok) blockedBy.push(governanceBinding.error);
   const baseEvidence = {
     schema_version: "1.84.1",
     artifact_type: "work_queue_takeover",
     work_queue_takeover_ref: takeoverRef,
     work_queue_takeover_digest: "sha256:pending",
     intent,
-    intent_digest: digest(intent),
+    intent_digest: taskIntentDigest(intent),
     project_task_system_class: taskClass,
     recommended_action: recommendedAction,
     future_task_authority: futureAuthority,
     plain_user_summary: plainSummaryFor(taskClass),
     source_inventory: sourceInventory,
-    reliability_assessment: reliabilityFor(taskClass, sourceInventory),
+    reliability_assessment: reliabilityFor(taskClass, taskSources),
     migration_dispositions: dispositions,
     queue_items: queueItems,
     readiness: {
       takeover_ready: blockedBy.length === 0 ? "Yes" : "No",
-      takeover_review_ready: blockedBy.length === 0 ? "Yes" : "No",
+      takeover_review_ready: reviewBlockedBy.length === 0 ? "Yes" : "No",
       can_codex_write_now: "No",
       can_execute_from_old_todo_directly: "No",
       blocked_by: blockedBy,
@@ -102,22 +142,185 @@ function buildReport() {
   return { evidence: baseEvidence };
 }
 
+function bindCurrentTaskGovernance(queueItems, takeoverRef) {
+  if (!taskGovernanceRef) return { ok: false, error: "Task Governance binding was not requested." };
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", taskGovernanceRef, { markdownOnly: true });
+  if (!resolved.ok) return { ok: false, error: `Task Governance reference is unsafe or unresolved: ${resolved.error}` };
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  if (!extracted?.ok || extracted.value?.artifact_type !== "task_governance") {
+    return { ok: false, error: "Task Governance reference does not contain valid structured Task Governance evidence." };
+  }
+  const governance = extracted.value;
+  const digestValid = governance.task_governance_digest === evidenceDigest(governance, ["task_governance_digest"]);
+  if (!digestValid) return { ok: false, error: "Task Governance digest is invalid." };
+  if (governance.intent !== intent || governance.intent_digest !== taskIntentDigest(intent)) {
+    return { ok: false, error: "Task Governance intent text and digest do not match the Work Queue takeover intent." };
+  }
+  if (governance.task_lineage?.authority !== "WORK_QUEUE_ITEM") {
+    return { ok: false, error: "Task Governance binding requires strict WORK_QUEUE_ITEM lineage; UNBOUND_COMPATIBILITY is not accepted." };
+  }
+  if (governance.impact_classification?.task_impact === "POSSIBLE_HIGH"
+    || !validateTaskObligationProjection(governance).ok) {
+    return { ok: false, error: "Task Governance has unresolved task classification or weakened minimum obligations." };
+  }
+  if (queueItems.length === 0) {
+    queueItems.push({
+      item_id: "WQ-001",
+      state: "CURRENT",
+      title: cleanCell(intent).slice(0, 120),
+      source_item: "intent:current",
+      source_item_digest: digest(intent),
+      task_governance_ref: "N/A",
+      task_governance_digest: "N/A",
+      task_governance_binding_status: "PENDING",
+      execution_review_eligible_after_task_governance: "Yes",
+      execution_eligible: "No",
+      reason: "The project had no task system; the exact current intent becomes the first governed Work Queue item.",
+    });
+  }
+  const allCurrent = queueItems.filter((item) => item.state === "CURRENT");
+  if (allCurrent.length !== 1) {
+    return { ok: false, error: `Exactly one CURRENT Work Queue item is required before selection, observed ${allCurrent.length}.` };
+  }
+  const candidates = allCurrent.filter((item) => !currentItemId || item.item_id === currentItemId);
+  if (candidates.length !== 1) {
+    return { ok: false, error: `Exactly one CURRENT Work Queue item must be selected, observed ${candidates.length}.` };
+  }
+  const current = candidates[0];
+  const identity = deriveWorkQueueTaskIdentity({
+    workQueueItemRef: `artifact:${takeoverRef}#${current.item_id}`,
+    item: current,
+    intent,
+  });
+  if (!identity.ok) return { ok: false, error: identity.error };
+  if (governance.task_ref !== identity.task_ref) {
+    return { ok: false, error: "Task Governance task_ref does not match the exact Work Queue task instance." };
+  }
+  if (governance.task_lineage?.work_queue_item_ref !== identity.work_queue_item_ref
+    || governance.task_lineage?.work_queue_item_digest !== identity.work_queue_item_digest) {
+    return { ok: false, error: "Task Governance lineage does not bind the exact Work Queue item ref and digest." };
+  }
+  const lineage = validateTaskGovernanceLineage(projectRoot, governance, {
+    fromFile: resolved.file,
+    requireCurrent: true,
+  });
+  if (!lineage.ok) {
+    return { ok: false, error: `Task Governance strict Work Queue lineage is invalid: ${lineage.errors.join("; ")}` };
+  }
+  current.task_governance_ref = resolved.relativePath;
+  current.task_governance_digest = governance.task_governance_digest;
+  current.task_governance_binding_status = "VERIFIED";
+  current.execution_review_eligible_after_task_governance = "Yes";
+  current.execution_eligible = "Yes";
+  current.reason = "The exact current Task Governance report and intent digest were verified by the public takeover resolver.";
+  return { ok: true, error: "" };
+}
+
 function discoverTaskSources(root, paths) {
   const candidates = [];
+  const rejected = [];
   for (const relativePath of paths) {
     if (!/\.(md|txt)$/i.test(relativePath)) continue;
     if (!isTaskSourcePath(relativePath)) continue;
-    const fullPath = path.join(root, relativePath);
-    const content = readFile(fullPath);
+    const resolved = resolveAuthoritativeEvidenceReference(root, "", relativePath);
+    if (!resolved.ok) {
+      rejected.push({ ref: relativePath, error: resolved.error });
+      continue;
+    }
+    const content = readFile(resolved.file);
+    const report = {
+      path: relativePath,
+      title: summaryForSource(relativePath, content),
+      content,
+    };
+    const parsed = parseWorkQueueReport(report);
+    const canonical = canonicalizeWorkQueueItems(parsed.items);
+    for (const invalid of parsed.invalidRows) {
+      rejected.push({
+        ref: `${relativePath}#row-${invalid.row}`,
+        error: `task table row has unsupported state ${invalid.state || "<empty>"}`,
+      });
+    }
+    if (canonical.items.length > 0) {
+      const conflictedKeys = new Set(canonical.conflicts.map((item) => item.itemKey));
+      for (const [index, item] of canonical.items.entries()) {
+        const sourceRef = `${relativePath}#${taskFragment(item.taskId, index)}`;
+        const itemKey = canonicalTaskKey(item);
+        candidates.push({
+          source_ref: sourceRef,
+          source_digest: digest(`${sourceRef}\n${content}`),
+          source_type: sourceTypeFor(relativePath),
+          status: conflictedKeys.has(itemKey) ? "RISKY" : sourceStatusForQueueState(item.state),
+          summary: cleanCell(item.title || item.taskId || summaryForSource(relativePath, content)).slice(0, 180),
+          queue_state: item.state,
+          task_id: item.taskId,
+          task_ref: item.taskRef,
+          intent_digest: item.intentDigest,
+          evidence: item.evidence,
+          structured_row: true,
+        });
+      }
+      continue;
+    }
     candidates.push({
       source_ref: relativePath,
       source_digest: digest(`${relativePath}\n${content}`),
       source_type: sourceTypeFor(relativePath),
       status: statusForSource(relativePath, content),
       summary: summaryForSource(relativePath, content),
+      queue_state: "",
+      task_id: "",
+      task_ref: "",
+      intent_digest: "",
+      evidence: "",
+      structured_row: false,
     });
   }
-  return candidates;
+  const structuredQueueRows = candidates.filter((source) => source.structured_row && source.source_type === "work_queue");
+  const currentAuthority = structuredQueueRows.length > 0
+    ? structuredQueueRows
+    : candidates.filter((source) => isBlockingTaskAuthoritySource(source));
+  const current = currentAuthority.filter((source) => source.status === "CURRENT");
+  return {
+    sources: candidates,
+    rejected,
+    multipleCurrentCount: current.length,
+    multipleCurrentRefs: current.map((source) => source.source_ref).sort(),
+  };
+}
+
+function sourceEvidence(source) {
+  return {
+    source_ref: source.source_ref,
+    source_digest: source.source_digest,
+    source_type: source.source_type,
+    status: source.status,
+    summary: source.summary,
+  };
+}
+
+function taskFragment(value, index) {
+  const normalized = String(value || "").trim();
+  if (/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(normalized)) return normalized;
+  const fallback = normalized
+    .normalize("NFKC")
+    .replace(/[^A-Za-z0-9._:-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 96);
+  return fallback && /^[A-Za-z0-9]/.test(fallback) ? fallback : `ROW-${index + 1}`;
+}
+
+function canonicalTaskKey(item) {
+  const taskId = String(item?.taskId || "").trim().toLowerCase();
+  if (taskId && !/^(?:n\/a|none|pending|unknown|<)/i.test(taskId)) return `id:${taskId}`;
+  const taskRef = String(item?.taskRef || "").trim().toLowerCase();
+  return taskRef ? `ref:${taskRef}` : `row:${item?.source || "unknown"}:${item?.sourceRow || "unknown"}`;
+}
+
+function sourceStatusForQueueState(state) {
+  if (state === "CURRENT") return "CURRENT";
+  if (["DONE", "CANCELLED"].includes(state)) return "STALE";
+  return "UNKNOWN";
 }
 
 function isTaskSourcePath(relativePath) {
@@ -126,6 +329,7 @@ function isTaskSourcePath(relativePath) {
   if (normalized.includes("work-queue-takeover-reports/")) return false;
   if (normalized.includes("task-governance-reports/")) return false;
   if (["todo.md", "tasks.md", "task.md", "roadmap.md", "handoff.md"].includes(base)) return true;
+  if (/^(?:tasks?|work-items?)\//i.test(relativePath)) return true;
   if (/^(work-queue|docs\/sessions|sessions|ai-logs|final-reports|follow-up-proposals|decision-briefs|active-work-threads)\//i.test(relativePath)) return true;
   if (/\b(todo|pending|follow-up|backlog|handoff|session|roadmap)\b/i.test(relativePath)) return true;
   return false;
@@ -134,8 +338,8 @@ function isTaskSourcePath(relativePath) {
 function sourceTypeFor(relativePath) {
   const normalized = relativePath.toLowerCase();
   const base = path.basename(normalized);
-  if (base.includes("todo") || base.includes("tasks")) return "todo";
   if (normalized.startsWith("work-queue/")) return "work_queue";
+  if (base.includes("todo") || base.includes("tasks")) return "todo";
   if (normalized.includes("session")) return "session";
   if (normalized.includes("ai-logs")) return "ai_log";
   if (normalized.includes("handoff")) return "handoff";
@@ -145,13 +349,47 @@ function sourceTypeFor(relativePath) {
 }
 
 function statusForSource(relativePath, content) {
-  const currentRows = (content.match(/\|\s*`?CURRENT`?\s*\|/gi) || []).length;
-  if (currentRows > 1) return "RISKY";
+  if (sourceTypeFor(relativePath) === "work_queue") return statusForWorkQueue(content);
+  const currentRows = String(content).split(/\r?\n/)
+    .filter((line) => /\|\s*`?CURRENT`?\s*\|/i.test(line));
+  const currentIds = new Set(currentRows
+    .map((line) => line.split("|").slice(1, -1)[0]?.replace(/`/g, "").trim())
+    .filter(Boolean));
+  if (currentRows.length > 1 && currentIds.size !== 1) return "RISKY";
   if (/UNSAFE_TO_TAKE_OVER|production incident|release conflict|dirty worktree\s*[:|]\s*(yes|dirty|unreviewed)/i.test(content)) return "RISKY";
-  if (/CURRENT|active task|in progress/i.test(content)) return "CURRENT";
   if (/done|completed|closed/i.test(content)) return "STALE";
   if (/stale|archive|archived|deprecated/i.test(content)) return "STALE";
+  if (/^\s*(?:status|state)\s*:\s*(?:current|active|in[ -]?progress)\s*$/im.test(content)
+    || /^#{1,4}\s+(?:current|active)\s+task\b/im.test(content)) return "CURRENT";
   return "UNKNOWN";
+}
+
+function statusForWorkQueue(content) {
+  const currentTask = markdownSection(content, "Current Task");
+  const workItems = markdownSection(content, "Work Items");
+  const currentRows = [currentTask, workItems]
+    .flatMap((section) => String(section).split(/\r?\n/))
+    .filter((line) => /\|[^\n]*\|\s*`?CURRENT`?\s*\|/i.test(line));
+  const currentIds = new Set(currentRows
+    .map((line) => line.split("|").slice(1, -1)[0]?.replace(/`/g, "").trim())
+    .filter(Boolean));
+  if (currentIds.size > 1) return "RISKY";
+  if (currentIds.size === 1) return "CURRENT";
+  if (/\bUNSAFE_TO_TAKE_OVER\b|production incident|release conflict/i.test(currentTask)) return "RISKY";
+  if (/^\s*(?:none|no current task)\b/im.test(currentTask)
+    || /\|[^\n]*\|\s*`?(?:DONE|CLOSED|ARCHIVED)`?\s*\|/i.test(workItems)) return "STALE";
+  return "UNKNOWN";
+}
+
+function markdownSection(content, heading) {
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = String(content).match(new RegExp(`^##\\s+${escaped}\\s*$([\\s\\S]*?)(?=^##\\s+|\\Z)`, "im"));
+  return match?.[1]?.trim() || "";
+}
+
+function isBlockingTaskAuthoritySource(source) {
+  return ["work_queue", "todo", "session"].includes(source.source_type)
+    || /^(?:active-work-threads|tasks?|work-items?)\//i.test(source.source_ref);
 }
 
 function summaryForSource(relativePath, content) {
@@ -160,8 +398,12 @@ function summaryForSource(relativePath, content) {
   return cleanCell(title || firstTask || `Task source detected at ${relativePath}`).slice(0, 180);
 }
 
-function classFor({ exists, explicitUnsafe, rootGitDirty, hasExistingQueue, hasTaskSources, sourceInventory }) {
-  if (!exists || explicitUnsafe || rootGitDirty) return "UNSAFE_TO_TAKE_OVER";
+function classFor({ exists, explicitUnsafe, rootGitDirty, hasExistingQueue, hasTaskSources, sourceInventory, hasTaskGovernanceRef }) {
+  const governedExistingQueueReview = rootGitDirty
+    && hasTaskGovernanceRef
+    && hasExistingQueue
+    && appearsReliable(sourceInventory);
+  if (!exists || explicitUnsafe || (rootGitDirty && !governedExistingQueueReview)) return "UNSAFE_TO_TAKE_OVER";
   if (hasExistingQueue && appearsReliable(sourceInventory)) return "RELIABLE_EXISTING_TASK_SYSTEM";
   if (!hasTaskSources) return "MISSING_TASK_SYSTEM";
   return "MESSY_TASK_SYSTEM";
@@ -190,7 +432,8 @@ function authorityFor(taskClass) {
 function dispositionsFor(taskClass, sources) {
   if (sources.length === 0) return [];
   if (taskClass === "RELIABLE_EXISTING_TASK_SYSTEM") {
-    return sources.map((source) => disposition(source, "ARCHIVE_SOURCE_ONLY", "N/A", "Existing task system appears reliable and can be mapped without duplicate migration."));
+    const hasStructuredQueueRows = sources.some((source) => source.structured_row && source.source_type === "work_queue");
+    return sources.map((source) => dispositionForReliableSource(source, hasStructuredQueueRows));
   }
   if (taskClass === "UNSAFE_TO_TAKE_OVER") {
     return sources.map((source) => disposition(source, source.status === "RISKY" ? "NEEDS_CLARIFICATION" : "ARCHIVE_SOURCE_ONLY", "N/A", "Project state is unsafe for task takeover; sources remain read-only evidence."));
@@ -198,12 +441,37 @@ function dispositionsFor(taskClass, sources) {
   const currentCandidate = sources.find((source) => source.status === "CURRENT" && canPromoteToCurrent(source))
     || sources.find((source) => canPromoteToCurrent(source));
   return sources.map((source) => {
+    if (source.queue_state === "PAUSED") return disposition(source, "MIGRATE_PAUSED", "PAUSED", "Preserve the exact paused task; a structured resume decision is required before it can become current.");
+    if (source.queue_state === "BLOCKED") return disposition(source, "MIGRATE_BLOCKED", "BLOCKED", "Preserve the exact blocked task without treating it as execution permission.");
+    if (source.queue_state === "BACKLOG") return disposition(source, "MIGRATE_BACKLOG", "BACKLOG", "Preserve the exact backlog task without promoting it.");
+    if (source.queue_state === "DONE") return disposition(source, "MARK_DONE_WITH_EVIDENCE", "DONE", "Preserve the exact completed task as non-executable history.");
+    if (source.queue_state === "CANCELLED") return disposition(source, "ARCHIVE_SOURCE_ONLY", "N/A", "Preserve the exact cancelled task as source history.");
     if (source.status === "STALE") return disposition(source, "MARK_STALE", "N/A", "Source looks stale or completed; preserve as history.");
     if (source.status === "RISKY") return disposition(source, "NEEDS_CLARIFICATION", "BLOCKED", "Source carries risk signals and cannot become the current task.");
     if (isAmbiguousSource(source)) return disposition(source, "NEEDS_CLARIFICATION", "BLOCKED", "Source is ambiguous and should not be executed directly.");
     if (source === currentCandidate) return disposition(source, "MIGRATE_CURRENT", "CURRENT", "Use the first viable non-stale, non-risky source as the candidate current task after Task Governance binding.");
     return disposition(source, "MIGRATE_BACKLOG", "BACKLOG", "Source remains useful but is not execution permission.");
   });
+}
+
+function dispositionForReliableSource(source, hasStructuredQueueRows) {
+  if (hasStructuredQueueRows && !(source.structured_row && source.source_type === "work_queue")) {
+    return disposition(source, "ARCHIVE_SOURCE_ONLY", "N/A", "A structured Work Queue row is current authority; this supporting source is retained without creating a duplicate task.");
+  }
+  const values = {
+    CURRENT: ["MIGRATE_CURRENT", "CURRENT", "Map the exact current task into the governed queue projection without replacing project task authority."],
+    BACKLOG: ["MIGRATE_BACKLOG", "BACKLOG", "Map the exact backlog task without promoting it to current."],
+    PAUSED: ["MIGRATE_PAUSED", "PAUSED", "Map the exact paused task; resumption still requires a structured current decision."],
+    BLOCKED: ["MIGRATE_BLOCKED", "BLOCKED", "Map the exact blocked task without granting execution permission."],
+    DONE: ["MARK_DONE_WITH_EVIDENCE", "DONE", "Preserve the exact completed task as non-executable history."],
+    CANCELLED: ["ARCHIVE_SOURCE_ONLY", "N/A", "Preserve the exact cancelled task as source history."],
+  };
+  const selected = values[source.queue_state];
+  if (selected) return disposition(source, ...selected);
+  if (source.status === "CURRENT") {
+    return disposition(source, "MIGRATE_CURRENT", "CURRENT", "Map the existing reliable current-task source into the governed queue projection without replacing project task authority.");
+  }
+  return disposition(source, "ARCHIVE_SOURCE_ONLY", "N/A", "Existing task source remains project history and is not duplicated into the execution queue.");
 }
 
 function disposition(source, dispositionValue, state, reason) {
@@ -224,17 +492,19 @@ function isAmbiguousSource(source) {
   return /blocked|needs|unclear|unknown/i.test(source.summary);
 }
 
-function queueItemsFor(taskClass, dispositions) {
+function queueItemsFor(taskClass, dispositions, sources) {
   if (taskClass === "UNSAFE_TO_TAKE_OVER") return [];
+  const sourceByRef = new Map(sources.map((source) => [source.source_ref, source]));
   return dispositions
-    .filter((item) => ["MIGRATE_CURRENT", "MIGRATE_BACKLOG", "MIGRATE_PAUSED", "MIGRATE_BLOCKED"].includes(item.disposition))
+    .filter((item) => ["MIGRATE_CURRENT", "MIGRATE_BACKLOG", "MIGRATE_PAUSED", "MIGRATE_BLOCKED", "MARK_DONE_WITH_EVIDENCE"].includes(item.disposition))
     .map((item, index) => {
       const state = item.target_queue_state === "N/A" ? "BACKLOG" : item.target_queue_state;
       const current = state === "CURRENT";
+      const source = sourceByRef.get(item.source_item);
       return {
         item_id: `WQ-${String(index + 1).padStart(3, "0")}`,
         state,
-        title: titleFromSource(item.source_item),
+        title: cleanCell(source?.summary || titleFromSource(item.source_item)).slice(0, 180),
         source_item: item.source_item,
         source_item_digest: item.source_digest,
         task_governance_ref: current ? "task-governance-reports/001-current-task.md" : "N/A",
@@ -252,9 +522,13 @@ function queueItemsFor(taskClass, dispositions) {
 function reliabilityFor(taskClass, sources) {
   const hasSources = sources.length > 0;
   const hasQueue = sources.some((source) => source.source_type === "work_queue");
-  const currentCount = sources.filter((source) => source.status === "CURRENT").length;
+  const structuredQueueRows = sources.filter((source) => source.structured_row && source.source_type === "work_queue");
+  const currentAuthority = structuredQueueRows.length > 0
+    ? structuredQueueRows
+    : sources.filter((source) => isBlockingTaskAuthoritySource(source));
+  const currentCount = currentAuthority.filter((source) => source.status === "CURRENT").length;
   return [
-    criterion("One current task", hasQueue && currentCount <= 1 ? "Yes" : hasSources ? "Unknown" : "No", hasQueue ? "Existing queue source found." : "No reliable queue source found."),
+    criterion("One current task", hasQueue && currentCount === 1 ? "Yes" : currentCount > 1 ? "No" : hasSources ? "Unknown" : "No", currentCount > 1 ? "Multiple distinct CURRENT task rows block takeover." : hasQueue ? "Existing queue source found." : "No reliable queue source found."),
     criterion("Stable task ids", hasQueue ? "Yes" : "Unknown", hasQueue ? "Work Queue source can provide task ids." : "Old sources may not have stable ids."),
     criterion("Task states", hasQueue ? "Yes" : "No", hasQueue ? "Queue states are available." : "Old sources do not consistently expose task state."),
     criterion("Owners or source owners", taskClass === "RELIABLE_EXISTING_TASK_SYSTEM" ? "Yes" : "Unknown", "Owner evidence must be preserved or added during migration."),
@@ -271,7 +545,7 @@ function criterion(name, result, reason) {
 function blockedByFor({ exists, taskClass, rootGitDirty, explicitUnsafe }) {
   const blockers = [];
   if (!exists) blockers.push("target path does not exist");
-  if (rootGitDirty) blockers.push("root git worktree is dirty");
+  if (rootGitDirty && taskClass === "UNSAFE_TO_TAKE_OVER") blockers.push("root git worktree is dirty");
   if (explicitUnsafe) blockers.push("task sources contain unsafe takeover signal");
   if (taskClass === "UNSAFE_TO_TAKE_OVER" && blockers.length === 0) blockers.push("project is unsafe for task takeover");
   return blockers;
@@ -311,6 +585,8 @@ It does not authorize implementation.
 | Task system class | \`${evidence.project_task_system_class}\` |
 | Recommended action | \`${evidence.recommended_action}\` |
 | Future task authority | \`${evidence.future_task_authority}\` |
+| Current task intent | ${escapeCell(evidence.intent)} |
+| Current task intent digest | \`${evidence.intent_digest}\` |
 | Can Codex write now | \`${evidence.readiness.can_codex_write_now}\` |
 | Can Codex execute tasks from old TODO directly | \`${evidence.readiness.can_execute_from_old_todo_directly}\` |
 
@@ -334,9 +610,9 @@ ${rows(evidence.migration_dispositions, (item) => `| ${escapeCell(item.source_it
 
 ## Queue Items
 
-| Item ID | State | Title | Source Item | Source Digest | Task Governance Ref | Task Governance Digest | Binding Status | Execution Review Eligible After Task Governance | Execution Eligible | Reason |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-${rows(evidence.queue_items, (item) => `| ${item.item_id} | ${item.state} | ${escapeCell(item.title)} | ${escapeCell(item.source_item)} | ${escapeCell(item.source_item_digest)} | ${escapeCell(item.task_governance_ref)} | ${escapeCell(item.task_governance_digest)} | ${item.task_governance_binding_status} | ${item.execution_review_eligible_after_task_governance} | ${item.execution_eligible} | ${escapeCell(item.reason)} |`, "| None | BACKLOG | No queue item | N/A | N/A | N/A | N/A | N/A | No | No | No executable queue item. |")}
+| Item ID | State | Title | Task Ref | Intent | Intent Digest | Work Queue Item Digest | Source Item | Source Digest | Task Governance Ref | Task Governance Digest | Binding Status | Execution Review Eligible After Task Governance | Execution Eligible | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+${rows(evidence.queue_items, (item) => queueItemRow(evidence, item), "| None | BACKLOG | No queue item | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | No | No | No executable queue item. |")}
 
 ## Boundaries
 
@@ -364,6 +640,17 @@ ${JSON.stringify(evidence, null, 2)}
 function rows(items, renderer, empty = "") {
   if (!items || items.length === 0) return empty;
   return items.map(renderer).join("\n");
+}
+
+function queueItemRow(evidence, item) {
+  const identity = deriveWorkQueueTaskIdentity({
+    workQueueItemRef: `artifact:${evidence.work_queue_takeover_ref}#${item.item_id}`,
+    item,
+    intent: evidence.intent,
+  });
+  const taskRef = identity.ok ? identity.task_ref : "N/A";
+  const itemDigest = identity.ok ? identity.work_queue_item_digest : "N/A";
+  return `| ${item.item_id} | ${item.state} | ${escapeCell(item.title)} | ${taskRef} | ${escapeCell(evidence.intent)} | ${evidence.intent_digest} | ${itemDigest} | ${escapeCell(item.source_item)} | ${escapeCell(item.source_item_digest)} | ${escapeCell(item.task_governance_ref)} | ${escapeCell(item.task_governance_digest)} | ${item.task_governance_binding_status} | ${item.execution_review_eligible_after_task_governance} | ${item.execution_eligible} | ${escapeCell(item.reason)} |`;
 }
 
 function titleFromSource(source) {

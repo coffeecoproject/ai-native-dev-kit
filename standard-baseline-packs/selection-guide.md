@@ -1,48 +1,52 @@
 # Standard Baseline Pack Selection Guide
 
-Use the smallest standard baseline set that matches the project.
+IntentOS Codex selects the smallest complete standard baseline set from current project evidence and the user's business goal. The user does not choose profiles, BL levels, packs, architecture, or verification tools.
 
-## Default Order
+## Internal Selection Order
 
 ```text
-project state
-  -> selected profiles
-  -> BL level
-  -> standard baseline packs
-  -> optional industrial overlays
-  -> evidence gaps
-  -> human decision
+current project evidence and goal
+  -> Codex derives platform and capability profiles
+  -> Codex derives the baseline level
+  -> Codex selects complete standard packs
+  -> Codex identifies evidence gaps
+  -> Codex verifies the installed baseline before task execution
 ```
 
 ## Selection Rules
 
-- Select a primary platform pack only when the platform is in scope.
-- Select a capability pack only when that capability is in scope.
-- Select `environment-standard` for BL1/BL2 non-trivial projects; keep it minimal or pending for BL0.
-- Select a release pack only when release, staging, handoff, launch readiness, or rollback is in scope.
-- Do not force `backend-api-standard` for frontend or Mini Program projects unless backend/API/database scope is confirmed.
+- Codex selects a primary platform pack only when repository evidence or the business goal establishes that platform.
+- Codex selects a capability pack only when the capability is present or required by the goal.
+- Codex selects `environment-standard` for BL1/BL2 non-trivial projects; it remains minimal or pending for BL0.
+- Codex selects a release pack when release, staging, handoff, launch readiness, or rollback is in scope.
+- Do not infer Web from a generic `src/` directory or a Node package alone.
+- Do not force `backend-api-standard` for a frontend or Mini Program unless backend, API, or data scope is evidenced.
 - Do not select every pack because it exists.
-- Do not treat `recommendedForBL` as default activation.
+- Do not treat `recommendedForBL` as proof that a pack applies.
 - Do not treat draft packs as stable.
-- Do not treat pack selection as write approval.
+- Do not treat pack selection as target-write or production approval.
 
 ## BL Levels
 
 | Level | Standard pack behavior | Industrial overlay behavior |
 |---|---|---|
-| `BL0_LIGHTWEIGHT` | Essential standard guidance only | Not recommended by default |
-| `BL1_STANDARD` | Selected standard packs are usually enough | Not active by default |
-| `BL2_INDUSTRIAL` | Standard packs first | Optional overlays only when risk exists and human approves |
+| `BL0_LIGHTWEIGHT` | Essential guidance for a bounded low-impact project | Not selected unless concrete risk evidence raises the project depth |
+| `BL1_STANDARD` | Complete platform, capability, and environment standards | Not active without concrete risk evidence |
+| `BL2_INDUSTRIAL` | Complete standard packs remain mandatory | Codex selects only risk-relevant overlays and verifies their evidence |
 
-## Human Decisions
+## User Input Boundary
 
-The human confirms:
+No technical selection is delegated to the user. Codex continues collecting and reconciling project evidence until it can make the selection.
 
-- selected profiles
-- BL level
-- selected standard packs
-- optional industrial overlays
-- missing evidence acceptance
-- whether Codex may write target project files for a separate implementation task
+The user is asked only for:
 
-Approving standard baseline selection does not approve a specific implementation task.
+- a business fact that cannot be established from the project;
+- a genuine product preference between equivalent outcomes;
+- consent for a concrete real-world action after its effect and rollback are explained;
+- an external provider or legal fact that cannot be verified locally.
+
+Unclear technical evidence blocks baseline readiness; it does not create a profile, BL, or pack question for the user.
+
+## Completion Rule
+
+A baseline is ready only when the selected profiles, level, standard packs, environment coverage, and required evidence agree with the current project. Installing pack files or recording a selection does not prove readiness.

@@ -1,0 +1,10 @@
+run_id=vrun-web-bl2-001
+runtime_plan_digest=sha256:e6c4dc5182a822f9a5d7534ad97f2b98c66dc351e8c225d41f00790002d87d82
+adapter_contract_digest=sha256:4bc65429cb9f5a08fcfd660a2401d89affff417c95f76f256af286b810941eee
+adapter_kind=COMMAND_ONLY
+execution_mode=NO_MANAGED_RUNTIME
+external_effect=No
+production=No
+shell=No
+pre_existing_run_workspace=No
+sensitive_environment_forwarded=No

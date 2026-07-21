@@ -23,6 +23,7 @@ import {
 } from "./lib/verification-runtime-consumer.mjs";
 import { resolveBoundBusinessUniverse } from "./lib/business-universe.mjs";
 import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
+import { validateExecutionAssuranceForCompletion } from "./lib/execution-assurance-consumer.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
@@ -40,14 +41,17 @@ const knownFlags = new Set([
   "require-plan-review",
   "require-evidence-authority",
   "require-runtime-trust",
+  "historical-audit",
 ]);
 const unknown = unknownOptions(args, knownFlags);
-const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
 const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"]);
 const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
 const requireRuntimeTrust = Boolean(args["require-runtime-trust"]);
+const historicalAudit = Boolean(args["historical-audit"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || args["require-source-refs"] || args["require-ready"] || requireEvidenceAuthority || requireRuntimeTrust);
 const requireSourceRefs = Boolean(args["require-source-refs"] || args["require-ready"]);
 const requireReady = Boolean(args["require-ready"]);
@@ -57,7 +61,7 @@ const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const requirePlanReview = Boolean(args["require-plan-review"]);
 const strictRequested = requireReport || requireStructuredEvidence || requireSourceRefs || requireReady
   || requireTaskGovernance || requireWorkQueue || strictTaskConsumer || requirePlanReview
-  || requireEvidenceAuthority || requireRuntimeTrust || Boolean(args.report);
+  || requireEvidenceAuthority || requireRuntimeTrust || historicalAudit || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/completion-evidence.schema.json");
 const sourceSchemas = {
@@ -234,16 +238,23 @@ function checkReport(file) {
   }
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
-  if (["1.108.0", "1.110.0"].includes(evidence.schema_version)) {
+  if (historicalAudit) {
+    if (evidence.schema_version === "1.113.0") {
+      fail(`${label} --historical-audit cannot weaken current 1.113.0 evidence`);
+    } else {
+      pass(`${label} is readable only as non-authorizing historical audit evidence`);
+    }
+  }
+  if (["1.108.0", "1.110.0", "1.113.0"].includes(evidence.schema_version)) {
     if (hasSection(content, "Business Universe Completion")) pass(`${label} includes Business Universe Completion`);
     else fail(`${label} missing section Business Universe Completion`);
   }
-  if (evidence.schema_version === "1.110.0") {
+  if (["1.110.0", "1.113.0"].includes(evidence.schema_version)) {
     if (hasSection(content, "Control Effectiveness Completion")) pass(`${label} includes Control Effectiveness Completion`);
     else fail(`${label} missing section Control Effectiveness Completion`);
   }
-  if (requireRuntimeTrust && !["1.104.0", "1.108.0", "1.110.0"].includes(evidence.schema_version)) {
-    fail(`${label} --require-runtime-trust requires Completion Evidence schema 1.104.0, 1.108.0, or 1.110.0`);
+  if (requireRuntimeTrust && !["1.104.0", "1.108.0", "1.110.0", "1.113.0"].includes(evidence.schema_version)) {
+    fail(`${label} --require-runtime-trust requires Completion Evidence schema 1.104.0, 1.108.0, 1.110.0, or 1.113.0`);
   }
   reports.push({
     ref: `artifact:${path.relative(projectRoot, file).split(path.sep).join("/")}`,
@@ -268,8 +279,17 @@ function checkEvidenceAuthority(label, file, evidence) {
     .filter((item) => item.status === "RECORDED")
     .map((item) => item.ref)
     .filter(isFileEvidenceRef);
-  if (isFileEvidenceRef(evidence.business_universe_binding?.business_universe_ref)) {
-    sourceRefs.push(evidence.business_universe_binding.business_universe_ref);
+  for (const ref of [
+    evidence.business_universe_binding?.business_universe_ref,
+    evidence.control_effectiveness_binding?.report_ref,
+    evidence.runtime_trust_binding?.run_manifest_ref,
+    evidence.task_entry_binding?.work_queue_item_ref,
+    evidence.task_entry_binding?.task_governance_ref,
+    evidence.task_entry_binding?.resume_review_ref,
+    evidence.plan_review_binding?.plan_review_ref,
+    evidence.plan_review_binding?.plan_ref,
+  ]) {
+    if (isFileEvidenceRef(ref)) sourceRefs.push(ref);
   }
   const binding = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
     fromFile: file,
@@ -302,9 +322,34 @@ function checkStructuredEvidence(label, file, evidence) {
     if (sourceNames.has(name)) pass(`${label} includes source ${name}`);
     else fail(`${label} missing source ${name}`);
   }
+  const executionSource = sources.find((source) => source.name === "execution_assurance");
+  const claimsCompletion = evidence.completion_state === "COMPLETION_EVIDENCE_READY"
+    || evidence.can_claim_complete === "Yes";
+  const requiresCurrentExecutionAuthority = requireReady
+    || ((strictTaskConsumer || evidence.schema_version === "1.113.0") && claimsCompletion);
+  let executionAuthority = null;
+  if (requiresCurrentExecutionAuthority) {
+    executionAuthority = validateExecutionAssuranceForCompletion({
+      projectRoot,
+      executionAssuranceRef: executionSource?.ref,
+      fromFile: file,
+      expectedTaskRef: evidence.task_ref,
+      expectedIntentDigest: evidence.intent_digest,
+    });
+    if (executionAuthority.ok) pass(`${label} Execution Assurance and bound Test Evidence pass authoritative completion-consumer checks`);
+    else executionAuthority.errors.forEach((error) => fail(`${label} ${error}`));
+  } else if (evidence.completion_state === "COMPLETION_EVIDENCE_READY") {
+    pass(`${label} historical ready evidence remains readable but is not current completion authority`);
+  }
+  const sourceRequirements = executionAuthority?.requirements || {
+    business_rule_closure: true,
+    verification_plan: true,
+    test_evidence: true,
+    execution_assurance: true,
+  };
   const sourceRecords = new Map();
   for (const source of sources) {
-    const record = checkSource(label, source, evidence);
+    const record = checkSource(label, source, evidence, sourceRequirements[source.name] !== false);
     if (record?.evidence) sourceRecords.set(source.name, record);
   }
   const checksById = new Map((evidence.gate_checks || []).map((item) => [item.id, item]));
@@ -317,18 +362,18 @@ function checkStructuredEvidence(label, file, evidence) {
     "check:source-digest-consistency",
     "check:intent-consistency",
     "check:source-chain-binding",
-    ...((requireRuntimeTrust || ["1.104.0", "1.108.0", "1.110.0"].includes(evidence.schema_version))
+    ...((requireRuntimeTrust || ["1.104.0", "1.108.0", "1.110.0", "1.113.0"].includes(evidence.schema_version))
       ? ["check:runtime-trust", "check:runtime-consumer-agreement"]
       : []),
-    ...(["1.108.0", "1.110.0"].includes(evidence.schema_version) ? ["check:business-universe"] : []),
-    ...(evidence.schema_version === "1.110.0" ? ["check:control-effectiveness"] : []),
+    ...(["1.108.0", "1.110.0", "1.113.0"].includes(evidence.schema_version) ? ["check:business-universe"] : []),
+    ...(["1.110.0", "1.113.0"].includes(evidence.schema_version) ? ["check:control-effectiveness"] : []),
   ]) {
     if (checksById.has(id)) pass(`${label} includes gate check ${id}`);
     else fail(`${label} missing gate check ${id}`);
   }
-  checkCrossSourceBinding(label, evidence, sourceRecords);
-  checkRuntimeTrust(label, file, evidence, sourceRecords);
-  checkControlEffectiveness(label, file, evidence, sourceRecords);
+  checkCrossSourceBinding(label, evidence, sourceRecords, sourceRequirements);
+  checkRuntimeTrust(label, file, evidence, sourceRecords, sourceRequirements);
+  checkControlEffectiveness(label, file, evidence, sourceRecords, sourceRequirements);
   checkTaskEntryBinding({
     content: "",
     evidence,
@@ -348,6 +393,7 @@ function checkStructuredEvidence(label, file, evidence) {
     label,
     requirePlanReview,
     consumer: "completion evidence",
+    requireCurrentTaskLineage: historicalAudit ? false : undefined,
     pass,
     fail,
   });
@@ -360,8 +406,12 @@ function checkStructuredEvidence(label, file, evidence) {
     if (allPass) pass(`${label} ready gate has all checks passing`);
     else fail(`${label} COMPLETION_EVIDENCE_READY requires all gate checks to PASS`);
     for (const source of sources) {
-      if (source.status === "RECORDED" && source.ready === "Yes") pass(`${label} ready source ${source.name} is recorded and ready`);
-      else fail(`${label} ready gate requires recorded ready source ${source.name}`);
+      const requiredByTask = sourceRequirements[source.name] !== false;
+      const valid = requiredByTask
+        ? source.status === "RECORDED" && source.ready === "Yes"
+        : ["RECORDED", "NOT_REQUIRED"].includes(source.status) && source.ready === "Yes";
+      if (valid) pass(`${label} ready source ${source.name} satisfies its Task Governance requirement`);
+      else fail(`${label} ready gate requires a valid ${requiredByTask ? "recorded" : "proportional"} source decision for ${source.name}`);
     }
   } else if (evidence.can_claim_complete === "Yes") {
     fail(`${label} cannot claim complete unless state is COMPLETION_EVIDENCE_READY`);
@@ -371,8 +421,8 @@ function checkStructuredEvidence(label, file, evidence) {
   }
 }
 
-function checkRuntimeTrust(label, file, evidence, sourceRecords) {
-  if (!requireRuntimeTrust && !["1.108.0", "1.110.0"].includes(evidence.schema_version)) return;
+function checkRuntimeTrust(label, file, evidence, sourceRecords, sourceRequirements) {
+  if (!requireRuntimeTrust && !["1.108.0", "1.110.0", "1.113.0"].includes(evidence.schema_version)) return;
   const verificationPlan = sourceRecords.get("verification_plan");
   const testBinding = sourceRecords.get("test_evidence")?.evidence?.runtime_trust_binding;
   const executionBinding = sourceRecords.get("execution_assurance")?.evidence?.runtime_trust_binding;
@@ -399,11 +449,13 @@ function checkRuntimeTrust(label, file, evidence, sourceRecords) {
     }
     pass(`${label} Runtime Trust binding matches the authoritative current run`);
   }
-  if (!testBinding || !executionBinding) {
-    fail(`${label} Test Evidence and Execution Assurance must both carry Runtime Trust bindings`);
+  const requiredBindings = [executionBinding];
+  if (sourceRequirements.test_evidence || testBinding) requiredBindings.unshift(testBinding);
+  if (requiredBindings.some((binding) => !binding)) {
+    fail(`${label} every Task Governance-required runtime consumer must carry a Runtime Trust binding`);
     return;
   }
-  const agreement = runtimeTrustBindingsAgree([evidence.runtime_trust_binding, testBinding, executionBinding]);
+  const agreement = runtimeTrustBindingsAgree([evidence.runtime_trust_binding, ...requiredBindings]);
   if (agreement.ok) pass(`${label} all completion consumers use the same Runtime Trust run`);
   else agreement.errors.forEach((error) => fail(`${label} ${error}`));
   if (runtimeRequired && evidence.completion_state === "COMPLETION_EVIDENCE_READY" && evidence.runtime_trust_binding.status !== "VERIFIED") {
@@ -411,13 +463,37 @@ function checkRuntimeTrust(label, file, evidence, sourceRecords) {
   }
 }
 
-function checkControlEffectiveness(label, file, evidence, sourceRecords) {
-  if (evidence.schema_version !== "1.110.0") return;
+function checkControlEffectiveness(label, file, evidence, sourceRecords, sourceRequirements) {
+  if (!["1.110.0", "1.113.0"].includes(evidence.schema_version)) return;
   const binding = evidence.control_effectiveness_binding;
   const verificationPlan = sourceRecords.get("verification_plan")?.evidence;
   const verificationBinding = verificationPlan?.control_effectiveness_binding;
   const testBinding = sourceRecords.get("test_evidence")?.evidence?.control_effectiveness_binding;
   const executionBinding = sourceRecords.get("execution_assurance")?.evidence?.control_effectiveness_binding;
+  const proportionalBindings = [executionBinding];
+  if (sourceRequirements.verification_plan || verificationBinding) proportionalBindings.unshift(verificationBinding);
+  if (sourceRequirements.test_evidence || testBinding) proportionalBindings.push(testBinding);
+  if (!sourceRequirements.verification_plan && !sourceRequirements.test_evidence) {
+    if (!binding || proportionalBindings.some((item) => !item)) {
+      fail(`${label} proportional completion requires matching Completion and Execution Assurance Control Effectiveness decisions`);
+      return;
+    }
+    if (proportionalBindings.every((item) => JSON.stringify(item) === JSON.stringify(binding))) {
+      pass(`${label} proportional completion preserves the exact Execution Assurance Control Effectiveness decision`);
+    } else {
+      fail(`${label} proportional completion consumers disagree on Control Effectiveness`);
+    }
+    const validation = validateControlEffectivenessBinding(projectRoot, binding, {
+      required: binding.requirement === "REQUIRED",
+      allowBlocked: evidence.completion_state !== "COMPLETION_EVIDENCE_READY",
+      fromFile: file,
+      taskRef: evidence.task_ref,
+      intentDigest: evidence.intent_digest,
+    });
+    if (validation.ok) pass(`${label} proportional Control Effectiveness binding is valid at completion`);
+    else validation.errors.forEach((error) => fail(`${label} ${error}`));
+    return;
+  }
   const legacyProjection = binding
     && !verificationBinding
     && verificationPlan?.schema_version !== "1.110.0"
@@ -450,8 +526,25 @@ function checkControlEffectiveness(label, file, evidence, sourceRecords) {
   }
 }
 
-function checkSource(label, source, completionEvidence) {
+function checkSource(label, source, completionEvidence, requiredByTask) {
   if (!requiredSourceNames.has(source.name)) fail(`${label} unknown source ${source.name}`);
+  if (completionEvidence.schema_version === "1.113.0") {
+    const expectedRequirement = requiredByTask ? "REQUIRED" : "NOT_REQUIRED";
+    if (source.requirement === expectedRequirement) pass(`${label} source ${source.name} requirement matches current Task Governance`);
+    else fail(`${label} source ${source.name} requirement ${source.requirement || "<missing>"} must be ${expectedRequirement}`);
+  }
+  if (!requiredByTask && source.status === "NOT_REQUIRED") {
+    const exactNotRequired = source.ref === "N/A"
+      && source.task_ref === "N/A"
+      && source.intent_digest === "N/A"
+      && source.source_outcome === "NOT_REQUIRED_WITH_REASON"
+      && source.digest === "N/A"
+      && source.ready === "Yes"
+      && String(source.reason || "").trim().length > 0;
+    if (exactNotRequired) pass(`${label} source ${source.name} records an explicit Task Governance-backed NOT_REQUIRED decision`);
+    else fail(`${label} source ${source.name} NOT_REQUIRED decision must use N/A identity fields, ready Yes, and a reason`);
+    return { source, optional: true, evidence: null };
+  }
   if (requireSourceRefs || source.ready === "Yes") {
     const resolved = resolveArtifact(String(source.ref || ""));
     if (resolved) {
@@ -463,6 +556,11 @@ function checkSource(label, source, completionEvidence) {
   }
   if (source.ready === "Yes" && source.status !== "RECORDED") {
     fail(`${label} source ${source.name} cannot be ready unless RECORDED`);
+  }
+  const claimsCompletion = completionEvidence.completion_state === "COMPLETION_EVIDENCE_READY"
+    || completionEvidence.can_claim_complete === "Yes";
+  if (requiredByTask && source.status !== "RECORDED" && (requireSourceRefs || requireReady || claimsCompletion)) {
+    fail(`${label} source ${source.name} is required by current Task Governance and must be RECORDED`);
   }
   return null;
 }
@@ -552,50 +650,69 @@ function expectedIntentDigestFor(name, evidence) {
   return evidence.intent_digest || "";
 }
 
-function checkCrossSourceBinding(label, completionEvidence, sourceRecords) {
+function checkCrossSourceBinding(label, completionEvidence, sourceRecords, sourceRequirements) {
   if (!requireSourceRefs && !requireReady) return;
   const brc = sourceRecords.get("business_rule_closure");
   const vp = sourceRecords.get("verification_plan");
   const te = sourceRecords.get("test_evidence");
   const ea = sourceRecords.get("execution_assurance");
-  if (!brc || !vp || !te || !ea) {
-    fail(`${label} source-chain binding requires all four referenced source artifacts`);
+  const requiredRecords = [
+    ["Business Rule Closure", brc, sourceRequirements.business_rule_closure],
+    ["Verification Plan", vp, sourceRequirements.verification_plan],
+    ["Test Evidence", te, sourceRequirements.test_evidence],
+    ["Execution Assurance", ea, sourceRequirements.execution_assurance],
+  ];
+  const missing = requiredRecords.filter(([, record, required]) => required && !record).map(([name]) => name);
+  if (missing.length > 0) {
+    fail(`${label} source-chain binding is missing Task Governance-required sources: ${missing.join(", ")}`);
     return;
   }
 
-  if (sameRef(vp.evidence.business_rule_ref, brc.source.ref)) pass(`${label} Verification Plan business_rule_ref matches Completion Evidence BRC ref`);
-  else fail(`${label} Verification Plan business_rule_ref ${vp.evidence.business_rule_ref || "<missing>"} must match ${brc.source.ref || "<missing>"}`);
-  if (vp.evidence.business_rule_digest === brc.evidence.business_rule_digest) pass(`${label} Verification Plan business_rule_digest matches referenced BRC`);
-  else fail(`${label} Verification Plan business_rule_digest ${vp.evidence.business_rule_digest || "<missing>"} must match referenced BRC ${brc.evidence.business_rule_digest || "<missing>"}`);
-  checkSourceSystemBinding(label, vp.evidence.source_systems, "verification_plan", "business_rule_closure", brc.source.ref, brc.evidence.business_rule_digest, brc.source.source_outcome);
-  checkBusinessUniverseCompletionBinding(label, completionEvidence, brc, vp, te, ea);
+  if (sourceRequirements.verification_plan) {
+    if (sameRef(vp.evidence.business_rule_ref, brc.source.ref)) pass(`${label} Verification Plan business_rule_ref matches Completion Evidence BRC ref`);
+    else fail(`${label} Verification Plan business_rule_ref ${vp.evidence.business_rule_ref || "<missing>"} must match ${brc.source.ref || "<missing>"}`);
+    if (vp.evidence.business_rule_digest === brc.evidence.business_rule_digest) pass(`${label} Verification Plan business_rule_digest matches referenced BRC`);
+    else fail(`${label} Verification Plan business_rule_digest ${vp.evidence.business_rule_digest || "<missing>"} must match referenced BRC ${brc.evidence.business_rule_digest || "<missing>"}`);
+    checkSourceSystemBinding(label, vp.evidence.source_systems, "verification_plan", "business_rule_closure", brc.source.ref, brc.evidence.business_rule_digest, brc.source.source_outcome);
+  }
+  checkBusinessUniverseCompletionBinding(label, completionEvidence, brc, vp, te, ea, sourceRequirements);
 
-  if (sameRef(te.evidence.verification_plan_ref, vp.source.ref)) pass(`${label} Test Evidence verification_plan_ref matches Completion Evidence Verification Plan ref`);
-  else fail(`${label} Test Evidence verification_plan_ref ${te.evidence.verification_plan_ref || "<missing>"} must match ${vp.source.ref || "<missing>"}`);
-  if (te.evidence.verification_plan_digest === vp.source.digest) pass(`${label} Test Evidence verification_plan_digest matches referenced Verification Plan`);
-  else fail(`${label} Test Evidence verification_plan_digest ${te.evidence.verification_plan_digest || "<missing>"} must match referenced Verification Plan ${vp.source.digest || "<missing>"}`);
-  checkSourceSystemBinding(label, te.evidence.source_systems, "test_evidence", "verification_plan", vp.source.ref, vp.source.digest, vp.source.source_outcome);
+  if (sourceRequirements.test_evidence) {
+    if (sameRef(te.evidence.verification_plan_ref, vp.source.ref)) pass(`${label} Test Evidence verification_plan_ref matches Completion Evidence Verification Plan ref`);
+    else fail(`${label} Test Evidence verification_plan_ref ${te.evidence.verification_plan_ref || "<missing>"} must match ${vp.source.ref || "<missing>"}`);
+    if (te.evidence.verification_plan_digest === vp.source.digest) pass(`${label} Test Evidence verification_plan_digest matches referenced Verification Plan`);
+    else fail(`${label} Test Evidence verification_plan_digest ${te.evidence.verification_plan_digest || "<missing>"} must match referenced Verification Plan ${vp.source.digest || "<missing>"}`);
+    checkSourceSystemBinding(label, te.evidence.source_systems, "test_evidence", "verification_plan", vp.source.ref, vp.source.digest, vp.source.source_outcome);
 
-  if (executionAssuranceBindsTestEvidence(ea.evidence, te.source)) pass(`${label} Execution Assurance binds referenced Test Evidence`);
-  else fail(`${label} Execution Assurance must bind referenced Test Evidence ${te.source.ref || "<missing>"}`);
+    if (executionAssuranceBindsTestEvidence(ea.evidence, te.source)) pass(`${label} Execution Assurance binds referenced Test Evidence`);
+    else fail(`${label} Execution Assurance must bind referenced Test Evidence ${te.source.ref || "<missing>"}`);
+  }
   if (requirePlanReview) checkPlanReviewBindingMatchesExecutionAssurance(label, completionEvidence, ea.evidence);
-  if (completionEvidence.intent_digest === brc.source.intent_digest
-    && completionEvidence.intent_digest === vp.source.intent_digest
-    && completionEvidence.intent_digest === te.source.intent_digest
-    && completionEvidence.intent_digest === ea.source.intent_digest) {
+  const requiredIntentRecords = requiredRecords.filter(([, record, required]) => required && record).map(([, record]) => record);
+  if (requiredIntentRecords.every((record) => completionEvidence.intent_digest === record.source.intent_digest)) {
     pass(`${label} source-chain intent digests match completion intent`);
   } else {
     fail(`${label} source-chain intent digests must match completion intent ${completionEvidence.intent_digest || "<missing>"}`);
   }
 }
 
-function checkBusinessUniverseCompletionBinding(label, completionEvidence, brc, vp, te, ea) {
-  if (!["1.108.0", "1.110.0"].includes(completionEvidence.schema_version)) return;
-  const universe = resolveBoundBusinessUniverse(projectRoot, brc.file, brc.evidence);
+function checkBusinessUniverseCompletionBinding(label, completionEvidence, brc, vp, te, ea, sourceRequirements) {
+  if (!["1.108.0", "1.110.0", "1.113.0"].includes(completionEvidence.schema_version)) return;
   const completionBinding = completionEvidence.business_universe_binding;
   const completionRows = Array.isArray(completionEvidence.scenario_completion_map)
     ? completionEvidence.scenario_completion_map
     : [];
+  if (!sourceRequirements.business_rule_closure) {
+    if (isBoundedNotRequiredUniverseBinding(completionBinding)
+      && completionBinding.coverage_mapping_status === "NOT_REQUIRED"
+      && completionRows.length === 0) {
+      pass(`${label} proportional non-behavioral completion records Business Universe as NOT_REQUIRED_WITH_REASON`);
+    } else {
+      fail(`${label} proportional non-behavioral completion must keep Business Universe explicitly NOT_REQUIRED_WITH_REASON`);
+    }
+    return;
+  }
+  const universe = resolveBoundBusinessUniverse(projectRoot, brc.file, brc.evidence);
   if (!completionBinding) {
     fail(`${label} schema 1.108.0 requires Business Universe completion binding`);
     return;
@@ -808,9 +925,13 @@ function normalizeRef(value) {
   return String(value || "").trim().replace(/^(artifact|file):/, "");
 }
 
-function resolveReportPath(relativeOrAbsolute) {
-  if (path.isAbsolute(relativeOrAbsolute)) return relativeOrAbsolute;
-  return path.resolve(projectRoot, relativeOrAbsolute);
+function resolveReportPath(value) {
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", value, { markdownOnly: true });
+  if (!resolved.ok) {
+    console.error(`FAIL --report must be a project-contained non-symlink Markdown file: ${resolved.error}`);
+    process.exit(1);
+  }
+  return resolved.file;
 }
 
 function resolveAsset(relativePath) {

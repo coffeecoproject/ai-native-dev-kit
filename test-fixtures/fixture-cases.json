@@ -463,7 +463,7 @@
     "howToFix": "Generated projects without selected profiles should remain non-strict pending, not hard-failing."
   },
   {
-    "name": "bad platform baseline strict missing profile",
+    "name": "bad platform baseline strict pending standard evidence",
     "type": "bad",
     "checker": "check-platform-baseline",
     "script": "scripts/check-platform-baseline.mjs",
@@ -478,9 +478,9 @@
     ],
     "expectStatus": "nonzero",
     "expectStderrIncludes": [
-      "placeholder Selected Profiles"
+      "STANDARD_PACK_EVIDENCE_INCOMPLETE"
     ],
-    "howToFix": "Strict platform baseline checks must keep failing until profiles are explicitly selected."
+    "howToFix": "Strict platform baseline checks must keep failing until the Codex-selected standard baseline has current implementation evidence."
   },
   {
     "name": "good industrial baseline web bl2",
@@ -522,13 +522,8 @@
     "type": "bad",
     "checker": "check-industrial-baseline",
     "script": "scripts/check-industrial-baseline.mjs",
-    "setup": {
-      "generatedProject": {
-        "starter": "generic-project"
-      }
-    },
     "args": [
-      "{project}",
+      "test-fixtures/bad/bad-industrial-missing-level",
       "--strict"
     ],
     "expectStatus": "nonzero",

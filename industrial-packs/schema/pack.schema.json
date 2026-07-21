@@ -128,8 +128,19 @@
       }
     },
     "humanApprovalRequiredFor": {
+      "description": "Compatibility field restricted to concrete real-world consent boundaries. Technical design, implementation, migration, testing, and baseline choices remain Codex responsibilities.",
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "enum": [
+          "external-account-or-provider-action",
+          "irreversible-production-data-effect",
+          "paid-service-or-value-transfer",
+          "production-or-external-release",
+          "real-user-communication",
+          "regulated-data-export-to-external-recipient"
+        ]
+      },
+      "uniqueItems": true
     },
     "maturity": {
       "type": "object",

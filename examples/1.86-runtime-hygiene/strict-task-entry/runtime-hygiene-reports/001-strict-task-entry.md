@@ -20,6 +20,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Field | Value |
 | --- | --- |
 | Task ref | `task:change-review-workflow-step-policy-after-task-submission` |
+| Intent digest | `sha256:669078e366c92ef0bb0e4710c99016d783c38d41b29f8abe88fe02a92ee0577a` |
 | Work Queue item ref | `artifact:work-queue-takeover-reports/001-current.md#WQ-001` |
 | Task Governance ref | `artifact:task-governance-reports/001-task-governance.md` |
 
@@ -125,8 +126,9 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "schema_version": "1.86.1",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/001-strict-task-entry.md",
-  "runtime_hygiene_digest": "sha256:653747637bdf072ea8cbb6e1a64faf720a14f63bb942789613a44184a4debd32",
+  "runtime_hygiene_digest": "sha256:3ffab1c2846f92b01937550cde8e2c2a3a799c4f043a5cdb0c17ec9eae91fe17",
   "task_ref": "task:change-review-workflow-step-policy-after-task-submission",
+  "intent_digest": "sha256:669078e366c92ef0bb0e4710c99016d783c38d41b29f8abe88fe02a92ee0577a",
   "work_queue_item_ref": "artifact:work-queue-takeover-reports/001-current.md#WQ-001",
   "task_governance_ref": "artifact:task-governance-reports/001-task-governance.md",
   "task_entry_binding": {

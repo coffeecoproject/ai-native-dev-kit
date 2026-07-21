@@ -2,24 +2,31 @@
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Continue current task | Treat the message as inside approved scope | Current approved task files only | low/medium | Choose when the message clarifies the active task |
-| B | Start a new entry | Create a new request, preflight, or decision record | New workflow record only | low/medium | Choose when the message changes scope |
-| C | Stop for human decision | Pause until the owner chooses direction | No, unless decision record is saved | medium/high | Choose for risk, release, migration, production, or unclear scope |
-| D | Discuss only | Answer or clarify without executing | No | low | Choose when the user is only exploring |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Routing Decision And Evidence
+
+Selected action: CONTINUE_CURRENT_TASK / START_NEW_ENTRY / REPLAN_SCOPE / DISCUSS_ONLY / PAUSE_OR_STOP
+
+Can Codex continue now: yes / limited / no
+
+Scope relation and evidence:
+
+Risk response:
+
+Verification, review route, and technical recovery:
 
 ## Human Summary
 
@@ -66,7 +73,11 @@ What Codex will do next.
 
 ## Required Human Decision
 
-`None` or the specific decision needed before Codex continues.
+Compatibility heading: semantically this is the bounded `User Input Record`.
+
+`None` or one of `BUSINESS_FACT_NEEDED` / `REAL_WORLD_CONSENT_NEEDED` / `EXTERNAL_FACT_NEEDED`.
+
+Exact question or prepared effect, if needed:
 
 ## Audit Notes
 

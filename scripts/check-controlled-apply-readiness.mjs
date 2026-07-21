@@ -14,11 +14,12 @@ import {
 import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence", "require-plan-review"]));
+const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence", "require-plan-review", "historical-audit"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const requirePlanReview = Boolean(args["require-plan-review"]);
+const historicalAudit = Boolean(args["historical-audit"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -235,6 +236,7 @@ function checkStructuredEvidence(content, label, file) {
 
   const evidence = result.value;
   pass(`${label} structured readiness evidence matches schema`);
+  if (historicalAudit) pass(`${label} is readable only as non-authorizing historical audit evidence`);
 
   if (evidence.can_codex_apply_now === false) pass(`${label} structured evidence states Codex cannot apply now`);
   else fail(`${label} structured evidence must state can_codex_apply_now false`);
@@ -257,6 +259,7 @@ function checkStructuredEvidence(content, label, file) {
     consumerPlanRef: evidence.apply_plan?.path,
     consumerPlanDigest: evidence.apply_plan?.plan_digest,
     consumerPlanLabel: "apply_plan",
+    requireCurrentTaskLineage: historicalAudit ? false : undefined,
     pass,
     fail,
   });

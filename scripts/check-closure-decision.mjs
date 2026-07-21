@@ -5,16 +5,29 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
-import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
+import { checkTaskEntryBinding, normalizeTaskIntent, taskIntentDigest } from "./lib/task-entry-binding.mjs";
 import { resolveRuntimeTrustBinding } from "./lib/verification-runtime-consumer.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "report", "require-task-governance", "require-work-queue", "strict-task-consumer", "require-runtime-trust"]);
+const knownFlags = new Set([
+  "json",
+  "report",
+  "require-report",
+  "require-current-authority",
+  "require-done",
+  "historical-audit",
+  "strict",
+  "require-task-governance",
+  "require-work-queue",
+  "strict-task-consumer",
+  "require-runtime-trust",
+]);
 const unknown = unknownOptions(args, knownFlags);
 const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
@@ -23,6 +36,10 @@ const requireTaskGovernance = Boolean(args["require-task-governance"]);
 const requireWorkQueue = Boolean(args["require-work-queue"]);
 const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const requireRuntimeTrust = Boolean(args["require-runtime-trust"]);
+const historicalAudit = Boolean(args["historical-audit"]);
+const requireCurrentAuthority = Boolean(args["require-current-authority"] || args.strict);
+const requireDone = Boolean(args["require-done"]);
+const strictRequested = Boolean(args["require-report"] || args.report || args.strict || requireCurrentAuthority || requireDone);
 const explicitReport = args.report ? resolveSelectedReport(String(args.report)) : "";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -32,6 +49,10 @@ const shouldRequireAssets = isSourceRepo
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
+  process.exit(1);
+}
+if (historicalAudit && (requireCurrentAuthority || requireDone || args.strict)) {
+  console.error("FAIL --historical-audit cannot be combined with current finish authority requirements");
   process.exit(1);
 }
 
@@ -146,7 +167,8 @@ function checkCoreContent() {
 function checkClosureDecisions() {
   const files = explicitReport ? [explicitReport] : markdownFiles("closure-decisions");
   if (files.length === 0) {
-    pass("unified closure decision check skipped: no Closure Decision records");
+    if (strictRequested) fail("no Closure Decision records found");
+    else pass("SKIPPED_NO_REPORT: no Closure Decision records found");
     return;
   }
 
@@ -161,17 +183,37 @@ function checkClosureDecisions() {
 
     const decision = tableValue(content, "Decision");
     const taskRef = tableValue(content, "Task ref");
+    const intent = tableValue(content, "Intent");
+    const intentDigest = tableValue(content, "Intent digest");
+    const authorityVersion = tableValue(content, "Authority version");
+    const authorityMarker = tableValue(content, "Authority marker");
+    const currentAuthority = authorityVersion === "1.113.0" && authorityMarker === "CURRENT_FINISH_AUTHORITY";
+    if (currentAuthority) pass(`${label} declares current 1.113 finish authority`);
+    else if (historicalAudit) pass(`${label} is readable only as non-authorizing historical audit evidence`);
+    else fail(`${label} lacks current finish authority; use --historical-audit only for non-authorizing legacy inspection`);
+    if (requireCurrentAuthority && !currentAuthority) fail(`${label} is not current finish authority`);
     if (allowedDecisions.has(decision)) pass(`${label} has valid closure decision`);
     else fail(`${label} has invalid closure decision: ${decision || "<empty>"}`);
+    if (requireDone && decision !== "DONE") fail(`${label} current finish consumer requires DONE`);
+    if (currentAuthority && decision === "DONE") {
+      const normalizedIntent = normalizeTaskIntent(intent);
+      if (/^task:[a-f0-9]{64}$/.test(taskRef)
+        && intent === normalizedIntent
+        && intentDigest === taskIntentDigest(normalizedIntent)) {
+        pass(`${label} DONE task_ref, intent text, and intent_digest are canonical`);
+      } else {
+        fail(`${label} current DONE requires opaque task_ref and canonical intent text/digest`);
+      }
+    }
     checkTaskEntryBinding({
       content,
-      evidence: { decision, task_ref: taskRef },
+      evidence: closureConsumerEvidence(content, { decision, taskRef, intent, intentDigest }),
       label,
       projectRoot,
       consumer: "closure_decision",
       requireTaskGovernance,
       requireWorkQueue,
-      strictTaskConsumer,
+      strictTaskConsumer: strictTaskConsumer || (currentAuthority && decision === "DONE"),
       pass,
       fail,
     });
@@ -192,7 +234,7 @@ function checkClosureDecisions() {
     if (/stricter result:\s*Yes|stricter result.*Yes/i.test(singleSource)) pass(`${label} confirms stricter result wins`);
     else fail(`${label} must confirm stricter result wins`);
 
-    if (decision === "DONE") requireDoneEvidence(content, label);
+    if (decision === "DONE") requireDoneEvidence(content, label, { currentAuthority });
 
     for (const boundary of [
       "This decision writes target files",
@@ -215,6 +257,25 @@ function checkClosureDecisions() {
   }
 }
 
+function closureConsumerEvidence(content, { decision, taskRef, intent, intentDigest }) {
+  const evidence = {
+    decision,
+    task_ref: taskRef,
+    intent,
+    intent_digest: intentDigest,
+  };
+  const completion = evidenceRow(sectionBody(content, "Evidence Map") || "", "Completion Evidence");
+  if (!completion || completion.status !== "PASS" || completion.verified !== "Yes") return evidence;
+  const file = resolveProjectFile(completion.ref);
+  if (!file) return evidence;
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
+  if (!extracted?.ok || extracted.value?.artifact_type !== "completion_evidence_gate") return evidence;
+  return {
+    ...evidence,
+    task_entry_binding: extracted.value.task_entry_binding,
+  };
+}
+
 function resolveSelectedReport(reference) {
   const file = resolveProjectFile(reference);
   if (!file) {
@@ -229,9 +290,49 @@ function resolveSelectedReport(reference) {
   return file;
 }
 
-function requireDoneEvidence(content, label) {
+function requireDoneEvidence(content, label, { currentAuthority }) {
   const evidence = sectionBody(content, "Evidence Map") || "";
   const verification = parseInputVerification(content, label);
+  const completionEvidence = evidenceRow(evidence, "Completion Evidence");
+  if (completionEvidence) {
+    requireCurrentDoneEvidence(content, label, evidence, verification, completionEvidence);
+    return;
+  }
+  if (currentAuthority) {
+    fail(`${label} current DONE requires typed Completion Evidence and cannot use legacy close-out inputs`);
+  } else if (historicalAudit) {
+    requireLegacyDoneEvidence(content, label, evidence, verification);
+  } else {
+    fail(`${label} legacy DONE is not current finish authority`);
+  }
+}
+
+function requireCurrentDoneEvidence(content, label, evidence, verification, completionEvidence) {
+  if (completionEvidence.status === "PASS" && completionEvidence.verified === "Yes") {
+    pass(`${label} DONE is based on verified current Completion Evidence`);
+  } else {
+    fail(`${label} current DONE requires Completion Evidence PASS with verified Yes`);
+  }
+
+  const completion = requireVerifiedInput(verification, label, "Completion Evidence", { required: "Yes" });
+  if (completion) {
+    requireEvidenceAndVerificationAgreement(completionEvidence, completion, label, "Completion Evidence");
+    if (completion.verified === "Yes") requireVerifiedCompletionEvidence(completion, content, label);
+  }
+
+  const optionalInputs = [
+    ["Verification", null],
+    ["Runtime Trust", (entry) => requireVerifiedRuntimeTrust(entry, content, label)],
+    ["Change Impact Coverage", (entry) => requireVerifiedImpactCoverage(entry, label)],
+    ["Execution Closure", (entry) => requireVerifiedExecutionClosure(entry, label)],
+    ["Human Decision", (entry) => requireDistinctHumanDecision(entry, [], label)],
+  ];
+  for (const [name, validator] of optionalInputs) {
+    requireNonConflictingOptionalInput(evidence, verification, label, name, validator);
+  }
+}
+
+function requireLegacyDoneEvidence(content, label, evidence, verification) {
   const verificationEvidence = evidenceRow(evidence, "Verification");
   const runtimeEvidence = evidenceRow(evidence, "Runtime Trust");
   const runtimeIsCurrent = requireRuntimeTrust || Boolean(runtimeEvidence);
@@ -264,6 +365,93 @@ function requireDoneEvidence(content, label) {
   if (runtime?.verified === "Yes") requireVerifiedRuntimeTrust(runtime, content, label);
   if (impact?.required === "Yes" && impact?.verified === "Yes") requireVerifiedImpactCoverage(impact, label);
   if (human?.required === "Yes" && human?.verified === "Yes") requireDistinctHumanDecision(human, [execution, impact], label);
+}
+
+function requireVerifiedCompletionEvidence(entry, content, label) {
+  const file = resolveProjectFile(entry.ref);
+  if (!file) {
+    fail(`${label} verified Completion Evidence ref is not a safe project-local file: ${entry.ref || "<missing>"}`);
+    return;
+  }
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
+  if (!extracted?.ok || extracted.value?.artifact_type !== "completion_evidence_gate") {
+    fail(`${label} verified Completion Evidence must contain typed completion_evidence_gate evidence`);
+    return;
+  }
+  const taskRef = tableValue(content, "Task ref");
+  const intent = normalizeTaskIntent(tableValue(content, "Intent"));
+  const intentDigest = tableValue(content, "Intent digest");
+  const current = extracted.value;
+  if (current.task_ref === taskRef
+    && current.intent === intent
+    && current.intent_digest === intentDigest
+    && current.intent_digest === taskIntentDigest(intent)) {
+    pass(`${label} Completion Evidence matches the exact Closure task, intent text, and digest`);
+  } else {
+    fail(`${label} Completion Evidence must match the exact Closure task, intent text, and digest`);
+    return;
+  }
+
+  const commandArgs = [
+    "scripts/check-completion-evidence.mjs",
+    projectRoot,
+    "--report", entry.ref,
+    "--require-report",
+    "--require-structured-evidence",
+    "--require-source-refs",
+    "--require-ready",
+    "--require-task-governance",
+    "--require-work-queue",
+    "--strict-task-consumer",
+    "--require-evidence-authority",
+  ];
+  if (current.plan_review_binding?.required === "Yes") commandArgs.push("--require-plan-review");
+  const check = runNode(commandArgs);
+  if (check.status === 0) pass(`${label} verified Completion Evidence passes strict current-authority checks`);
+  else fail(`${label} verified Completion Evidence fails strict current-authority checks: ${firstFailure(check)}`);
+}
+
+function requireEvidenceAndVerificationAgreement(evidenceEntry, verificationEntry, label, name) {
+  if (evidenceEntry.ref === verificationEntry.ref) pass(`${label} ${name} evidence ref agrees across sections`);
+  else fail(`${label} ${name} evidence ref must agree across Evidence Map and Input Verification`);
+  if (evidenceEntry.checker === verificationEntry.checker) pass(`${label} ${name} checker agrees across sections`);
+  else fail(`${label} ${name} checker must agree across Evidence Map and Input Verification`);
+  if (evidenceEntry.verified === verificationEntry.verified) pass(`${label} ${name} verified state agrees across sections`);
+  else fail(`${label} ${name} verified state must agree across Evidence Map and Input Verification`);
+}
+
+function requireNonConflictingOptionalInput(evidence, verification, label, name, validator) {
+  const evidenceEntry = evidenceRow(evidence, name);
+  const verificationEntry = verification.get(name.toLowerCase());
+  if (!evidenceEntry || !verificationEntry) {
+    fail(`${label} current DONE must record optional ${name} in both evidence sections`);
+    return;
+  }
+  requireEvidenceAndVerificationAgreement(evidenceEntry, verificationEntry, label, name);
+  if (verificationEntry.required === "No") pass(`${label} ${name} is not a second completion authority`);
+  else fail(`${label} current DONE must mark legacy ${name} as not required`);
+
+  const blockingStatuses = new Set(["FAIL", "BLOCKED", "NEEDS_REVIEW", "NEEDS_EVIDENCE", "MISSING_REQUIRED"]);
+  if (blockingStatuses.has(evidenceEntry.status)) {
+    fail(`${label} current DONE cannot ignore semantic blocker ${name}=${evidenceEntry.status}`);
+    return;
+  }
+  if (evidenceEntry.status === "PASS") {
+    if (evidenceEntry.verified === "Yes" && verificationEntry.verified === "Yes") {
+      pass(`${label} optional ${name} PASS is explicitly verified but does not decide DONE`);
+      if (validator) validator(verificationEntry);
+    } else {
+      fail(`${label} optional ${name} PASS cannot rely on unverified text`);
+    }
+    return;
+  }
+  if (["MISSING", "N/A", "OPTIONAL"].includes(evidenceEntry.status)
+    && ["No", "N/A"].includes(evidenceEntry.verified)
+    && ["No", "N/A"].includes(verificationEntry.verified)) {
+    pass(`${label} optional ${name} is absent without weakening typed Completion Evidence`);
+  } else {
+    fail(`${label} optional ${name} has an unsupported current-DONE state: ${evidenceEntry.status || "<missing>"}`);
+  }
 }
 
 function requireVerifiedRuntimeTrust(entry, content, label) {
@@ -489,21 +677,21 @@ function checkSourceEvidence() {
     fail(`1.53 unified closure resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
   }
 
-  const example = runNode(["scripts/check-closure-decision.mjs", "examples/1.53-unified-closure-model"]);
+  const example = runNode(["scripts/check-closure-decision.mjs", "examples/1.53-unified-closure-model", "--historical-audit"]);
   if (example.status !== 0 && `${example.stdout}\n${example.stderr}`.includes("DONE requires Input Verification")) {
     pass("1.53 legacy unified closure example cannot claim verified DONE after 1.90");
   } else {
     fail(`1.53 legacy unified closure example must be rejected as unverified DONE: ${example.stderr || example.stdout}`);
   }
 
-  const verifiedExample = runNode(["scripts/check-closure-decision.mjs", "examples/1.49-structured-impact-coverage/contract-input-rule"]);
+  const verifiedExample = runNode(["scripts/check-closure-decision.mjs", "examples/1.49-structured-impact-coverage/contract-input-rule", "--historical-audit"]);
   if (verifiedExample.status === 0 && verifiedExample.stdout.includes("historical DONE remains readable without current Runtime Trust authority")) {
     pass("1.104 historical verified closure remains readable without becoming current Runtime Trust evidence");
   } else {
     fail(`1.104 historical verified closure compatibility failed: ${verifiedExample.stderr || verifiedExample.stdout}`);
   }
 
-  const explainExample = runNode(["scripts/check-closure-decision.mjs", "examples/1.54-decision-explain-trace"]);
+  const explainExample = runNode(["scripts/check-closure-decision.mjs", "examples/1.54-decision-explain-trace", "--historical-audit"]);
   if (explainExample.status === 0 && explainExample.stdout.includes("Unified Closure Decision check passed")) {
     pass("1.54 decision explain trace example passes checker");
   } else {
@@ -515,7 +703,7 @@ function checkSourceEvidence() {
     ["split truth", "test-fixtures/bad/bad-closure-decision-split-truth", "must confirm single closure source"],
     ["missing explain trace", "test-fixtures/bad/bad-closure-decision-missing-explain-trace", "missing section Decision Trace"],
   ]) {
-    const result = runNode(["scripts/check-closure-decision.mjs", target]);
+    const result = runNode(["scripts/check-closure-decision.mjs", target, "--historical-audit"]);
     const output = `${result.stdout}\n${result.stderr}`;
     if (result.status !== 0 && output.includes(expected)) pass(`1.54 closure decision rejects ${name}`);
     else fail(`1.54 closure decision must reject ${name}: ${output}`);

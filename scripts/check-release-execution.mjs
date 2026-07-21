@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -9,8 +10,13 @@ import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
-import { releaseStepAuthorityErrors } from "./lib/release-action-authority.mjs";
-import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
+import {
+  canonicalReleaseExecutionRequest,
+  releaseStepAuthorityErrors,
+  releaseTopologyRequiredForExecution,
+} from "./lib/release-action-authority.mjs";
+import { releaseTopologyBindingsAgree } from "./lib/release-topology-consumer.mjs";
+import { commandOrRequestDigest, parseApprovedExternalEffect, readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "report", "require-report", "require-structured-evidence", "require-release-trust", "require-release-topology"]);
@@ -22,9 +28,10 @@ const outputJson = Boolean(args.json);
 const requireReport = Boolean(args["require-report"] || args["require-structured-evidence"] || args["require-release-trust"] || args["require-release-topology"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || args["require-release-trust"] || args["require-release-topology"]);
 const requireReleaseTrust = Boolean(args["require-release-trust"]);
-const requireReleaseTopology = Boolean(args["require-release-topology"]);
+const explicitlyRequireReleaseTopology = Boolean(args["require-release-topology"]);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
-const releaseExecutionSchema = loadSchema(projectRoot, "schemas/artifacts/release-execution-plan.schema.json");
+const releaseExecutionSchema = loadSchema(projectRoot, "schemas/artifacts/release-execution-plan.schema.json")
+  || loadPinnedReleaseExecutionSchema();
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -69,7 +76,7 @@ const allowedOutcomes = new Set([
   "READY_FOR_HUMAN_EXECUTION_HANDOFF",
   "READY_FOR_ASSISTED_EXECUTION",
 ]);
-const highRiskStepPattern = /\b(DEPLOY_OR_SUBMIT|MIGRATION|SECRETS|DNS|PAYMENT|PERMISSION|PRODUCTION_CONFIG|APP_STORE|MINI_PROGRAM|ROLLBACK_EXECUTION)\b/i;
+const highRiskStepPattern = /\b(DEPLOY_OR_SUBMIT|PROVIDER_DEPLOY|MIGRATION|SECRETS|DNS|PAYMENT|PERMISSION|PRODUCTION_CONFIG|APP_STORE|MINI_PROGRAM|ROLLBACK_EXECUTION)\b/i;
 const unsafeExecutorPattern = /\b(AUTO_RUN|AUTO_EXECUTE|CODEX_AUTO|CODEX_EXECUTES|CODEX_DEPLOYS|CODEX_PUBLISHES|CODEX_SUBMITS|CODEX_MIGRATES)\b/i;
 const forbiddenClaims = [
   /\brelease approved by (IntentOS|Codex|this plan)\b/i,
@@ -136,6 +143,22 @@ function checkCoreContent() {
   }
 }
 
+function loadPinnedReleaseExecutionSchema() {
+  const expected = "sha256:a0a57706272e112c590a8aba0648bb5e2a2aca0b2e36667bb10ae64d209065e2";
+  const candidates = [
+    path.resolve(scriptDir, "..", "schemas/artifacts/release-execution-plan.schema.json"),
+    path.join(projectRoot, ".intentos/schemas/artifacts/release-execution-plan.schema.json"),
+  ];
+  for (const file of candidates) {
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
+    const content = fs.readFileSync(file);
+    const actual = `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`;
+    if (actual !== expected) continue;
+    return JSON.parse(content.toString("utf8"));
+  }
+  return null;
+}
+
 function checkReleaseExecutionPlans() {
   const files = explicitReport ? [explicitReport] : markdownFiles("release-execution-plans");
   if (files.length === 0) {
@@ -164,6 +187,8 @@ function checkReleaseExecutionPlans() {
     const mode = tableValue(sectionBody(content, "Execution Mode"), "Mode");
     const realAllowed = tableValue(sectionBody(content, "Execution Mode"), "Real release execution allowed");
     const realMode = mode === "ASSISTED_EXECUTION" || mode === "HUMAN_EXECUTION_HANDOFF" || realAllowed === "Yes";
+    const topologyRequired = explicitlyRequireReleaseTopology
+      || releaseTopologyRequiredForExecution(mode, realAllowed);
     const outcome = codeOrTextValue(sectionBody(content, "Outcome"));
     const structured = validateEvidenceBlock(content, releaseExecutionSchema, label, {
       require: requireStructuredEvidence,
@@ -171,6 +196,7 @@ function checkReleaseExecutionPlans() {
     });
     if (!structured.ok) structured.errors.forEach((error) => fail(error));
     else if (structured.present) pass(`${label} has valid structured release execution evidence`);
+    if (structured.ok && structured.present) checkExecutionRequestIntegrity(label, structured.value, realMode);
 
     if (launchLabel) pass(`${label} references Launch Review input`);
     else fail(`${label} must reference Launch Review input`);
@@ -199,6 +225,7 @@ function checkReleaseExecutionPlans() {
       fail(`${label} ASSISTED_EXECUTION must only appear when real release execution is allowed`);
     }
 
+    checkReleaseTopologyDisposition(content, label, mode, structured.value, topologyRequired);
     checkExecutionStepOwnership(content, label, {
       mode,
       allowedCodexActions: structured.value?.allowed_codex_actions || [],
@@ -206,7 +233,7 @@ function checkReleaseExecutionPlans() {
     });
     if (realMode && !structured.present) fail(`${label} real release execution requires structured release trust evidence`);
     if ((requireReleaseTrust || realMode) && structured.ok && structured.present) {
-      checkReleaseTrust(content, file, label, structured.value, mode, realAllowed, outcome);
+      checkReleaseTrust(content, file, label, structured.value, mode, realAllowed, outcome, topologyRequired);
     }
 
     for (const boundary of [
@@ -224,7 +251,45 @@ function checkReleaseExecutionPlans() {
   }
 }
 
-function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, outcome) {
+function checkReleaseTopologyDisposition(content, label, mode, evidence, topologyRequired) {
+  if (!evidence) return;
+  const status = tableValue(sectionBody(content, "Preconditions"), "Release Execution Topology");
+  const ref = evidence.trust_inputs?.release_execution_topology_ref;
+  const digest = evidence.trust_inputs?.release_execution_topology_digest;
+  const refMissing = ref === "N/A";
+  const digestMissing = digest === "N/A";
+
+  if (refMissing !== digestMissing) {
+    fail(`${label} Release Execution Topology ref and digest must both be present or both be N/A`);
+    return;
+  }
+  if (refMissing && status === "PASS") {
+    fail(`${label} Release Execution Topology cannot be PASS while its structured ref and digest are N/A`);
+    return;
+  }
+  if (!refMissing && status === "NOT_APPLICABLE_WITH_EVIDENCE") {
+    fail(`${label} Release Execution Topology cannot be NOT_APPLICABLE_WITH_EVIDENCE while a topology ref and digest are present`);
+    return;
+  }
+  if (topologyRequired) {
+    if (refMissing) {
+      fail(`${label} real release execution requires Release Execution Topology by default`);
+    } else if (status !== "PASS") {
+      fail(`${label} required Release Execution Topology precondition must be PASS`);
+    } else {
+      pass(`${label} real release execution records a required Release Execution Topology`);
+    }
+  }
+  if (mode === "PLAN_ONLY" && refMissing) {
+    if (status === "NOT_APPLICABLE_WITH_EVIDENCE") {
+      pass(`${label} PLAN_ONLY topology absence is explicit and non-authorizing`);
+    } else {
+      fail(`${label} PLAN_ONLY with no topology ref must use NOT_APPLICABLE_WITH_EVIDENCE`);
+    }
+  }
+}
+
+function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, outcome, topologyRequired) {
   if (JSON.stringify(evidence.project_identity) === JSON.stringify(projectIdentity(projectRoot))) pass(`${label} matches current project and revision`);
   else fail(`${label} project identity or revision is stale`);
   if (evidence.execution_mode?.mode === mode && evidence.execution_mode?.real_release_execution_allowed === realAllowed) pass(`${label} structured execution mode matches Markdown`);
@@ -263,7 +328,7 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
   }
 
   const approvalRef = evidence.trust_inputs?.release_approval_ref;
-  const approval = readReleaseApprovalRecord(projectRoot, approvalRef, { fromFile: file, requireApproved: true, requireTopology: requireReleaseTopology });
+  const approval = readReleaseApprovalRecord(projectRoot, approvalRef, { fromFile: file, requireApproved: true, requireTopology: topologyRequired });
   if (!approval.ok) {
     approval.errors.forEach((error) => fail(`${label}: ${error}`));
     return;
@@ -273,6 +338,8 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
   else fail(`${label} release approval digest mismatch`);
   if (JSON.stringify(approval.evidence.release_candidate) === JSON.stringify(evidence.release_candidate)) pass(`${label} release candidate identity matches approval`);
   else fail(`${label} release candidate identity does not match approval`);
+  checkExactExecutionAuthorityBinding(label, evidence, approval.evidence);
+  checkApprovedExternalEffect(content, label, approval.evidence);
 
   const expectedTrust = {
     release_evidence_gate_ref: approval.evidence.trust_sources.release_evidence_gate.ref,
@@ -286,7 +353,7 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
     release_handoff_pack_ref: approval.evidence.trust_sources.release_handoff_pack.ref,
     release_handoff_pack_digest: approval.evidence.trust_sources.release_handoff_pack.digest,
   };
-  if (requireReleaseTopology) {
+  if (topologyRequired) {
     expectedTrust.release_execution_topology_ref = approval.evidence.trust_sources.release_execution_topology?.ref;
     expectedTrust.release_execution_topology_digest = approval.evidence.trust_sources.release_execution_topology?.digest;
   }
@@ -304,7 +371,7 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
     approval.relativePath,
     "--require-structured-evidence",
     "--require-approved",
-    ...(requireReleaseTopology ? ["--require-release-topology"] : []),
+    ...(topologyRequired ? ["--require-release-topology"] : []),
   ], { encoding: "utf8" });
   if (approvalCheck.status === 0) pass(`${label} Release Approval authority chain passed strict checkers`);
   else fail(`${label} Release Approval authority chain failed: ${firstUsefulLine(approvalCheck.stderr || approvalCheck.stdout)}`);
@@ -316,11 +383,123 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
     ["Release Evidence Gate", approval.evidence.trust_sources.release_evidence_gate.ref],
     ["Runtime Hygiene", approval.evidence.trust_sources.runtime_hygiene.ref],
     ["Release Channel Policy", approval.evidence.trust_sources.release_channel_policy.ref],
+    ...(topologyRequired ? [["Release Execution Topology", approval.evidence.trust_sources.release_execution_topology.ref]] : []),
   ]) {
     const row = tableRow(sectionBody(content, "Preconditions"), gate);
     if (/\|\s*`PASS`\s*\|/i.test(row) && row.includes(ref)) pass(`${label} ${gate} precondition matches approval`);
     else fail(`${label} ${gate} precondition must be PASS and match approval ref`);
   }
+}
+
+function checkExecutionRequestIntegrity(label, evidence, realMode) {
+  const request = evidence.external_effect_request;
+  if (!request) {
+    if (realMode) fail(`${label} real release execution requires a persisted normalized external effect request`);
+    else pass(`${label} legacy plan-only evidence has no executable external effect request`);
+    return;
+  }
+  const normalized = canonicalReleaseExecutionRequest(request);
+  if (!normalized.ok) {
+    normalized.errors.forEach((error) => fail(`${label} ${error}`));
+    return;
+  }
+  if (normalized.value.request_type === "none") {
+    if (Object.hasOwn(request, "argv") || Object.hasOwn(request, "provider_request")) {
+      fail(`${label} empty external effect request must not carry argv or provider_request data`);
+    }
+    if (request.command_or_request_digest === "N/A") pass(`${label} records no executable external effect request`);
+    else fail(`${label} empty external effect request must use command_or_request_digest N/A`);
+    if (realMode) fail(`${label} real release execution cannot use an empty external effect request`);
+    return;
+  }
+  const expectedDigest = commandOrRequestDigest(normalized.canonical);
+  if (request.command_or_request_digest === expectedDigest) {
+    pass(`${label} external effect request digest is recomputed from persisted machine request`);
+  } else {
+    fail(`${label} external effect request digest does not match persisted normalized machine request`);
+  }
+  const persistedPayload = request.request_type === "argv"
+    ? { request_type: request.request_type, argv: request.argv }
+    : { request_type: request.request_type, provider_request: request.provider_request };
+  if (JSON.stringify(persistedPayload) === JSON.stringify(normalized.value)) pass(`${label} external effect request is normalized`);
+  else fail(`${label} external effect request is not in normalized canonical form`);
+}
+
+function checkExactExecutionAuthorityBinding(label, executionEvidence, approvalEvidence) {
+  const parsed = parseApprovedExternalEffect(approvalEvidence.human_approval?.approved_scope);
+  if (!parsed.ok) {
+    parsed.errors.forEach((error) => fail(`${label}: ${error}`));
+    return;
+  }
+  const effect = parsed.value;
+  const request = executionEvidence.external_effect_request || {};
+  const expected = {
+    source_revision: approvalEvidence.release_candidate?.source_revision,
+    release_candidate_ref: approvalEvidence.release_candidate?.candidate_ref,
+    package_identity_ref: approvalEvidence.release_candidate?.package_identity_ref,
+    action_id: effect.action,
+  };
+  const actual = {
+    source_revision: executionEvidence.release_candidate?.source_revision,
+    release_candidate_ref: executionEvidence.release_candidate?.candidate_ref,
+    package_identity_ref: executionEvidence.release_candidate?.package_identity_ref,
+    action_id: request.action,
+  };
+  if (releaseTopologyBindingsAgree(expected, actual)) {
+    pass(`${label} source revision, candidate, package, and external action exactly match approval authority`);
+  } else {
+    fail(`${label} release topology bindings do not exactly match current approval/effect authority`);
+  }
+  if (request.provider === effect.platform) pass(`${label} persisted request provider matches approval authority`);
+  else fail(`${label} persisted request provider does not match approval authority`);
+  if (request.command_or_request_digest === effect.command_or_request_digest) pass(`${label} persisted request digest matches approval authority`);
+  else fail(`${label} persisted request digest does not match approval authority`);
+}
+
+function checkApprovedExternalEffect(content, label, approvalEvidence) {
+  const parsed = parseApprovedExternalEffect(approvalEvidence.human_approval?.approved_scope);
+  if (!parsed.ok) {
+    parsed.errors.forEach((error) => fail(`${label}: ${error}`));
+    return;
+  }
+  const effect = parsed.value;
+  const approvalBody = sectionBody(content, "Human Release Approval") || sectionBody(content, "Structured Release Consent") || "";
+  const expectedRows = new Map([
+    ["Effect ID", effect.effect_id],
+    ["Action", effect.action],
+    ["Platform", effect.platform],
+    ["Environment", effect.environment],
+    ["Candidate Ref", effect.candidate_ref],
+    ["Candidate Digest", effect.candidate_digest],
+    ["Package Identity Type", effect.package_identity_type],
+    ["Package Identity Ref", effect.package_identity_ref],
+    ["Package Identity Digest Or ID", effect.package_identity_digest_or_id],
+    ["Command Or Request Digest", effect.command_or_request_digest],
+    ["Cost Boundary", `${effect.cost_boundary.cost_class};${effect.cost_boundary.currency};${effect.cost_boundary.maximum_amount}`],
+    ["Rollback Ref", effect.rollback_ref],
+    ["Rollback Digest", effect.rollback_digest],
+  ]);
+  for (const [field, expected] of expectedRows) {
+    const actual = tableValue(approvalBody, field);
+    if (actual === expected) pass(`${label} ${field} matches the approved external effect`);
+    else fail(`${label} ${field} must equal approved external effect value ${expected}`);
+  }
+
+  const rows = tableRows(sectionBody(content, "Execution Steps"));
+  const external = rows.find((row) => row.action === effect.action);
+  if (!external) fail(`${label} execution steps do not consume approved action ${effect.action}`);
+  else if (external.executor === "HUMAN_REQUIRED") pass(`${label} approved external action remains externally owned`);
+  else fail(`${label} approved external action ${effect.action} must remain HUMAN_REQUIRED`);
+}
+
+function tableRows(body) {
+  return String(body || "")
+    .split(/\r?\n/)
+    .filter((line) => /^\|/.test(line) && !/---/.test(line) && !/\|\s*Step\s*\|/i.test(line))
+    .map((line) => {
+      const cells = line.split("|").slice(1, -1).map((item) => item.trim().replaceAll("`", ""));
+      return { action: cells[1] || "", executor: cells[2] || "" };
+    });
 }
 
 function checkExecutionStepOwnership(content, label, options = {}) {

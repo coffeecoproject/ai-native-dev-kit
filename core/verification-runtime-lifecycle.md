@@ -36,6 +36,7 @@ Only the first two modes can execute. Every executable mode requires a current p
 The executor may write only:
 
 - `.intentos/runtime-runs/<run_id>/...`;
+- optional durable evidence archive `evidence/runtime-runs/<run_id>/...`, created only by the executor for the same run ID when downstream evidence must survive a clean checkout;
 - the requested `verification-run-manifests/*.md` report;
 - run-owned resources declared under that run directory.
 

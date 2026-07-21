@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { evidenceDigest } from "./artifact-schema.mjs";
@@ -15,6 +16,13 @@ const continuityRoots = [
   "execution-closures",
   "closure-decisions",
   "final-reports",
+];
+const readOnlyGitConfig = [
+  ["core.fsmonitor", "false"],
+  ["core.hooksPath", os.devNull],
+  ["core.pager", "cat"],
+  ["diff.external", ""],
+  ["credential.helper", ""],
 ];
 
 export function collectCurrentWorkContinuity(projectRoot) {
@@ -175,7 +183,7 @@ function walk(dir, files) {
 }
 
 function runGit(root, args) {
-  const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  const result = spawnReadOnlyGit(root, args);
   return {
     ok: result.status === 0,
     stdout: result.status === 0 ? String(result.stdout || "").trim() : "",
@@ -184,12 +192,30 @@ function runGit(root, args) {
 }
 
 function runGitRaw(root, args) {
-  const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  const result = spawnReadOnlyGit(root, args);
   return {
     ok: result.status === 0,
     stdout: result.status === 0 ? String(result.stdout || "") : "",
     error: String(result.stderr || result.error?.message || `git exited ${result.status}`).trim(),
   };
+}
+
+function spawnReadOnlyGit(root, args) {
+  const config = readOnlyGitConfig.flatMap(([key, value]) => ["-c", `${key}=${value}`]);
+  return spawnSync("git", ["-C", root, "--no-pager", ...config, ...args], {
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    env: {
+      ...process.env,
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_CONFIG_GLOBAL: os.devNull,
+      GIT_OPTIONAL_LOCKS: "0",
+      GIT_TERMINAL_PROMPT: "0",
+      GCM_INTERACTIVE: "Never",
+      GIT_PAGER: "cat",
+      PAGER: "cat",
+    },
+  });
 }
 
 function nonGitRevision(root) {

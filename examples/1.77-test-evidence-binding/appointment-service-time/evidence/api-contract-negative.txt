@@ -1,0 +1,22 @@
+id: evidence:api-contract-negative
+evidence_type: COMMAND_OUTPUT
+result_state: PASSED
+command: node --test --test-name-pattern "verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-" tests/appointment-service-time.test.mjs
+owner: automated-test-command
+environment: node-v23.11.0
+ran_at: 2026-07-19T00:03:32.761Z
+exit_code: 0
+failure_reason: N/A
+ran_after_change: Yes
+current_task_match: Yes
+covers_obligations: verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-
+limitations: In-process API rejection evidence; not production traffic.
+✔ [verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-] tests/appointment-service-time.test.mjs :: API rejects a request without service time (0.43475ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.972291

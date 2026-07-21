@@ -2,11 +2,16 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { evaluateVerifiedAdoptionApplyChain } from "./lib/adoption-apply-chain.mjs";
+import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
+import { verifyProjectLocalBehavioralRoute } from "./lib/behavioral-adoption-activation.mjs";
+
+const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "require-structured-evidence", "require-simulation", "report", "allow-empty"]);
@@ -652,79 +657,94 @@ function checkStateRules(content, label, summary, surfaces, evidence) {
 }
 
 function checkVerifiedActiveApplyChain(evidence, label) {
+  const refs = Array.isArray(evidence?.evidence_refs) ? evidence.evidence_refs : [];
+  const receiptRefs = uniqueRefsForPrefix(refs, "apply-receipts/");
+  if (receiptRefs.length !== 1) {
+    fail(`${label} VERIFIED_ACTIVE requires exactly one bound Apply Receipt`);
+  }
+  const receiptRef = receiptRefs[0] || "";
   const verifiedChain = evaluateVerifiedAdoptionApplyChain(projectRoot, {
     planSchema: applyPlanSchema,
     approvalSchema: approvalRecordSchema,
     readinessSchema: applyReadinessSchema,
+    receiptSchema: applyReceiptSchema,
+    receiptReference: receiptRef,
   });
   if (verifiedChain.status === "VERIFIED") {
-    pass(`${label} project apply-chain artifacts are structurally verified`);
+    pass(`${label} exact report-bound apply-chain artifacts are structurally verified`);
   } else {
-    fail(`${label} VERIFIED_ACTIVE requires a structurally verified apply plan, human approval record, and controlled readiness chain`);
+    fail(`${label} VERIFIED_ACTIVE requires the exact referenced Receipt, execution plan, authority, and readiness chain to verify`);
   }
-  const agentEntry = ["AGENTS.md", "agent.md", ".agent.md"]
-    .map((relative) => ({ relative, full: path.join(projectRoot, relative) }))
-    .find((entry) => fs.existsSync(entry.full) && fs.statSync(entry.full).isFile());
-  const agentContent = agentEntry ? fs.readFileSync(agentEntry.full, "utf8") : "";
-  const positiveSections = /^##\s+Review Loop\s*$/im.test(agentContent)
-    && /^##\s+Work Queue\s*$/im.test(agentContent)
-    && /IntentOS/i.test(agentContent)
-    && !/(?:do not|disable|ignore|禁止|禁用|不要).{0,24}IntentOS/i.test(agentContent);
-  if (agentEntry && positiveSections) {
-    pass(`${label} active agent authority ${agentEntry.relative} contains IntentOS operating markers`);
+  const expectedChainRefs = new Set((verifiedChain.refs || []).map(normalizedEvidencePath));
+  const actualChainRefs = new Set(refs
+    .map(normalizedEvidencePath)
+    .filter(isApplyChainEvidencePath));
+  if (verifiedChain.status === "VERIFIED"
+    && expectedChainRefs.size === 4
+    && sameStringSet(expectedChainRefs, actualChainRefs)) {
+    pass(`${label} references every and only artifact from the exact verified apply chain`);
   } else {
-    fail(`${label} VERIFIED_ACTIVE requires an actual IntentOS-aware AGENTS.md/agent.md authority entry`);
+    fail(`${label} VERIFIED_ACTIVE cannot mix Apply Receipt, execution plan, authority, or readiness artifacts from different chains`);
+  }
+  const trust = resolveProjectEntryTrust({
+    projectRoot,
+    sourceRoot: kitRoot,
+    goal: evidence?.simulation?.task || "verify current IntentOS adoption",
+  });
+  const authorityPaths = trust.guidance_authority?.agent_authority_paths || [];
+  if (trust.entry_state === "READY_FOR_INTENTOS_OPERATION"
+    && ["INSTALLED_CURRENT", "BRIDGE_CURRENT"].includes(trust.project_identity?.state)) {
+    pass(`${label} current project identity and installed version binding are verified`);
+  } else {
+    fail(`${label} VERIFIED_ACTIVE requires current project-bound IntentOS identity and version evidence`);
+  }
+  if (trust.guidance_authority?.state === "CURRENT"
+    && trust.guidance_authority?.agent_authority_state === "CURRENT"
+    && authorityPaths.length > 0
+    && /^sha256:[a-f0-9]{64}$/.test(String(trust.guidance_authority?.agent_authority_digest || ""))) {
+    pass(`${label} all root and nested agent authorities are current and identity-bound`);
+  } else {
+    fail(`${label} VERIFIED_ACTIVE requires complete, conflict-free root and nested agent authority evidence`);
+  }
+
+  const behavioral = trust.entry_state === "READY_FOR_INTENTOS_OPERATION"
+    ? verifyProjectLocalBehavioralRoute({
+        targetRoot: projectRoot,
+        sourceRoot: kitRoot,
+        goal: evidence?.simulation?.task || "verify current IntentOS adoption",
+        allowProjectLocalExecution: true,
+      })
+    : { state: "BLOCKED", workQueueTakeover: { state: "BLOCKED" }, errors: ["project entry trust is not ready"] };
+  if (behavioral.state === "VERIFIED_ACTIVE"
+    && behavioral.workQueueTakeover?.state === "VERIFIED"
+    && behavioral.workQueueTakeover?.task_governance_binding_state === "VERIFIED"
+    && behavioral.workQueueTakeover?.fresh_process_resume_state === "VERIFIED") {
+    pass(`${label} current governed Work Queue item is resumable in a fresh project-local process`);
+  } else {
+    fail(`${label} VERIFIED_ACTIVE requires one durable Task-Governance-bound CURRENT item and fresh-process continuation: ${(behavioral.errors || behavioral.workQueueTakeover?.blockers || []).join("; ")}`);
   }
   const surfaces = Array.isArray(evidence?.surfaces) ? evidence.surfaces : [];
   const applyChain = surfaces.find((item) => item.surface === "apply_chain");
   if (applyChain?.status === "VERIFIED") pass(`${label} verified active has VERIFIED apply_chain surface`);
   else fail(`${label} VERIFIED_ACTIVE requires verified apply chain surface status VERIFIED`);
 
-  const refs = Array.isArray(evidence?.evidence_refs) ? evidence.evidence_refs : [];
-  const receiptRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("apply-receipts/"));
-  const executionPlanRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("apply-execution-plans/"));
-  const approvalRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("approval-records/"));
-  const readinessRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("apply-readiness-reports/"));
-  const receipt = validateReferencedEvidenceFile(receiptRef, applyReceiptSchema, `${label} apply execution receipt`);
-  if (!receipt) return;
-  if (executionPlanRef && approvalRef && readinessRef) pass(`${label} verified receipt source chain is referenced`);
-  else fail(`${label} VERIFIED_ACTIVE requires execution plan, approval, readiness, and receipt refs`);
-  if (receipt.receipt_state === "APPLY_VERIFIED" && receipt.activation?.status === "VERIFIED") {
-    pass(`${label} apply receipt proves verified replay and activation`);
-  } else {
-    fail(`${label} VERIFIED_ACTIVE requires APPLY_VERIFIED receipt and activation`);
-  }
 }
 
-function validateReferencedEvidenceFile(ref, schema, label, digestField = "") {
-  const evidencePath = resolveEvidenceFile(ref);
-  if (!ref) {
-    fail(`${label} ref is required for VERIFIED_ACTIVE`);
-    return null;
-  }
-  if (!evidencePath) {
-    fail(`${label} ref does not resolve: ${ref}`);
-    return null;
-  }
-  const result = validateEvidenceBlock(fs.readFileSync(evidencePath, "utf8"), schema, label, {
-    require: true,
-    ...(digestField ? { digestField } : {}),
-  });
-  if (!result.ok) {
-    for (const error of result.errors) fail(error);
-    return null;
-  }
-  pass(`${label} structured evidence resolves and validates`);
-  return result.value;
+function uniqueRefsForPrefix(refs, prefix) {
+  return [...new Set(refs.filter((ref) => normalizedEvidencePath(ref).startsWith(prefix)))];
 }
 
-function resolveEvidenceFile(ref) {
-  const normalized = normalizedEvidencePath(ref);
-  if (!normalized || path.isAbsolute(normalized) || normalized.includes("..")) return "";
-  const candidate = path.resolve(projectRoot, normalized);
-  const relative = path.relative(projectRoot, candidate);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) return "";
-  return fs.existsSync(candidate) && fs.statSync(candidate).isFile() ? candidate : "";
+function isApplyChainEvidencePath(value) {
+  return value.startsWith("apply-receipts/")
+    || value.startsWith("apply-execution-plans/")
+    || value.startsWith("approval-records/")
+    || value.startsWith("apply-readiness-reports/")
+    || value.startsWith(".intentos/apply-authorities/");
+}
+
+function sameStringSet(left, right) {
+  if (left.size !== right.size) return false;
+  return [...left].every((item) => right.has(item));
 }
 
 function normalizedEvidencePath(ref) {

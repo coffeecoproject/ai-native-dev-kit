@@ -143,7 +143,7 @@ function policyStateFor(exists, inventory) {
     return state("BLOCKED", "Target path does not exist.", "No", "none", "none");
   }
   if (inventory.externalAutomationSignals.length > 0) {
-    return state("BLOCKED_BY_EXISTING_HOOK_RISK", "External, secret-like, or API automation signals need human review.", "No", "high risk", firstOrNone(inventory.hookPolicies));
+    return state("BLOCKED_BY_EXISTING_HOOK_RISK", "External, secret-like, or API automation signals require strict internal evidence review before any change.", "No", "high risk", firstOrNone(inventory.hookPolicies));
   }
   if (inventory.hookPolicies.length > 0) {
     return state("GOVERNED_POLICY_PRESENT", "A hook policy or equivalent governance document already exists.", "No", "needs mapping", firstOrNone(inventory.hookPolicies));
@@ -180,15 +180,15 @@ function allowedClasses() {
     },
     {
       class: "H2_REQUIRES_CONFIRMATION",
-      defaultPolicy: "Confirmation required",
+      defaultPolicy: "Compatibility label",
       allowedAutomaticBehavior: "Non-blocking hook installation or project-file change",
-      approvalNeeded: "Human confirmation",
+      approvalNeeded: "Controlled apply",
     },
     {
       class: "H3_EXPLICIT_APPROVAL_REQUIRED",
-      defaultPolicy: "Explicit approval required",
+      defaultPolicy: "Compatibility label",
       allowedAutomaticBehavior: "Blocking, CI-changing, external, release, production, token, or auto-fix hook",
-      approvalNeeded: "Explicit human approval",
+      approvalNeeded: "Strict review; exact consent only for a prepared external effect",
     },
   ];
 }
@@ -209,14 +209,14 @@ function approvals() {
     },
     {
       hookClass: "H2_REQUIRES_CONFIRMATION",
-      approvalOwner: "Human project owner",
+      approvalOwner: "IntentOS evidence authority",
       minimumEvidence: "Reviewed plan and rollback path",
       defaultIfUnclear: "Defer",
     },
     {
       hookClass: "H3_EXPLICIT_APPROVAL_REQUIRED",
-      approvalOwner: "Human risk owner",
-      minimumEvidence: "Explicit approval, rollback path, evidence, owner, expiry",
+      approvalOwner: "IntentOS evidence authority plus bounded consent when external",
+      minimumEvidence: "Strict review, rollback path, evidence, external-effect identity, expiry",
       defaultIfUnclear: "Stop",
     },
   ];
@@ -226,17 +226,17 @@ function rollbackPolicy() {
   return [
     {
       hookClass: "H2_REQUIRES_CONFIRMATION",
-      disablePath: "Remove hook/config after approval",
+      disablePath: "Remove hook/config through controlled rollback",
       restoreCommandOrFile: "Restore previous config from git diff or backup",
-      owner: "Human project owner",
+      owner: "IntentOS execution responsibility",
       evidenceNeeded: "Diff, command output, rollback note",
     },
     {
       hookClass: "H3_EXPLICIT_APPROVAL_REQUIRED",
       disablePath: "Disable gate/API/schedule before merge or release",
-      restoreCommandOrFile: "Restore CI/release/secrets config from approved rollback plan",
-      owner: "Human risk owner",
-      evidenceNeeded: "Explicit approval, rollback evidence, expiry",
+      restoreCommandOrFile: "Restore CI/release/secrets config from authority-bound rollback plan",
+      owner: "IntentOS execution responsibility",
+      evidenceNeeded: "Evidence authority, bounded consent when external, rollback evidence, expiry",
     },
   ];
 }
@@ -280,18 +280,18 @@ function workflowRisk(file, inventory) {
 function decisionsFor(policyState, inventory) {
   const decisions = [];
   if (policyState.policyState === "BLOCKED") {
-    decisions.push(decision("Target path", "provide valid path / stop", "provide valid path", "human", "PENDING"));
+    decisions.push(decision("Target path", "provide valid path / stop", "provide valid path", "external project fact", "EXTERNAL_FACT_NEEDED"));
   } else if (policyState.policyState === "GOVERNED_POLICY_PRESENT") {
-    decisions.push(decision("Existing hook policy", "map / replace / stop", "map only", "human", "PENDING"));
+    decisions.push(decision("Existing hook policy", "map / reconcile / stop", "map and reconcile", "Codex", "NO_USER_ACTION"));
   } else if (policyState.policyState === "BLOCKED_BY_EXISTING_HOOK_RISK") {
-    decisions.push(decision("Existing hook risk", "approve review / stop", "stop", "human risk owner", "PENDING"));
+    decisions.push(decision("Existing hook risk", "inspect / isolate / stop", "inspect and isolate", "Codex", "NO_USER_ACTION"));
   } else if (inventory.ciWorkflows.length > 0 || inventory.hookTooling.length > 0 || inventory.gitHooks.length > 0) {
-    decisions.push(decision("H2/H3 hook work", "approve / reject / defer", "defer", "human", "PENDING"));
+    decisions.push(decision("H2/H3 hook work", "reconcile / defer / block", "reconcile through controlled plan", "Codex", "NO_USER_ACTION"));
   } else {
-    decisions.push(decision("Record hook policy", "record / defer", "record", "human", "PENDING"));
+    decisions.push(decision("Record hook policy", "record / defer", "record", "Codex", "NO_USER_ACTION"));
   }
-  decisions.push(decision("Approve H2 hook installation?", "approve / reject / defer", "defer", "human", "PENDING"));
-  decisions.push(decision("Approve H3 hook behavior?", "approve / reject / stop", "stop", "human risk owner", "PENDING"));
+  decisions.push(decision("Prepared H2 action", "controlled apply / defer / block", "controlled review", "IntentOS/Codex", "NO_USER_ACTION"));
+  decisions.push(decision("Prepared H3 external effect", "consent / decline", "stop until exact effect is ready", "current conversation user", "REAL_WORLD_CONSENT_NEEDED_LATER"));
   return decisions;
 }
 
@@ -301,7 +301,6 @@ function decision(name, options, recommended, owner, status) {
 
 function outcomeFor(policyState) {
   if (policyState.policyState === "BLOCKED" || policyState.policyState === "BLOCKED_BY_EXISTING_HOOK_RISK") return "BLOCKED";
-  if (policyState.policyState === "POLICY_REVIEW_REQUIRED" || policyState.policyState === "GOVERNED_POLICY_PRESENT") return "NEEDS_HUMAN_DECISION";
   return "HOOK_POLICY_RECORDED";
 }
 
@@ -317,9 +316,9 @@ function summaryFor(exists, policyState, inventory) {
   }
   return {
     conclusion: `${policyState.policyState}: ${policyState.why}`,
-    recommendedChoice: policyState.policyState === "BLOCKED_BY_EXISTING_HOOK_RISK" ? "stop for human risk review" : "record policy only",
-    canAiContinueNow: policyState.policyState === "BLOCKED_BY_EXISTING_HOOK_RISK" ? "no" : "limited",
-    needFromHuman: "Confirm only if H2/H3 hook work should become a separate reviewed implementation task.",
+    recommendedChoice: policyState.policyState === "BLOCKED_BY_EXISTING_HOOK_RISK" ? "keep writes blocked and complete strict evidence review" : "record policy and continue internal planning",
+    canAiContinueNow: "yes for read-only analysis and controlled planning",
+    needFromHuman: "No technical decision. Ask only for an unavailable business/external fact or consent to an exact prepared external effect.",
     ifNothing: "No hooks are installed, no CI is changed, and no blocking gates are added.",
     signals: inventory.summary,
   };
@@ -345,7 +344,7 @@ function printHuman(report) {
 }
 
 function printHumanDecisionSummary(summary) {
-  console.log("## Human Decision Summary");
+  console.log("## User Input Summary");
   console.log("");
   console.log(`Conclusion: ${summary.conclusion}`);
   console.log("");
@@ -353,7 +352,7 @@ function printHumanDecisionSummary(summary) {
   console.log("");
   console.log(`Can AI continue now: ${summary.canAiContinueNow}`);
   console.log("");
-  console.log(`Need from human: ${summary.needFromHuman}`);
+  console.log(`User input boundary: ${summary.needFromHuman}`);
   console.log("");
   console.log(`If nothing is decided: ${summary.ifNothing}`);
 }
@@ -436,7 +435,7 @@ function printRelationship(items) {
 
 function printDecisions(decisions) {
   console.log("");
-  console.log("## Human Decisions Needed");
+  console.log("## Bounded User Input Needed");
   console.log("");
   console.log("| Decision | Options | Recommended default | Owner | Status |");
   console.log("|---|---|---|---|---|");

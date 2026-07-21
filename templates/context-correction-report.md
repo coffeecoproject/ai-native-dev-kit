@@ -2,24 +2,31 @@
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Keep old context | Do not change the source of truth | No, unless report is saved | low/medium | Choose when new evidence is weak |
-| B | Apply narrow correction | Update only the affected context record | Context/report only | low/medium | Choose when evidence is clear and scoped |
-| C | Stop for owner decision | Pause because context affects risk or scope | Decision/report only | medium/high | Choose for business rules, architecture, data, release, or production |
-| D | Open broader review | Create a separate context governance task | New request/report only | medium | Choose when multiple sources may be stale |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Correction Decision And Evidence
+
+Selected disposition: KEEP_CURRENT_CONTEXT / APPLY_NARROW_CORRECTION / OPEN_BROADER_REVIEW / BLOCKED_BY_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Source-of-truth evidence:
+
+Scope and affected artifacts:
+
+Risk response, verification, review, and recovery:
 
 ## Human Summary
 
@@ -62,11 +69,15 @@ One or more:
 
 ## Human Decision
 
-Pending / Approved / Rejected / Needs Revision
+Compatibility heading: semantically this is the bounded `User Input Record`.
+
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
+
+Status: PENDING / PROVIDED / CONSENTED / NOT_REQUIRED
 
 ## Applied Changes
 
-List the actual source-of-truth updates made after approval. Use `None` if not applied yet.
+List the actual source-of-truth updates made after the Codex evidence decision and any required bounded input. Use `None` if not applied yet.
 
 ## Audit Notes
 

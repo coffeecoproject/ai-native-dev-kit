@@ -89,10 +89,13 @@ Key fields:
 - `target_diff_status: REQUIRES_EXPLICIT_EXECUTION_PLAN`: the resolver saw
   changed files but cannot treat them as planned work without an explicit
   execution plan.
-- `Execution Plan Binding`, `Actual Diff Binding`, and `Evidence Binding`
+- `Execution Plan Binding`, `Actual Diff Binding`, `Pre-Write Revalidation`, and `Evidence Binding`
   Markdown tables: human-readable views that must match the JSON
-  `execution_plan`, `actual_diff`, and `evidence_bindings` records. JSON remains
-  the authority.
+  `execution_plan`, `actual_diff`, `pre_write_revalidation`, and
+  `evidence_bindings` records. JSON remains the authority. The revalidation
+  record replays the immutable Planning Closure source revision, exact
+  candidate base, planned target-set digest, and observed changed-path digest;
+  a bare `requires_pre_write_revalidation: Yes` declaration is not proof.
 
 In precise mode, `VERIFIED_DONE` requires current-task source matches, concrete
 evidence, a resolvable `execution_plan.plan_ref`, and actual changed files

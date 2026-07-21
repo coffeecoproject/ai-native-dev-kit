@@ -27,6 +27,20 @@
 | Plan review required |  |
 | Current task match |  |
 
+## Plan Content Review
+
+| Field | Value |
+| --- | --- |
+| Status |  |
+| Scope section present |  |
+| Boundaries section present |  |
+| Implementation sequence present |  |
+| Verification section present |  |
+| Rollback/recovery section present |  |
+| Concrete target refs |  |
+| Implementation step count |  |
+| Missing requirements |  |
+
 ## Review Surface Analysis
 
 | Field | Value |
@@ -83,6 +97,12 @@ surface matrix alone is not enough.
 | Commands executed by this report | No |
 | Requires Test Evidence later |  |
 | Fake or unstable command found |  |
+| Working directory verified |  |
+| All commands authoritative |  |
+
+Each command is statically resolved against the project. Unknown executables,
+missing package scripts, unsafe working-directory changes, or commands that do
+not target required behavior block `PLAN_REVIEW_PASSED`.
 
 ## Subagent Review Routing
 

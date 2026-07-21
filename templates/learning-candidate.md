@@ -2,24 +2,31 @@
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Approve learning | Move this candidate into the chosen source of truth | Context/baseline only | low/medium | Choose when the observation is confirmed |
-| B | Keep as candidate | Record it without treating it as truth | Candidate only | low | Choose when evidence is useful but not confirmed |
-| C | Reject learning | Do not persist this as project context | Candidate/report only | low | Choose when the observation is wrong or too specific |
-| D | Ask for more evidence | Pause before updating context | Candidate/evidence only | low/medium | Choose when confidence is low |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Learning Decision And Evidence
+
+Selected disposition: PERSIST / KEEP_CANDIDATE / REJECT / COLLECT_MORE_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Evidence and confidence:
+
+Selected destination and scope:
+
+Risk response, verification, and recovery:
 
 ## Human Summary
 
@@ -67,14 +74,18 @@ One of:
 
 ## Human Decision
 
-Pending / Approved / Rejected / Needs Revision
+Compatibility heading: semantically this is the bounded `User Input Record`.
+
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
+
+Status: PENDING / PROVIDED / CONSENTED / NOT_REQUIRED
 
 ## Rejection Reason
 
-Required when Human Decision is Rejected.
+Codex disposition reason when the candidate is rejected.
 
 ## AI Must Not
 
-- Do not update source-of-truth until approved.
+- Do not update source-of-truth until Codex verifies the evidence or receives the classified bounded fact.
 - Do not treat this candidate as `CONFIRMED` context.
 - Do not cite this candidate as a baseline rule.

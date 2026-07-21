@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.112.0",
+  "schemaVersion": "1.113.0",
   "artifactType": "review_context_authority",
   "contractId": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
   "currentVersionSource": "VERSION.md",
@@ -71,6 +71,8 @@
         "core/safe-launch.md",
         "core/subagent-orchestration.md",
         "core/zero-experience-solo-operating-model.md",
+        "industrial-packs/selection-guide.md",
+        "standard-baseline-packs/selection-guide.md",
         "docs/README.md",
         "docs/baseline-state.md",
         "docs/business-universe-coverage.md",
@@ -104,6 +106,12 @@
         "releases/1.112.0/remediation-graph.md",
         "releases/1.112.0/reproduction-log.md",
         "releases/1.112.0/self-check-report.md",
+        "releases/1.113.0/cross-domain-consumer-matrix.md",
+        "releases/1.113.0/independent-review-report.md",
+        "releases/1.113.0/known-limitations.md",
+        "releases/1.113.0/p0-p1-closure-report.md",
+        "releases/1.113.0/release-record.md",
+        "releases/1.113.0/self-check-report.md",
         "releases/1.111.1/known-limitations.md",
         "releases/1.111.1/release-record.md",
         "releases/1.111.1/self-check-report.md",
@@ -250,6 +258,14 @@
       "installed": ".intentos/core/zero-experience-solo-operating-model.md"
     },
     {
+      "source": "industrial-packs/selection-guide.md",
+      "installed": ".intentos/industrial-packs/selection-guide.md"
+    },
+    {
+      "source": "standard-baseline-packs/selection-guide.md",
+      "installed": ".intentos/standard-baseline-packs/selection-guide.md"
+    },
+    {
       "source": "docs/baseline-state.md",
       "installed": ".intentos/docs/baseline-state.md"
     },
@@ -372,56 +388,216 @@
       "installed": "scripts/workflow-next.mjs"
     },
     {
-      "source": "starters/codex-android-app/AGENTS.md"
+      "source": "starters/codex-android-app/AGENTS.md",
+      "installed": "AGENTS.md"
     },
     {
-      "source": "starters/codex-android-app/docs/engineering-baseline.md"
+      "source": "starters/codex-android-app/docs/ai-workflow.md",
+      "installed": "docs/ai-workflow.md"
     },
     {
-      "source": "starters/codex-android-app/docs/risk-policy.md"
+      "source": "starters/codex-android-app/docs/android-build-settings.md",
+      "installed": "docs/android-build-settings.md"
     },
     {
-      "source": "starters/codex-android-app/README.md"
+      "source": "starters/codex-android-app/docs/android-release-policy.md",
+      "installed": "docs/android-release-policy.md"
     },
     {
-      "source": "starters/codex-ios-app/AGENTS.md"
+      "source": "starters/codex-android-app/docs/architecture.md",
+      "installed": "docs/architecture.md"
     },
     {
-      "source": "starters/codex-ios-app/docs/engineering-baseline.md"
+      "source": "starters/codex-android-app/docs/domain-model.md",
+      "installed": "docs/domain-model.md"
     },
     {
-      "source": "starters/codex-ios-app/docs/risk-policy.md"
+      "source": "starters/codex-android-app/docs/engineering-baseline.md",
+      "installed": "docs/engineering-baseline.md"
     },
     {
-      "source": "starters/codex-ios-app/README.md"
+      "source": "starters/codex-android-app/docs/engineering-principles.md",
+      "installed": "docs/engineering-principles.md"
     },
     {
-      "source": "starters/codex-web-app/AGENTS.md"
+      "source": "starters/codex-android-app/docs/permission-model.md",
+      "installed": "docs/permission-model.md"
     },
     {
-      "source": "starters/codex-web-app/docs/engineering-baseline.md"
+      "source": "starters/codex-android-app/docs/product-vision.md",
+      "installed": "docs/product-vision.md"
     },
     {
-      "source": "starters/codex-web-app/docs/risk-policy.md"
+      "source": "starters/codex-android-app/docs/risk-policy.md",
+      "installed": "docs/risk-policy.md"
     },
     {
-      "source": "starters/codex-web-app/README.md"
+      "source": "starters/codex-android-app/docs/test-strategy.md",
+      "installed": "docs/test-strategy.md"
     },
     {
-      "source": "starters/generic-project/AGENTS.md"
+      "source": "starters/codex-android-app/README.md",
+      "installed": "README.md"
     },
     {
-      "source": "starters/generic-project/docs/engineering-baseline.md"
+      "source": "starters/codex-ios-app/AGENTS.md",
+      "installed": "AGENTS.md"
     },
     {
-      "source": "starters/generic-project/docs/risk-policy.md"
+      "source": "starters/codex-ios-app/docs/ai-workflow.md",
+      "installed": "docs/ai-workflow.md"
     },
     {
-      "source": "starters/generic-project/README.md"
+      "source": "starters/codex-ios-app/docs/architecture.md",
+      "installed": "docs/architecture.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/domain-model.md",
+      "installed": "docs/domain-model.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/engineering-baseline.md",
+      "installed": "docs/engineering-baseline.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/engineering-principles.md",
+      "installed": "docs/engineering-principles.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/ios-build-settings.md",
+      "installed": "docs/ios-build-settings.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/ios-release-policy.md",
+      "installed": "docs/ios-release-policy.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/permission-model.md",
+      "installed": "docs/permission-model.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/product-vision.md",
+      "installed": "docs/product-vision.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/risk-policy.md",
+      "installed": "docs/risk-policy.md"
+    },
+    {
+      "source": "starters/codex-ios-app/docs/test-strategy.md",
+      "installed": "docs/test-strategy.md"
+    },
+    {
+      "source": "starters/codex-ios-app/README.md",
+      "installed": "README.md"
+    },
+    {
+      "source": "starters/codex-web-app/AGENTS.md",
+      "installed": "AGENTS.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/ai-workflow.md",
+      "installed": "docs/ai-workflow.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/architecture.md",
+      "installed": "docs/architecture.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/domain-model.md",
+      "installed": "docs/domain-model.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/engineering-baseline.md",
+      "installed": "docs/engineering-baseline.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/engineering-principles.md",
+      "installed": "docs/engineering-principles.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/permission-model.md",
+      "installed": "docs/permission-model.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/product-vision.md",
+      "installed": "docs/product-vision.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/risk-policy.md",
+      "installed": "docs/risk-policy.md"
+    },
+    {
+      "source": "starters/codex-web-app/docs/test-strategy.md",
+      "installed": "docs/test-strategy.md"
+    },
+    {
+      "source": "starters/codex-web-app/README.md",
+      "installed": "README.md"
+    },
+    {
+      "source": "starters/generic-project/AGENTS.md",
+      "installed": "AGENTS.md"
+    },
+    {
+      "source": "starters/generic-project/docs/ai-workflow.md",
+      "installed": "docs/ai-workflow.md"
+    },
+    {
+      "source": "starters/generic-project/docs/architecture.md",
+      "installed": "docs/architecture.md"
+    },
+    {
+      "source": "starters/generic-project/docs/domain-model.md",
+      "installed": "docs/domain-model.md"
+    },
+    {
+      "source": "starters/generic-project/docs/engineering-baseline.md",
+      "installed": "docs/engineering-baseline.md"
+    },
+    {
+      "source": "starters/generic-project/docs/engineering-principles.md",
+      "installed": "docs/engineering-principles.md"
+    },
+    {
+      "source": "starters/generic-project/docs/permission-model.md",
+      "installed": "docs/permission-model.md"
+    },
+    {
+      "source": "starters/generic-project/docs/product-vision.md",
+      "installed": "docs/product-vision.md"
+    },
+    {
+      "source": "starters/generic-project/docs/risk-policy.md",
+      "installed": "docs/risk-policy.md"
+    },
+    {
+      "source": "starters/generic-project/docs/test-strategy.md",
+      "installed": "docs/test-strategy.md"
+    },
+    {
+      "source": "starters/generic-project/README.md",
+      "installed": "README.md"
+    },
+    {
+      "source": "templates/engineering-baseline.md",
+      "installed": ".intentos/templates/engineering-baseline.md"
+    },
+    {
+      "source": "templates/environment-baseline.md",
+      "installed": ".intentos/templates/environment-baseline.md"
     },
     {
       "source": "templates/gpt-review-prompt.md",
       "installed": ".intentos/templates/gpt-review-prompt.md"
+    },
+    {
+      "source": "templates/project-onboarding.md",
+      "installed": ".intentos/templates/project-onboarding.md"
+    },
+    {
+      "source": "templates/tech-stack-strategy.md",
+      "installed": ".intentos/templates/tech-stack-strategy.md"
     }
   ],
   "activeGuidanceFamilies": [

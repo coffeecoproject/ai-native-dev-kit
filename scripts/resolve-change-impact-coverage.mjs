@@ -11,6 +11,8 @@ import {
   universeScenarioProjection,
 } from "./lib/business-universe.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
+import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import { normalizeTaskIntent, taskIntentDigest } from "./lib/task-entry-binding.mjs";
 import {
   defaultIgnoredDirs,
   hasProjectSignals,
@@ -22,7 +24,7 @@ const knownFlags = new Set(["json", "format", "intent", "changed-files", "mode",
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const intent = String(args.intent || args._.slice(1).join(" ") || "").trim();
+const intent = normalizeTaskIntent(args.intent || args._.slice(1).join(" ") || "");
 const mode = String(args.mode || "preflight").trim().toLowerCase();
 const explicitChangedFiles = String(args["changed-files"] || "")
   .split(",")
@@ -59,7 +61,14 @@ if (cachedDiffRequested && baseRef) {
 const gitChangedFiles = gitDiffRequested
   ? readGitChangedFiles(projectRoot, { cached: cachedDiffRequested, base: baseRef })
   : [];
-const changedFiles = unique([...explicitChangedFiles, ...gitChangedFiles]);
+const changedFiles = unique([...explicitChangedFiles, ...gitChangedFiles]).filter((relative) => {
+  // Durable verification-run outputs are created after preflight and are
+  // consumed by Runtime Trust, Execution Assurance, and closure evidence.
+  // Feeding them back into preflight would make every final run invalidate
+  // the plan that launched it.
+  if (mode === "preflight" && relative.startsWith("evidence/runtime-runs/")) return false;
+  return true;
+});
 const report = buildReport(projectRoot, intent, changedFiles, mode, businessRuleRef);
 
 if (outputFormat === "json") {
@@ -73,20 +82,24 @@ if (outputFormat === "json") {
 }
 
 function buildReport(root, userIntent, explicitChangedFiles, requestedMode, linkedBusinessRuleRef) {
+  const businessRule = resolveBusinessRuleClosure(root, linkedBusinessRuleRef);
+  const upstreamIntent = normalizeTaskIntent(businessRule.evidence?.user_request || "");
+  const requestedIntent = normalizeTaskIntent(userIntent);
+  const lineageMismatch = Boolean(upstreamIntent && requestedIntent && upstreamIntent !== requestedIntent);
+  const resolvedIntent = upstreamIntent || requestedIntent;
   const exists = fs.existsSync(root);
   const paths = exists ? walkRelativePaths(root, ".", {
     maxDepth: 5,
     ignoredDirs: defaultIgnoredDirs,
   }) : [];
-  const signals = collectSignals(root, exists, paths, userIntent, explicitChangedFiles);
+  const signals = collectSignals(root, exists, paths, resolvedIntent, explicitChangedFiles);
   const risk = analyzeRiskSurfaces({
-    intent: userIntent,
+    intent: resolvedIntent,
     paths: explicitChangedFiles,
     projectRoot: root,
     includeProjectSignals: false,
   });
   const changeType = classifyChangeType(signals);
-  const businessRule = resolveBusinessRuleClosure(root, linkedBusinessRuleRef);
   const businessUniverse = resolveBoundBusinessUniverse(root, businessRule.file, businessRule.evidence);
   const surfaces = affectedSurfaces(signals, risk, businessUniverse.evidence);
   const questions = questionsFor(signals, risk);
@@ -96,9 +109,11 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
     || (universeBinding.required === "Yes" && (universeBinding.business_universe_state !== "COVERAGE_READY"
       || universeBinding.coverage_mapping_status !== "COMPLETE"
       || impactScenarioMappings.length === 0));
-  const outcome = universeBlocks
+  const outcome = universeBlocks || lineageMismatch
     ? "BLOCKED"
-    : risk.high && highRiskNeedsDecision(surfaces) ? "NEEDS_HUMAN_DECISION" : "CHANGE_IMPACT_RECORDED";
+    : questions.length > 0
+      ? "NEEDS_HUMAN_DECISION"
+      : "CHANGE_IMPACT_RECORDED";
 
   return {
     reportType: "CHANGE_IMPACT_COVERAGE_REPORT",
@@ -107,7 +122,7 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
     projectRoot: root,
     readOnly: true,
     mode: requestedMode,
-    intent: userIntent || "Not provided",
+    intent: resolvedIntent || "Not provided",
     businessRuleRef: linkedBusinessRuleRef || "Not provided",
     businessRuleDigest: businessRule.evidence?.business_rule_digest || "Not provided",
     businessRuleState: businessRule.evidence?.state || "Not provided",
@@ -151,7 +166,7 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
     outcome,
     machineReadableEvidence: buildMachineReadableEvidence({
       mode: requestedMode,
-      userIntent,
+      userIntent: resolvedIntent,
       changeType,
       risk,
       explicitChangedFiles,
@@ -165,16 +180,19 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
   };
 }
 
-function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeType, risk, explicitChangedFiles, surfaces, outcome, businessRuleRef, businessRule, businessUniverse }) {
+function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeType, risk, explicitChangedFiles, surfaces, questions = [], outcome, businessRuleRef, businessRule, businessUniverse }) {
+  const taskRef = businessRule?.evidence?.task_ref || "not provided";
   const evidence = {
-    schema_version: "1.108.0",
+    schema_version: "1.113.0",
     artifact_type: "change_impact_coverage",
     artifact_id: artifactId(userIntent, explicitChangedFiles),
     impact_digest: "",
+    task_ref: taskRef,
+    intent_digest: taskIntentDigest(userIntent || "Not provided"),
     mode: requestedMode,
     user_request: {
       intent: userIntent || "Not provided",
-      task_ref: "not provided",
+      task_ref: taskRef,
       project_profile: "inferred from project signals",
     },
     business_rule_ref: businessRuleRef || "not provided",
@@ -212,6 +230,12 @@ function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeT
       missed_surfaces_found: "No",
       notes: "Pre-execution report; missed surfaces must be reviewed after implementation.",
     },
+    pending_decisions: questions.map((question, index) => ({
+      decision_id: `decision:${index + 1}`,
+      decision_class: question.decisionClass,
+      question: question.question,
+      status: "PENDING",
+    })),
     boundaries: {
       writes_target_files: false,
       authorizes_implementation: false,
@@ -255,6 +279,10 @@ function collectSignals(root, exists, paths, userIntent, explicitChangedFiles) {
     hasPermission: /\b(auth|permission|permissions|role|rbac|tenant|visibility|admin|audit|privacy|security)\b/i.test(explicitLower),
     hasRelease: /\b(release|deploy|deployment|production|rollback|migration|feature flag|staging)\b/i.test(explicitLower),
     hasPaymentOrCompliance: /\b(payment|billing|invoice|tax|finance|compliance|legal|privacy|security)\b/i.test(explicitLower),
+    hasBackgroundWork: /\b(worker|queue|job|cron|schedule|scheduler|batch|hook|background|async)\b/i.test(explicitLower),
+    hasExternalIntegration: /\b(webhook|third[- ]party|external|provider|vendor|integration|sdk|oauth|callback)\b/i.test(explicitLower),
+    hasRuntimeBehavior: /\b(runtime|process|container|port|session|cache|redis|startup|shutdown)\b/i.test(explicitLower),
+    hasRollbackRecovery: /\b(rollback|revert|restore|recovery|compensat|undo|failover|retry)\b/i.test(explicitLower),
   };
 }
 
@@ -314,21 +342,34 @@ function affectedSurfaces(signals, risk, universeEvidence = null) {
   }
 
   if (signals.hasData) {
-    add("DATA_MODEL", risk.high ? "NEEDS_HUMAN_DECISION" : "REQUIRED", "Data shape, enum, lookup, migration, or persistence may change.", "Schema/model/migration evidence or human decision.");
+    add("DATA_MODEL", "REQUIRED", "Data shape, enum, lookup, migration, or persistence may change.", "Schema/model/migration plus rollback or compatibility evidence.");
   } else {
     add("DATA_MODEL", "NOT_APPLICABLE", "No data model or persistence change is indicated by current wording.", "Reason recorded.");
   }
 
   if (signals.hasPermission || signals.hasPaymentOrCompliance) {
-    add("PERMISSION_RISK", "NEEDS_HUMAN_DECISION", "Permission, privacy, security, finance, payment, tax, or compliance risk may be affected.", "Human decision, baseline, or explicit exclusion.");
+    add("PERMISSION_RISK", "REQUIRED", "Permission, privacy, security, finance, payment, tax, or compliance risk may be affected.", "Permission, security, privacy, or control evidence, or a project-native explicit exclusion.");
   } else {
     add("PERMISSION_RISK", "NOT_APPLICABLE", "No permission, privacy, payment, or compliance change is indicated by current wording.", "Reason recorded.");
   }
 
   if (signals.hasRelease || risk.surfaces.includes("production-release")) {
-    add("RELEASE_IMPACT", "NEEDS_HUMAN_DECISION", "Deployment, rollback, migration, or production behavior may be affected.", "Release/rollback decision or explicit exclusion.");
+    add("RELEASE_IMPACT", "REQUIRED", "Deployment, rollback, migration, or production behavior may be affected.", "Release, rollback, and monitoring evidence, or a project-native explicit exclusion. Concrete external execution still requires real-world consent.");
   } else {
     add("RELEASE_IMPACT", "NOT_APPLICABLE", "No release, deployment, rollback, or production change is indicated by current wording.", "Reason recorded.");
+  }
+
+  if (signals.hasBackgroundWork) {
+    add("BACKGROUND_WORK", "REQUIRED", "The change touches asynchronous, scheduled, queued, or background execution.", "Worker/job trigger, idempotency, retry, and failure-path evidence.");
+  }
+  if (signals.hasExternalIntegration) {
+    add("EXTERNAL_INTEGRATION", "REQUIRED", "The change touches an external provider, callback, webhook, SDK, or integration boundary.", "Contract, timeout, retry, failure, and provider-boundary evidence.");
+  }
+  if (signals.hasRuntimeBehavior) {
+    add("RUNTIME_BEHAVIOR", "REQUIRED", "The change touches runtime process, service, session, cache, container, or startup behavior.", "Current-run service identity and runtime behavior evidence.");
+  }
+  if (signals.hasRollbackRecovery || signals.hasRelease || signals.hasData || signals.hasBackgroundWork) {
+    add("ROLLBACK_RECOVERY", "REQUIRED", "The change can require rollback, restore, compensation, retry, or recovery behavior.", "Rollback or recovery path plus failure-safe evidence.");
   }
 
   add("TEST_COVERAGE", "REQUIRED", "The change needs evidence that required behavior was checked.", "Unit, integration, smoke, behavior, fixture, or manual evidence.");
@@ -341,10 +382,6 @@ function questionsFor(signals, risk) {
   void signals;
   void risk;
   return [];
-}
-
-function highRiskNeedsDecision(surfaces) {
-  return surfaces.some((surface) => surface.status === "NEEDS_HUMAN_DECISION");
 }
 
 function summaryFor(changeType, surfaces, risk) {
@@ -369,7 +406,7 @@ function printHuman(report) {
   console.log("## User Request");
   console.log("");
   console.log(`- Request: ${report.intent}`);
-  console.log("- Task ref: not provided");
+  console.log(`- Task ref: ${report.machineReadableEvidence.user_request.task_ref}`);
   console.log("- Project/profile: inferred from project signals");
   console.log(`- Business rule closure ref: ${report.businessRuleRef}`);
   console.log(`- Business rule digest: ${report.businessRuleDigest}`);
@@ -458,7 +495,7 @@ function humanReportText(report) {
   log("## User Request");
   log("");
   log(`- Request: ${report.intent}`);
-  log("- Task ref: not provided");
+  log(`- Task ref: ${report.machineReadableEvidence.user_request.task_ref}`);
   log("- Project/profile: inferred from project signals");
   log(`- Business rule closure ref: ${report.businessRuleRef}`);
   log(`- Business rule digest: ${report.businessRuleDigest}`);
@@ -575,7 +612,22 @@ function artifactId(userIntent, explicitChangedFiles) {
 
 function readGitChangedFiles(root, options = {}) {
   const gitArgs = ["diff", "--name-only"];
-  if (options.cached) gitArgs.push("--cached");
+  let useStagedCandidate = Boolean(options.cached);
+  if (options.base) {
+    const staged = spawnSync("git", ["diff", "--cached", "--name-only", "--"], { cwd: root, encoding: "utf8" });
+    if (staged.status === 0 && staged.stdout.trim()) {
+      useStagedCandidate = true;
+    }
+  }
+  if (useStagedCandidate) {
+    const unstaged = spawnSync("git", ["diff", "--name-only", "--"], { cwd: root, encoding: "utf8" });
+    const untracked = spawnSync("git", ["ls-files", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" });
+    if (unstaged.status !== 0 || unstaged.stdout.trim() || untracked.status !== 0 || untracked.stdout.trim()) {
+      console.error("FAIL staged candidate differs from the worktree or has untracked inputs; refusing mixed Change Impact evidence.");
+      process.exit(1);
+    }
+    gitArgs.push("--cached");
+  }
   if (options.base) gitArgs.push(options.base);
   gitArgs.push("--");
   const result = spawnSync("git", gitArgs, {
@@ -591,24 +643,11 @@ function readGitChangedFiles(root, options = {}) {
 }
 
 function resolveBusinessRuleClosure(root, ref) {
-  const match = String(ref || "").trim().match(/^artifact:(.+)$/i);
-  if (!match) return { file: "", evidence: null };
-  const relativeRef = match[1].trim();
-  if (!relativeRef || path.isAbsolute(relativeRef)) return { file: "", evidence: null };
-  const candidates = [
-    path.resolve(root, relativeRef),
-    path.resolve(root, ".intentos", relativeRef),
-  ];
-  for (const candidate of candidates) {
-    const relative = path.relative(root, candidate);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
-    if (!fs.existsSync(candidate) || !fs.statSync(candidate).isFile()) continue;
-    const content = fs.readFileSync(candidate, "utf8");
-    const extracted = extractMachineReadableEvidence(content);
-    if (!extracted?.ok) return { file: candidate, evidence: null };
-    return { file: candidate, evidence: extracted.value };
-  }
-  return { file: "", evidence: null };
+  if (!String(ref || "").trim()) return { file: "", evidence: null };
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", ref, { markdownOnly: true });
+  if (!resolved.ok) return { file: "", evidence: null, error: resolved.error };
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  return { file: resolved.file, evidence: extracted?.ok ? extracted.value : null, error: extracted?.ok ? "" : "invalid structured evidence" };
 }
 
 function impactUniverseBindingFor(binding) {
@@ -664,13 +703,13 @@ function scenarioImpactSurfaces(universeEvidence, scenario) {
   const mapped = {
     WEB_CLIENT_BEHAVIOR: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
     MINI_PROGRAM_BEHAVIOR: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
-    MINI_PROGRAM_CLOUD_FUNCTION: ["USER_FLOW", "API_CONTRACT", "BACKEND_RULE", "TEST_COVERAGE"],
+    MINI_PROGRAM_CLOUD_FUNCTION: ["USER_FLOW", "API_CONTRACT", "BACKEND_RULE", "RUNTIME_BEHAVIOR", "TEST_COVERAGE"],
     INTERNAL_ADMIN_WORKFLOW: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
     IOS_LOCAL_BEHAVIOR: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
     ANDROID_LOCAL_BEHAVIOR: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
-    API_OR_SERVICE_BEHAVIOR: ["USER_FLOW", "API_CONTRACT", "BACKEND_RULE", "TEST_COVERAGE"],
-    WORKER_OR_DATA_PATH: ["USER_FLOW", "BACKEND_RULE", "TEST_COVERAGE"],
-    LOCAL_STORAGE_OR_OFFLINE: ["USER_FLOW", "DATA_MODEL", "TEST_COVERAGE"],
+    API_OR_SERVICE_BEHAVIOR: ["USER_FLOW", "API_CONTRACT", "BACKEND_RULE", "RUNTIME_BEHAVIOR", "TEST_COVERAGE"],
+    WORKER_OR_DATA_PATH: ["USER_FLOW", "BACKEND_RULE", "BACKGROUND_WORK", "RUNTIME_BEHAVIOR", "ROLLBACK_RECOVERY", "TEST_COVERAGE"],
+    LOCAL_STORAGE_OR_OFFLINE: ["USER_FLOW", "DATA_MODEL", "ROLLBACK_RECOVERY", "TEST_COVERAGE"],
     PROJECT_NATIVE_BEHAVIOR: ["USER_FLOW", "TEST_COVERAGE"],
   }[projection.source_surface] || ["USER_FLOW", "TEST_COVERAGE"];
   return unique([...mapped, "DOCS_HANDOFF"]);
@@ -686,6 +725,10 @@ function universeSurfaceReason(surface) {
     ERROR_COPY: "At least one user-visible scenario has a negative, failure, or recovery behavior.",
     TEST_COVERAGE: "Every required coverage scenario needs task-bound verification.",
     DOCS_HANDOFF: "Scenario scope and evidence exclusions must remain traceable.",
+    BACKGROUND_WORK: "At least one scenario runs asynchronously, on a schedule, through a queue, or in a worker path.",
+    EXTERNAL_INTEGRATION: "At least one scenario crosses a provider, callback, webhook, SDK, or other external boundary.",
+    RUNTIME_BEHAVIOR: "At least one scenario depends on a current service, process, container, session, or runtime instance.",
+    ROLLBACK_RECOVERY: "At least one scenario requires failure-safe retry, restore, compensation, or rollback behavior.",
   };
   return reasons[surface] || "The Business Universe maps this project-native surface.";
 }
@@ -700,6 +743,10 @@ function universeSurfaceEvidence(surface) {
     ERROR_COPY: "Negative, reverse, failure, or recovery-state evidence.",
     TEST_COVERAGE: "Verification obligations and evidence mapped to every required scenario.",
     DOCS_HANDOFF: "Task-bound scenario and exclusion record.",
+    BACKGROUND_WORK: "Trigger, idempotency, retry, concurrency, and failure-path evidence.",
+    EXTERNAL_INTEGRATION: "Provider contract, timeout, retry, failure, and callback evidence.",
+    RUNTIME_BEHAVIOR: "Current-run service identity and runtime behavior evidence.",
+    ROLLBACK_RECOVERY: "Rollback, restore, compensation, retry, or recovery-path evidence.",
   };
   return evidence[surface] || "Task-bound project evidence.";
 }

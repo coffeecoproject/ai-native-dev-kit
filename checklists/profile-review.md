@@ -28,9 +28,8 @@ Use this checklist before adding or changing `profiles/<name>/profile.md`.
 
 - [ ] Has concrete verification categories
 - [ ] Has stop conditions for missing verification
-- [ ] Identifies high-risk areas that require human approval
+- [ ] Identifies high-risk areas that require stricter Codex review, verification, evidence, or classified real-world consent
 
 ## Decision
 
 APPROVE / REQUEST_CHANGES / BLOCK
-

@@ -1,0 +1,86 @@
+{
+  "task_ref": "task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98",
+  "controls": [
+    {
+      "control_id": "package-script:verify:candidate",
+      "claim_id": "claim:package-script-verify-candidate",
+      "origin": "PROJECT_NATIVE",
+      "summary": "Project package script verify:candidate",
+      "category": "SECURITY_OR_PERMISSION_BOUNDARY",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:candidate"
+    },
+    {
+      "control_id": "package-script:verify:runtime-trust:core",
+      "claim_id": "claim:package-script-verify-runtime-trust-core",
+      "origin": "PROJECT_NATIVE",
+      "summary": "Project package script verify:runtime-trust:core",
+      "category": "SECURITY_OR_PERMISSION_BOUNDARY",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:runtime-trust:core"
+    },
+    {
+      "control_id": "package-script:verify:runtime-trust",
+      "claim_id": "claim:package-script-verify-runtime-trust",
+      "origin": "PROJECT_NATIVE",
+      "summary": "Project package script verify:runtime-trust",
+      "category": "SECURITY_OR_PERMISSION_BOUNDARY",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:runtime-trust"
+    },
+    {
+      "control_id": "package-script:verify:consumer-chain:candidate",
+      "claim_id": "claim:package-script-verify-consumer-chain-candidate",
+      "origin": "PROJECT_NATIVE",
+      "summary": "Project package script verify:consumer-chain:candidate",
+      "category": "SECURITY_OR_PERMISSION_BOUNDARY",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:consumer-chain:candidate"
+    },
+    {
+      "control_id": "package-script:verify:baseline",
+      "claim_id": "claim:package-script-verify-baseline",
+      "origin": "PROJECT_NATIVE",
+      "summary": "Project package script verify:baseline",
+      "category": "SECURITY_OR_PERMISSION_BOUNDARY",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:baseline"
+    },
+    {
+      "control_id": "package-script:verify:example-observed-evidence",
+      "claim_id": "claim:package-script-verify-example-observed-evidence",
+      "origin": "PROJECT_NATIVE",
+      "summary": "Project package script verify:example-observed-evidence",
+      "category": "SECURITY_OR_PERMISSION_BOUNDARY",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:example-observed-evidence"
+    },
+    {
+      "control_id": "package-script:verify:release-topology-consumers",
+      "claim_id": "claim:package-script-verify-release-topology-consumers",
+      "origin": "PROJECT_NATIVE",
+      "summary": "Project package script verify:release-topology-consumers",
+      "category": "SECURITY_OR_PERMISSION_BOUNDARY",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:release-topology-consumers"
+    },
+    {
+      "control_id": "package-script:verify:planning-closure",
+      "claim_id": "claim:package-script-verify-planning-closure",
+      "origin": "PROJECT_NATIVE",
+      "summary": "Project package script verify:planning-closure",
+      "category": "SECURITY_OR_PERMISSION_BOUNDARY",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:planning-closure"
+    },
+    {
+      "control_id": "file:scripts/check-apply-execution-receipt.mjs",
+      "claim_id": "claim:file-scripts-check-apply-execution-receipt-mjs",
+      "origin": "PROJECT_NATIVE",
+      "summary": "Project control implemented by scripts/check-apply-execution-receipt.mjs",
+      "category": "SECURITY_OR_PERMISSION_BOUNDARY",
+      "implementation_ref": "file:scripts/check-apply-execution-receipt.mjs",
+      "consumer": "scripts/check-apply-execution-receipt.mjs"
+    }
+  ]
+}

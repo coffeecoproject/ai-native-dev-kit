@@ -65,6 +65,7 @@ monitoring, environment, migration, cost, and missing evidence.
 
 Required evidence depends on the target:
 
+- source review for a source-only candidate;
 - preview;
 - internal trial;
 - staging;
@@ -75,6 +76,11 @@ Required evidence depends on the target:
 Production-like targets require stricter evidence: clean source revision,
 rollback, monitoring, incident owner, release owner, risk owner,
 environment/config owner, data/migration decision, and release-owner handoff.
+
+`source_review` is an internal bounded target for validating an exact source
+candidate and its current Completion Evidence. It does not require a package,
+platform recipe, runtime deployment, release owner, or external consent because
+it cannot hand off or execute an external release effect.
 
 ## Owner Readiness
 

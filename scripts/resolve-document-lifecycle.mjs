@@ -189,10 +189,10 @@ function evidenceFor(doc, role, lifecycleState) {
 }
 
 function ownerFor(doc, role) {
-  if (/source of truth|protected/i.test(role)) return "human/project owner";
-  if (/template|prompt|checklist/i.test(role)) return "workflow owner";
-  if (/historical/i.test(role)) return "history/evidence owner";
-  return "human owner needed";
+  if (/source of truth|protected/i.test(role)) return "project evidence authority";
+  if (/template|prompt|checklist/i.test(role)) return "IntentOS workflow authority";
+  if (/historical/i.test(role)) return "history/evidence authority";
+  return "Codex evidence review";
 }
 
 function notesFor(doc, lifecycleState) {
@@ -202,7 +202,7 @@ function notesFor(doc, lifecycleState) {
   if (lifecycleState === "ARCHIVE_CANDIDATE") return "archive suggestion only";
   if (lifecycleState === "DEPRECATION_CANDIDATE") return "suggest visible deprecation note only";
   if (lifecycleState === "RETIRED_REFERENCE") return "keep readable as historical evidence";
-  return "keep unless owner decides otherwise";
+  return "keep unless replacement evidence and controlled apply prove otherwise";
 }
 
 function sourceOfTruthMap(inventory) {
@@ -224,7 +224,8 @@ function sourceOfTruthMap(inventory) {
       sourceOfTruthDocument: matches[0]?.document || "PENDING_CONFIRMATION",
       evidence: matches[0] ? matches[0].evidence : "not detected",
       confidence: matches[0] ? (matches.length === 1 ? "medium" : "low") : "low",
-      humanDecisionNeeded: matches.length === 1 ? "No" : "Yes",
+      humanDecisionNeeded: "No technical user decision",
+      internalEvidenceReviewNeeded: matches.length === 1 ? "No" : "Yes",
     };
   });
 }
@@ -250,10 +251,10 @@ function issueFor(state) {
 }
 
 function handlingFor(state) {
-  if (state === "DUPLICATE_CANDIDATE") return "merge suggestion / needs owner";
+  if (state === "DUPLICATE_CANDIDATE") return "compare authority and prepare bounded merge suggestion";
   if (state === "DEPRECATION_CANDIDATE") return "deprecation suggestion";
   if (state === "ARCHIVE_CANDIDATE" || state === "STALE_CANDIDATE") return "archive suggestion";
-  return "needs owner";
+  return "needs project evidence";
 }
 
 function archiveSuggestionsFor(inventory) {
@@ -264,7 +265,7 @@ function archiveSuggestionsFor(inventory) {
       proposedArchivePath: `docs/archive/${item.document.replace(/^docs\//, "")}`,
       reason: item.evidence,
       replacementOrSourceOfTruth: "PENDING_CONFIRMATION",
-      approvalNeeded: "Yes",
+      approvalNeeded: "Controlled apply readiness",
       status: "SUGGESTED",
     }));
 }
@@ -274,16 +275,16 @@ function deprecationSuggestionsFor(inventory) {
     .filter((item) => item.lifecycleState === "DEPRECATION_CANDIDATE")
     .map((item) => ({
       document: item.document,
-      suggestedDeprecationNote: "This document is retained for reference. Confirm current source of truth before use.",
+      suggestedDeprecationNote: "This document is retained for reference. Resolve the current source of truth from project evidence before use.",
       why: item.evidence,
-      approvalNeeded: "Yes",
+      approvalNeeded: "Controlled apply readiness",
       status: "SUGGESTED",
     }));
 }
 
 function notToDeleteList() {
   return [
-    "Source-of-truth docs unless a human explicitly approves a replacement.",
+    "Source-of-truth docs unless replacement evidence, exact scope, rollback, and controlled apply readiness prove a safe replacement.",
     "AGENTS, agent rules, PR templates, CI workflows, hooks, release gates.",
     "Legal, license, security, privacy, compliance, or policy docs.",
     "Production, deployment, rollback, incident, migration, backup, or restore docs.",
@@ -293,13 +294,13 @@ function notToDeleteList() {
 }
 
 function decisionsFor(candidates, archiveSuggestions, deprecationSuggestions) {
-  const needsDocOwner = candidates.length > 0 ? "PENDING" : "NOT_NEEDED";
+  const reviewStatus = candidates.length > 0 ? "INTERNAL_EVIDENCE_REVIEW" : "RESOLVED";
   return [
-    decision("Source of truth", "keep / change / unclear", "keep unless evidence says otherwise", needsDocOwner),
-    decision("Archive action", "none / archive later", archiveSuggestions.length > 0 ? "archive later after approval" : "none", needsDocOwner),
-    decision("Deprecation action", "none / add note later", deprecationSuggestions.length > 0 ? "add note later after approval" : "none", needsDocOwner),
-    decision("Merge action", "none / merge later", candidates.some((item) => item.suspectedIssue === "duplicate") ? "merge later after approval" : "none", needsDocOwner),
-    decision("Deletion action", "none / separate reviewed deletion plan", "none", "PENDING"),
+    decision("Source of truth", "keep / change / unresolved", "keep unless project evidence proves otherwise", reviewStatus),
+    decision("Archive action", "none / archive through controlled apply", archiveSuggestions.length > 0 ? "prepare evidence-backed archive action" : "none", reviewStatus),
+    decision("Deprecation action", "none / add note through controlled apply", deprecationSuggestions.length > 0 ? "prepare evidence-backed deprecation note" : "none", reviewStatus),
+    decision("Merge action", "none / merge through controlled apply", candidates.some((item) => item.suspectedIssue === "duplicate") ? "compare content and prepare bounded merge" : "none", reviewStatus),
+    decision("Deletion action", "none / separate evidence-backed deletion plan", "none", "NO_USER_ACTION"),
   ];
 }
 
@@ -308,15 +309,15 @@ function decision(name, options, recommended, status) {
     decision: name,
     options,
     recommended,
-    owner: "human",
+    owner: "Codex",
     status,
   };
 }
 
 function outcomeFor(exists, docs, candidates) {
   if (!exists) return "BLOCKED";
-  if (docs.length === 0) return "NEEDS_HUMAN_DECISION";
-  if (candidates.length > 0) return "NEEDS_HUMAN_DECISION";
+  if (docs.length === 0) return "DOCUMENT_LIFECYCLE_RECORDED";
+  if (candidates.length > 0) return "DOCUMENT_LIFECYCLE_RECORDED";
   return "DOCUMENT_LIFECYCLE_RECORDED";
 }
 
@@ -333,9 +334,9 @@ function summaryFor(exists, docs, inventory, candidates) {
   if (docs.length === 0) {
     return {
       conclusion: "No project documents were detected.",
-      recommendedChoice: "E. Pause",
-      canAiContinueNow: "no",
-      needFromHuman: "Confirm whether this is the right target.",
+      recommendedChoice: "A. Keep project unchanged and continue project discovery",
+      canAiContinueNow: "yes",
+      needFromHuman: "No technical decision. Codex should continue discovering project authority.",
       ifNothing: "No project files are changed.",
     };
   }
@@ -344,11 +345,11 @@ function summaryFor(exists, docs, inventory, candidates) {
     conclusion: candidates.length > 0
       ? "Possible stale, duplicate, archive, or deprecation candidates were found."
       : "No obvious stale or duplicate document candidates were found.",
-    recommendedChoice: candidates.length > 0 ? "B. Archive later" : "A. Keep active",
-    canAiContinueNow: candidates.length > 0 ? "limited" : "yes",
+    recommendedChoice: candidates.length > 0 ? "B. Review candidates and prepare bounded actions" : "A. Keep active",
+    canAiContinueNow: "yes",
     needFromHuman: candidates.length > 0
-      ? "Confirm source of truth before any archive, merge, deprecation, or deletion action."
-      : "Confirm if any document area should be reviewed more deeply.",
+      ? "No technical decision. Codex must resolve source-of-truth evidence before proposing archive, merge, deprecation, or deletion."
+      : "No user input is required.",
     ifNothing: `No project files are changed. ${sourceCount} source-of-truth candidate(s) remain protected.`,
   };
 }
@@ -370,7 +371,7 @@ function printHuman(report) {
 }
 
 function printHumanDecisionSummary(summary) {
-  console.log("## Human Decision Summary");
+  console.log("## Compatibility Decision Summary");
   console.log("");
   console.log(`Conclusion: ${summary.conclusion}`);
   console.log("");
@@ -378,7 +379,7 @@ function printHumanDecisionSummary(summary) {
   console.log("");
   console.log(`Can AI continue now: ${summary.canAiContinueNow}`);
   console.log("");
-  console.log(`What I need from you: ${summary.needFromHuman}`);
+  console.log(`User input boundary: ${summary.needFromHuman}`);
   console.log("");
   console.log(`What happens if you do nothing: ${summary.ifNothing}`);
   console.log("");
@@ -393,7 +394,7 @@ function printInventory(report) {
     console.log(`| ${escapeCell(item.document)} | ${escapeCell(item.currentRole)} | ${item.lifecycleState} | ${escapeCell(item.evidence)} | ${escapeCell(item.ownerOrSource)} | ${escapeCell(item.notes)} |`);
   }
   if (report.documentInventory.length > 40) {
-    console.log(`| ... | ${report.documentInventory.length - 40} more document(s) omitted from console output | ACTIVE_REFERENCE | use --json for full list | human owner needed | no files changed |`);
+    console.log(`| ... | ${report.documentInventory.length - 40} more document(s) omitted from console output | ACTIVE_REFERENCE | use --json for full list | Codex evidence review | no files changed |`);
   }
   console.log("");
 }
@@ -401,7 +402,7 @@ function printInventory(report) {
 function printSourceMap(report) {
   console.log("## Source Of Truth Map");
   console.log("");
-  console.log("| Topic | Source-of-truth document | Evidence | Confidence | Human decision needed |");
+  console.log("| Topic | Source-of-truth document | Evidence | Confidence | User technical decision needed |");
   console.log("|---|---|---|---|---|");
   for (const item of report.sourceOfTruthMap) {
     console.log(`| ${escapeCell(item.topic)} | ${escapeCell(item.sourceOfTruthDocument)} | ${escapeCell(item.evidence)} | ${item.confidence} | ${item.humanDecisionNeeded} |`);

@@ -1,0 +1,25 @@
+Mini Program BL2 current-project verification completed.
+Evidence type: client-storage; requirement verified: client storage minimization evidence
+Evidence type: client-storage; requirement verified: sensitive data handling evidence
+Evidence type: cloud-function-access-rule; requirement verified: API failure and recovery evidence
+Evidence type: cloud-function-access-rule; requirement verified: cloud access rule evidence
+Evidence type: cloud-function-access-rule; requirement verified: cloud function boundary evidence
+Evidence type: cloud-function-access-rule; requirement verified: production configuration review
+Evidence type: platform-permission; requirement verified: denied permission evidence
+Evidence type: platform-permission; requirement verified: platform permission prompt evidence
+Evidence type: platform-permission; requirement verified: privacy authorization evidence
+Evidence type: release; requirement verified: experience version evidence
+Evidence type: release; requirement verified: monitoring evidence
+Evidence type: release; requirement verified: platform review readiness
+Evidence type: release; requirement verified: release submission readiness
+Evidence type: release; requirement verified: rollback or mitigation plan
+Evidence type: ui-state; requirement verified: critical flow behavior evidence
+Evidence type: ui-state; requirement verified: mini program lifecycle evidence
+Evidence type: ui-state; requirement verified: mini program loading-empty-error-forbidden evidence
+Evidence type: ui-state; requirement verified: navigation and return-path evidence
+Evidence type: wechat-login; requirement verified: denied permission evidence
+Evidence type: wechat-login; requirement verified: session binding evidence
+Evidence type: wechat-login; requirement verified: WeChat login state evidence
+The fixture binds login, cloud/API, permission, privacy, release, storage, and UI behavior evidence to this command output.
+
+process_signal=none

@@ -1,25 +1,16 @@
 # Environment Baseline
 
-## Human Decision Summary
+## Codex Environment Summary
 
 Conclusion:
 
-Recommended choice: A / B / C / D
+Selected environment model:
 
-Can AI continue now: yes / limited / no
+Can Codex continue now: yes / limited / no
 
-What I need from you:
+Evidence refs:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Confirm environment | Use the recorded local/test/release environment facts | Baseline/report only | low | Choose when commands and environment boundaries are known |
-| B | Fill missing facts | Draft unknowns from project files for review | Baseline draft only | low/medium | Choose when facts can be inferred but need confirmation |
-| C | Stop for environment decision | Pause before env, secret, CI, release, or production changes | Decision/baseline only | medium/high | Choose when runtime or deployment ownership is unclear |
-| D | Keep unknowns pending | Leave unknowns as pending and avoid dependent work | Baseline/report only | low if respected | Choose when environment cannot be confirmed yet |
-
-Recommended reason:
-
-What happens if you do nothing:
+Missing business or external fact, if any:
 
 ## Human Summary
 
@@ -31,15 +22,15 @@ Detected profile candidates: <detected-profile-candidates>
 
 Recommended baseline level: <recommended-bl-level>
 
-This file records environment facts, unknowns, and explicit non-applicable items. It must not invent staging, production, rollback, monitoring, or release processes.
+This file records environment facts, unknowns, and explicit non-applicable
+items. It must not invent staging, production, rollback, monitoring, or release
+processes.
 
 ## Status
 
-Baseline status: DRAFT
+Baseline status: DRAFT / PARTIAL / READY
 
-Human decision status: PENDING
-
-Owner: PENDING_CONFIRMATION
+Evidence status: MISSING / PARTIAL / VERIFIED
 
 Last reviewed: <date>
 
@@ -47,143 +38,144 @@ Last reviewed: <date>
 
 Applies to:
 
-- PENDING_CONFIRMATION
+- project environments and commands discovered by Codex
 
 Does not apply to:
 
-- NOT_APPLICABLE until humans confirm project-specific exclusions.
+- items marked NOT_APPLICABLE with project evidence
 
 ## Local Development
 
-Runtime: PENDING_CONFIRMATION
+Runtime: UNKNOWN
 
-Package manager: PENDING_CONFIRMATION
+Package manager: UNKNOWN
 
-Install command: PENDING_CONFIRMATION
+Install command: UNKNOWN
 
-Dev command: PENDING_CONFIRMATION
+Dev command: UNKNOWN
 
-Local test command: PENDING_CONFIRMATION
+Local test command: UNKNOWN
 
-Known local dependencies: PENDING_CONFIRMATION
+Known local dependencies: UNKNOWN
+
+Discovery evidence:
 
 ## Runtime Versions
 
 | Runtime | Version | Source | Status |
 |---|---|---|---|
-| PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION |
+| UNKNOWN | UNKNOWN | UNKNOWN | PENDING_CODEX_DISCOVERY |
 
 ## Package Manager And Lockfile
 
-Package manager: PENDING_CONFIRMATION
+Package manager: UNKNOWN
 
-Lockfile: PENDING_CONFIRMATION
+Lockfile: UNKNOWN
 
-Policy: PENDING_CONFIRMATION
+Policy: Codex derives this from project files and the selected baseline.
 
-Codex may change dependencies: Human approval required
+Dependency changes: Codex may make reversible project-local changes after
+internal review and verification. Concrete paid services or external-account
+effects require `REAL_WORLD_CONSENT_NEEDED`.
 
 ## Environment Variables
 
-| Name | Required? | Environment | Owner | Secret? | Source | Status |
+| Name | Required? | Environment | Responsibility domain | Secret? | Source | Status |
 |---|---|---|---|---|---|---|
-| PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION |
+| UNKNOWN | UNKNOWN | UNKNOWN | ENGINEERING / EXTERNAL_PROVIDER | UNKNOWN | UNKNOWN | PENDING_CODEX_DISCOVERY |
 
-Important rule:
-Record variable names and ownership only. Never record secret values.
+Record variable names and provenance only. Never record secret values.
 
 ## Secret Boundary
 
-Secret values must never be written into this file.
+Secret values must never be written into this file or committed to source.
 
-Secret storage: PENDING_CONFIRMATION
+Secret storage mechanism: UNKNOWN
 
-Who can access: PENDING_CONFIRMATION
+Access boundary: UNKNOWN
 
-Codex must not:
-
-- create or edit `.env` files
-- read or write secret values into workflow docs
-- commit private keys, service account JSON, production credentials, or connection strings with embedded credentials
-
-Rotation / incident owner: PENDING_CONFIRMATION
+Codex must not expose or invent private keys, service-account material,
+production credentials, or credential-bearing connection strings. When a real
+account secret is required, Codex prepares the secure configuration path and
+asks only for the concrete external-account action.
 
 ## External Services
 
-| Service | Used for | Environment | Owner | Status |
+| Service | Used for | Environment | Responsibility domain | Status |
 |---|---|---|---|---|
-| PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION |
+| UNKNOWN | UNKNOWN | UNKNOWN | EXTERNAL_PROVIDER | PENDING_CODEX_DISCOVERY |
 
 ## Test Environment
 
-Test command: PENDING_CONFIRMATION
+Test command: UNKNOWN
 
-Test data policy: PENDING_CONFIRMATION
+Test data policy: UNKNOWN
 
-Mock / real service policy: PENDING_CONFIRMATION
+Mock / real service policy: UNKNOWN
 
-CI test command: PENDING_CONFIRMATION
+CI test command: UNKNOWN
+
+Isolation and cleanup evidence:
 
 ## Preview / Staging / Production
 
-| Environment | Exists? | URL / Ref | Owner | Deploy command | Rollback path | Status |
+| Environment | Exists? | URL / ref | Authority source | Deploy command | Rollback path | Status |
 |---|---|---|---|---|---|---|
-| Preview | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION |
-| Staging | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION |
-| Production | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION | PENDING_CONFIRMATION |
+| Preview | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | PENDING_CODEX_DISCOVERY |
+| Staging | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | PENDING_CODEX_DISCOVERY |
+| Production | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | PENDING_CODEX_DISCOVERY |
 
 ## CI / CD
 
-CI system: PENDING_CONFIRMATION
+CI system: UNKNOWN
 
-Required checks: PENDING_CONFIRMATION
+Required checks: UNKNOWN
 
-Build command: PENDING_CONFIRMATION
+Build command: UNKNOWN
 
-Deploy command: PENDING_CONFIRMATION
+Deploy command: UNKNOWN
 
-Codex may modify CI: Human approval required
+Codex may change CI within the requested technical boundary after internal
+review and verification. Triggering production, paid runners, or externally
+visible publication requires consent to that concrete effect.
 
 ## Release Process
 
-Release owner: PENDING_CONFIRMATION
+Release authority source: UNKNOWN
 
-Release checklist: PENDING_CONFIRMATION
+Release checklist: UNKNOWN
 
-Approval required: PENDING_CONFIRMATION
+Real-world consent required: UNKNOWN
 
-Evidence required: PENDING_CONFIRMATION
+Evidence required: UNKNOWN
 
 ## Rollback Process
 
-Rollback owner: PENDING_CONFIRMATION
+Rollback mechanism: UNKNOWN
 
-Rollback command or process: PENDING_CONFIRMATION
+Rollback command or process: UNKNOWN
 
-Rollback evidence: PENDING_CONFIRMATION
+Rollback evidence: UNKNOWN
 
-Codex must stop when:
-
-- rollback ownership is unknown
-- production config is needed
-- release approval is missing
-- secret values or production credentials are needed
+Codex must keep the affected release action disabled when rollback cannot be
+proved, production credentials are unavailable, or concrete production consent
+has not been given. Do not ask the user to choose the technical rollback plan.
 
 ## Logs / Monitoring / Alerts
 
-Logs: PENDING_CONFIRMATION
+Logs: UNKNOWN
 
-Metrics: PENDING_CONFIRMATION
+Metrics: UNKNOWN
 
-Alerts: PENDING_CONFIRMATION
+Alerts: UNKNOWN
 
-Incident owner: PENDING_CONFIRMATION
+Incident response path: UNKNOWN
 
-Evidence refs: PENDING_CONFIRMATION
+Evidence refs: UNKNOWN
 
-## Open Environment Decisions
+## Open Environment Items
 
-| Decision | Options | Recommended | Owner | Status |
+| Item | Classification | Codex recommendation | Evidence needed | Status |
 |---|---|---|---|---|
-| Confirm local runtime and commands | Use existing project docs / package scripts / human input | PENDING_CONFIRMATION | human | PENDING_CONFIRMATION |
-| Confirm release and rollback state | CONFIRMED / PENDING_CONFIRMATION / NOT_APPLICABLE | PENDING_CONFIRMATION | human | PENDING_CONFIRMATION |
+| local runtime and commands | NO_USER_ACTION | inspect project files and run safe probes | project-local command evidence | PENDING_CODEX_DISCOVERY |
+| release and rollback facts | NO_USER_ACTION / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED | inspect project authority and prepare the safest path | project or external evidence | PENDING_CODEX_DISCOVERY |

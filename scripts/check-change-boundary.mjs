@@ -5,15 +5,17 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { deriveConsumerOutcome } from "./lib/check-result.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["report", "task", "base", "cached", "json", "pre-implementation-manifest"]);
+const knownFlags = new Set(["report", "task", "base", "cached", "json", "pre-implementation-manifest", "require-report"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const reportArg = args.report ? normalizePath(String(args.report)) : null;
 const preImplementationManifest = Boolean(args["pre-implementation-manifest"]);
+const requireReport = Boolean(args["require-report"]);
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -21,6 +23,7 @@ if (unknown.length > 0) {
 }
 
 let failed = false;
+let blockedDisposition = false;
 const checks = [];
 
 if (!outputJson) {
@@ -33,7 +36,8 @@ const reports = reportArg
   : markdownFiles("change-boundary-reports");
 
 if (reports.length === 0) {
-  pass("change boundary check skipped: no change-boundary reports");
+  if (requireReport) fail("required change-boundary report is missing");
+  else pass("SKIPPED_NO_REPORT: no change-boundary reports found; no boundary-readiness claim made");
   emitAndExit();
 }
 
@@ -59,6 +63,12 @@ function checkReport(file, liveFiles) {
     else fail(`${label} missing meaningful ${section}`);
   }
 
+  if (args.task) {
+    const actualTask = firstCodeOrText(sectionBody(content, "Task Ref"));
+    if (actualTask === String(args.task)) pass(`${label} matches current task ${actualTask}`);
+    else fail(`${label} task mismatch: expected ${args.task}, observed ${actualTask || "<empty>"}`);
+  }
+
   const boundaryLevel = firstCodeOrText(sectionBody(content, "Boundary Level"));
   if (!["CB0_ADVISORY", "CB1_RECORDED", "CB2_CHECKED", "CB3_HUMAN_APPROVED"].includes(boundaryLevel)) {
     fail(`${label} has invalid Boundary Level: ${boundaryLevel || "<empty>"}`);
@@ -75,6 +85,14 @@ function checkReport(file, liveFiles) {
   const changedRows = parseTable(sectionBody(content, "Actual Changed Files"));
   const changedFiles = changedRows.map((row) => stripMarkdown(row.file || "")).filter((value) => value && !isPlaceholder(value));
   const disposition = firstCodeOrText(sectionBody(content, "Boundary Result"));
+  if (disposition === "PASS") {
+    pass(`${label} disposition PASS is consumer-ready when all checks pass`);
+  } else if (/^NEEDS_[A-Z0-9_]+$/.test(disposition)) {
+    blockedDisposition = true;
+    pass(`${label} disposition ${disposition} is valid but blocks readiness`);
+  } else {
+    fail(`${label} has unknown Boundary Result disposition: ${disposition || "<empty>"}`);
+  }
 
   if (!preImplementationManifest && changedFiles.length === 0) fail(`${label} must list actual changed files`);
   for (const changedFile of changedFiles) {
@@ -110,13 +128,22 @@ function checkReport(file, liveFiles) {
     checkPlanBinding(content, label);
     if (allowedPaths.length === 0) fail(`${label} pre-implementation manifest has no allowed paths`);
     else pass(`${label} pre-implementation manifest declares ${allowedPaths.length} allowed paths`);
-    if (disposition !== "PASS") fail(`${label} pre-implementation manifest must have PASS disposition`);
-    else pass(`${label} pre-implementation manifest disposition is PASS`);
+    if (disposition === "PASS") pass(`${label} pre-implementation manifest disposition is PASS`);
+    else if (/^NEEDS_[A-Z0-9_]+$/.test(disposition)) pass(`${label} pre-implementation manifest remains blocked by ${disposition}`);
   }
 
   if (liveFiles.length > 0) {
+    const liveSet = new Set(liveFiles);
+    const reportedSet = new Set(changedFiles);
+    if (reportedSet.size !== changedFiles.length) fail(`${label} lists duplicate actual changed files`);
     for (const liveFile of liveFiles) {
-      if (!changedFiles.includes(liveFile)) fail(`${label} missing live changed file from report: ${liveFile}`);
+      if (!reportedSet.has(liveFile)) fail(`${label} missing live changed file from report: ${liveFile}`);
+    }
+    for (const reportedFile of reportedSet) {
+      if (!liveSet.has(reportedFile)) fail(`${label} reports stale or non-current changed file: ${reportedFile}`);
+    }
+    if (reportedSet.size === liveSet.size && [...liveSet].every((fileName) => reportedSet.has(fileName))) {
+      pass(`${label} actual changed files exactly match the live candidate in both directions`);
     }
   }
 }
@@ -165,13 +192,32 @@ function codeBlockPaths(body, headingPattern) {
 
 function liveDiffFiles() {
   if (!args.cached && !args.base) return [];
-  const gitArgs = args.cached ? ["diff", "--cached", "--name-only"] : ["diff", "--name-only", String(args.base)];
+  const staged = args.cached || (args.base && hasStagedCandidate());
+  if (staged && !stagedCandidateMatchesWorktree()) {
+    fail("staged candidate differs from the worktree or has untracked inputs; boundary verification refuses mixed evidence");
+    return [];
+  }
+  const gitArgs = staged
+    ? ["diff", "--cached", "--name-only", ...(args.base ? [String(args.base)] : [])]
+    : ["diff", "--name-only", String(args.base)];
   const result = spawnSync("git", gitArgs, { cwd: projectRoot, encoding: "utf8" });
   if (result.status !== 0) {
     fail(`git diff failed: ${result.stderr || result.stdout}`);
     return [];
   }
   return result.stdout.split("\n").map((line) => normalizePath(line.trim())).filter(Boolean);
+}
+
+function hasStagedCandidate() {
+  const result = spawnSync("git", ["diff", "--cached", "--quiet", "--"], { cwd: projectRoot, encoding: "utf8" });
+  return result.status === 1;
+}
+
+function stagedCandidateMatchesWorktree() {
+  const tracked = spawnSync("git", ["diff", "--quiet", "--"], { cwd: projectRoot, encoding: "utf8" });
+  if (tracked.status !== 0) return false;
+  const untracked = spawnSync("git", ["ls-files", "--others", "--exclude-standard"], { cwd: projectRoot, encoding: "utf8" });
+  return untracked.status === 0 && !untracked.stdout.trim();
 }
 
 function listAfterLabel(body, label) {
@@ -266,10 +312,16 @@ function fail(message) {
 }
 
 function emitAndExit() {
-  if (outputJson) console.log(JSON.stringify({ status: failed ? "FAIL" : "PASS", checks }, null, 2));
-  if (failed) process.exit(1);
+  const consumerOutcome = deriveConsumerOutcome({
+    hasArtifact: reports.length > 0,
+    invalid: failed,
+    blocked: !failed && blockedDisposition,
+    ready: reports.length > 0 && !failed && !blockedDisposition,
+  });
+  if (outputJson) console.log(JSON.stringify({ status: failed ? "FAIL" : "PASS", consumerOutcome, checks }, null, 2));
   if (!outputJson) {
     console.log("");
-    console.log("Change boundary check passed.");
+    console.log(failed ? "Change boundary check failed." : blockedDisposition ? "Change boundary check is blocked." : "Change boundary check passed.");
   }
+  process.exit(failed ? 1 : 0);
 }

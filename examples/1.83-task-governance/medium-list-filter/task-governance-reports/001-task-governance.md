@@ -42,18 +42,18 @@ This report classifies task impact and routes required governance. It does not a
 | --- | --- |
 | Scope check | `Yes` |
 | Short plan | `Yes` |
-| Business Rule Closure | `No` |
-| Change Impact Coverage | `No` |
+| Business Rule Closure | `Yes` |
+| Change Impact Coverage | `Yes` |
 | Execution Plan | `No` |
-| Verification Plan | `No` |
+| Verification Plan | `Yes` |
 
 ## Required Before Completion Claim
 
 | Requirement | Required |
 | --- | --- |
-| Test Evidence | `No` |
-| Execution Assurance | `No` |
-| Completion Evidence | `No` |
+| Test Evidence | `Yes` |
+| Execution Assurance | `Yes` |
+| Completion Evidence | `Yes` |
 
 ## Review Policy
 
@@ -64,7 +64,7 @@ This report classifies task impact and routes required governance. It does not a
 | Independent review required | `Conditional` |
 | Review must happen before | `completion_claim` |
 | Review source | `targeted_checker_or_project_review` |
-| Review must cover | short plan; bounded impact surface; excluded high-impact surfaces; targeted verification; unrelated edits check |
+| Review must cover | short plan; bounded impact surface; business rule closure; change impact coverage; verification plan; excluded high-impact surfaces; targeted verification; unrelated edits check |
 | Skip full review reason | MEDIUM tasks do not require the full high-impact chain when the affected surface stays local and bounded. |
 
 ## Existing Project Mapping
@@ -121,7 +121,7 @@ This report classifies task impact and routes required governance. It does not a
   "intent": "add local list filter for archive display",
   "intent_digest": "sha256:e74c7f22218461cea0a363874a6d7eeb58d4f3cc3df91630f30300c128ab9956",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:4f3594eed6bc86ba2787ceb03cf5de71202f5d9c91a638dc54fa0004b4cb46aa",
+  "task_governance_digest": "sha256:d4384c2eb48b7756f0b69983b723232531059ada68807fa1c84a377c045e16c1",
   "task_ref": "task:add-local-list-filter-for-archive-display",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -194,15 +194,15 @@ This report classifies task impact and routes required governance. It does not a
   "required_before_implementation_review": {
     "scope_check_required": "Yes",
     "short_plan_required": "Yes",
-    "business_rule_closure_required": "No",
-    "change_impact_coverage_required": "No",
+    "business_rule_closure_required": "Yes",
+    "change_impact_coverage_required": "Yes",
     "execution_plan_required": "No",
-    "verification_plan_required": "No"
+    "verification_plan_required": "Yes"
   },
   "required_before_completion_claim": {
-    "test_evidence_required": "No",
-    "execution_assurance_required": "No",
-    "completion_evidence_required": "No"
+    "test_evidence_required": "Yes",
+    "execution_assurance_required": "Yes",
+    "completion_evidence_required": "Yes"
   },
   "source_chain": [
     {
@@ -262,6 +262,9 @@ This report classifies task impact and routes required governance. It does not a
     "review_must_cover": [
       "short plan",
       "bounded impact surface",
+      "business rule closure",
+      "change impact coverage",
+      "verification plan",
       "excluded high-impact surfaces",
       "targeted verification",
       "unrelated edits check"

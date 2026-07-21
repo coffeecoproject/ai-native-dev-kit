@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { validateReleasePreflightReceipt } from "./lib/release-trust.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -20,6 +21,10 @@ const knownFlags = new Set([
   "release-event-ref",
   "release-candidate-ref",
   "release-candidate-digest",
+  "release-topology-ref",
+  "release-topology-digest",
+  "release-execution-topology-ref",
+  "release-execution-topology-digest",
   "source-revision",
   "artifact-error",
   "artifact-error-ref",
@@ -28,6 +33,7 @@ const knownFlags = new Set([
   "retry-policy-allowed",
   "production-side-effect-checked",
   "task-ref",
+  "intent-digest",
   "work-queue-item-ref",
   "work-queue-item-digest",
   "work-queue-item-state",
@@ -76,10 +82,11 @@ function buildEvidence() {
   const bundleText = readOptionalText(args["bundle-summary"]);
   const releaseEventText = readOptionalText(args["release-event"]);
   const releaseLane = String(args["release-lane"] || "");
+  const releaseReceipt = releasePreflightReceiptFor(releaseLane);
   const runtimeSourceTrace = runtimeSourceTraceFor({ gateText, ciText, artifactText, bundleText, releaseEventText });
   const ci = ciContext(ciText);
   const operation = operationFor({ explicit: args.operation, intent, gateText, ciText, artifactText, bundleText, releaseLane, releaseEventText });
-  const runtimeClass = runtimeClassFor({ operation, intent, gateText, ciText, artifactText, bundleText, releaseLane, releaseEventText });
+  const runtimeClass = runtimeClassFor({ operation, intent, gateText, ciText, artifactText, bundleText, releaseLane, releaseEventText, releaseReceipt });
   const decisionState = decisionStateFor(runtimeClass, releaseLane, ci);
   const git = gitContext(projectRoot, runtimeClass);
   const gate = gateContext(runtimeClass, gateText);
@@ -97,6 +104,7 @@ function buildEvidence() {
     runtime_hygiene_ref: runtimeRef,
     runtime_hygiene_digest: "sha256:pending",
     task_ref: String(args["task-ref"] || "task:current"),
+    intent_digest: String(args["intent-digest"] || "N/A"),
     work_queue_item_ref: String(args["work-queue-item-ref"] || "N/A"),
     task_governance_ref: String(args["task-governance-ref"] || "N/A"),
     task_entry_binding: taskEntryBinding(),
@@ -132,6 +140,12 @@ function buildEvidence() {
       release_candidate_digest: String(args["release-candidate-digest"]),
       source_revision: String(args["source-revision"]),
     };
+    const topologyRef = String(args["release-topology-ref"] || args["release-execution-topology-ref"] || "");
+    const topologyDigest = String(args["release-topology-digest"] || args["release-execution-topology-digest"] || "");
+    if (topologyRef || topologyDigest) {
+      baseEvidence.release_trust_binding.release_execution_topology_ref = topologyRef;
+      baseEvidence.release_trust_binding.release_execution_topology_digest = topologyDigest;
+    }
   }
   baseEvidence.runtime_hygiene_digest = evidenceDigest(baseEvidence, ["runtime_hygiene_digest"]);
   return baseEvidence;
@@ -151,13 +165,12 @@ function operationFor({ explicit, intent: intentText, gateText, ciText, artifact
   return "commit";
 }
 
-function runtimeClassFor({ operation, intent: intentText, gateText, ciText, artifactText, bundleText, releaseLane, releaseEventText }) {
+function runtimeClassFor({ operation, intent: intentText, gateText, ciText, artifactText, bundleText, releaseLane, releaseEventText, releaseReceipt }) {
   const combined = `${intentText}\n${gateText}\n${ciText}\n${artifactText}\n${bundleText}\n${releaseLane}\n${releaseEventText}`;
   if (/production side effect|prod touched|deploy started|deploy done/i.test(combined)) return "PRODUCTION_SIDE_EFFECT_PRESENT";
   if (/unknown production|cannot prove production|unclear production/i.test(combined)) return "PRODUCTION_SIDE_EFFECT_UNKNOWN";
   const readyReleaseLane = new Set(["PREFLIGHT_ONLY", "BUNDLE_CREATED"]).has(normalizeLane(releaseLane));
-  const readyReleaseEvidence = /\b(pass|passed|ready|succeeded|success)\b/i.test(releaseEventText || "")
-    && !/\b(fail|failed|error|blocked|unknown)\b/i.test(releaseEventText || "");
+  const readyReleaseEvidence = releaseReceipt.ok;
   const releaseBindingPresent = /^(artifact|file):/.test(String(args["release-candidate-ref"] || ""))
     && /^sha256:[a-f0-9]{64}$/.test(String(args["release-candidate-digest"] || ""))
     && String(args["source-revision"] || "").trim();
@@ -172,6 +185,19 @@ function runtimeClassFor({ operation, intent: intentText, gateText, ciText, arti
   if (/mixed scope|unrelated change|unrelated task/i.test(combined)) return "COMMIT_SCOPE_MIXED";
   if (/release|preflight/i.test(combined) || operation === "release") return "RELEASE_PREFLIGHT_FAILED";
   return "GIT_LINEAGE_DIRTY";
+}
+
+function releasePreflightReceiptFor(releaseLane) {
+  const reference = String(args["release-event-ref"] || "");
+  if (!reference) return { ok: false, errors: ["release preflight receipt ref is missing"] };
+  return validateReleasePreflightReceipt(projectRoot, reference, {
+    taskRef: String(args["task-ref"] || "task:current"),
+    intentDigest: String(args["intent-digest"] || "N/A"),
+    releaseCandidateRef: String(args["release-candidate-ref"] || ""),
+    releaseCandidateDigest: String(args["release-candidate-digest"] || ""),
+    sourceRevision: String(args["source-revision"] || ""),
+    laneState: normalizeLane(releaseLane),
+  });
 }
 
 function decisionStateFor(runtimeClass, releaseLane, ci) {
@@ -352,7 +378,7 @@ function approvalFor(runtimeClass, release, artifact, gitCtx) {
     return {
       approval_required: "Yes",
       approval_reason: "Production side effect is present or unknown.",
-      approval_scope: "release-owner decision",
+      approval_scope: "exact real-world release or recovery consent after Codex establishes the production state",
     };
   }
   if (gitCtx.force_push_required === "Yes") {
@@ -392,12 +418,12 @@ function plainSummary(runtimeClass) {
     STRUCTURE_BUDGET_EXCEEDED: "The code is not ready to push. The project blocked it because too much logic is concentrated in large files.",
     CI_CODE_FAILURE: "The remote check failed because the code or tests still need repair.",
     CI_ENVIRONMENT_FAILURE: "The remote check failed for an environment or provider reason. The task stays open while I classify whether retry is safe.",
-    RELEASE_PREFLIGHT_READY: "The exact release candidate passed preflight checks without touching production. It can move to release-owner review.",
+    RELEASE_PREFLIGHT_READY: "The exact release candidate passed preflight checks without touching production. It can move to exact release-consent review.",
     RELEASE_PREFLIGHT_FAILED: "The release stopped before production was touched. I need to diagnose the preflight failure before trying again.",
     ARTIFACT_QUOTA_BLOCKED: "The release has not touched production. Storage for build bundles is full, and cleanup needs approval because deletion is irreversible.",
     RELEASE_BUNDLE_OVERSIZED: "The release bundle is too large because it appears to include non-runtime files. Evidence must be preserved outside the runtime bundle.",
-    PRODUCTION_SIDE_EFFECT_UNKNOWN: "I cannot prove whether production was touched. The safe path is to stop and use the release-owner process.",
-    PRODUCTION_SIDE_EFFECT_PRESENT: "Production may already have changed. The safe path is to stop and use the release-owner or incident process.",
+    PRODUCTION_SIDE_EFFECT_UNKNOWN: "I cannot yet prove whether production was touched. I must stop and establish the production state from project or provider evidence before asking for any real-world decision.",
+    PRODUCTION_SIDE_EFFECT_PRESENT: "Production may already have changed. I must stop further release actions and follow the project recovery or incident path.",
   }[runtimeClass] || "A runtime delivery blocker needs classification before the task can move forward.";
 }
 
@@ -409,12 +435,12 @@ function plainNextStep(runtimeClass) {
     STRUCTURE_BUDGET_EXCEEDED: "Split the new logic structurally and rerun the structure gate.",
     CI_CODE_FAILURE: "Return to task repair and rerun the failing tests or checks.",
     CI_ENVIRONMENT_FAILURE: "Record the provider issue and retry only if project policy allows it.",
-    RELEASE_PREFLIGHT_READY: "Verify the release approval record for this exact candidate, then prepare the bounded release handoff.",
+    RELEASE_PREFLIGHT_READY: "Verify the exact release-consent record for this candidate, then prepare the bounded release handoff.",
     RELEASE_PREFLIGHT_FAILED: "Fix the preflight issue and rerun release review before any handoff.",
-    ARTIFACT_QUOTA_BLOCKED: "Ask the release owner to approve cleanup of old non-authoritative bundles while preserving evidence.",
+    ARTIFACT_QUOTA_BLOCKED: "Identify the exact obsolete bundles, preserve authoritative evidence, and ask the user only for consent to the irreversible deletion.",
     RELEASE_BUNDLE_OVERSIZED: "Narrow the runtime bundle and keep evidence indexed and hashed outside the bundle.",
-    PRODUCTION_SIDE_EFFECT_UNKNOWN: "Stop and ask the release owner to determine the production state.",
-    PRODUCTION_SIDE_EFFECT_PRESENT: "Stop and follow release-owner or incident handling.",
+    PRODUCTION_SIDE_EFFECT_UNKNOWN: "Stop and inspect project or provider evidence until the production state is established; do not transfer that technical diagnosis to the user.",
+    PRODUCTION_SIDE_EFFECT_PRESENT: "Stop further release actions and follow the project recovery or incident procedure.",
   }[runtimeClass] || "Keep the task open and record the blocker.";
 }
 
@@ -483,6 +509,8 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Production touched | \`${evidence.release_context.production_touched}\` |
 | Release ID reusable | \`${evidence.release_context.release_id_reusable}\` |
 | Release owner required | \`${evidence.release_context.release_owner_required}\` |
+| Release execution topology ref | \`${evidence.release_trust_binding?.release_execution_topology_ref || "N/A"}\` |
+| Release execution topology digest | \`${evidence.release_trust_binding?.release_execution_topology_digest || "N/A"}\` |
 
 ## Artifact Context
 

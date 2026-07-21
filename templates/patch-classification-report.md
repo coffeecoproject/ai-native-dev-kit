@@ -2,24 +2,35 @@
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Safe local fix | Fix only the approved small issue | Yes, approved task files only | low/medium | Choose when evidence shows the root cause is local |
-| B | Baseline-aligned hardcut | Replace the weak path with the expected baseline behavior | Yes, approved task files only | medium | Choose when a small patch would preserve the wrong structure |
-| C | Structural remediation | Stop implementation and prepare a broader remediation plan | Plan/report only | medium/high | Choose when the issue is architectural or cross-cutting |
-| D | Do not patch | Stop because the change would hide risk or need human decision | No | high if bypassed | Choose when root cause, approval, or rollback is unclear |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Repair Decision And Evidence
+
+Selected repair class: SAFE_LOCAL_FIX / BASELINE_ALIGNED_HARDCUT / STRUCTURAL_REMEDIATION / BLOCKED_BY_EVIDENCE / DO_NOT_PATCH
+
+Can Codex continue now: yes / limited / no
+
+Root-cause evidence:
+
+Scope and affected surfaces:
+
+Risk response and rollback:
+
+Verification and review route:
+
+Technical recovery after repeated failure:
 
 ## Human Summary
 
@@ -62,7 +73,7 @@ One-sentence repair-scale conclusion.
 
 ## Rollback / Recovery Impact
 
-None / Requires plan / Human decision required:
+None / Requires Codex plan / Exact real-world consent required:
 
 Notes:
 
@@ -80,9 +91,11 @@ Notes:
 
 ## Required Human Decisions
 
-| Decision | Reason | Owner | Status |
-|---|---|---|---|
-|  |  | human | PENDING |
+Compatibility heading: semantically this is the bounded `User Input Queue`; repair mechanics are excluded.
+
+| Input class | Missing business fact, exact prepared effect, or external fact | Why project evidence is insufficient | Source | Status |
+|---|---|---|---|---|
+| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  |  | user / external authority / N/A | PENDING / PROVIDED / CONSENTED / NOT_REQUIRED |
 
 ## Verification Plan
 
@@ -94,7 +107,7 @@ Patch classification authorizes implementation: No
 
 Required entry before implementation:
 
-- approved task / approved human decision / separate remediation plan
+- request-bound task / required bounded user input / separate Codex remediation plan
 
 ## Outcome
 

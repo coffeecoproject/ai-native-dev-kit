@@ -22,7 +22,7 @@
     "handoff or launch readiness is claimed"
   ],
   "canBeRecommendedByAI": true,
-  "selectionRequiresHumanDecision": true,
+  "selectionOwnedByCodex": true,
   "canAuthorizeWrites": false,
   "canApproveImplementation": false,
   "canApproveRelease": false,

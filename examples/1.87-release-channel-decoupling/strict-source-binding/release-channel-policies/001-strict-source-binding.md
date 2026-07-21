@@ -117,7 +117,7 @@
   "schema_version": "1.87.1",
   "artifact_type": "release_channel_policy",
   "release_channel_policy_ref": "release-channel-policies/001-strict-source-binding.md",
-  "release_channel_policy_digest": "sha256:5d46ad5fbf49e8cca4e6afc59bd7fcea92ddadd06505fb26846b4b79472d8874",
+  "release_channel_policy_digest": "sha256:248d9e44befc71fbb9b99ecadac887ff3c0e188ecf6ee15d46fd3b163f137039",
   "intent": "decide release channel policy with strict source binding",
   "intent_digest": "sha256:278d339d2b7c76a8fbb0ba4be1667af926901b99dfb0d557d3cebabf3c99c533",
   "project_type": "existing_project",
@@ -150,7 +150,7 @@
   "github_actions_policy": {
     "release_workflow_detected": "No",
     "github_hosted_runner_used": "No",
-    "self_hosted_runner_used": "Unknown",
+    "self_hosted_runner_used": "No",
     "actions_artifact_used_as_release_package": "No",
     "github_packages_used_as_release_package": "No",
     "artifact_retention_policy_ref": "not_applicable",

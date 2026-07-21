@@ -98,6 +98,79 @@
         }
       }
     },
+    "external_effect_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_type",
+        "action",
+        "provider",
+        "command_or_request_digest"
+      ],
+      "properties": {
+        "request_type": {
+          "enum": [
+            "none",
+            "argv",
+            "provider_request"
+          ]
+        },
+        "argv": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "provider_request": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command_or_request_digest": {
+          "type": "string",
+          "pattern": "^(?:sha256:[a-f0-9]{64}|N/A)$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "request_type": {
+                "const": "argv"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "argv"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "request_type": {
+                "const": "provider_request"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "provider_request"
+            ]
+          }
+        }
+      ]
+    },
     "trust_inputs": {
       "type": "object",
       "additionalProperties": false,
@@ -274,5 +347,28 @@
       ]
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "execution_mode": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "HUMAN_EXECUTION_HANDOFF",
+                  "ASSISTED_EXECUTION"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "external_effect_request"
+        ]
+      }
+    }
+  ],
   "additionalProperties": false
 }

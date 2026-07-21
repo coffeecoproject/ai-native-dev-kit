@@ -10,6 +10,7 @@
     "runtime_hygiene_ref",
     "runtime_hygiene_digest",
     "task_ref",
+    "intent_digest",
     "work_queue_item_ref",
     "task_governance_ref",
     "operation",
@@ -50,6 +51,10 @@
     "task_ref": {
       "type": "string",
       "minLength": 1
+    },
+    "intent_digest": {
+      "type": "string",
+      "pattern": "^(sha256:[a-f0-9]{64}|N/A)$"
     },
     "work_queue_item_ref": {
       "type": "string",

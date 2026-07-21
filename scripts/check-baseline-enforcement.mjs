@@ -4,6 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { normalizeBaselineLevel } from "./lib/baseline-selection.mjs";
+import { resolveIndustrialBaseline } from "./resolve-industrial-baseline.mjs";
+import { resolvePlatformBaseline } from "./resolve-platform-baseline.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["mode", "task", "json"]);
@@ -36,6 +38,7 @@ if (!outputJson) {
   console.log("");
 }
 
+checkBaselineReadiness();
 checkTaskCards();
 checkReviewPackets();
 checkReviewLoopReports();
@@ -72,6 +75,32 @@ function detectBaselineLevel(root) {
   if (levels.has("BL2_INDUSTRIAL")) return "BL2";
   if (levels.has("BL1_STANDARD")) return "BL1";
   return "BL0";
+}
+
+function checkBaselineReadiness() {
+  if (mode !== "implementation") return;
+  try {
+    const platform = resolvePlatformBaseline(projectRoot);
+    if (platform.strictState === "BASELINE_READY") {
+      pass("platform baseline strict state is BASELINE_READY");
+    } else {
+      const reasons = platform.strictStatus?.blockingReasons || platform.pendingReasons || [];
+      issue("FAIL", `platform baseline is not implementation-ready (${platform.strictState}): ${reasons.join("; ") || "no ready baseline selection"}`);
+    }
+  } catch (error) {
+    issue("FAIL", `platform baseline readiness could not be resolved: ${error.message}`);
+  }
+
+  try {
+    const industrial = resolveIndustrialBaseline(projectRoot);
+    if (industrial.strictStatus?.ready === true) {
+      pass(`industrial baseline strict state is ${industrial.strictState}`);
+    } else {
+      issue("FAIL", `industrial baseline is not implementation-ready (${industrial.strictState}): ${industrial.pendingReasons.join("; ") || industrial.packIndexError || "baseline selection is incomplete"}`);
+    }
+  } catch (error) {
+    issue("FAIL", `industrial baseline readiness could not be resolved: ${error.message}`);
+  }
 }
 
 function checkTaskCards() {

@@ -21,7 +21,7 @@
     "admin console, CRM, ERP, management dashboard, approval workflow, finance console, HR console, or internal operations system is in scope"
   ],
   "canBeRecommendedByAI": true,
-  "selectionRequiresHumanDecision": true,
+  "selectionOwnedByCodex": true,
   "canAuthorizeWrites": false,
   "canApproveImplementation": false,
   "canApproveRelease": false,

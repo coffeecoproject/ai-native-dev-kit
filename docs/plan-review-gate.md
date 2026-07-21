@@ -61,6 +61,15 @@ backed by:
 The report may include a derived review-surface matrix, but that matrix is not
 enough by itself. It is a helper view, not the authority.
 
+The exact plan must also contain real implementation content: bounded scope,
+boundaries, ordered steps, verification, rollback/recovery, and concrete target
+references. Intent text plus an otherwise empty document cannot pass.
+
+Verification commands are checked against the current project before a pass.
+Missing package scripts, unresolved local scripts, unsupported commands,
+unsafe working-directory changes, and `Unknown` command status all require plan
+revision. This static check does not claim the commands were executed.
+
 When read-only subagent review is recommended, `PLAN_REVIEW_PASSED` requires the
 subagent route to be closed or explicitly skipped through the approved route. A
 fallback explanation is not enough to turn an unfinished recommended subagent

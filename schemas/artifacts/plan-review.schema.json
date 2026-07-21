@@ -39,11 +39,13 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "enum": ["1.88.0", "1.108.0", "1.110.0"] },
+    "schema_version": { "enum": ["1.88.0", "1.108.0", "1.110.0", "1.113.0"] },
     "artifact_type": { "const": "plan_review" },
     "plan_review_ref": { "type": "string", "minLength": 1 },
     "plan_review_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "task_ref": { "type": "string", "minLength": 1 },
+    "intent": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "work_queue_item_ref": { "type": "string", "minLength": 1 },
     "work_queue_item_digest": { "type": "string", "minLength": 1 },
     "review_surface_analysis": {
@@ -67,9 +69,41 @@
         "ref": { "type": "string", "minLength": 1 },
         "digest": { "type": "string", "minLength": 1 },
         "task_ref": { "type": "string", "minLength": 1 },
+        "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
         "task_impact": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH", "Unknown"] },
         "plan_review_required": { "enum": ["Yes", "No", "Unknown"] },
-        "current_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] }
+        "current_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+        "outcome": { "type": "string", "minLength": 1 },
+        "required_before_implementation_review": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope_check_required", "short_plan_required", "business_universe_coverage_required",
+            "control_effectiveness_required", "business_rule_closure_required",
+            "change_impact_coverage_required", "execution_plan_required", "verification_plan_required"
+          ],
+          "properties": {
+            "scope_check_required": { "enum": ["Yes", "No"] },
+            "short_plan_required": { "enum": ["Yes", "No"] },
+            "business_universe_coverage_required": { "enum": ["Yes", "No", "Unknown"] },
+            "control_effectiveness_required": { "enum": ["Yes", "No", "Unknown"] },
+            "business_rule_closure_required": { "enum": ["Yes", "No"] },
+            "change_impact_coverage_required": { "enum": ["Yes", "No"] },
+            "execution_plan_required": { "enum": ["Yes", "No"] },
+            "verification_plan_required": { "enum": ["Yes", "No"] }
+          }
+        },
+        "required_before_completion_claim": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["test_evidence_required", "execution_assurance_required", "completion_evidence_required"],
+          "properties": {
+            "test_evidence_required": { "enum": ["Yes", "No"] },
+            "execution_assurance_required": { "enum": ["Yes", "No"] },
+            "completion_evidence_required": { "enum": ["Yes", "No"] }
+          }
+        },
+        "obligations_valid": { "enum": ["Yes", "No"] }
       }
     },
     "business_universe_binding": {
@@ -168,6 +202,40 @@
     "plan_ref": { "type": "string", "minLength": 1 },
     "plan_digest": { "type": "string", "minLength": 1 },
     "plan_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+    "plan_content_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "scope_section_present", "boundaries_section_present",
+        "implementation_sequence_present", "verification_section_present",
+        "rollback_recovery_section_present", "concrete_target_refs",
+        "implementation_step_count", "missing_requirements"
+      ],
+      "properties": {
+        "status": { "enum": ["COMPLETE", "INCOMPLETE", "NOT_REQUIRED"] },
+        "scope_section_present": { "enum": ["Yes", "No", "N/A"] },
+        "boundaries_section_present": { "enum": ["Yes", "No", "N/A"] },
+        "implementation_sequence_present": { "enum": ["Yes", "No", "N/A"] },
+        "verification_section_present": { "enum": ["Yes", "No", "N/A"] },
+        "rollback_recovery_section_present": { "enum": ["Yes", "No", "N/A"] },
+        "concrete_target_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "implementation_step_count": { "type": "integer" },
+        "missing_requirements": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "scope", "boundaries", "implementation_sequence",
+              "verification", "rollback_recovery", "concrete_target_refs"
+            ]
+          }
+        }
+      }
+    },
     "plan_review_state": {
       "enum": [
         "NO_PLAN_REQUIRED",
@@ -343,6 +411,29 @@
         "commands_executed_by_this_report": { "enum": ["Yes", "No"] },
         "requires_test_evidence_later": { "enum": ["Yes", "No"] },
         "fake_or_unstable_command_found": { "enum": ["Yes", "No"] },
+        "working_directory_verified": { "enum": ["Yes", "No", "N/A"] },
+        "all_commands_authoritative": { "enum": ["Yes", "No", "N/A"] },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "command", "kind", "executable_or_script_exists",
+              "project_native", "working_directory_safe",
+              "targets_required_behavior", "reason"
+            ],
+            "properties": {
+              "command": { "type": "string", "minLength": 1 },
+              "kind": { "enum": ["package_script", "node_script", "project_tool", "unsupported"] },
+              "executable_or_script_exists": { "enum": ["Yes", "No"] },
+              "project_native": { "enum": ["Yes", "No"] },
+              "working_directory_safe": { "enum": ["Yes", "No"] },
+              "targets_required_behavior": { "enum": ["Yes", "No"] },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
         "notes": { "type": "string" }
       }
     },
@@ -379,6 +470,23 @@
     {
       "if": { "properties": { "schema_version": { "const": "1.110.0" } } },
       "then": { "required": ["business_universe_binding", "plan_scenario_reviews", "control_effectiveness_binding"] }
+    },
+    {
+      "if": { "properties": { "schema_version": { "const": "1.113.0" } } },
+      "then": {
+        "required": ["intent", "intent_digest", "business_universe_binding", "plan_scenario_reviews", "control_effectiveness_binding", "plan_content_review"],
+        "properties": {
+          "task_governance": {
+            "required": [
+              "intent_digest", "outcome", "required_before_implementation_review",
+              "required_before_completion_claim", "obligations_valid"
+            ]
+          },
+          "verification_command_review": {
+            "required": ["working_directory_verified", "all_commands_authoritative", "commands"]
+          }
+        }
+      }
     }
   ]
 }

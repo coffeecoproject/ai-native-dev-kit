@@ -4,7 +4,15 @@
   "defaultTaskLevel": "L3",
   "escalationRules": [
     {
-      "when": ["irreversible-operation", "regulated-operation", "safety-critical", "production-impact", "value-transfer", "destructive-operation", "sensitive-data"],
+      "when": [
+        "irreversible-operation",
+        "regulated-operation",
+        "safety-critical",
+        "production-impact",
+        "value-transfer",
+        "destructive-operation",
+        "sensitive-data"
+      ],
       "minLevel": "L3"
     }
   ],
@@ -19,12 +27,25 @@
     "docs/verification-matrix.md"
   ],
   "riskGateMappings": {
-    "irreversible-operation": ["irreversible operation"],
-    "regulated-operation": ["regulated operation"],
-    "safety-critical": ["safety-critical behavior"],
-    "value-transfer": ["value transfer"],
-    "destructive-operation": ["data deletion"],
-    "sensitive-data": ["personal data", "regulated data"]
+    "irreversible-operation": [
+      "irreversible operation"
+    ],
+    "regulated-operation": [
+      "regulated operation"
+    ],
+    "safety-critical": [
+      "safety-critical behavior"
+    ],
+    "value-transfer": [
+      "value transfer"
+    ],
+    "destructive-operation": [
+      "data deletion"
+    ],
+    "sensitive-data": [
+      "personal data",
+      "regulated data"
+    ]
   },
   "requiredVerification": [
     "full relevant verification suite",
@@ -33,31 +54,50 @@
     "rollback or disable evidence",
     "manual approval record"
   ],
-  "verificationKeywords": ["full", "rejection", "audit", "rollback", "approval", "evidence"],
+  "verificationKeywords": [
+    "full",
+    "rejection",
+    "audit",
+    "rollback",
+    "approval",
+    "evidence"
+  ],
   "verifyScriptKeywords": [],
-  "highRiskKeywords": ["approval", "rollback", "audit", "production", "destructive", "regulated"],
+  "highRiskKeywords": [
+    "approval",
+    "rollback",
+    "audit",
+    "production",
+    "destructive",
+    "regulated"
+  ],
   "humanApprovalRequiredFor": [
-    "irreversible-operation",
-    "regulated-operation",
-    "production-impact",
-    "value-transfer",
-    "destructive-operation",
-    "sensitive-data"
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release",
+    "real-user-communication",
+    "regulated-data-export-to-external-recipient"
   ],
   "releaseChecks": [
-    "manual approval record is present and scoped",
-    "rollback, disable, or recovery path is documented and verified",
-    "post-release monitoring or follow-up verification is defined"
+    "the exact task, impact surface, rollback, recovery, verification, and post-release observation evidence are complete",
+    "Codex independently challenges irreversible, regulated, destructive, value-transfer, and sensitive-data paths",
+    "exact user consent is present only for a prepared external, paid, real-user, or irreversible production-data effect"
   ],
   "aiBoundaries": {
     "may": [
-      "draft risk analysis, verification plans, rollback notes, and implementation proposals",
-      "execute only the approved low-level task steps after explicit human approval is recorded"
+      "derive risk analysis, implementation, verification, rollback, recovery, and challenger plans inside the current governed task scope",
+      "execute project-local technical actions after IntentOS gates prove scope, evidence, rollback, and completion readiness"
     ],
     "mustNot": [
-      "self-approve high-risk implementation, release, rollback, or production-impacting decisions",
-      "perform irreversible, regulated, destructive, value-transfer, or sensitive-data changes without explicit human approval"
+      "delegate architecture, migration, security, dependency, rollback, test, or review strategy choices to the user",
+      "perform an external account action, production release, value transfer, real-user communication, regulated-data export, or irreversible production-data effect without exact consent"
     ]
   },
-  "compatibleStarters": ["generic-project", "codex-web-app", "codex-ios-app", "codex-android-app"]
+  "compatibleStarters": [
+    "generic-project",
+    "codex-web-app",
+    "codex-ios-app",
+    "codex-android-app"
+  ]
 }

@@ -1,5 +1,7 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import {
   evidenceDigest,
   extractMachineReadableEvidence,
@@ -8,12 +10,14 @@ import {
 } from "./artifact-schema.mjs";
 import {
   canonicalFileDigest,
+  isGovernedWorkflowOutputPath,
   projectIdentity,
   resolveAuthoritativeEvidenceReference,
 } from "./evidence-authority.mjs";
 import { sectionBody } from "./markdown.mjs";
 import { validateSpecificHumanApprover } from "./approval-record-validation.mjs";
 import { validateReleaseTopologySource } from "./release-topology-consumer.mjs";
+import { validateReleaseSurfaceEvidence } from "./release-surface-evidence.mjs";
 
 export const REQUIRED_BLOCKED_RELEASE_ACTIONS = [
   "PRODUCTION_DEPLOY",
@@ -28,6 +32,99 @@ export const REQUIRED_BLOCKED_RELEASE_ACTIONS = [
   "ROLLBACK_EXECUTION",
 ];
 
+export const STAGED_RELEASE_CANDIDATE_CHECK = "git diff --cached --check";
+export const FULL_VERIFICATION_COMMAND = "npm run verify";
+
+export function fullVerificationAuthorityErrors(authority) {
+  const errors = [];
+  if (authority?.test_evidence_state !== "TEST_EVIDENCE_COMPLETE") {
+    errors.push("full verification requires TEST_EVIDENCE_COMPLETE authority");
+    return errors;
+  }
+  const items = Array.isArray(authority.evidence_items) ? authority.evidence_items : [];
+  const exact = items.filter((item) => String(item?.command || "").trim() === FULL_VERIFICATION_COMMAND);
+  if (exact.length !== 1) {
+    errors.push(`full verification requires exactly one ${FULL_VERIFICATION_COMMAND} command result`);
+    return errors;
+  }
+  const item = exact[0];
+  if (item.evidence_type !== "COMMAND_OUTPUT") errors.push("full verification must use COMMAND_OUTPUT evidence");
+  if (item.result_state !== "PASSED" || item.exit_code !== 0) errors.push("full verification command must pass with exit code 0");
+  if (item.ran_after_change !== "Yes" || item.current_task_match !== "Yes") {
+    errors.push("full verification command must be current-task evidence recorded after the candidate change");
+  }
+  if (!/^artifact:evidence\/[A-Za-z0-9._/-]+$/.test(String(item.ref || ""))) {
+    errors.push("full verification command must bind a project-local evidence artifact");
+  }
+  return errors;
+}
+
+export function releaseAcceptanceCandidateRevision(projectRoot, excludedReviewRefs) {
+  const refs = Array.isArray(excludedReviewRefs) ? excludedReviewRefs : [excludedReviewRefs];
+  const excluded = new Set(refs.map((ref) => normalizeCandidateExclusion(ref)));
+  if (excluded.size === 0) {
+    throw new Error("release acceptance review exclusions are required");
+  }
+  const indexed = runReadOnlyGit(projectRoot, ["ls-files", "--stage", "-z", "--", "."]);
+  if (indexed.status !== 0) {
+    throw new Error(`cannot inspect the release candidate Git index: ${firstUsefulLine(indexed.stderr || indexed.stdout)}`);
+  }
+  const rows = [];
+  for (const entry of String(indexed.stdout || "").split("\0").filter(Boolean)) {
+    const match = entry.match(/^([0-9]{6}) ([a-f0-9]{40,64}) ([0-3])\t(.+)$/);
+    if (!match || match[3] !== "0") throw new Error(`cannot parse release candidate Git index entry: ${entry}`);
+    const relative = match[4].replaceAll("\\", "/");
+    if (excluded.has(relative)) continue;
+    rows.push(`${match[1]} ${match[2]} ${relative}`);
+  }
+  return `sha256:${crypto.createHash("sha256").update(`release-acceptance-candidate:v1\n${rows.sort().join("\n")}`).digest("hex")}`;
+}
+
+export function releaseCandidateContaminationErrors(projectRoot, excludedReviewRefs = []) {
+  const excluded = new Set((Array.isArray(excludedReviewRefs) ? excludedReviewRefs : [excludedReviewRefs])
+    .filter(Boolean)
+    .map((ref) => normalizeCandidateExclusion(ref)));
+  const errors = [];
+  const unstaged = runReadOnlyGit(projectRoot, ["diff", "--name-only", "--diff-filter=ACDMRTUXB", "--", "."]);
+  if (unstaged.status !== 0) {
+    return [`cannot inspect unstaged candidate contamination: ${firstUsefulLine(unstaged.stderr || unstaged.stdout)}`];
+  }
+  for (const relative of String(unstaged.stdout || "").split(/\r?\n/).map(normalizeCandidatePath).filter(Boolean)) {
+    if (!excluded.has(relative) && !isGovernedWorkflowOutputPath(relative)) {
+      errors.push(`release candidate worktree contains unstaged project change ${relative}`);
+    }
+  }
+  const untracked = runReadOnlyGit(projectRoot, ["ls-files", "--others", "--exclude-standard", "-z", "--", "."]);
+  if (untracked.status !== 0) {
+    return [...errors, `cannot inspect untracked candidate contamination: ${firstUsefulLine(untracked.stderr || untracked.stdout)}`];
+  }
+  for (const relative of String(untracked.stdout || "").split("\0").map(normalizeCandidatePath).filter(Boolean)) {
+    if (excluded.has(relative) || isGovernedWorkflowOutputPath(relative) || isUnregisteredPlanningDraft(relative)) continue;
+    errors.push(`release candidate worktree contains untracked project file ${relative}`);
+  }
+  return errors;
+}
+
+function normalizeCandidateExclusion(value) {
+  const relative = String(value || "")
+    .trim()
+    .replace(/^(artifact|file):/i, "")
+    .replaceAll("\\", "/")
+    .replace(/^\.\//, "");
+  if (!relative || path.isAbsolute(relative) || relative.split("/").includes("..")) {
+    throw new Error("release acceptance review exclusion must be a safe project-relative path");
+  }
+  return relative;
+}
+
+function normalizeCandidatePath(value) {
+  return String(value || "").trim().replaceAll("\\", "/").replace(/^\.\//, "");
+}
+
+function isUnregisteredPlanningDraft(relative) {
+  return /^docs\/plans\/[A-Za-z0-9._/-]+\.md$/.test(relative);
+}
+
 const productionLikeTargets = new Set(["production_review", "app_store_review", "mini_program_review"]);
 const platformRecipeTargets = new Set(["app_store_review", "mini_program_review"]);
 const recipeTargetByReleaseTarget = new Map([
@@ -38,6 +135,128 @@ const recipeTargetByReleaseTarget = new Map([
   ["app_store_review", "app-store"],
   ["mini_program_review", "review"],
 ]);
+const effectRuleByReleaseTarget = new Map([
+  ["preview", { environment: "preview", action: "PROVIDER_DEPLOY" }],
+  ["internal_trial", { environment: "internal_trial", action: "PROVIDER_DEPLOY" }],
+  ["staging", { environment: "staging", action: "PROVIDER_DEPLOY" }],
+  ["production_review", { environment: "production", action: "PRODUCTION_DEPLOY" }],
+  ["app_store_review", { environment: "app_store", action: "STORE_SUBMISSION" }],
+  ["mini_program_review", { environment: "mini_program", action: "MINI_PROGRAM_RELEASE" }],
+]);
+const approvedEffectKeys = [
+  "effect_id",
+  "action",
+  "platform",
+  "environment",
+  "candidate_ref",
+  "candidate_digest",
+  "package_identity_type",
+  "package_identity_ref",
+  "package_identity_digest_or_id",
+  "command_or_request_digest",
+  "cost_boundary",
+  "rollback_ref",
+  "rollback_digest",
+];
+
+export function validateReleasePreflightReceipt(projectRoot, reference, expected = {}) {
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, expected.fromFile || "", reference);
+  if (!resolved.ok) {
+    return { ok: false, errors: [`release preflight receipt is unsafe or unresolved: ${resolved.error}`], receipt: null };
+  }
+  let receipt;
+  try {
+    receipt = JSON.parse(fs.readFileSync(resolved.file, "utf8"));
+  } catch (error) {
+    return { ok: false, errors: [`release preflight receipt must be valid JSON: ${error.message}`], receipt: null };
+  }
+  const errors = [];
+  if (receipt?.schema_version !== "1.113.0") errors.push("release preflight receipt schema_version must be 1.113.0");
+  if (receipt?.artifact_type !== "release_preflight_receipt") errors.push("release preflight receipt artifact_type must be release_preflight_receipt");
+  if (receipt?.operation !== "release_preflight") errors.push("release preflight receipt operation must be release_preflight");
+  if (receipt?.result !== "PASS" || receipt?.exit_code !== 0) errors.push("release preflight receipt must record result PASS and exit_code 0");
+  if (receipt?.command !== STAGED_RELEASE_CANDIDATE_CHECK) {
+    errors.push(`release preflight receipt command must be the supported exact candidate check: ${STAGED_RELEASE_CANDIDATE_CHECK}`);
+  } else {
+    errors.push(...validateStagedReleaseCandidateCheck(projectRoot));
+  }
+  if (!new Set(["PREFLIGHT_ONLY", "BUNDLE_CREATED"]).has(receipt?.lane_state)) errors.push("release preflight receipt must remain in a pre-production lane");
+  if (receipt?.external_effects_executed !== "No") errors.push("release preflight receipt must prove that no external effect was executed");
+  if (receipt?.production_touched !== "No") errors.push("release preflight receipt must prove that production was not touched");
+  if (!/^sha256:[a-f0-9]{64}$/.test(String(receipt?.release_candidate_digest || ""))) {
+    errors.push("release preflight receipt requires a release_candidate_digest");
+  }
+  const candidate = resolveAuthoritativeEvidenceReference(projectRoot, resolved.file, receipt?.release_candidate_ref || "");
+  if (!candidate.ok) {
+    errors.push(`release preflight receipt release candidate is unsafe or unresolved: ${candidate.error}`);
+  } else if (canonicalFileDigest(candidate.file) !== receipt?.release_candidate_digest) {
+    errors.push("release preflight receipt release_candidate_digest does not match the current candidate file");
+  }
+  if (!/^sha256:[a-f0-9]{64}$/.test(String(receipt?.receipt_digest || ""))) {
+    errors.push("release preflight receipt requires receipt_digest");
+  } else if (receipt.receipt_digest !== evidenceDigest(receipt, ["receipt_digest"])) {
+    errors.push("release preflight receipt digest does not match its current content");
+  }
+  for (const [field, expectedValue] of [
+    ["task_ref", expected.taskRef],
+    ["intent_digest", expected.intentDigest],
+    ["release_candidate_ref", expected.releaseCandidateRef],
+    ["release_candidate_digest", expected.releaseCandidateDigest],
+    ["source_revision", expected.sourceRevision],
+    ["lane_state", expected.laneState],
+  ]) {
+    if (expectedValue && receipt?.[field] !== expectedValue) errors.push(`release preflight receipt ${field} does not match the current request`);
+  }
+  const currentRevision = projectIdentity(projectRoot).revision;
+  if (receipt?.source_revision !== currentRevision) errors.push("release preflight receipt source_revision does not match the current project revision");
+  return {
+    ok: errors.length === 0,
+    errors,
+    receipt,
+    file: resolved.file,
+    relativePath: resolved.relativePath,
+    digest: canonicalFileDigest(resolved.file),
+  };
+}
+
+function validateStagedReleaseCandidateCheck(projectRoot) {
+  const errors = [];
+  const changed = runReadOnlyGit(projectRoot, [
+    "diff", "--cached", "--name-only", "--diff-filter=ACDMRTUXB",
+  ]);
+  if (changed.status !== 0) {
+    errors.push(`release preflight receipt cannot inspect the staged candidate: ${firstUsefulLine(changed.stderr || changed.stdout)}`);
+    return errors;
+  }
+  if (!String(changed.stdout || "").split(/\r?\n/).some((line) => line.trim())) {
+    errors.push("release preflight receipt exact candidate check requires a non-empty staged diff");
+    return errors;
+  }
+  const checked = runReadOnlyGit(projectRoot, ["diff", "--cached", "--check"]);
+  if (checked.status !== 0) {
+    errors.push(`release preflight receipt exact candidate check failed: ${firstUsefulLine(checked.stderr || checked.stdout)}`);
+  }
+  errors.push(...releaseCandidateContaminationErrors(projectRoot));
+  return errors;
+}
+
+function runReadOnlyGit(projectRoot, args) {
+  return spawnSync("git", ["-C", projectRoot, "--no-pager", ...args], {
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 32,
+    env: {
+      ...process.env,
+      GIT_OPTIONAL_LOCKS: "0",
+      GIT_TERMINAL_PROMPT: "0",
+      GIT_PAGER: "cat",
+      PAGER: "cat",
+    },
+  });
+}
+
+function firstUsefulLine(value) {
+  return String(value || "").split(/\r?\n/).map((line) => line.trim()).find(Boolean) || "git command failed";
+}
 
 export function readReleaseApprovalRecord(projectRoot, reference, options = {}) {
   const root = path.resolve(projectRoot);
@@ -72,6 +291,9 @@ export function validateReleaseApprovalTrust(projectRoot, approvalFile, evidence
 
   const approval = evidence.human_approval || {};
   errors.push(...validateSpecificHumanApprover(approval.approved_by, "release approval"));
+  const approvedEffect = parseApprovedExternalEffect(approval.approved_scope);
+  if (!approvedEffect.ok) errors.push(...approvedEffect.errors);
+  else errors.push(...releaseApprovalEffectErrors(evidence, approvedEffect.value, options.expectedEffect || {}));
   const approvedAt = Date.parse(String(approval.approved_at || ""));
   const expiresAt = Date.parse(String(approval.expires_at || ""));
   if (!Number.isFinite(approvedAt)) errors.push("approved_at must be a valid timestamp");
@@ -142,7 +364,11 @@ export function validateReleaseApprovalTrust(projectRoot, approvalFile, evidence
     ["postReleaseSmoke", "post_release_smoke_ref", "post_release_smoke_digest", "Post-release smoke"],
   ]) {
     const resolved = resolveBoundFile(projectRoot, approvalFile, evidence.release_controls?.[refField], evidence.release_controls?.[digestField], label, errors);
-    if (resolved) resolvedSources[key] = resolved;
+    if (resolved) {
+      const semantic = validateReleaseSurfaceEvidence(label, resolved);
+      if (!semantic.ok) errors.push(...semantic.errors);
+      resolvedSources[key] = resolved;
+    }
   }
 
   checkReleaseEvidence(evidence, resolvedSources.releaseEvidence, errors);
@@ -153,6 +379,84 @@ export function validateReleaseApprovalTrust(projectRoot, approvalFile, evidence
   checkTopologyAgreement(evidence, resolvedSources.releaseEvidence, resolvedSources.runtimeHygiene, errors, options.requireTopology);
 
   return { ok: errors.length === 0, errors, resolvedSources };
+}
+
+export function commandOrRequestDigest(value) {
+  return `sha256:${crypto.createHash("sha256").update(String(value || "")).digest("hex")}`;
+}
+
+export function parseApprovedExternalEffect(value) {
+  let parsed = value;
+  if (typeof value === "string") {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      return {
+        ok: false,
+        value: null,
+        errors: ["approved_scope must be a JSON object that binds one concrete external effect; arbitrary text is not approval"],
+      };
+    }
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return { ok: false, value: null, errors: ["approved_scope must resolve to one structured external effect object"] };
+  }
+  const keys = Object.keys(parsed).sort();
+  const expectedKeys = [...approvedEffectKeys].sort();
+  if (JSON.stringify(keys) !== JSON.stringify(expectedKeys)) {
+    return {
+      ok: false,
+      value: parsed,
+      errors: [`approved_scope fields must be exactly: ${approvedEffectKeys.join(", ")}`],
+    };
+  }
+  return { ok: true, value: parsed, errors: [] };
+}
+
+export function releaseApprovalEffectErrors(approvalEvidence, effect, expectedEffect = {}) {
+  const errors = [];
+  const candidate = approvalEvidence.release_candidate || {};
+  const controls = approvalEvidence.release_controls || {};
+  const rule = effectRuleByReleaseTarget.get(candidate.release_target);
+  if (!/^[a-z0-9][a-z0-9._:-]*$/i.test(String(effect.effect_id || ""))) errors.push("approved_scope.effect_id must be a stable external effect identifier");
+  if (!rule) errors.push(`approved_scope cannot bind unsupported release target ${candidate.release_target || "<missing>"}`);
+  else {
+    if (effect.action !== rule.action) errors.push(`approved_scope.action must be ${rule.action} for ${candidate.release_target}`);
+    if (effect.environment !== rule.environment) errors.push(`approved_scope.environment must be ${rule.environment} for ${candidate.release_target}`);
+  }
+  if (!/^[a-z0-9][a-z0-9._-]*$/i.test(String(effect.platform || ""))) errors.push("approved_scope.platform must identify one concrete platform");
+  if (normalizeComparableRef(effect.candidate_ref) !== normalizeComparableRef(candidate.candidate_ref)) errors.push("approved_scope candidate_ref does not match release_candidate");
+  if (effect.candidate_digest !== candidate.candidate_digest) errors.push("approved_scope candidate_digest does not match release_candidate");
+  if (effect.package_identity_type !== candidate.package_identity_type) errors.push("approved_scope package_identity_type does not match release_candidate");
+  if (normalizeComparableRef(effect.package_identity_ref) !== normalizeComparableRef(candidate.package_identity_ref)) errors.push("approved_scope package_identity_ref does not match release_candidate");
+  if (effect.package_identity_digest_or_id !== candidate.package_identity_digest_or_id) errors.push("approved_scope package identity does not match release_candidate");
+  if (!/^sha256:[a-f0-9]{64}$/.test(String(effect.command_or_request_digest || ""))) errors.push("approved_scope.command_or_request_digest must bind the exact command or provider request");
+  if (normalizeComparableRef(effect.rollback_ref) !== normalizeComparableRef(controls.rollback_ref)) errors.push("approved_scope rollback_ref does not match release controls");
+  if (effect.rollback_digest !== controls.rollback_digest) errors.push("approved_scope rollback_digest does not match release controls");
+  errors.push(...costBoundaryErrors(effect.cost_boundary));
+
+  for (const [field, expected] of Object.entries(expectedEffect || {})) {
+    if (expected === undefined || expected === null || expected === "") continue;
+    if (effect[field] !== expected) errors.push(`approved_scope.${field} does not match the concrete execution request`);
+  }
+  return errors;
+}
+
+function costBoundaryErrors(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return ["approved_scope.cost_boundary must be structured"];
+  const keys = Object.keys(value).sort();
+  const expected = ["cost_class", "currency", "maximum_amount"].sort();
+  if (JSON.stringify(keys) !== JSON.stringify(expected)) return ["approved_scope.cost_boundary fields must be exactly cost_class, currency, maximum_amount"];
+  const allowed = new Set(["NO_INCREMENTAL_COST", "WITHIN_APPROVED_BUDGET", "VARIABLE_COST_APPROVED"]);
+  const errors = [];
+  if (!allowed.has(value.cost_class)) errors.push("approved_scope.cost_boundary.cost_class is invalid");
+  if (value.cost_class === "NO_INCREMENTAL_COST") {
+    if (value.currency !== "N/A" || value.maximum_amount !== "N/A") errors.push("NO_INCREMENTAL_COST must use N/A currency and maximum_amount");
+  } else {
+    if (!/^[A-Z]{3}$/.test(String(value.currency || ""))) errors.push("approved_scope cost currency must be an ISO-style three-letter code");
+    if (!/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$/.test(String(value.maximum_amount || ""))) errors.push("approved_scope maximum_amount must be a non-negative decimal boundary");
+  }
+  return errors;
 }
 
 function checkTopologyAgreement(approval, releaseEvidenceResolved, runtimeResolved, errors, required) {

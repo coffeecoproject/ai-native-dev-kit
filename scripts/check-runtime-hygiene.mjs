@@ -7,6 +7,7 @@ import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
+import { validateReleasePreflightReceipt } from "./lib/release-trust.mjs";
 import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { validateReleaseTopologySource } from "./lib/release-topology-consumer.mjs";
 
@@ -293,6 +294,7 @@ function checkRuntimeConsistency(label, evidence) {
       fail(`${label} RELEASE_PREFLIGHT_READY requires isolated task revision and no force push`);
     }
     checkReleaseTrustBinding(label, evidence);
+    checkReleasePreflightReceipt(label, evidence);
   }
   if (evidence.runtime_class === "RELEASE_PREFLIGHT_FAILED" && evidence.decision_state === "CAN_CONTINUE_AUTOMATICALLY") {
     fail(`${label} failed release preflight must not continue automatically`);
@@ -395,6 +397,25 @@ function checkReleaseTrustBinding(label, evidence) {
   else fail(`${label} release candidate digest does not match current file`);
   if (projectIdentity(projectRoot).revision === binding.source_revision) pass(`${label} release candidate source revision matches current project`);
   else fail(`${label} release candidate source revision does not match current project`);
+}
+
+function checkReleasePreflightReceipt(label, evidence) {
+  const source = (evidence.runtime_source_trace || []).find((item) => item.source_kind === "release_event");
+  if (!source || source.source_present !== "Yes") {
+    fail(`${label} RELEASE_PREFLIGHT_READY requires a release preflight receipt source`);
+    return;
+  }
+  const binding = evidence.release_trust_binding || {};
+  const checked = validateReleasePreflightReceipt(projectRoot, source.source_ref, {
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+    releaseCandidateRef: binding.release_candidate_ref,
+    releaseCandidateDigest: binding.release_candidate_digest,
+    sourceRevision: binding.source_revision,
+    laneState: evidence.release_context?.lane_state,
+  });
+  if (checked.ok) pass(`${label} release preflight receipt is current, task-bound, candidate-bound, and external-effect free`);
+  else checked.errors.forEach((error) => fail(`${label} ${error}`));
 }
 
 function requireDecision(label, evidence, expected, context) {

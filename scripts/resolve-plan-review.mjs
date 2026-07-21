@@ -7,6 +7,18 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { resolveCurrentControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
+import { planReviewSourceDigest } from "./lib/plan-review-binding.mjs";
+import {
+  normalizeTaskIntent,
+  resolveWorkQueueTaskIdentity,
+  taskIntentDigest,
+} from "./lib/task-entry-binding.mjs";
+import {
+  minimumTaskObligations,
+  planContainsCurrentIntent,
+  requiredImplementationSources,
+  validateTaskObligationProjection,
+} from "./lib/task-obligations.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -30,7 +42,7 @@ const knownFlags = new Set([
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const intent = String(args.intent || "review implementation plan before coding").trim();
+const intent = normalizeTaskIntent(args.intent || "review implementation plan before coding");
 const planArg = args.plan ? String(args.plan) : "";
 const taskGovernanceArg = args["task-governance"] ? String(args["task-governance"]) : "";
 const businessUniverseArg = args["business-universe"] ? String(args["business-universe"]) : "";
@@ -81,36 +93,75 @@ function buildReport() {
   const plan = readPlan(projectRoot, planArg);
   const classification = classify(intent, plan.content);
   const taskGovernance = taskGovernanceFor(classification);
+  classification.task_ref = taskGovernance.task_ref;
   classification.task_impact = taskGovernance.task_impact;
   classification.plan_review_required = taskGovernance.plan_review_required;
-  classification.task_ref = taskGovernance.task_ref;
+  const noPlanRequired = classification.task_impact === "LOW"
+    && classification.plan_review_required === "No"
+    && !plan.exists;
+  const planContentReview = planContentReviewFor(plan, noPlanRequired);
+  const verificationCommandReview = verificationCommandReviewFor(plan.content, noPlanRequired);
   const businessUniverse = businessUniverseFor(taskGovernance);
   const surfaces = surfacesFor(classification, plan.content, businessUniverse);
-  const findings = findingsFor(classification, plan, surfaces);
+  const findings = findingsFor(classification, plan, surfaces, planContentReview, verificationCommandReview);
   const planScenarioReviews = planScenarioReviewsFor(businessUniverse, plan.content, surfaces);
   const businessUniverseBinding = businessUniverseBindingFor(businessUniverse, planScenarioReviews);
   const controlEffectivenessBinding = controlEffectivenessFor(taskGovernance);
   const sourceAuthority = sourceAuthorityFor(classification, surfaces, taskGovernance, businessUniverse);
-  const state = stateFor(classification, plan, findings, businessUniverse, businessUniverseBinding, controlEffectivenessBinding, sourceAuthority);
+  const currentIntentDigest = taskIntentDigest(intent);
+  const workQueueRef = workQueueArg || taskGovernance._evidence?.task_lineage?.work_queue_item_ref || "";
+  const workQueue = workQueueRef
+    ? resolveWorkQueueTaskIdentity(projectRoot, workQueueRef, { requireCurrent: true })
+    : { ok: false, error: "current Work Queue item is missing" };
+  if (!workQueue.ok
+    || workQueue.identity.task_ref !== classification.task_ref
+    || workQueue.identity.intent !== intent
+    || workQueue.identity.intent_digest !== currentIntentDigest
+    || taskGovernance._evidence?.task_lineage?.work_queue_item_ref !== workQueue.identity.work_queue_item_ref
+    || taskGovernance._evidence?.task_lineage?.work_queue_item_digest !== workQueue.identity.work_queue_item_digest) {
+    taskGovernance.current_task_match = "No";
+  }
+  const planTaskMatch = !plan.exists
+    ? "N/A"
+    : planContainsCurrentIntent(plan.content, { intent, intentDigest: currentIntentDigest }) ? "Yes" : "No";
+  const state = stateFor(
+    classification,
+    plan,
+    planTaskMatch,
+    taskGovernance,
+    findings,
+    businessUniverse,
+    businessUniverseBinding,
+    controlEffectivenessBinding,
+    sourceAuthority,
+    planContentReview,
+    verificationCommandReview,
+  );
   const prerequisiteSatisfied = state === "PLAN_REVIEW_PASSED" ? "Yes" : "No";
   const planReviewRef = outputPath
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "plan-review-reports/generated.md";
-  const sourceChain = sourceChainFor(sourceAuthority);
+  const reviewSurfaceAnalysis = reviewSurfaceAnalysisFor(classification, plan, sourceAuthority.reviewSurface);
+  const sourceChain = sourceChainFor(sourceAuthority, {
+    task_ref: classification.task_ref,
+    intent_digest: currentIntentDigest,
+  }, reviewSurfaceAnalysis);
   if (controlEffectivenessBinding.requirement === "REQUIRED") {
     sourceChain.push(controlEffectivenessSource(controlEffectivenessBinding));
   }
   const subagent = subagentRoutingFor(classification, surfaces, state);
   const skip = skipReviewFor(classification, state);
   const baseEvidence = {
-    schema_version: "1.110.0",
+    schema_version: "1.113.0",
     artifact_type: "plan_review",
     plan_review_ref: planReviewRef,
     plan_review_digest: "",
-    task_ref: taskGovernance.task_ref,
-    work_queue_item_ref: workQueueArg || "N/A",
-    work_queue_item_digest: workQueueArg ? digest(workQueueArg) : "N/A",
-    review_surface_analysis: reviewSurfaceAnalysisFor(classification, plan, sourceAuthority.reviewSurface),
+    task_ref: classification.task_ref,
+    intent,
+    intent_digest: currentIntentDigest,
+    work_queue_item_ref: workQueue.ok ? workQueue.identity.work_queue_item_ref : (workQueueRef || "N/A"),
+    work_queue_item_digest: workQueue.ok ? workQueue.identity.work_queue_item_digest : "N/A",
+    review_surface_analysis: reviewSurfaceAnalysis,
     task_governance: taskGovernance,
     business_universe_binding: businessUniverseBinding,
     control_effectiveness_binding: controlEffectivenessBinding,
@@ -118,7 +169,8 @@ function buildReport() {
     source_chain: sourceChain,
     plan_ref: plan.ref,
     plan_digest: plan.digest,
-    plan_task_match: plan.exists ? "Yes" : (state === "NO_PLAN_REQUIRED" ? "N/A" : "Unknown"),
+    plan_task_match: planTaskMatch,
+    plan_content_review: planContentReview,
     plan_review_state: state,
     pre_implementation_review_prerequisite_satisfied: prerequisiteSatisfied,
     ready_for_implementation_review: prerequisiteSatisfied,
@@ -144,7 +196,7 @@ function buildReport() {
       rewrites_original_plan: "No",
       revised_plan_ref: "N/A",
     },
-    verification_command_review: verificationCommandReviewFor(plan.content, state),
+    verification_command_review: verificationCommandReview,
     plain_user_summary: plainSummaryFor(state, classification, findings),
     plain_next_step: plainNextStepFor(state),
     technical_terms_required: "No",
@@ -157,7 +209,7 @@ function buildReport() {
   };
   return {
     reportType: "PLAN_REVIEW",
-    schemaVersion: "1.110.0",
+    schemaVersion: "1.113.0",
     generatedBy: "scripts/resolve-plan-review.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -251,35 +303,72 @@ function classify(userIntent, planContent) {
   if (highSignals.some((signal) => text.includes(signal))) return {
     task_impact: "HIGH",
     plan_review_required: "Yes",
-    task_ref: `task:${slug(userIntent)}`,
+    task_ref: unboundTaskRef(userIntent),
   };
   if (mediumSignals.some((signal) => text.includes(signal))) return {
     task_impact: "MEDIUM",
     plan_review_required: "Yes",
-    task_ref: `task:${slug(userIntent)}`,
+    task_ref: unboundTaskRef(userIntent),
   };
   if (lowSignals.some((signal) => text.includes(signal))) return {
     task_impact: "LOW",
     plan_review_required: "No",
-    task_ref: `task:${slug(userIntent)}`,
+    task_ref: unboundTaskRef(userIntent),
   };
   return {
     task_impact: "POSSIBLE_HIGH",
     plan_review_required: "Yes",
-    task_ref: `task:${slug(userIntent)}`,
+    task_ref: unboundTaskRef(userIntent),
   };
 }
 
 function taskGovernanceFor(classification) {
-  const resolved = readStructuredArtifact(taskGovernanceArg, "task_governance");
+  const expectedTaskRef = classification.task_ref;
+  const expectedIntentDigest = taskIntentDigest(intent);
+  const resolved = findStructuredArtifact(
+    taskGovernanceArg,
+    "task-governance-reports",
+    "task_governance",
+    expectedTaskRef,
+    expectedIntentDigest,
+  );
   if (resolved.evidence) {
+    const exactIntent = resolved.evidence.intent === intent && resolved.evidence.intent_digest === expectedIntentDigest;
+    if (!exactIntent) {
+      const minimum = minimumTaskObligations({
+        taskImpact: classification.task_impact,
+        taskKind: classification.task_impact === "LOW" ? "docs_only" : "code_behavior",
+      });
+      const result = {
+        ref: resolved.ref,
+        digest: resolved.evidence.task_governance_digest || resolved.fileDigest,
+        task_ref: expectedTaskRef,
+        intent_digest: expectedIntentDigest,
+        task_impact: classification.task_impact,
+        plan_review_required: classification.plan_review_required,
+        current_task_match: "No",
+        outcome: "TASK_GOVERNANCE_IDENTITY_MISMATCH",
+        required_before_implementation_review: minimum.beforeImplementation,
+        required_before_completion_claim: minimum.beforeCompletion,
+        obligations_valid: "No",
+      };
+      Object.defineProperty(result, "_artifact", { value: resolved, enumerable: false });
+      return result;
+    }
+    const taskImpact = resolved.evidence.impact_classification?.task_impact || classification.task_impact;
+    const obligationValidation = validateTaskObligationProjection(resolved.evidence);
     const result = {
-      ref: taskGovernanceArg,
+      ref: resolved.ref,
       digest: resolved.evidence.task_governance_digest,
       task_ref: resolved.evidence.task_ref,
-      task_impact: resolved.evidence.impact_classification?.task_impact || classification.task_impact,
-      plan_review_required: resolved.evidence.requirements_before_implementation?.plan_review_required || classification.plan_review_required,
+      intent_digest: expectedIntentDigest,
+      task_impact: taskImpact,
+      plan_review_required: taskImpact === "LOW" ? "No" : "Yes",
       current_task_match: "Yes",
+      outcome: resolved.evidence.outcome,
+      required_before_implementation_review: resolved.evidence.required_before_implementation_review,
+      required_before_completion_claim: resolved.evidence.required_before_completion_claim,
+      obligations_valid: obligationValidation.ok ? "Yes" : "No",
     };
     Object.defineProperty(result, "_businessUniverseRouting", {
       value: resolved.evidence.business_universe_routing || null,
@@ -293,17 +382,36 @@ function taskGovernanceFor(classification) {
       value: resolved.evidence.intent_digest || "",
       enumerable: false,
     });
+    Object.defineProperty(result, "_evidence", { value: resolved.evidence, enumerable: false });
     Object.defineProperty(result, "_artifact", { value: resolved, enumerable: false });
     return result;
   }
+  const minimum = minimumTaskObligations({
+    taskImpact: classification.task_impact,
+    taskKind: classification.task_impact === "LOW" ? "docs_only" : "code_behavior",
+  });
   return {
     ref: taskGovernanceArg || "artifact:task-governance-reports/generated.md",
-    digest: taskGovernanceArg ? digest(taskGovernanceArg) : digest(`${classification.task_ref}:${classification.task_impact}`),
+    digest: taskGovernanceArg ? digest(taskGovernanceArg) : "N/A",
     task_ref: classification.task_ref,
+    intent_digest: taskIntentDigest(intent),
     task_impact: classification.task_impact,
     plan_review_required: classification.plan_review_required,
-    current_task_match: "Yes",
+    current_task_match: "Unknown",
+    outcome: "TASK_GOVERNANCE_MISSING",
+    required_before_implementation_review: minimum.beforeImplementation,
+    required_before_completion_claim: minimum.beforeCompletion,
+    obligations_valid: "No",
   };
+}
+
+function unboundTaskRef(userIntent) {
+  const value = digest(JSON.stringify({
+    project_root: projectRoot,
+    plan_ref: planArg || "N/A",
+    intent_digest: taskIntentDigest(userIntent),
+  }));
+  return `task:${value.slice("sha256:".length)}`;
 }
 
 function controlEffectivenessFor(taskGovernance) {
@@ -366,6 +474,7 @@ function businessUniverseFor(taskGovernance) {
     "business-universe-coverage-reports",
     "business_universe_coverage",
     taskGovernance.task_ref,
+    taskGovernance.intent_digest,
   );
   const result = {
     required: "Yes",
@@ -479,7 +588,7 @@ function readStructuredArtifact(ref, artifactType) {
   return { ...base, evidence: extracted.value };
 }
 
-function findStructuredArtifact(explicitRef, directory, artifactType, taskRef) {
+function findStructuredArtifact(explicitRef, directory, artifactType, taskRef, intentDigest = "") {
   if (explicitRef) return readStructuredArtifact(explicitRef, artifactType);
   const root = path.join(projectRoot, directory);
   if (!fs.existsSync(root)) return { file: "", evidence: null };
@@ -490,7 +599,11 @@ function findStructuredArtifact(explicitRef, directory, artifactType, taskRef) {
   for (const file of candidates) {
     const ref = `artifact:${path.relative(projectRoot, file).replaceAll(path.sep, "/")}`;
     const artifact = readStructuredArtifact(ref, artifactType);
-    if (artifact.evidence?.task_ref === taskRef) return artifact;
+    const sourceTaskRef = artifact.evidence?.task_ref || artifact.evidence?.user_request?.task_ref || "";
+    const sourceIntentDigest = artifact.evidence?.intent_digest || artifact.evidence?.source_request_digest || "";
+    const taskMatches = !taskRef || sourceTaskRef === taskRef;
+    const intentMatches = !intentDigest || sourceIntentDigest === intentDigest;
+    if (taskMatches && intentMatches) return artifact;
   }
   return { file: "", evidence: null };
 }
@@ -516,28 +629,37 @@ function sourceAuthorityFor(classification, surfaces, taskGovernance, businessUn
     "business-rule-closures",
     "business_rule_closure",
     classification.task_ref,
+    taskGovernance.intent_digest,
   );
   const impact = findStructuredArtifact(
     impactArg,
     "change-impact-coverage-reports",
     "change_impact_coverage",
     classification.task_ref,
+    taskGovernance.intent_digest,
   );
   const verificationPlan = findStructuredArtifact(
     verificationPlanArg,
     "verification-plans",
     "verification_plan",
     classification.task_ref,
+    taskGovernance.intent_digest,
   );
   const required = new Set();
+  required.add("taskGovernance");
   if (["HIGH", "POSSIBLE_HIGH"].includes(classification.task_impact) || businessUniverse.required === "Yes") {
-    required.add("taskGovernance");
     required.add("reviewSurface");
-    required.add("verificationPlan");
   }
-  if (surfaces.some((item) => item.surface === "permission" || item.surface === "business_rule")) required.add("businessRule");
-  if (surfaces.some((item) => item.surface === "data_destructive" || item.surface === "frontend_backend_consistency")) required.add("impact");
-  if (businessUniverse.required === "Yes") required.add("businessUniverse");
+  const obligationSourceMap = {
+    business_universe: "businessUniverse",
+    business_rule_closure: "businessRule",
+    change_impact_coverage: "impact",
+    verification_plan: "verificationPlan",
+  };
+  for (const obligation of requiredImplementationSources(taskGovernance)) {
+    const source = obligationSourceMap[obligation.source];
+    if (source) required.add(source);
+  }
   const artifacts = {
     taskGovernance: taskGovernanceArtifact,
     reviewSurface,
@@ -546,11 +668,32 @@ function sourceAuthorityFor(classification, surfaces, taskGovernance, businessUn
     impact,
     businessUniverse: businessUniverse._artifact || { file: "", evidence: null },
   };
+  const unreadyRequired = [...required].flatMap((name) => {
+    if (!artifacts[name]?.file) return [];
+    const reason = sourceReadinessProblem(name, artifacts[name]?.evidence);
+    return reason ? [{ source: name, reason }] : [];
+  });
   return {
     ...artifacts,
     required,
     missingRequired: [...required].filter((name) => !artifacts[name]?.file),
+    unreadyRequired,
   };
+}
+
+function sourceReadinessProblem(name, evidence) {
+  if (!evidence || typeof evidence !== "object") {
+    return ["reviewSurface"].includes(name) ? "" : "structured evidence is missing";
+  }
+  const expected = {
+    businessUniverse: ["outcome", "COVERAGE_READY"],
+    businessRule: ["state", "READY_FOR_IMPACT_COVERAGE"],
+    impact: ["outcome", "CHANGE_IMPACT_RECORDED"],
+    verificationPlan: ["verification_state", "VERIFICATION_PLAN_READY"],
+  }[name];
+  if (!expected) return "";
+  const [field, readyState] = expected;
+  return evidence[field] === readyState ? "" : `${field} must be ${readyState}, observed ${evidence[field] || "<missing>"}`;
 }
 
 function surfacesFor(classification, planContent, businessUniverse) {
@@ -573,16 +716,16 @@ function surfacesFor(classification, planContent, businessUniverse) {
   add("verification", "Yes", planContent ? "Yes" : "No");
   if (classification.task_impact === "LOW") return [...surfaces.values()];
 
-  if (classification.task_impact === "HIGH" || /permission|auth|role|权限/.test(text)) add("permission", "Yes", planContent ? "Yes" : "No", "Yes");
-  if (classification.task_impact === "HIGH" || /delete|destructive|删除/.test(text)) add("data_destructive", "Yes", planContent ? "Yes" : "No", "Yes");
-  if (classification.task_impact === "HIGH" || /business|workflow|state|审核|业务/.test(text)) add("business_rule", "Yes", planContent ? "Yes" : "No", "Yes");
+  if (classification.task_impact === "HIGH" || /permission|auth|role|权限/.test(text)) add("permission", "Yes", planContent ? "Yes" : "No");
+  if (classification.task_impact === "HIGH" || /delete|destructive|删除/.test(text)) add("data_destructive", "Yes", planContent ? "Yes" : "No");
+  if (classification.task_impact === "HIGH" || /business|workflow|state|审核|业务/.test(text)) add("business_rule", "Yes", planContent ? "Yes" : "No");
   if (/frontend|backend|api|ui|button|capability|前端|后端|接口/.test(text)) add("frontend_backend_consistency", "Yes", planContent ? "Yes" : "No");
-  if (/release|production|deploy|发布|上线|生产/.test(text)) add("release", "Yes", planContent ? "Yes" : "No", "Yes");
+  if (/release|production|deploy|发布|上线|生产/.test(text)) add("release", "Yes", planContent ? "Yes" : "No");
   if (businessUniverse.required === "Yes") add("business_universe_scenario_review", "Yes", businessUniverse.state === "COVERAGE_READY" && planContent ? "Yes" : "No");
   return [...surfaces.values()];
 }
 
-function findingsFor(classification, plan, surfaces) {
+function findingsFor(classification, plan, surfaces, planContentReview, verificationCommandReview) {
   if (!plan.exists) return [];
   const text = plan.content.toLowerCase();
   const findings = [];
@@ -614,12 +757,34 @@ function findingsFor(classification, plan, surfaces) {
       add("P2-001", "P2", "frontend_backend_consistency", "Frontend/backend authority boundary is weak.", "Make backend authority and capability source explicit.");
     }
   }
+  if (planContentReview.status === "INCOMPLETE") {
+    add(
+      "P1-PLAN-CONTENT",
+      "P1",
+      "scope",
+      `Implementation plan is missing required semantic content: ${planContentReview.missing_requirements.join(", ") || "unknown"}.`,
+      "Add bounded scope, boundaries, an ordered implementation sequence, verification, rollback/recovery, and concrete target references.",
+    );
+  }
+  if (plan.exists && verificationCommandReview.all_commands_authoritative !== "Yes") {
+    add(
+      "P1-VERIFICATION-COMMANDS",
+      "P1",
+      "verification",
+      "Verification commands are missing, unresolved, unsafe, or not project-native.",
+      "Use concrete project-native commands whose scripts/executables and working directory can be verified statically.",
+    );
+  }
   return findings;
 }
 
-function stateFor(classification, plan, findings, businessUniverse, businessUniverseBinding, controlEffectivenessBinding, sourceAuthority) {
+function stateFor(classification, plan, planTaskMatch, taskGovernance, findings, businessUniverse, businessUniverseBinding, controlEffectivenessBinding, sourceAuthority, planContentReview, verificationCommandReview) {
+  if (taskGovernance.current_task_match !== "Yes" || taskGovernance.obligations_valid !== "Yes") {
+    return "PLAN_REVIEW_REQUIRED_WITH_TASK_GOVERNANCE_RECHECK";
+  }
   if (classification.task_impact === "LOW" && classification.plan_review_required === "No" && !plan.exists) return "NO_PLAN_REQUIRED";
   if (classification.plan_review_required === "Yes" && !plan.exists) return "PLAN_REQUIRED";
+  if (plan.exists && planTaskMatch !== "Yes") return "BLOCKED_BY_STALE_PLAN";
   if (businessUniverse.required === "Unknown") return "BLOCKED_BY_INCOMPLETE_REVIEW";
   if (businessUniverse.required === "Yes" && businessUniverse.state !== "COVERAGE_READY") return "BLOCKED_BY_INCOMPLETE_REVIEW";
   if (businessUniverse.required === "Yes" && [
@@ -630,7 +795,10 @@ function stateFor(classification, plan, findings, businessUniverse, businessUniv
   if (businessUniverse.challengerRequired && businessUniverse.challengerStatus !== "PASSED") return "BLOCKED_BY_INCOMPLETE_REVIEW";
   if (controlEffectivenessBinding.requirement === "REQUIRED" && controlEffectivenessBinding.status !== "VERIFIED") return "BLOCKED_BY_INCOMPLETE_REVIEW";
   if (sourceAuthority.missingRequired.length > 0) return "BLOCKED_BY_INCOMPLETE_REVIEW";
+  if (sourceAuthority.unreadyRequired.length > 0) return "BLOCKED_BY_INCOMPLETE_REVIEW";
   if (plan.content.includes("STALE_PLAN_MARKER")) return "BLOCKED_BY_STALE_PLAN";
+  if (plan.exists && planContentReview.status !== "COMPLETE") return "PLAN_REVISION_REQUIRED";
+  if (plan.exists && verificationCommandReview.all_commands_authoritative !== "Yes") return "PLAN_REVISION_REQUIRED";
   if (findings.some((item) => ["P0", "P1"].includes(item.severity) && item.resolved !== "Yes")) return "PLAN_REVISION_REQUIRED";
   if (findings.some((item) => item.severity === "P2" && item.resolved !== "Yes" && item.accepted !== "Yes")) {
     return classification.task_impact === "HIGH" ? "PLAN_REVISION_REQUIRED" : "PLAN_REVIEW_PASSED";
@@ -665,7 +833,7 @@ function reviewSurfaceAnalysisFor(classification, plan, reviewSurface) {
   };
 }
 
-function sourceChainFor(sourceAuthority) {
+function sourceChainFor(sourceAuthority, taskGovernance, reviewSurfaceAnalysis) {
   const definitions = [
     ["taskGovernance", "task_governance", "intentos-governance", "No"],
     ["reviewSurface", "review_surface_card", "project-review-evidence", "Yes"],
@@ -680,14 +848,29 @@ function sourceChainFor(sourceAuthority) {
     return [{
       source_kind: kind,
       source_ref: artifact.ref,
-      source_digest: artifact.fileDigest,
+      source_digest: planReviewSourceDigest(kind, artifact.file, artifact.evidence),
       source_state: artifactState(artifact.evidence),
-      current_task_match: "Yes",
+      current_task_match: name === "reviewSurface" && !artifact.evidence
+        ? reviewSurfaceAnalysis.current_task_match === "Yes" ? "N/A" : reviewSurfaceAnalysis.current_task_match
+        : sourceCurrentTaskMatch(artifact.evidence, taskGovernance),
       project_native_equivalent: projectNativeEquivalent,
       owner,
       contradicts_plan: "No",
     }];
   });
+}
+
+function sourceCurrentTaskMatch(evidence, taskGovernance) {
+  if (!evidence || typeof evidence !== "object") return "Unknown";
+  const sourceTaskRef = String(evidence.task_ref || evidence.user_request?.task_ref || "");
+  const sourceIntentDigest = String(
+    evidence.intent_digest
+      || evidence.source_request_digest
+      || (evidence.user_request?.intent ? digest(evidence.user_request.intent) : ""),
+  );
+  if (!sourceIntentDigest) return "Unknown";
+  const taskMatches = sourceTaskRef === taskGovernance.task_ref;
+  return taskMatches && sourceIntentDigest === taskGovernance.intent_digest ? "Yes" : "No";
 }
 
 function controlEffectivenessSource(binding) {
@@ -705,25 +888,231 @@ function controlEffectivenessSource(binding) {
 
 function artifactState(value) {
   if (!value || typeof value !== "object") return "RECORDED";
-  for (const field of ["outcome", "verification_plan_state", "rule_closure_state", "impact_state", "task_governance_state"]) {
+  for (const field of ["outcome", "verification_state", "state", "verification_plan_state", "rule_closure_state", "impact_state", "task_governance_state"]) {
     if (typeof value[field] === "string" && value[field]) return value[field];
   }
   return "RECORDED";
 }
 
-function verificationCommandReviewFor(planContent, state) {
-  const hasCommand = /npm run|pnpm|node scripts|xcodebuild|go test|pytest|cargo test/i.test(planContent);
-  const fake = /fake-test|todo-test|example-only-command/i.test(planContent);
-  return {
-    commands_reviewed: state === "NO_PLAN_REQUIRED" ? "No" : "Yes",
-    commands_exist_in_project: hasCommand ? (fake ? "No" : "Unknown") : "Unknown",
-    commands_are_project_native: hasCommand ? (fake ? "No" : "Unknown") : "Unknown",
-    commands_target_required_behavior: fake ? "No" : (hasCommand ? "Unknown" : "Unknown"),
+function verificationCommandReviewFor(planContent, notRequired = false) {
+  if (notRequired) return {
+    commands_reviewed: "No",
+    commands_exist_in_project: "Unknown",
+    commands_are_project_native: "Unknown",
+    commands_target_required_behavior: "Unknown",
     commands_executed_by_this_report: "No",
-    requires_test_evidence_later: state === "NO_PLAN_REQUIRED" ? "No" : "Yes",
-    fake_or_unstable_command_found: fake ? "Yes" : "No",
-    notes: hasCommand ? "Commands were statically reviewed only; no tests were executed by this report." : "No concrete command was found; later verification evidence remains required if work proceeds.",
+    requires_test_evidence_later: "No",
+    fake_or_unstable_command_found: "No",
+    working_directory_verified: "N/A",
+    all_commands_authoritative: "N/A",
+    commands: [],
+    notes: "No implementation plan is required for this governed LOW task.",
   };
+  const commands = extractVerificationCommands(planContent).map(reviewVerificationCommand);
+  const fake = commands.some((item) => /fake-test|todo-test|example-only-command/i.test(item.command));
+  const allExist = commands.length > 0 && commands.every((item) => item.executable_or_script_exists === "Yes");
+  const allNative = commands.length > 0 && commands.every((item) => item.project_native === "Yes");
+  const allSafe = commands.length > 0 && commands.every((item) => item.working_directory_safe === "Yes");
+  const allTarget = commands.length > 0 && commands.every((item) => item.targets_required_behavior === "Yes");
+  const authoritative = allExist && allNative && allSafe && allTarget && !fake;
+  return {
+    commands_reviewed: "Yes",
+    commands_exist_in_project: allExist ? "Yes" : "No",
+    commands_are_project_native: allNative ? "Yes" : "No",
+    commands_target_required_behavior: allTarget ? "Yes" : "No",
+    commands_executed_by_this_report: "No",
+    requires_test_evidence_later: "Yes",
+    fake_or_unstable_command_found: fake ? "Yes" : "No",
+    working_directory_verified: allSafe ? "Yes" : "No",
+    all_commands_authoritative: authoritative ? "Yes" : "No",
+    commands,
+    notes: commands.length > 0
+      ? "Commands were resolved statically against the current project; no tests were executed by this report."
+      : "No concrete project-native verification command was found.",
+  };
+}
+
+function planContentReviewFor(plan, notRequired = false) {
+  if (notRequired) return {
+    status: "NOT_REQUIRED",
+    scope_section_present: "N/A",
+    boundaries_section_present: "N/A",
+    implementation_sequence_present: "N/A",
+    verification_section_present: "N/A",
+    rollback_recovery_section_present: "N/A",
+    concrete_target_refs: [],
+    implementation_step_count: 0,
+    missing_requirements: [],
+  };
+  const content = plan.content || "";
+  const scope = markdownSection(content, /^(scope|implementation scope)$/i);
+  const boundaries = markdownSection(content, /^(boundaries|constraints|non-scope)$/i);
+  const sequence = markdownSection(content, /^(implementation sequence|implementation steps|execution sequence|execution steps)$/i);
+  const verification = markdownSection(content, /^(verification|acceptance|validation)$/i);
+  const recovery = markdownSection(content, /^(restore|rollback|rollback and recovery|recovery)$/i);
+  const refs = [...new Set([...content.matchAll(/`([^`\n]+)`/g)]
+    .map((match) => match[1].trim())
+    .filter(isConcreteTargetRef))].sort();
+  const stepCount = sequence
+    ? sequence.split(/\r?\n/).filter((line) => /^\s*(?:\d+\.|[-*])\s+\S/.test(line)).length
+    : 0;
+  const checks = {
+    scope: scope.trim().length >= 40,
+    boundaries: boundaries.trim().length >= 40,
+    implementation_sequence: sequence.trim().length >= 40 && stepCount > 0,
+    verification: verification.trim().length >= 20,
+    rollback_recovery: recovery.trim().length >= 20,
+    concrete_target_refs: refs.length > 0,
+  };
+  const missing = Object.entries(checks).filter(([, ok]) => !ok).map(([name]) => name);
+  return {
+    status: plan.exists && missing.length === 0 ? "COMPLETE" : "INCOMPLETE",
+    scope_section_present: checks.scope ? "Yes" : "No",
+    boundaries_section_present: checks.boundaries ? "Yes" : "No",
+    implementation_sequence_present: checks.implementation_sequence ? "Yes" : "No",
+    verification_section_present: checks.verification ? "Yes" : "No",
+    rollback_recovery_section_present: checks.rollback_recovery ? "Yes" : "No",
+    concrete_target_refs: refs,
+    implementation_step_count: stepCount,
+    missing_requirements: missing,
+  };
+}
+
+function markdownSection(content, headingPattern) {
+  const lines = String(content || "").split(/\r?\n/);
+  let start = -1;
+  let level = 0;
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = lines[index].match(/^(#{1,6})\s+(.+?)\s*$/);
+    if (match && headingPattern.test(match[2])) {
+      start = index + 1;
+      level = match[1].length;
+      break;
+    }
+  }
+  if (start < 0) return "";
+  let end = lines.length;
+  for (let index = start; index < lines.length; index += 1) {
+    const match = lines[index].match(/^(#{1,6})\s+/);
+    if (match && match[1].length <= level) {
+      end = index;
+      break;
+    }
+  }
+  return lines.slice(start, end).join("\n").trim();
+}
+
+function isConcreteTargetRef(value) {
+  if (!value || value.includes("..") || path.isAbsolute(value) || /\s/.test(value)) return false;
+  if (/^(?:https?:|artifact:|human-decision:|command-output:)/i.test(value)) return false;
+  return /^(?:\.?[a-z0-9_-]+\/)+[a-z0-9_.*{}-]+(?:\.[a-z0-9_-]+)?\/?$/i.test(value);
+}
+
+function extractVerificationCommands(planContent) {
+  const section = markdownSection(planContent, /^(verification|acceptance|validation)$/i);
+  if (!section) return [];
+  const values = [];
+  for (const match of section.matchAll(/`([^`\n]+)`/g)) values.push(match[1].trim());
+  let fenced = false;
+  for (const line of section.split(/\r?\n/)) {
+    if (/^\s*```/.test(line)) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced && line.trim()) values.push(line.trim());
+  }
+  return [...new Set(values.filter((value) => /^(?:npm|pnpm|node|xcodebuild|go\s+test|pytest|cargo\s+test|git\s+diff\s+--check)\b/i.test(value)))];
+}
+
+function reviewVerificationCommand(command) {
+  const unsafeWorkingDirectory = /(?:^|\s)cd\s|(?:^|\s)\/[^\s]|\.\.|[;&|<>]/.test(command);
+  const base = {
+    command,
+    kind: "unsupported",
+    executable_or_script_exists: "No",
+    project_native: "No",
+    working_directory_safe: unsafeWorkingDirectory ? "No" : "Yes",
+    targets_required_behavior: /(?:verify|check|test|lint|typecheck|build|gate|smoke)/i.test(command) ? "Yes" : "No",
+    reason: "Unsupported verification command.",
+  };
+  const packageMatch = command.match(/^(?:npm\s+run|pnpm(?:\s+run)?)\s+([a-z0-9:._-]+)/i)
+    || command.match(/^(?:npm|pnpm)\s+(test|verify|lint|build|typecheck)\b/i);
+  if (packageMatch) {
+    const script = packageMatch[1];
+    let scripts = {};
+    try {
+      scripts = JSON.parse(fs.readFileSync(path.join(projectRoot, "package.json"), "utf8")).scripts || {};
+    } catch {
+      scripts = {};
+    }
+    const exists = typeof scripts[script] === "string" && scripts[script].trim().length > 0;
+    return {
+      ...base,
+      kind: "package_script",
+      executable_or_script_exists: exists ? "Yes" : "No",
+      project_native: exists ? "Yes" : "No",
+      reason: exists ? `package.json defines script ${script}.` : `package.json does not define script ${script}.`,
+    };
+  }
+  const nodeTestMatch = command.match(/^node\s+--test\s+([^\s]+)/i);
+  if (nodeTestMatch) {
+    const target = nodeTestMatch[1].replace(/^['"]|['"]$/g, "");
+    const safe = !path.isAbsolute(target) && !target.includes("..") && !unsafeWorkingDirectory;
+    const exists = safe && fs.existsSync(path.join(projectRoot, target));
+    return {
+      ...base,
+      kind: "project_tool",
+      executable_or_script_exists: exists ? "Yes" : "No",
+      project_native: exists ? "Yes" : "No",
+      working_directory_safe: safe ? "Yes" : "No",
+      reason: exists ? `Project-local Node test target ${target} exists.` : `Project-local Node test target ${target} is missing or unsafe.`,
+    };
+  }
+  const nodeMatch = command.match(/^node\s+([^\s]+)/i);
+  if (nodeMatch) {
+    const script = nodeMatch[1].replace(/^['"]|['"]$/g, "");
+    const safe = !path.isAbsolute(script) && !script.includes("..") && !unsafeWorkingDirectory;
+    const exists = safe && fs.existsSync(path.join(projectRoot, script)) && fs.statSync(path.join(projectRoot, script)).isFile();
+    return {
+      ...base,
+      kind: "node_script",
+      executable_or_script_exists: exists ? "Yes" : "No",
+      project_native: exists ? "Yes" : "No",
+      working_directory_safe: safe ? "Yes" : "No",
+      reason: exists ? `Project-local Node script ${script} exists.` : `Project-local Node script ${script} is missing or unsafe.`,
+    };
+  }
+  const projectTool = projectToolMarker(command);
+  if (projectTool) return { ...base, ...projectTool };
+  return base;
+}
+
+function projectToolMarker(command) {
+  if (/^git\s+diff\s+--check\b/i.test(command)) return {
+    kind: "project_tool",
+    executable_or_script_exists: "Yes",
+    project_native: "Yes",
+    reason: "Git diff validation is bounded to the current project working tree.",
+  };
+  const definitions = [
+    [/^xcodebuild\b/i, ["Package.swift"], [".xcodeproj", ".xcworkspace"]],
+    [/^go\s+test\b/i, ["go.mod"], []],
+    [/^pytest\b/i, ["pyproject.toml", "pytest.ini", "tox.ini"], []],
+    [/^cargo\s+test\b/i, ["Cargo.toml"], []],
+  ];
+  for (const [pattern, files, suffixes] of definitions) {
+    if (!pattern.test(command)) continue;
+    const topLevel = fs.existsSync(projectRoot) ? fs.readdirSync(projectRoot) : [];
+    const exists = files.some((file) => fs.existsSync(path.join(projectRoot, file)))
+      || topLevel.some((entry) => suffixes.some((suffix) => entry.endsWith(suffix)));
+    return {
+      kind: "project_tool",
+      executable_or_script_exists: exists ? "Yes" : "No",
+      project_native: exists ? "Yes" : "No",
+      reason: exists ? "Project-native tool marker exists." : "Required project-native tool marker is missing.",
+    };
+  }
+  return null;
 }
 
 function subagentRoutingFor(classification, surfaces, state) {
@@ -818,6 +1207,20 @@ function humanReportText(report) {
     `| Task impact | ${evidence.task_governance.task_impact} |`,
     `| Plan review required | ${evidence.task_governance.plan_review_required} |`,
     `| Current task match | ${evidence.task_governance.current_task_match} |`,
+    "",
+    "## Plan Content Review",
+    "",
+    "| Field | Value |",
+    "| --- | --- |",
+    `| Status | ${evidence.plan_content_review.status} |`,
+    `| Scope section present | ${evidence.plan_content_review.scope_section_present} |`,
+    `| Boundaries section present | ${evidence.plan_content_review.boundaries_section_present} |`,
+    `| Implementation sequence present | ${evidence.plan_content_review.implementation_sequence_present} |`,
+    `| Verification section present | ${evidence.plan_content_review.verification_section_present} |`,
+    `| Rollback/recovery section present | ${evidence.plan_content_review.rollback_recovery_section_present} |`,
+    `| Concrete target refs | ${evidence.plan_content_review.concrete_target_refs.join(", ") || "N/A"} |`,
+    `| Implementation step count | ${evidence.plan_content_review.implementation_step_count} |`,
+    `| Missing requirements | ${evidence.plan_content_review.missing_requirements.join(", ") || "N/A"} |`,
     "",
     "## Business Universe Binding",
     "",
@@ -915,6 +1318,14 @@ function humanReportText(report) {
     `| Commands executed by this report | ${evidence.verification_command_review.commands_executed_by_this_report} |`,
     `| Requires Test Evidence later | ${evidence.verification_command_review.requires_test_evidence_later} |`,
     `| Fake or unstable command found | ${evidence.verification_command_review.fake_or_unstable_command_found} |`,
+    `| Working directory verified | ${evidence.verification_command_review.working_directory_verified} |`,
+    `| All commands authoritative | ${evidence.verification_command_review.all_commands_authoritative} |`,
+    "",
+    "| Command | Kind | Exists | Project-native | Working directory safe | Targets required behavior | Reason |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
+    ...(evidence.verification_command_review.commands.length
+      ? evidence.verification_command_review.commands.map((item) => `| ${item.command.replaceAll("|", "\\|")} | ${item.kind} | ${item.executable_or_script_exists} | ${item.project_native} | ${item.working_directory_safe} | ${item.targets_required_behavior} | ${item.reason.replaceAll("|", "\\|")} |`)
+      : ["| N/A | N/A | N/A | N/A | N/A | N/A | No command required or found. |"]),
     "",
     "## Subagent Review Routing",
     "",

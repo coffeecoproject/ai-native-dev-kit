@@ -5,6 +5,7 @@ import { evidenceDigest, extractMachineReadableEvidence } from "./artifact-schem
 import { evaluateVerifiedAdoptionApplyChain } from "./adoption-apply-chain.mjs";
 import { canonicalFileDigest } from "./evidence-authority.mjs";
 import { validateVerifiedBootstrapReceipt } from "./bootstrap-transaction.mjs";
+import { validateRequestBoundApplyAuthority, validateRequestBoundReadiness } from "./request-bound-apply-authority.mjs";
 import { inspectTargetTopology } from "./target-topology.mjs";
 import { collectProjectFactProjection, hasGlobalTrustConflict, projectGoalProjection } from "./project-fact-projection.mjs";
 import {
@@ -20,8 +21,9 @@ export function resolveProjectEntryTrust(options = {}) {
   const topology = inspectTargetTopology(targetRoot);
   const goalProjection = projectGoalProjection(options.goal, options.goalOptions);
   const facts = collectProjectFactProjection(targetRoot, { topology, goalProjection });
-  const identity = installedIdentity(targetRoot, sourceRoot, topology, facts);
-  const guidance = guidanceBindingFor({ targetRoot, sourceRoot, identity });
+  const agentAuthority = collectProjectAgentAuthority(targetRoot, { topology });
+  const identity = installedIdentity(targetRoot, sourceRoot, topology, facts, agentAuthority);
+  const guidance = guidanceBindingFor({ targetRoot, sourceRoot, identity, agentAuthority });
   const blockers = [];
   if (["UNSAFE", "NON_DIRECTORY"].includes(topology.state)) blockers.push("TARGET_TOPOLOGY_UNSAFE");
   if (identity.state === "CONFLICTED") blockers.push("PROJECT_IDENTITY_CONFLICTED");
@@ -68,21 +70,32 @@ export function requireTrustedProjectEntry(trust, operation = "READ_ONLY") {
   return { ok: errors.length === 0, errors };
 }
 
-function installedIdentity(root, sourceRoot, topology, facts) {
+function installedIdentity(root, sourceRoot, topology, facts, agentAuthority) {
   if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) return {
     state: "UNBOOTSTRAPPED",
     form: "NONE",
     canonical_root: topology.canonical_target,
     source_version: "N/A",
     identity_ref: "N/A",
+    agent_authority_digest: agentAuthority.agent_authority_digest,
+    agent_authority_refs: agentAuthority.sources.map((item) => item.path),
   };
   const versionRef = path.join(root, ".intentos", "version.json");
   const sourceManifest = readJson(path.join(root, "intentos-manifest.json"));
   const sourcePackage = readJson(path.join(root, "package.json"));
   if (sourceManifest?.mode === "authoritative" && sourcePackage?.name === "intentos") {
-    return { state: "INSTALLED_CURRENT", form: "SOURCE", canonical_root: topology.canonical_target, source_version: sourcePackage.version || sourceManifest.intentOSVersion || "UNKNOWN", identity_ref: "intentos-manifest.json", repository_identity: facts.project_identity };
+    return {
+      state: "INSTALLED_CURRENT",
+      form: "SOURCE",
+      canonical_root: topology.canonical_target,
+      source_version: sourcePackage.version || sourceManifest.intentOSVersion || "UNKNOWN",
+      identity_ref: "intentos-manifest.json",
+      repository_identity: facts.project_identity,
+      agent_authority_digest: agentAuthority.agent_authority_digest,
+      agent_authority_refs: agentAuthority.sources.map((item) => item.path),
+    };
   }
-  const bridge = bridgeIdentity(root, sourceRoot, topology);
+  const bridge = bridgeIdentity(root, sourceRoot, topology, agentAuthority);
   if (fs.existsSync(versionRef)) {
     const pathIssue = identityPathIssue(root, versionRef);
     if (pathIssue) {
@@ -142,11 +155,23 @@ function installedIdentity(root, sourceRoot, topology, facts) {
         };
       }
     }
-    return { state: "INSTALLED_CURRENT", form: "INSTALLED", canonical_root: topology.canonical_target, source_version: version.intentOSVersion || "UNKNOWN", identity_ref: ".intentos/version.json", repository_identity: facts.project_identity };
+    return {
+      state: "INSTALLED_CURRENT",
+      form: "INSTALLED",
+      canonical_root: topology.canonical_target,
+      source_version: version.intentOSVersion || "UNKNOWN",
+      identity_ref: ".intentos/version.json",
+      repository_identity: facts.project_identity,
+      agent_authority_digest: agentAuthority.agent_authority_digest,
+      agent_authority_refs: agentAuthority.sources.map((item) => item.path),
+      temporary_activation_paths: pendingUpdateActivation.ok
+        ? pendingUpdateActivation.temporaryActivationPaths
+        : [],
+    };
   }
-  if (bridge.state === "CURRENT") return { state: "BRIDGE_CURRENT", form: "BRIDGE", canonical_root: topology.canonical_target, source_version: bridge.source_version, identity_ref: bridge.agent_ref, evidence_refs: bridge.evidence_refs, bridge_digest: bridge.bridge_digest, repository_identity: facts.project_identity };
+  if (bridge.state === "CURRENT") return { state: "BRIDGE_CURRENT", form: "BRIDGE", canonical_root: topology.canonical_target, source_version: bridge.source_version, identity_ref: bridge.agent_ref, evidence_refs: bridge.evidence_refs, bridge_digest: bridge.bridge_digest, repository_identity: facts.project_identity, agent_authority_digest: agentAuthority.agent_authority_digest, agent_authority_refs: agentAuthority.sources.map((item) => item.path) };
   if (bridge.state === "CONFLICTED") return { state: "CONFLICTED", form: "BRIDGE", canonical_root: topology.canonical_target, source_version: "UNKNOWN", identity_ref: bridge.agent_ref, reason: bridge.reason, repository_identity: facts.project_identity };
-  return { state: "UNBOOTSTRAPPED", form: "NONE", canonical_root: topology.canonical_target, source_version: "N/A", identity_ref: "N/A", repository_identity: facts.project_identity };
+  return { state: "UNBOOTSTRAPPED", form: "NONE", canonical_root: topology.canonical_target, source_version: "N/A", identity_ref: "N/A", repository_identity: facts.project_identity, agent_authority_digest: agentAuthority.agent_authority_digest, agent_authority_refs: agentAuthority.sources.map((item) => item.path) };
 }
 
 function validVerifiedUpdateIdentity(root, sourceRoot, canonicalRoot, workflowAssets, bootstrapReceipt) {
@@ -167,13 +192,31 @@ function validVerifiedUpdateIdentity(root, sourceRoot, canonicalRoot, workflowAs
   if (!extracted?.ok || extracted.value?.receipt_state !== "APPLY_VERIFIED") {
     return { ok: false, reason: "Verified controlled-update receipt evidence is unavailable or invalid." };
   }
+  const planRelative = String(extracted.value.execution_plan?.path || "");
+  if (!safeProjectRelativePath(planRelative)) {
+    return { ok: false, reason: "Verified controlled-update execution-plan reference is unsafe." };
+  }
+  const planFile = path.join(root, planRelative);
+  const planIssue = identityPathIssue(root, planFile);
+  const plan = planIssue ? null : readJson(planFile);
+  if (planIssue
+    || !plan
+    || plan.planDigest !== extracted.value.execution_plan?.plan_digest
+    || plan.planDigest !== stablePlanDigest(plan)) {
+    return { ok: false, reason: planIssue || "Verified controlled-update execution plan is unavailable or invalid." };
+  }
+  const targetByActionId = new Map(
+    (plan.actions || [])
+      .filter((action) => action?.id && safeProjectRelativePath(action.path))
+      .map((action) => [action.id, action.path]),
+  );
   const actionByPath = new Map();
   for (const action of bootstrapReceipt?.actions || []) {
     if (action?.path) actionByPath.set(action.path, { result: action.result, hash_after: action.hash_after });
   }
   for (const action of extracted.value.actions || []) {
     if (action?.result !== "APPLIED") continue;
-    const [relativePath] = action.target_paths || [];
+    const relativePath = targetByActionId.get(action.id);
     if (relativePath) actionByPath.set(relativePath, { result: action.result, hash_after: action.hash_after });
   }
   return validManagedIdentityAssets(canonicalRoot, workflowAssets, actionByPath)
@@ -290,13 +333,13 @@ function validPendingControlledUpdateIdentity(root, canonicalRoot) {
     return { ok: false, reason: "Controlled-update activation receipt is expired or has an invalid lifetime." };
   }
   const planBound = exactBoundJson(root, record.plan_ref, record.plan_file_digest);
-  const approvalBound = exactBoundJson(root, record.approval_ref, record.approval_file_digest);
+  const authorityBound = exactBoundJson(root, record.apply_authority_ref, record.apply_authority_file_digest);
   const readinessBound = exactBoundJson(root, record.readiness_ref, record.readiness_file_digest);
-  if (!planBound.ok || !approvalBound.ok || !readinessBound.ok) {
-    return { ok: false, reason: planBound.error || approvalBound.error || readinessBound.error };
+  if (!planBound.ok || !authorityBound.ok || !readinessBound.ok) {
+    return { ok: false, reason: planBound.error || authorityBound.error || readinessBound.error };
   }
   const plan = planBound.value;
-  const approval = approvalBound.value;
+  const authority = authorityBound.value;
   const readiness = readinessBound.value;
   let planCanonicalRoot = "";
   try { planCanonicalRoot = fs.realpathSync(String(plan.targetRoot || "")); } catch { planCanonicalRoot = ""; }
@@ -308,13 +351,6 @@ function validPendingControlledUpdateIdentity(root, canonicalRoot) {
   if (plan.planDigest !== stablePlanDigest(plan)) return { ok: false, reason: "Controlled-update activation plan digest is invalid." };
   const executable = (plan.actions || []).filter((action) => action?.willWrite === true);
   const executableIds = executable.map((action) => action.id).sort();
-  if (approval.approval_status !== "APPROVED"
-    || approval.approved_plan?.plan_digest !== plan.planDigest
-    || JSON.stringify([...(approval.approved_action_ids || [])].sort()) !== JSON.stringify(executableIds)
-    || readiness.readiness_state !== "READY_FOR_HUMAN_APPROVED_APPLY"
-    || readiness.apply_plan?.plan_digest !== plan.planDigest) {
-    return { ok: false, reason: "Controlled-update activation approval or readiness binding is invalid." };
-  }
   const expectedActions = executable
     .filter((action) => action.id !== plan.receiptActionId)
     .map((action) => ({ id: action.id, path: action.path, hash_after: action.expectedHashAfter, expected_hash_after: action.expectedHashAfter }));
@@ -329,7 +365,45 @@ function validPendingControlledUpdateIdentity(root, canonicalRoot) {
       return { ok: false, reason: `Controlled-update action is not applied exactly: ${action.id} ${action.path}` };
     }
   }
-  return { ok: true, reason: "" };
+  if (record.apply_authority_mode === "REQUEST_BOUND_LOCAL") {
+    const authorityValidation = validateRequestBoundApplyAuthority(authority, {
+      plan,
+      planRelativePath: record.plan_ref,
+      postApplyExactGraph: true,
+    });
+    const readinessValidation = validateRequestBoundReadiness(readiness, {
+      plan,
+      authority,
+      planRelativePath: record.plan_ref,
+      authorityRelativePath: record.apply_authority_ref,
+    });
+    if (!authorityValidation.ok
+      || !readinessValidation.ok
+      || authority.authority_digest !== record.apply_authority_digest) {
+      return { ok: false, reason: `Controlled-update request authority or readiness binding is invalid: ${[...authorityValidation.errors, ...readinessValidation.errors].join("; ")}` };
+    }
+  } else if (record.apply_authority_mode === "HUMAN_APPROVAL") {
+    if (authority.approval_status !== "APPROVED"
+      || authority.approved_plan?.plan_digest !== plan.planDigest
+      || JSON.stringify([...(authority.approved_action_ids || [])].sort()) !== JSON.stringify(executableIds)
+      || readiness.readiness_state !== "READY_FOR_HUMAN_APPROVED_APPLY"
+      || readiness.apply_plan?.plan_digest !== plan.planDigest) {
+      return { ok: false, reason: "Controlled-update human approval or readiness binding is invalid." };
+    }
+  } else {
+    return { ok: false, reason: "Controlled-update apply authority mode is invalid." };
+  }
+  return {
+    ok: true,
+    reason: "",
+    temporaryActivationPaths: [...new Set([
+      receiptRef,
+      record.plan_ref,
+      record.apply_authority_ref,
+      record.readiness_ref,
+      ...expectedActions.map((action) => action.path),
+    ].map((value) => String(value || "").replaceAll("\\", "/")).filter(Boolean))].sort(),
+  };
 }
 
 function safeProjectRelativePath(value) {
@@ -363,7 +437,7 @@ function sortStable(value) {
   return Object.fromEntries(Object.keys(value).sort().map((key) => [key, sortStable(value[key])]));
 }
 
-function bridgeIdentity(root, sourceRoot, topology) {
+function bridgeIdentity(root, sourceRoot, topology, agentAuthority) {
   const bridgeRef = ".intentos-bridge.json";
   const bridgeFile = path.join(root, bridgeRef);
   const markerRefs = ["AGENTS.md", "agent.md"].filter((ref) => {
@@ -404,20 +478,12 @@ function bridgeIdentity(root, sourceRoot, topology) {
   }
   let currentGuidance;
   try {
-    const authority = loadReviewContextAuthority(sourceRoot);
-    const graph = effectiveGuidanceGraph(authority, false, sourceRoot);
-    const invalidNodes = graph.nodes.filter((node) => node.file_state !== "CURRENT");
-    const guidanceBase = {
-      state: invalidNodes.length === 0 ? "CURRENT" : "INVALID",
-      source: "INTENTOS_SOURCE",
-      binding: reviewContextBinding(authority),
-      graph_digest: evidenceDigest(graph, []),
-      active_path_count: graph.activePaths.length,
-      missing_paths: invalidNodes.map((node) => node.path),
-      invalid_nodes: invalidNodes.map((node) => ({ path: node.path, state: node.file_state })),
-      cycles: graph.cycles || [],
-    };
-    currentGuidance = evidenceDigest(guidanceBase, []);
+    currentGuidance = guidanceSnapshot({
+      authorityRoot: sourceRoot,
+      installed: false,
+      agentAuthority,
+      requireAgentAuthority: true,
+    }).guidance_digest;
   } catch (error) {
     return { state: "CONFLICTED", agent_ref: bridgeRef, evidence_refs: [], reason: `Collaboration bridge Guidance cannot be resolved: ${error.message}` };
   }
@@ -479,36 +545,348 @@ function readJson(file) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return null; }
 }
 
-function guidanceBindingFor({ targetRoot, sourceRoot, identity }) {
+function guidanceBindingFor({ targetRoot, sourceRoot, identity, agentAuthority }) {
   const installed = identity.form === "INSTALLED";
   const authorityRoot = installed ? targetRoot : sourceRoot;
   try {
-    const authority = loadReviewContextAuthority(authorityRoot);
-    const graph = effectiveGuidanceGraph(authority, installed, authorityRoot);
-    const invalidNodes = graph.nodes.flatMap((node) => {
-      if (node.file_state !== "CURRENT") return [{ ...node, conflict_codes: [] }];
-      const file = path.join(authorityRoot, node.path);
-      const conflicts = analyzeActiveGuidanceConflicts(fs.readFileSync(file, "utf8"));
-      return conflicts.length > 0
-        ? [{ ...node, file_state: "SEMANTIC_CONFLICT", conflict_codes: conflicts.map((item) => item.code) }]
-        : [];
+    return guidanceSnapshot({
+      authorityRoot,
+      installed,
+      agentAuthority,
+      requireAgentAuthority: installed || identity.form === "BRIDGE",
     });
-    const missing = invalidNodes.map((node) => node.path);
-    const cycles = graph.cycles || [];
-    const base = {
-      state: invalidNodes.length === 0 && cycles.length === 0 ? "CURRENT" : "INVALID",
-      source: installed ? "PROJECT_INSTALLED" : "INTENTOS_SOURCE",
-      binding: reviewContextBinding(authority),
-      graph_digest: evidenceDigest(graph, []),
-      active_path_count: graph.activePaths.length,
-      missing_paths: missing,
-      invalid_nodes: invalidNodes.map((node) => ({ path: node.path, state: node.file_state, conflict_codes: node.conflict_codes || [] })),
-      cycles,
-    };
-    return { ...base, guidance_digest: evidenceDigest(base, []) };
   } catch (error) {
-    return { state: "INVALID", source: installed ? "PROJECT_INSTALLED" : "INTENTOS_SOURCE", binding: null, graph_digest: "", active_path_count: 0, missing_paths: [], guidance_digest: "", reason: error.message };
+    return {
+      state: "INVALID",
+      source: installed ? "PROJECT_INSTALLED" : "INTENTOS_SOURCE",
+      binding: null,
+      graph_digest: "",
+      active_path_count: 0,
+      missing_paths: [],
+      invalid_nodes: [],
+      cycles: [],
+      agent_authority_state: agentAuthority.state,
+      agent_authority_digest: agentAuthority.agent_authority_digest,
+      agent_authority_paths: agentAuthority.sources.map((item) => item.path),
+      guidance_digest: "",
+      reason: error.message,
+    };
   }
+}
+
+function guidanceSnapshot({ authorityRoot, installed, agentAuthority, requireAgentAuthority }) {
+  const authority = loadReviewContextAuthority(authorityRoot);
+  const graph = effectiveGuidanceGraph(authority, installed, authorityRoot);
+  const invalidByPath = new Map();
+  const recordInvalid = (node) => {
+    const current = invalidByPath.get(node.path);
+    if (!current) {
+      invalidByPath.set(node.path, { ...node, conflict_codes: [...new Set(node.conflict_codes || [])].sort() });
+      return;
+    }
+    current.file_state = current.file_state === "CURRENT" ? node.file_state : current.file_state;
+    current.conflict_codes = [...new Set([...(current.conflict_codes || []), ...(node.conflict_codes || [])])].sort();
+  };
+
+  for (const node of graph.nodes) {
+    if (node.file_state !== "CURRENT") {
+      recordInvalid({ ...node, conflict_codes: [] });
+      continue;
+    }
+    if (node.responsibilitySurface !== "USER_OR_AGENT_GUIDANCE") continue;
+    const file = path.join(authorityRoot, node.path);
+    const conflicts = analyzeActiveGuidanceConflicts(fs.readFileSync(file, "utf8"));
+    if (conflicts.length > 0) {
+      recordInvalid({ ...node, file_state: "SEMANTIC_CONFLICT", conflict_codes: conflicts.map((item) => item.code) });
+    }
+  }
+
+  for (const source of agentAuthority.sources) {
+    if (source.file_state !== "CURRENT" || source.conflict_codes.length > 0) {
+      recordInvalid({
+        path: source.path,
+        file_state: source.file_state === "CURRENT" ? "SEMANTIC_CONFLICT" : source.file_state,
+        responsibilitySurface: "USER_OR_AGENT_GUIDANCE",
+        conflict_codes: source.conflict_codes,
+      });
+    }
+  }
+  for (const conflict of agentAuthority.scope_conflicts) {
+    for (const conflictPath of conflict.paths) {
+      recordInvalid({
+        path: conflictPath,
+        file_state: "SEMANTIC_CONFLICT",
+        responsibilitySurface: "USER_OR_AGENT_GUIDANCE",
+        conflict_codes: [conflict.code],
+      });
+    }
+  }
+  if (agentAuthority.state === "INVALID" && invalidByPath.size === 0) {
+    recordInvalid({
+      path: "project-agent-authority-scan",
+      file_state: "INCOMPLETE_SCAN",
+      responsibilitySurface: "USER_OR_AGENT_GUIDANCE",
+      conflict_codes: ["AGENT_AUTHORITY_SCAN_INCOMPLETE"],
+    });
+  }
+  if (requireAgentAuthority && agentAuthority.sources.length === 0) {
+    recordInvalid({
+      path: "AGENTS.md",
+      file_state: "MISSING_AGENT_AUTHORITY",
+      responsibilitySurface: "USER_OR_AGENT_GUIDANCE",
+      conflict_codes: ["AGENT_AUTHORITY_MISSING"],
+    });
+  }
+
+  const invalidNodes = [...invalidByPath.values()].sort((left, right) => left.path.localeCompare(right.path));
+  const cycles = graph.cycles || [];
+  const activePaths = [...new Set([
+    ...graph.activePaths,
+    ...agentAuthority.sources.map((item) => item.path),
+  ])].sort();
+  const graphDigest = evidenceDigest({
+    graph,
+    agent_authority_digest: agentAuthority.agent_authority_digest,
+  }, []);
+  const base = {
+    state: invalidNodes.length === 0 && cycles.length === 0 ? "CURRENT" : "INVALID",
+    source: installed ? "PROJECT_INSTALLED" : "INTENTOS_SOURCE",
+    binding: reviewContextBinding(authority),
+    graph_digest: graphDigest,
+    active_path_count: activePaths.length,
+    missing_paths: invalidNodes.map((node) => node.path),
+    invalid_nodes: invalidNodes.map((node) => ({
+      path: node.path,
+      state: node.file_state,
+      conflict_codes: node.conflict_codes || [],
+    })),
+    cycles,
+    agent_authority_state: agentAuthority.state,
+    agent_authority_digest: agentAuthority.agent_authority_digest,
+    agent_authority_paths: agentAuthority.sources.map((item) => item.path),
+    agent_authority_scope_conflicts: agentAuthority.scope_conflicts,
+  };
+  return { ...base, guidance_digest: evidenceDigest(base, []) };
+}
+
+export function collectProjectAgentAuthority(projectRoot, options = {}) {
+  const root = path.resolve(projectRoot || ".");
+  const topology = options.topology;
+  const readable = (!topology || ["EMPTY_DIRECTORY", "NONEMPTY_DIRECTORY"].includes(topology.state))
+    && fs.existsSync(root)
+    && fs.statSync(root).isDirectory();
+  if (!readable) return emptyAgentAuthorityInventory();
+
+  const sources = [];
+  const scanErrors = [];
+  const sourceCheckout = isIntentOSSourceCheckout(root);
+  const state = { entries: 0 };
+  walkAgentAuthority(root, root, sources, scanErrors, { sourceCheckout, state });
+  sources.sort((left, right) => left.path.localeCompare(right.path));
+  const scopeConflicts = nestedAuthorityConflicts(sources);
+  const invalid = scanErrors.length > 0
+    || sources.some((item) => item.file_state !== "CURRENT" || item.conflict_codes.length > 0)
+    || scopeConflicts.length > 0;
+  const base = {
+    state: invalid ? "INVALID" : sources.length > 0 ? "CURRENT" : "ABSENT",
+    complete: scanErrors.length === 0 ? "Yes" : "No",
+    total_sources: sources.length,
+    sources,
+    scope_conflicts: scopeConflicts,
+    scan_errors: scanErrors,
+  };
+  return { ...base, agent_authority_digest: evidenceDigest(base, []) };
+}
+
+function emptyAgentAuthorityInventory() {
+  const base = {
+    state: "ABSENT",
+    complete: "Yes",
+    total_sources: 0,
+    sources: [],
+    scope_conflicts: [],
+    scan_errors: [],
+  };
+  return { ...base, agent_authority_digest: evidenceDigest(base, []) };
+}
+
+function walkAgentAuthority(root, current, sources, scanErrors, options) {
+  let entries;
+  try {
+    entries = fs.readdirSync(current, { withFileTypes: true });
+  } catch (error) {
+    scanErrors.push(`${normalizeRelative(root, current) || "."}: ${error.message}`);
+    return;
+  }
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    if (shouldIgnoreAuthorityEntry(root, current, entry.name, options.sourceCheckout)) continue;
+    options.state.entries += 1;
+    if (options.state.entries > 1000000) {
+      scanErrors.push("Agent authority scan exceeded the safe 1000000-entry limit.");
+      return;
+    }
+    const full = path.join(current, entry.name);
+    const relative = normalizeRelative(root, full);
+    if (entry.isSymbolicLink()) {
+      let linksToDirectory = false;
+      try { linksToDirectory = fs.statSync(full).isDirectory(); } catch { linksToDirectory = true; }
+      if (linksToDirectory || isAgentAuthorityPath(relative) || isPotentialAgentAuthorityScope(relative)) {
+        scanErrors.push(`${relative}: symbolic-link authority scope cannot be scanned safely`);
+      }
+      if (isAgentAuthorityPath(relative)) {
+        sources.push(authoritySource(relative, "UNSAFE_SYMLINK", "N/A", [], []));
+      }
+      continue;
+    }
+    if (entry.isDirectory()) {
+      walkAgentAuthority(root, full, sources, scanErrors, options);
+      continue;
+    }
+    if (!entry.isFile() || !isAgentAuthorityPath(relative)) continue;
+    let content;
+    try {
+      content = fs.readFileSync(full, "utf8");
+    } catch (error) {
+      scanErrors.push(`${relative}: ${error.message}`);
+      sources.push(authoritySource(relative, "UNREADABLE", "N/A", [], []));
+      continue;
+    }
+    const conflictCodes = authorityConflictCodes(content);
+    const statements = authorityPolarityStatements(content, relative);
+    const fileState = content.trim() ? "CURRENT" : "EMPTY_AUTHORITY";
+    sources.push(authoritySource(
+      relative,
+      fileState,
+      `sha256:${createHash("sha256").update(content).digest("hex")}`,
+      conflictCodes,
+      statements,
+    ));
+  }
+}
+
+function authoritySource(relative, fileState, contentDigest, conflictCodes, statements) {
+  const scope = path.posix.dirname(relative);
+  return {
+    path: relative,
+    scope: scope === "." ? "." : scope,
+    authority_kind: agentAuthorityKind(relative),
+    file_state: fileState,
+    content_digest: contentDigest,
+    conflict_codes: [...new Set(conflictCodes)].sort(),
+    polarity_statements: statements,
+  };
+}
+
+function authorityConflictCodes(content) {
+  const semantic = analyzeActiveGuidanceConflicts(content).map((item) => item.code);
+  const explicitDisable = /(?:ignore|disable|bypass|do not follow|must not follow|override)\s+(?:all\s+)?IntentOS|IntentOS.{0,30}(?:must be ignored|is disabled|does not apply)/i.test(content)
+    ? ["INTENTOS_AUTHORITY_DISABLED"]
+    : [];
+  return [...new Set([...semantic, ...explicitDisable])];
+}
+
+function authorityPolarityStatements(content, sourcePath) {
+  const rows = [];
+  const negative = /\b(?:never|must\s+not|should\s+not|do\s+not|cannot|forbid(?:den)?|prohibit(?:ed)?)\b|(?:严禁|禁止|不得|不要|不能)/i;
+  const positive = /\b(?:always|must|required|should|shall)\b|(?:必须|应当|始终|需要)/i;
+  const lines = String(content || "").split(/\r?\n/);
+  for (let index = 0; index < lines.length; index += 1) {
+    const evidence = normalizeAuthorityStatement(lines[index]);
+    if (!evidence) continue;
+    const polarity = negative.test(evidence) ? "DENY" : positive.test(evidence) ? "REQUIRE" : "";
+    if (!polarity) continue;
+    const key = authorityStatementKey(evidence);
+    if (!key) continue;
+    rows.push({ source_path: sourcePath, line: index + 1, polarity, key, evidence: evidence.slice(0, 180) });
+  }
+  return rows;
+}
+
+function nestedAuthorityConflicts(sources) {
+  const statements = sources.flatMap((source) => source.polarity_statements.map((item) => ({ ...item, scope: source.scope })));
+  const conflicts = [];
+  for (let leftIndex = 0; leftIndex < statements.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < statements.length; rightIndex += 1) {
+      const left = statements[leftIndex];
+      const right = statements[rightIndex];
+      if (left.source_path === right.source_path || left.polarity === right.polarity || left.key !== right.key) continue;
+      if (!scopesOverlap(left.scope, right.scope)) continue;
+      conflicts.push({
+        code: "NESTED_AGENT_AUTHORITY_CONFLICT",
+        rule_key: left.key,
+        paths: [left.source_path, right.source_path].sort(),
+        evidence: [left.evidence, right.evidence],
+      });
+    }
+  }
+  const unique = new Map(conflicts.map((item) => [`${item.rule_key}:${item.paths.join("|")}`, item]));
+  return [...unique.values()].sort((left, right) => left.paths.join("|").localeCompare(right.paths.join("|")));
+}
+
+function scopesOverlap(left, right) {
+  if (left === "." || right === ".") return true;
+  return left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
+}
+
+function normalizeAuthorityStatement(value) {
+  return String(value || "")
+    .replace(/^\s*(?:[-*+] |\d+\.\s+)/, "")
+    .replace(/^\s*\|?|\|?\s*$/g, "")
+    .replaceAll("`", "")
+    .replaceAll("**", "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function authorityStatementKey(value) {
+  const normalized = String(value || "").toLowerCase()
+    .replace(/\b(?:never|always|must|should|shall|required|do|not|cannot|forbidden|forbid|prohibited|prohibit|to|the|a|an|is|are|be)\b/g, " ")
+    .replace(/(?:严禁|禁止|不得|不要|不能|必须|应当|始终|需要)/g, " ")
+    .replace(/[^a-z0-9\u3400-\u9fff]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const tokens = normalized.split(" ").filter(Boolean);
+  if (tokens.length < 2 && (tokens[0]?.length || 0) < 6) return "";
+  return tokens.join(" ");
+}
+
+function isAgentAuthorityPath(relative) {
+  const normalized = String(relative || "").replaceAll("\\", "/");
+  const basename = path.posix.basename(normalized).toLowerCase();
+  if (["agents.md", "agent.md", ".agent.md", "claude.md"].includes(basename)) return true;
+  if (/(^|\/)\.github\/copilot-instructions\.md$/i.test(normalized)) return true;
+  if (/(^|\/)\.github\/instructions\/.*\.instructions\.md$/i.test(normalized)) return true;
+  if (/(^|\/)\.cursor\/rules\/.*\.mdc?$/i.test(normalized)) return true;
+  if (/(^|\/)\.codex\/(?:instructions|agents?)\.md$/i.test(normalized)) return true;
+  return false;
+}
+
+function isPotentialAgentAuthorityScope(relative) {
+  return /(^|\/)(?:\.cursor|\.codex|\.claude)(\/|$)/i.test(relative);
+}
+
+function agentAuthorityKind(relative) {
+  if (/copilot|\.github\/instructions/i.test(relative)) return "COPILOT_INSTRUCTIONS";
+  if (/\.cursor\/rules/i.test(relative)) return "CURSOR_RULE";
+  if (/\.codex\//i.test(relative)) return "CODEX_INSTRUCTIONS";
+  if (/claude\.md$/i.test(relative)) return "CLAUDE_INSTRUCTIONS";
+  return "AGENT_ENTRY";
+}
+
+function shouldIgnoreAuthorityEntry(root, current, name, sourceCheckout) {
+  if ([".git", "node_modules", ".next", "dist", "build", "coverage"].includes(name)) return true;
+  if (!sourceCheckout || current !== root) return false;
+  return ["examples", "test-fixtures", "fixtures", "starters"].includes(name);
+}
+
+function isIntentOSSourceCheckout(root) {
+  const manifest = readJson(path.join(root, "intentos-manifest.json"));
+  const packageJson = readJson(path.join(root, "package.json"));
+  return manifest?.mode === "authoritative" && packageJson?.name === "intentos";
+}
+
+function normalizeRelative(root, file) {
+  return path.relative(root, file).replaceAll(path.sep, "/");
 }
 
 function identityPathIssue(root, file) {

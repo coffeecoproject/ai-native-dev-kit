@@ -29,7 +29,11 @@ Request
 
 - No vague implementation without preflight.
 - No non-trivial implementation without acceptance criteria.
-- No high-risk implementation without explicit human approval.
+- High-risk implementation requires stricter internal planning, review,
+  verification, and rollback evidence. Codex owns the technical decision and
+  asks the user only for an unavailable business/external fact or consent to a
+  prepared real-world effect.
 - No merge without verification evidence.
-- No release without rollback notes.
-
+- Local release preparation is technical work. A real publish, store/provider
+  upload, production change, or other external effect requires exact consent
+  after rollback and verification are ready.

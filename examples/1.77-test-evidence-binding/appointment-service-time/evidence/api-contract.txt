@@ -1,16 +1,22 @@
-id: evidence:api-contract
+id: evidence:api-contract-positive
 evidence_type: COMMAND_OUTPUT
 result_state: PASSED
-command: npm run test:api -- appointment-service-time
+command: node --test --test-name-pattern "verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t" tests/appointment-service-time.test.mjs
 owner: automated-test-command
-environment: local-ci-node-20
-ran_at: 2026-07-06T10:02:00Z
+environment: node-v23.11.0
+ran_at: 2026-07-19T00:03:32.695Z
 exit_code: 0
-failure_reason: not recorded
+failure_reason: N/A
 ran_after_change: Yes
 current_task_match: Yes
-covers_obligations: verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t, verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-
-limitations: Local API evidence; does not prove production behavior.
-
-PASS valid appointment request with service time succeeds.
-PASS appointment request missing service time returns validation error.
+covers_obligations: verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t
+limitations: In-process API-contract behavior evidence; not production traffic.
+✔ [verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t] tests/appointment-service-time.test.mjs :: API accepts a request with service time (0.434167ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.805917

@@ -18,10 +18,12 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.49.0", "1.108.0"] },
+    "schema_version": { "type": "string", "enum": ["1.49.0", "1.108.0", "1.113.0"] },
     "artifact_type": { "type": "string", "enum": ["change_impact_coverage"] },
     "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
     "impact_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "task_ref": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "mode": { "type": "string", "enum": ["preflight", "closure"] },
     "user_request": {
       "type": "object",
@@ -109,7 +111,11 @@
               "TEST_COVERAGE",
               "DOCS_HANDOFF",
               "PERMISSION_RISK",
-              "RELEASE_IMPACT"
+              "RELEASE_IMPACT",
+              "BACKGROUND_WORK",
+              "EXTERNAL_INTEGRATION",
+              "RUNTIME_BEHAVIOR",
+              "ROLLBACK_RECOVERY"
             ]
           },
           "status": {
@@ -140,7 +146,11 @@
               "TEST_COVERAGE",
               "DOCS_HANDOFF",
               "PERMISSION_RISK",
-              "RELEASE_IMPACT"
+              "RELEASE_IMPACT",
+              "BACKGROUND_WORK",
+              "EXTERNAL_INTEGRATION",
+              "RUNTIME_BEHAVIOR",
+              "ROLLBACK_RECOVERY"
             ]
           },
           "status": {
@@ -170,7 +180,11 @@
               "TEST_COVERAGE",
               "DOCS_HANDOFF",
               "PERMISSION_RISK",
-              "RELEASE_IMPACT"
+              "RELEASE_IMPACT",
+              "BACKGROUND_WORK",
+              "EXTERNAL_INTEGRATION",
+              "RUNTIME_BEHAVIOR",
+              "ROLLBACK_RECOVERY"
             ]
           },
           "verification": { "type": "string" },
@@ -188,6 +202,20 @@
       "properties": {
         "missed_surfaces_found": { "type": "string", "enum": ["Yes", "No"] },
         "notes": { "type": "string" }
+      }
+    },
+    "pending_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["decision_id", "decision_class", "question", "status"],
+        "properties": {
+          "decision_id": { "type": "string", "pattern": "^decision:[a-z0-9][a-z0-9._-]*$" },
+          "decision_class": { "enum": ["BUSINESS_FACT_NEEDED", "EXTERNAL_FACT_NEEDED", "REAL_WORLD_CONSENT_NEEDED"] },
+          "question": { "type": "string", "minLength": 1 },
+          "status": { "const": "PENDING" }
+        }
       }
     },
     "boundaries": {
@@ -216,6 +244,10 @@
     {
       "if": { "properties": { "schema_version": { "const": "1.108.0" } } },
       "then": { "required": ["business_universe_binding", "impact_scenario_mappings"] }
+    },
+    {
+      "if": { "properties": { "schema_version": { "const": "1.113.0" } } },
+      "then": { "required": ["task_ref", "intent_digest", "business_universe_binding", "impact_scenario_mappings", "pending_decisions"] }
     }
   ],
   "additionalProperties": false

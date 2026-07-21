@@ -81,10 +81,11 @@ Unknown execution kinds cannot produce `VERIFIED_DONE`.
 3. Planned Impact Map
 4. Execution Plan Binding
 5. Actual Diff Binding
-6. Evidence Binding
-7. Independent Review Binding
-8. Patch Assessment
-9. Closure Decision
+6. Structured Pre-Write Revalidation
+7. Evidence Binding
+8. Independent Review Binding
+9. Patch Assessment
+10. Closure Decision
 
 If any required part is missing, the result must be `PARTIAL_DONE`, `NEEDS_HUMAN_DECISION`, or a blocking state.
 
@@ -154,6 +155,7 @@ Required report sections:
 - Planned Impact Map
 - Execution Plan Binding
 - Actual Diff Binding
+- Pre-Write Revalidation
 - Evidence Binding
 - Independent Review Binding
 - Patch Assessment

@@ -52,8 +52,8 @@ This report classifies task impact and routes required governance. It does not a
 | Requirement | Required |
 | --- | --- |
 | Test Evidence | `No` |
-| Execution Assurance | `No` |
-| Completion Evidence | `No` |
+| Execution Assurance | `Yes` |
+| Completion Evidence | `Yes` |
 
 ## Review Policy
 
@@ -121,7 +121,7 @@ This report classifies task impact and routes required governance. It does not a
   "intent": "fix button label copy",
   "intent_digest": "sha256:524c53bd06e93c8e3869e71ea8af6ed48c9a44a313981fc6df6abe1968ed7819",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:4acc030ae43630595a223be1f8150c29e626cb59b9af734448a7bb88d216b6c9",
+  "task_governance_digest": "sha256:1f7f2fd2c6eb62bb5858d4a370f54e874c15f66fac691e90c17a76df5ef18c90",
   "task_ref": "task:fix-button-label-copy",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -199,8 +199,8 @@ This report classifies task impact and routes required governance. It does not a
   },
   "required_before_completion_claim": {
     "test_evidence_required": "No",
-    "execution_assurance_required": "No",
-    "completion_evidence_required": "No"
+    "execution_assurance_required": "Yes",
+    "completion_evidence_required": "Yes"
   },
   "source_chain": [
     {

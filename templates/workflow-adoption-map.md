@@ -9,24 +9,35 @@ implementation.
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Read-only map | Use this as guidance only | No | low | Choose when the project is governed, sensitive, or still unclear |
-| B | Docs-only bridge | Save an approved adapter doc | Docs only | low/medium | Choose when the team wants a shared workflow bridge |
-| C | Thin operational bridge | Add selected reviewed workflow references | Approved assets only | medium/high | Choose only after conflict review |
-| D | Pause | Stop and wait | No | low | Choose when ownership, risk, or current task is unclear |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Workflow Decision And Evidence
+
+Selected adapter mode: READ_ONLY_MAP / DOCS_ONLY_BRIDGE / THIN_OPERATIONAL_BRIDGE / BLOCKED_BY_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Existing-authority evidence:
+
+Scope and exact write boundary:
+
+Conflict and risk response:
+
+Verification and review route:
+
+Technical recovery path:
 
 ## Human Summary
 
@@ -58,20 +69,20 @@ One-sentence conclusion for the existing project workflow adapter.
 
 ## Recommended IntentOS Workflow Use
 
-| Situation | Recommended workflow | Use now? | How to connect | Human decision needed |
+| Situation | Recommended workflow | Codex disposition | How to connect | User input class |
 |---|---|---|---|---|
-| New request or feature | Request / Spec / Task Card | Yes / Later / No |  | Yes / No |
-| Risk or baseline choice | Baseline Decision Card | Yes / Later / No |  | Yes / No |
-| Existing governance mapping | Workflow Adoption Map | Yes / Later / No |  | Yes / No |
-| Actual file-change boundary | Change Boundary Report | Yes / Later / No |  | Yes / No |
-| Complex repair | Patch Classification | Yes / Later / No |  | Yes / No |
-| Completion review | Review Loop | Yes / Later / No |  | Yes / No |
-| Delivery / handoff | Safe Launch / Launch Readiness | Yes / Later / No |  | Yes / No |
-| Scope drift | Conversation Turn / Scope Change Report | Yes / Later / No |  | Yes / No |
-| Context correction | Context Governance | Yes / Later / No |  | Yes / No |
-| Interrupted or long-running work | Work queue / pause report when available | Later |  | Yes |
-| Stale or conflicting docs | Doc lifecycle report when available | Later |  | Yes |
-| Hook / CI changes | Hook orchestration plan when available | Later |  | Yes |
+| New request or feature | Request / Spec / Task Card | Use now / Later / Not applicable |  | NO_USER_ACTION unless a bounded fact is missing |
+| Risk or baseline choice | Baseline Decision Card | Use now / Later / Not applicable |  | NO_USER_ACTION |
+| Existing governance mapping | Workflow Adoption Map | Use now / Later / Not applicable |  | NO_USER_ACTION |
+| Actual file-change boundary | Change Boundary Report | Use now / Later / Not applicable |  | NO_USER_ACTION |
+| Complex repair | Patch Classification | Use now / Later / Not applicable |  | NO_USER_ACTION |
+| Completion review | Review Loop | Use now / Later / Not applicable |  | NO_USER_ACTION |
+| Delivery / handoff | Safe Launch / Launch Readiness | Use now / Later / Not applicable |  | NO_USER_ACTION / REAL_WORLD_CONSENT_NEEDED |
+| Scope drift | Conversation Turn / Scope Change Report | Use now / Later / Not applicable |  | NO_USER_ACTION unless a bounded fact is missing |
+| Context correction | Context Governance | Use now / Later / Not applicable |  | NO_USER_ACTION / BUSINESS_FACT_NEEDED / EXTERNAL_FACT_NEEDED |
+| Interrupted or long-running work | Work queue / pause report when available | Use now / Later / Not applicable |  | NO_USER_ACTION |
+| Stale or conflicting docs | Doc lifecycle report when available | Use now / Later / Not applicable |  | NO_USER_ACTION |
+| Hook / CI changes | Hook orchestration plan when available | Use now / Later / Not applicable |  | NO_USER_ACTION / REAL_WORLD_CONSENT_NEEDED |
 
 ## What To Reuse
 
@@ -84,14 +95,14 @@ One-sentence conclusion for the existing project workflow adapter.
 
 ## What To Add
 
-| Proposed addition | Why | Writes? | Approval needed | Status |
-|---|---|---|---|---|
-|  |  | No / Docs only / Approved assets only | Yes / No | PENDING |
+| Proposed addition | Why | Writes? | Codex readiness evidence | User input class | Status |
+|---|---|---|---|---|---|
+|  |  | No / Docs only / Controlled assets only |  | NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED | PENDING_EVIDENCE / SELECTED / BLOCKED |
 
 ## What Not To Touch
 
-- Existing agent rules unless separately approved.
-- Existing PR templates, CI workflows, hooks, and release gates unless separately approved.
+- Existing agent rules unless included in a separate evidence-backed Codex plan.
+- Existing PR templates, CI workflows, hooks, and release gates unless included in a separate evidence-backed Codex plan.
 - Business code, production config, data, migrations, secrets, permissions, payment, finance, tax, HR, security, privacy, or compliance surfaces.
 - Release evidence, audit evidence, historical session records, and signed-off reports.
 
@@ -99,23 +110,31 @@ One-sentence conclusion for the existing project workflow adapter.
 
 | Existing asset | Potential IntentOS overlap | Conflict | Recommended handling |
 |---|---|---|---|
-|  |  | none / possible / blocking | Keep / Map / Needs owner decision |
+|  |  | none / possible / blocking | Keep / Map / Codex replan |
 
 ## Migration / Adapter Plan
 
-| Step | Action | Writes target files? | Requires human approval | Status |
-|---|---|---|---|---|
-| 1 | Keep current project workflow authoritative | No | No | PROPOSED |
-| 2 | Use this map for IntentOS workflow routing | No | No | PROPOSED |
-| 3 | Prepare docs-only bridge only if approved | Docs only | Yes | PENDING |
+| Step | Action | Writes target files? | Codex readiness evidence | User input class | Status |
+|---|---|---|---|---|---|
+| 1 | Keep current project workflow authoritative | No | Existing authority map | NO_USER_ACTION | PROPOSED |
+| 2 | Use this map for IntentOS workflow routing | No | Routing evidence | NO_USER_ACTION | PROPOSED |
+| 3 | Prepare a docs-only bridge only when Codex records scope, rollback, and verification | Docs only | Controlled-apply evidence | NO_USER_ACTION unless a bounded fact or effect applies | PENDING_EVIDENCE |
 
 ## Human Decisions Needed
 
-| Decision | Options | Recommended | Owner | Status |
-|---|---|---|---|---|
-| Adapter mode | READ_ONLY_MAP / DOCS_ONLY_BRIDGE / THIN_OPERATIONAL_BRIDGE / BLOCKED_NEEDS_OWNER | READ_ONLY_MAP | human | PENDING |
-| Write scope | none / docs-only / approved assets | none | human | PENDING |
-| Public evidence | LOCAL_ONLY / SANITIZED_APPROVED / PUBLIC_APPROVED | LOCAL_ONLY | human | PENDING |
+Compatibility heading: semantically this is the bounded `User Input Queue`; adapter mode and write scope are Codex-owned.
+
+| Input class | Missing business fact, exact prepared effect, or external fact | Why project evidence is insufficient | Plain-language question | Source | Status |
+|---|---|---|---|---|---|
+| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  |  |  | user / external authority / N/A | PENDING / PROVIDED / CONSENTED / NOT_REQUIRED |
+
+## Codex Adapter Decision Record
+
+| Decision | Evidence | Codex disposition | Status |
+|---|---|---|---|
+| Adapter mode |  | READ_ONLY_MAP / DOCS_ONLY_BRIDGE / THIN_OPERATIONAL_BRIDGE / BLOCKED_NEEDS_OWNER | PENDING_EVIDENCE / SELECTED / BLOCKED |
+| Write scope |  | none / docs-only / controlled assets | PENDING_EVIDENCE / SELECTED / BLOCKED |
+| Public evidence |  | LOCAL_ONLY by default; exact publication consent only after preparation | LOCAL_ONLY / READY_FOR_CONSENT / PUBLISHED |
 
 ## Boundary
 

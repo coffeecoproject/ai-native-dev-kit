@@ -32,7 +32,7 @@ const requiredAssets = [
 ];
 const requiredDirectories = ["hook-policies"];
 const reportSections = [
-  "Human Decision Summary",
+  "User Input Summary",
   "Policy State",
   "Existing Hook Sources",
   "Allowed Hook Classes",
@@ -40,7 +40,7 @@ const reportSections = [
   "Rollback / Disable Policy",
   "Forbidden Automatic Actions",
   "Relationship To Hook Orchestration",
-  "Human Decisions Needed",
+  "Bounded User Input Needed",
   "Boundary",
   "Outcome",
 ];
@@ -183,15 +183,15 @@ function requireAllowedHookClasses(content, label) {
     if (body.includes(hookClass)) pass(`${label} includes ${hookClass}`);
     else fail(`${label} missing ${hookClass}`);
   }
-  if (/H2_REQUIRES_CONFIRMATION[\s\S]*Human confirmation/i.test(body)) pass(`${label} H2 requires human confirmation`);
-  else fail(`${label} H2 must require human confirmation`);
-  if (/H3_EXPLICIT_APPROVAL_REQUIRED[\s\S]*Explicit human approval/i.test(body)) pass(`${label} H3 requires explicit human approval`);
-  else fail(`${label} H3 must require explicit human approval`);
+  if (/H2_REQUIRES_CONFIRMATION[\s\S]*Controlled apply/i.test(body)) pass(`${label} H2 uses controlled apply rather than user technical judgment`);
+  else fail(`${label} H2 must use controlled apply`);
+  if (/H3_EXPLICIT_APPROVAL_REQUIRED[\s\S]*exact consent[^\n|]*external effect/i.test(body)) pass(`${label} H3 scopes user input to an exact external effect`);
+  else fail(`${label} H3 must scope user input to an exact external effect`);
 }
 
 function requireApprovalMatrix(content, label) {
   const body = sectionBody(content, "Approval Matrix");
-  for (const marker of ["Approval owner", "Minimum evidence", "Default if unclear", "Human project owner", "Human risk owner", "Defer", "Stop"]) {
+  for (const marker of ["Approval owner", "Minimum evidence", "Default if unclear", "IntentOS evidence authority", "bounded consent when external", "Defer", "Stop"]) {
     if (new RegExp(escapeRegExp(marker), "i").test(body)) pass(`${label} approval matrix includes ${marker}`);
     else fail(`${label} approval matrix missing ${marker}`);
   }

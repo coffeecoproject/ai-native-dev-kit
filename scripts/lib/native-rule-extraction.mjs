@@ -4,6 +4,12 @@ const ruleKeywords = [
   "cannot",
   "never",
   "required",
+  "prohibit",
+  "prohibited",
+  "forbid",
+  "forbidden",
+  "disallow",
+  "blocked",
   "approve",
   "approval",
   "preserve",
@@ -58,7 +64,7 @@ const ruleKeywords = [
   "验收",
 ];
 
-const productionPattern = /\b(release|rollback|deploy|deployment|production|prod|incident|secret|migration|provider|staging|backup|restore|app store review|mini program review)\b|生产|上线|发布|回滚|事故|密钥|生产配置/i;
+const productionPattern = /\b(release|rollback|deploy|deployment|production|prod|incident|secret|migration|provider|staging|backup|restore|app store review|mini program review|external effects?)\b|生产|上线|发布|回滚|事故|密钥|生产配置|外部影响/i;
 const businessPattern = /\b(customer|user-visible|business|contract|invoice|tax|finance|hr|payment|permission|data meaning|contract meaning|tax meaning|legal|compliance|approval limit|role changes?)\b|客户|合同|协议|订单|发票|税务|结算|财务|门店|审批|权限|角色|客户数据|隐私|合规/i;
 const engineeringPattern = /\b(enum|string|schema|dto|type|architecture|build|test|lint|package|database|api|folder|structure|dependency|frontend|backend|component)\b|枚举|数据库|接口|组件|构建|测试|目录|依赖/i;
 const workflowPattern = /\b(codex|ai|agent|workflow|review|approval|apply|task|commit|pr|pull request|prompt|subagent|finish|queue|evidence|plan)\b|任务|审查|证据|复盘|计划|执行|验收|工作流/i;
@@ -75,8 +81,35 @@ const tableRuleHeaders = new Set([
   "处理",
   "治理",
 ]);
+const yamlGovernanceKeys = new Set([
+  "branches",
+  "branches-ignore",
+  "concurrency",
+  "continue-on-error",
+  "environment",
+  "environments",
+  "if",
+  "jobs",
+  "needs",
+  "on",
+  "paths",
+  "paths-ignore",
+  "permissions",
+  "run",
+  "runs-on",
+  "secrets",
+  "services",
+  "timeout-minutes",
+  "uses",
+  "workflow_call",
+  "workflow_dispatch",
+]);
+const yamlWorkflowPathPattern = /(^|\/)\.github\/workflows\/.*\.ya?ml$|\.ya?ml$/i;
 
 export function extractNativeRulesFromMarkdown(content, sourceFile) {
+  if (yamlWorkflowPathPattern.test(String(sourceFile || ""))) {
+    return extractNativeRulesFromYaml(content, sourceFile);
+  }
   const lines = content.split(/\r?\n/);
   const headingStack = [];
   const rules = [];
@@ -131,7 +164,24 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
     if (heading) {
       const level = heading[1].length;
       headingStack.splice(level - 1);
-      headingStack[level - 1] = normalizeText(heading[2]);
+      const headingText = normalizeText(heading[2]);
+      headingStack[level - 1] = headingText;
+      if (hasRuleSignal(headingText)) {
+        const classification = classifyNativeRule({
+          sourceFile,
+          text: headingText,
+          contextHeading: currentHeading(headingStack),
+        });
+        rules.push({
+          source_file: sourceFile,
+          source_start_line: lineNumber,
+          source_end_line: lineNumber,
+          source_excerpt: normalizeExcerpt(headingText),
+          context_heading: currentHeading(headingStack),
+          detected_terms: detectedTerms(headingText, currentHeading(headingStack)),
+          ...classification,
+        });
+      }
       continue;
     }
 
@@ -151,7 +201,22 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
 
     const candidate = candidateText(trimmed);
     if (!candidate) {
-      if (trimmed.length > 220) {
+      if (trimmed.length > 220 && hasRuleSignal(`${currentHeading(headingStack)} ${trimmed}`)) {
+        const classification = classifyNativeRule({
+          sourceFile,
+          text: trimmed,
+          contextHeading: currentHeading(headingStack),
+        });
+        rules.push({
+          source_file: sourceFile,
+          source_start_line: lineNumber,
+          source_end_line: lineNumber,
+          source_excerpt: normalizeExcerpt(trimmed),
+          context_heading: currentHeading(headingStack),
+          detected_terms: detectedTerms(trimmed, currentHeading(headingStack)),
+          ...classification,
+        });
+      } else if (trimmed.length > 220) {
         skippedBlocks.push({
           source_file: sourceFile,
           source_start_line: lineNumber,
@@ -240,14 +305,153 @@ export function classifyNativeRule({ sourceFile, text, contextHeading = "" }) {
   if (historicalPattern.test(value)) {
     return ruleClass("HISTORICAL_NOTE", "project history", "archive suggestion", "archive suggestion", "Historical notes should not be deleted by default.", "documentation", "propose archive only after owner review", "Yes", "MEDIUM");
   }
-  return ruleClass("UNKNOWN_AUTHORITY", "unknown", "stop for classification", "preserve until classified", "The source needs an owner or current authority decision before migration.", "workflow", "ask human to classify authority", "Yes", "LOW");
+  return ruleClass(
+    "UNKNOWN_AUTHORITY",
+    "project evidence pending Codex classification",
+    "stop for classification",
+    "preserve until classified",
+    "The source needs evidence-based authority classification before migration.",
+    "workflow",
+    "Codex preserves the source and classifies it from project evidence; request only an unavailable business or external fact",
+    "No",
+    "LOW",
+  );
 }
 
 function candidateText(trimmed) {
   const bullet = trimmed.match(/^(?:[-*+]|\d+\.)\s+(?:\[[ xX]\]\s*)?(.*)$/);
   if (bullet) return normalizeText(bullet[1]);
-  if (trimmed.length > 0 && trimmed.length <= 220 && /[.!?:：。]$/.test(trimmed)) return normalizeText(trimmed);
+  if (trimmed.length > 0 && trimmed.length <= 220) return normalizeText(trimmed);
   return "";
+}
+
+export function extractNativeRulesFromYaml(content, sourceFile) {
+  const lines = String(content || "").split(/\r?\n/);
+  const rules = [];
+  const unclassifiedBlocks = [];
+  const parserWarnings = [];
+  const structuralSignals = [];
+  const context = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const lineNumber = index + 1;
+    const raw = lines[index];
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed === "---" || trimmed === "...") continue;
+    if (trimmed.startsWith("#")) {
+      const comment = normalizeText(trimmed.replace(/^#+\s*/, ""));
+      if (hasRuleSignal(comment)) {
+        rules.push(yamlRule(sourceFile, lineNumber, comment, currentYamlContext(context)));
+      }
+      continue;
+    }
+
+    const indent = raw.match(/^\s*/)?.[0].replaceAll("\t", "  ").length || 0;
+    const mapping = trimmed.match(/^(?:-\s*)?([A-Za-z0-9_.-]+)\s*:\s*(.*)$/);
+    if (mapping) {
+      const key = mapping[1].toLowerCase();
+      const value = normalizeText(stripYamlComment(mapping[2]));
+      while (context.length > 0 && context.at(-1).indent >= indent) context.pop();
+      context.push({ indent, key });
+      const heading = currentYamlContext(context);
+      if (yamlGovernanceKeys.has(key)) {
+        const signal = value ? `${key}: ${value}` : `${key}: <structured mapping>`;
+        structuralSignals.push({ lineNumber, signal, heading });
+        rules.push(yamlRule(sourceFile, lineNumber, signal, heading));
+      } else if (hasRuleSignal(`${key} ${value}`)) {
+        rules.push(yamlRule(sourceFile, lineNumber, `${key}: ${value || "<mapping>"}`, heading));
+      }
+      continue;
+    }
+
+    const listValue = normalizeText(stripYamlComment(trimmed.replace(/^-\s+/, "")));
+    const heading = currentYamlContext(context);
+    if (trimmed.startsWith("-") && context.some((item) => yamlGovernanceKeys.has(item.key))) {
+      structuralSignals.push({ lineNumber, signal: listValue, heading });
+      rules.push(yamlRule(sourceFile, lineNumber, listValue, heading));
+      continue;
+    }
+    if (context.some((item) => yamlGovernanceKeys.has(item.key)) && indent > (context.at(-1)?.indent || 0)) {
+      structuralSignals.push({ lineNumber, signal: listValue, heading });
+      rules.push(yamlRule(sourceFile, lineNumber, listValue, heading));
+      continue;
+    }
+    if (hasRuleSignal(`${heading} ${listValue}`)) {
+      rules.push(yamlRule(sourceFile, lineNumber, listValue, heading));
+      continue;
+    }
+    if (!/^[>|][+-]?$/.test(trimmed) && !/^[{}\[\],]+$/.test(trimmed)) {
+      unclassifiedBlocks.push({
+        source_file: sourceFile,
+        source_start_line: lineNumber,
+        source_end_line: lineNumber,
+        context_heading: heading,
+        excerpt: normalizeExcerpt(trimmed),
+        reason: "Non-empty CI YAML content was not recognized by the deterministic structure parser.",
+      });
+      parserWarnings.push(`${sourceFile}:${lineNumber}-${lineNumber} CI YAML content needs deterministic classification`);
+    }
+  }
+
+  const nonemptyLines = lines.filter((line) => line.trim() && !line.trim().startsWith("#"));
+  if (nonemptyLines.length > 0) {
+    const summary = `CI workflow structure: ${structuralSignals.length} governed signal(s), ${nonemptyLines.length} non-empty structural line(s)`;
+    rules.unshift(yamlRule(sourceFile, 1, summary, "CI workflow root"));
+  } else {
+    unclassifiedBlocks.push({
+      source_file: sourceFile,
+      source_start_line: 1,
+      source_end_line: Math.max(1, lines.length),
+      context_heading: "CI workflow root",
+      excerpt: "empty CI YAML",
+      reason: "An empty CI workflow file cannot prove any deterministic governance behavior.",
+    });
+    parserWarnings.push(`${sourceFile}:1-${Math.max(1, lines.length)} empty CI YAML needs classification`);
+  }
+
+  return {
+    rules,
+    coverage: {
+      source_file: sourceFile,
+      lines_scanned: lines.length,
+      rules_extracted: rules.length,
+      unclassified_blocks: unclassifiedBlocks,
+      skipped_blocks: [],
+      low_signal_blocks: [],
+      parser_warnings: parserWarnings,
+      deterministic_structure_signals: structuralSignals.length,
+    },
+  };
+}
+
+function yamlRule(sourceFile, lineNumber, text, contextHeading) {
+  const classification = classifyNativeRule({ sourceFile, text, contextHeading });
+  return {
+    source_file: sourceFile,
+    source_start_line: lineNumber,
+    source_end_line: lineNumber,
+    source_excerpt: normalizeExcerpt(text),
+    context_heading: contextHeading,
+    detected_terms: detectedTerms(text, contextHeading),
+    ...classification,
+  };
+}
+
+function currentYamlContext(context) {
+  return context.map((item) => item.key).join(" > ") || "CI workflow root";
+}
+
+function stripYamlComment(value) {
+  const text = String(value || "");
+  let quoted = "";
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    if ((char === "\"" || char === "'") && text[index - 1] !== "\\") {
+      quoted = quoted === char ? "" : quoted || char;
+    }
+    if (char === "#" && !quoted && (index === 0 || /\s/.test(text[index - 1]))) return text.slice(0, index);
+  }
+  return text;
 }
 
 function currentHeading(stack) {
@@ -347,7 +551,8 @@ function parseSimpleTable(block) {
   if (!separator.cells.every((cell) => /^:?-{3,}:?$/.test(cell))) return null;
   const headers = header.cells.map((cell) => cell.toLowerCase());
   const hasRuleColumn = headers.some((cell) => tableRuleHeaders.has(cell));
-  if (!hasRuleColumn || headers.length > 3) return null;
+  const hasGovernanceSignal = hasRuleSignal(`${block.contextHeading} ${header.cells.join(" ")}`);
+  if ((!hasRuleColumn && !hasGovernanceSignal) || headers.length > 12) return null;
   const dataRows = rows.filter((row) => row.cells.length === headers.length && row.cells.some(Boolean));
   if (dataRows.length === 0) return null;
   return {

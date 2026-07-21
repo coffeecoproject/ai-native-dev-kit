@@ -2,7 +2,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { extractMachineReadableEvidence } from "./artifact-schema.mjs";
-import { projectIdentity } from "./evidence-authority.mjs";
+import { isGovernedWorkflowOutputPath, projectIdentity } from "./evidence-authority.mjs";
+import { discoverReleaseWorkflowFacts } from "./release-action-authority.mjs";
 
 export const TOPOLOGY_SCHEMA_VERSION = "1.105.0";
 export const PLANE_NAMES = [
@@ -21,25 +22,32 @@ export function digestText(value) {
 export function discoverReleaseTopology(projectRoot, options = {}) {
   const root = path.resolve(projectRoot);
   const intent = String(options.intent || "prepare a safe release path");
+  const workflowFacts = discoverReleaseWorkflowFacts(root);
   const files = listProjectFiles(root);
   const workflows = files.filter((file) => /^\.github\/workflows\/.*\.ya?ml$/i.test(file));
   const workflowText = workflows.map((file) => safeRead(path.join(root, file))).join("\n");
-  const publishingWorkflows = workflows.filter((file) => /environment:\s*production|\bdeploy\b[^\n]*(production|prod)\b|app store|play console|mini.?program|微信小程序|vercel|netlify|cloudflare|firebase|fly\.io|render|railway/i.test(safeRead(path.join(root, file))));
+  const releaseWorkflowText = workflowFacts.releaseWorkflowFiles
+    .map((item) => safeRead(path.join(root, item.relativePath))).join("\n");
+  const publishingWorkflows = [...new Set(workflowFacts.releaseWorkflowFiles.map((item) => item.relativePath))];
   const releaseDocs = files.filter((file) => /(release|deploy|rollback|promotion|launch).*(\.md|\.ya?ml)$/i.test(file));
   const docsText = releaseDocs.map((file) => safeRead(path.join(root, file))).join("\n");
+  const legacy = readLegacyPolicy(root);
+  const legacyChannel = legacy.topology?.package_transport || "";
+  const sourceOnly = /^source_only$/i.test(legacyChannel);
   const hasHosted = /runs-on:\s*(ubuntu|macos|windows)-/i.test(workflowText);
   const hasSelfHosted = /runs-on:[^\n]*self-hosted/i.test(workflowText);
-  const hasSsh = /\bssh\b|scp\b|rsync\b/i.test(workflowText + docsText);
+  const releaseAuthorityText = sourceOnly ? `${releaseWorkflowText}\n${safeRead(path.join(root, legacy.ref || ""))}` : `${releaseWorkflowText}\n${docsText}`;
+  const hasSsh = /\bssh\b|scp\b|rsync\b/i.test(releaseAuthorityText);
   const providerPattern = /(vercel|netlify|cloudflare|firebase|fly\.io|render|railway)/i;
   const submissionPattern = /(app store|testflight|play console|mini.?program|微信小程序)/i;
-  const hasObservedProvider = providerPattern.test(workflowText);
-  const hasProvider = hasObservedProvider || providerPattern.test(docsText);
-  const hasObservedSubmission = submissionPattern.test(workflowText);
-  const hasSubmission = hasObservedSubmission || submissionPattern.test(docsText);
-  const hasObservedProductionTarget = /environment:\s*production|deployment[_ -]?target:\s*production|\bdeploy\b[^\n]*(production|prod)\b/i.test(workflowText);
-  const hasRollback = /rollback|回滚/i.test(docsText + workflowText);
-  const hasLock = /concurrency:|flock|release.?lock|发布锁/i.test(docsText + workflowText);
-  const hasObservation = /monitor|smoke|health.?check|观察|监控/i.test(docsText + workflowText);
+  const hasObservedProvider = providerPattern.test(releaseWorkflowText);
+  const hasProvider = hasObservedProvider || (!sourceOnly && providerPattern.test(docsText));
+  const hasObservedSubmission = submissionPattern.test(releaseWorkflowText);
+  const hasSubmission = hasObservedSubmission || (!sourceOnly && submissionPattern.test(docsText));
+  const hasObservedProductionTarget = /environment:\s*production|deployment[_ -]?target:\s*production|\bdeploy\b[^\n]*(production|prod)\b/i.test(releaseWorkflowText);
+  const hasRollback = sourceOnly || /rollback|回滚/i.test(releaseAuthorityText);
+  const hasLock = sourceOnly || /concurrency:|flock|release.?lock|发布锁/i.test(releaseAuthorityText);
+  const hasObservation = sourceOnly || /monitor|smoke|health.?check|观察|监控/i.test(releaseAuthorityText);
   const sourceEvidence = fs.existsSync(path.join(root, ".git/config")) ? ".git/config" : workflows[0] || "missing";
   const sourceConfidence = fs.existsSync(path.join(root, ".git")) ? "OBSERVED" : "INFERRED";
   const executorClass = hasSelfHosted ? "SELF_HOSTED_CI_RUNNER"
@@ -49,15 +57,16 @@ export function discoverReleaseTopology(projectRoot, options = {}) {
           : "UNKNOWN";
   const executorConfidence = executorClass === "UNKNOWN" ? "UNKNOWN"
     : hasHosted || hasSelfHosted || hasObservedProvider || hasObservedSubmission ? "OBSERVED" : "DECLARED";
-  const transportType = hasSsh ? "SSH"
+  const transportType = sourceOnly ? "SOURCE_ONLY"
+    : hasSsh ? "SSH"
     : /upload-artifact|download-artifact/i.test(workflowText) ? "CI_ARTIFACT"
       : hasProvider ? "PROVIDER_NATIVE" : "UNKNOWN";
-  const productionType = hasSubmission ? "PLATFORM_SUBMISSION"
+  const productionType = sourceOnly ? "NO_PRODUCTION_TARGET"
+    : hasSubmission ? "PLATFORM_SUBMISSION"
     : hasProvider ? "PROVIDER_TARGET"
       : /production|prod|生产/i.test(docsText + workflowText) ? "PROJECT_TARGET"
         : "UNKNOWN";
-  const legacy = readLegacyPolicy(root);
-  const evidenceRef = workflows[0] || releaseDocs[0] || "missing";
+  const evidenceRef = sourceOnly ? legacy.ref : workflowFacts.releaseWorkflowFiles[0]?.relativePath || workflows[0] || releaseDocs[0] || "missing";
   const controls = (values) => values.filter(Boolean);
 
   const planes = {
@@ -67,19 +76,19 @@ export function discoverReleaseTopology(projectRoot, options = {}) {
       ...plane(executorClass, executorClass === "UNKNOWN" ? "missing" : executorClass.toLowerCase(), executorConfidence, evidenceRef, controls([hasSelfHosted && "persistent_executor", hasHosted && "ephemeral_workspace"])),
       backend_class: executorClass,
     },
-    package_transport: plane(transportType, transportType === "UNKNOWN" ? "missing" : transportType.toLowerCase(), transportType === "UNKNOWN" ? "UNKNOWN" : "OBSERVED", evidenceRef, controls([hasSsh && "transport_only_not_executor_identity"])),
+    package_transport: plane(transportType, transportType === "UNKNOWN" ? "missing" : transportType.toLowerCase(), transportType === "UNKNOWN" ? "UNKNOWN" : sourceOnly ? "DECLARED" : "OBSERVED", evidenceRef, controls([hasSsh && "transport_only_not_executor_identity", sourceOnly && "source_only_no_external_transport"])),
     evidence_store: plane(workflows.length ? "PROJECT_AND_CI_EVIDENCE" : "PROJECT_EVIDENCE", "project-evidence", files.some((file) => file.startsWith("evidence/")) ? "OBSERVED" : "DECLARED", files.find((file) => file.startsWith("evidence/")) || releaseDocs[0] || "missing", controls(["redaction_required", "retention_required"])),
     production_target: plane(
       productionType,
       productionType === "UNKNOWN" ? "missing" : productionType.toLowerCase(),
-      productionType === "UNKNOWN" ? "UNKNOWN" : hasObservedProductionTarget || hasObservedProvider || hasObservedSubmission ? "OBSERVED" : "INFERRED",
-      hasObservedProductionTarget ? workflows[0] || "missing" : releaseDocs[0] || workflows[0] || "missing",
-      controls([hasRollback && "rollback", hasObservation && "observation"]),
+      productionType === "UNKNOWN" ? "UNKNOWN" : sourceOnly || hasObservedProductionTarget || hasObservedProvider || hasObservedSubmission ? "OBSERVED" : "INFERRED",
+      sourceOnly ? legacy.ref : hasObservedProductionTarget ? workflows[0] || "missing" : releaseDocs[0] || workflows[0] || "missing",
+      controls([hasRollback && "rollback", hasObservation && "observation", sourceOnly && "external_release_blocked"]),
     ),
   };
   const mandatoryCapabilities = [
     capability("exact_source_identity", true, sourceConfidence === "OBSERVED", sourceEvidence),
-    capability("exact_package_identity", true, transportType !== "UNKNOWN", evidenceRef),
+    capability("exact_package_identity", !sourceOnly, sourceOnly || transportType !== "UNKNOWN", evidenceRef),
     capability("durable_evidence", true, planes.evidence_store.confidence !== "UNKNOWN", planes.evidence_store.evidence_ref),
     capability("test_lane", true, /preview|staging|testflight|review|sandbox/i.test(docsText + workflowText), evidenceRef),
     capability("release_lock", true, hasLock, evidenceRef),
@@ -87,7 +96,12 @@ export function discoverReleaseTopology(projectRoot, options = {}) {
     capability("observation", true, hasObservation, releaseDocs[0] || "missing"),
     capability("safe_cleanup", true, /cleanup|retention|清理|保留/i.test(docsText + workflowText), evidenceRef),
   ];
+  const executionInspectionIssues = [
+    ...workflowFacts.errors,
+    ...workflowFacts.releaseWorkflowFiles.flatMap((item) => item.unresolvedIndirectExecutions.map((reason) => `${item.relativePath}: ${reason}`)),
+  ];
   const conflicts = [...legacy.conflicts];
+  for (const issue of executionInspectionIssues) conflicts.push(`release execution graph unresolved: ${issue}`);
   if (publishingWorkflows.length > 1) {
     conflicts.push(`multiple active publish-capable workflows detected: ${publishingWorkflows.join(", ")}`);
   }
@@ -100,7 +114,7 @@ export function discoverReleaseTopology(projectRoot, options = {}) {
   const missingFacts = PLANE_NAMES.filter((name) => ["INFERRED", "UNKNOWN"].includes(planes[name].confidence));
   const missingCapabilities = mandatoryCapabilities.filter((item) => item.required === "Yes" && item.satisfied !== "Yes");
   let state = "KEEP_CURRENT_TOPOLOGY";
-  if (missingFacts.length) state = "NEEDS_PROJECT_FACT_DISCOVERY";
+  if (executionInspectionIssues.length || missingFacts.length) state = "NEEDS_PROJECT_FACT_DISCOVERY";
   else if (missingCapabilities.length) state = "BLOCKED_BY_MISSING_CAPABILITY";
   else if (conflicts.length) state = "NEEDS_PROJECT_FACT_DISCOVERY";
   const plainSummary = state === "KEEP_CURRENT_TOPOLOGY"
@@ -211,6 +225,7 @@ function listProjectFiles(root) {
       if (ignored.has(entry.name)) continue;
       const full = path.join(dir, entry.name);
       const relative = path.relative(root, full).split(path.sep).join("/");
+      if (isGovernedWorkflowOutputPath(relative)) continue;
       if (entry.isSymbolicLink()) continue;
       if (entry.isDirectory()) walk(full, depth + 1);
       else if (entry.isFile()) output.push(relative);

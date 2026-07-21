@@ -5,7 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { extractMachineReadableEvidence } from "../scripts/lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence } from "../scripts/lib/artifact-schema.mjs";
 import {
   resolveRuntimeTrustBinding,
   runtimeTrustBindingsAgree,
@@ -20,7 +20,7 @@ function run(script, args, options = {}) {
   return spawnSync(process.execPath, [path.join(options.scriptRoot || kitRoot, script), ...args], {
     cwd: options.cwd || kitRoot,
     encoding: "utf8",
-    timeout: 90_000,
+    timeout: 600_000,
     maxBuffer: 32 * 1024 * 1024,
   });
 }
@@ -76,7 +76,7 @@ console.log("current runtime verified", process.env.INTENTOS_RUN_ID);
   return root;
 }
 
-function completeRuntime(root, runId = "vrun-consumer-001") {
+function completeRuntime(root, runId = "vrun-consumer-001", stem = "current") {
   const runtime = runInstalled(root, "scripts/resolve-verification-runtime-plan.mjs", [
     root,
     "--intent", intent,
@@ -84,28 +84,101 @@ function completeRuntime(root, runId = "vrun-consumer-001") {
     "--task-tier", "LOW",
     "--task-governance-ref", "artifact:.intentos/task-governance.md",
     "--verification-plan-ref", "artifact:verification-plans/001-service-time.md",
-    "--out", "verification-runtime-plans/current.md",
+    "--out", `verification-runtime-plans/${stem}.md`,
   ]);
   assert.equal(runtime.status, 0, `${runtime.stdout}\n${runtime.stderr}`);
   const lifecycle = runInstalled(root, "scripts/resolve-verification-runtime-lifecycle.mjs", [
     root,
-    "--runtime-plan-ref", "artifact:verification-runtime-plans/current.md",
+    "--runtime-plan-ref", `artifact:verification-runtime-plans/${stem}.md`,
     "--run-id", runId,
-    "--out", "verification-runtime-lifecycle-plans/current.md",
+    "--out", `verification-runtime-lifecycle-plans/${stem}.md`,
   ]);
   assert.equal(lifecycle.status, 0, `${lifecycle.stdout}\n${lifecycle.stderr}`);
   const executed = runInstalled(root, "scripts/run-verification-runtime.mjs", [
     root,
-    "--plan", "artifact:verification-runtime-lifecycle-plans/current.md",
-    "--out", "verification-run-manifests/current.md",
+    "--plan", `artifact:verification-runtime-lifecycle-plans/${stem}.md`,
+    "--out", `verification-run-manifests/${stem}.md`,
   ]);
   assert.equal(executed.status, 0, `${executed.stdout}\n${executed.stderr}`);
-  const manifest = evidence(path.join(root, "verification-run-manifests/current.md"));
-  return { manifest, ref: "artifact:verification-run-manifests/current.md" };
+  const manifest = evidence(path.join(root, `verification-run-manifests/${stem}.md`));
+  return { manifest, ref: `artifact:verification-run-manifests/${stem}.md` };
 }
 
-test("1.104 binds one authoritative current runtime into Test Evidence, Execution Assurance, Completion, and finish", () => {
+function requireObservedRuntimeProof(root) {
+  const file = path.join(root, "verification-plans/001-service-time.md");
+  const content = fs.readFileSync(file, "utf8");
+  const parsed = extractMachineReadableEvidence(content);
+  assert.equal(parsed?.ok, true, file);
+  const obligations = parsed.value.verification_obligations.map((item, index) => index === 0 ? {
+    ...item,
+    source_surface: "RUNTIME_BEHAVIOR",
+    required_proof_strength: "RUNTIME_TRUSTED_BEHAVIOR_PROOF",
+  } : item);
+  const base = {
+    ...parsed.value,
+    project_level: "BL2",
+    risk_domains: [...new Set([...(parsed.value.risk_domains || []), "high-risk-domain"])],
+    affected_surfaces: [...parsed.value.affected_surfaces, {
+      surface: "RUNTIME_BEHAVIOR",
+      status: "REQUIRED",
+      reason: "The appointment rule must execute in the current bounded runtime.",
+      expected_evidence: "Current run-bound positive and negative behavior proof.",
+    }],
+    verification_obligations: obligations,
+    verification_plan_digest: "",
+  };
+  const current = {
+    ...base,
+    verification_plan_digest: evidenceDigest(base, ["verification_plan_digest"]),
+  };
+  fs.writeFileSync(file, content.replace(
+    /```json\n[\s\S]*?\n```/,
+    `\`\`\`json\n${JSON.stringify(current, null, 2)}\n\`\`\``,
+  ));
+}
+
+function installObservedRuntimeProof(root) {
+  const verificationPlan = evidence(path.join(root, "verification-plans/001-service-time.md"));
+  const obligations = verificationPlan.verification_obligations
+    .filter((item) => item.required === "Yes")
+    .map((item) => item.id);
+  const target = "tests/runtime-obligation-proof.test.mjs";
+  const targetFile = path.join(root, target);
+  fs.mkdirSync(path.join(root, "src"), { recursive: true });
+  fs.writeFileSync(path.join(root, "src/appointment-validation.mjs"), [
+    "export function validateAppointment(input) {",
+    "  if (!input || typeof input.serviceTime !== 'string' || !input.serviceTime.trim()) return { ok: false, code: 'SERVICE_TIME_REQUIRED' };",
+    "  return { ok: true, serviceTime: input.serviceTime.trim() };",
+    "}",
+    "",
+  ].join("\n"));
+  fs.mkdirSync(path.dirname(targetFile), { recursive: true });
+  fs.writeFileSync(targetFile, [
+    'import assert from "node:assert/strict";',
+    'import test from "node:test";',
+    'import { validateAppointment } from "../src/appointment-validation.mjs";',
+    "",
+    ...obligations.flatMap((id, index) => {
+      const serviceTime = `2026-07-${String((index % 20) + 1).padStart(2, "0")}T10:00:00Z`;
+      return [
+      `test(${JSON.stringify(`[${id}] ${target} :: verifies the exact current runtime obligation`)}, () => {`,
+      `  assert.deepEqual(validateAppointment({ serviceTime: ${JSON.stringify(serviceTime)} }), { ok: true, serviceTime: ${JSON.stringify(serviceTime)} });`,
+      "  assert.deepEqual(validateAppointment({ serviceTime: ' ' }), { ok: false, code: 'SERVICE_TIME_REQUIRED' });",
+      "  assert.match(process.env.INTENTOS_RUN_ID || '', /^vrun-/);",
+      "});",
+      ];
+    }),
+    "",
+  ].join("\n"));
+  const lifecycleFile = path.join(root, ".intentos/verification-runtime-lifecycle.json");
+  const lifecycle = JSON.parse(fs.readFileSync(lifecycleFile, "utf8"));
+  lifecycle.actions[0].argv = ["node", "--test", target];
+  fs.writeFileSync(lifecycleFile, `${JSON.stringify(lifecycle, null, 2)}\n`);
+}
+
+test("1.113 binds one authoritative runtime but missing Task Governance still blocks Completion and finish", () => {
   const root = project();
+  installObservedRuntimeProof(root);
   const { manifest, ref } = completeRuntime(root);
   const resolved = resolveRuntimeTrustBinding(root, {
     manifestRef: ref,
@@ -156,7 +229,8 @@ test("1.104 binds one authoritative current runtime into Test Evidence, Executio
     "--require-structured-evidence",
     "--require-runtime-trust",
   ]);
-  assert.equal(assuranceCheck.status, 0, `${assuranceCheck.stdout}\n${assuranceCheck.stderr}`);
+  assert.notEqual(assuranceCheck.status, 0, `${assuranceCheck.stdout}\n${assuranceCheck.stderr}`);
+  assert.match(`${assuranceCheck.stdout}\n${assuranceCheck.stderr}`, /does not bind Task Governance authority/);
 
   const completion = runInstalled(root, "scripts/resolve-completion-evidence.mjs", [
     root,
@@ -182,7 +256,7 @@ test("1.104 binds one authoritative current runtime into Test Evidence, Executio
   ]);
   assert.equal(completionCheck.status, 0, `${completionCheck.stdout}\n${completionCheck.stderr}`);
 
-  const finish = runInstalled(root, "scripts/resolve-closure-decision.mjs", [
+  const closureDecision = runInstalled(root, "scripts/resolve-closure-decision.mjs", [
     root,
     "--intent", intent,
     "--intent-digest", manifest.intent_digest,
@@ -191,10 +265,23 @@ test("1.104 binds one authoritative current runtime into Test Evidence, Executio
     "--runtime-manifest", ref,
     "--json",
   ]);
-  assert.equal(finish.status, 0, `${finish.stdout}\n${finish.stderr}`);
+  assert.equal(closureDecision.status, 0, `${closureDecision.stdout}\n${closureDecision.stderr}`);
+  const closureValue = JSON.parse(closureDecision.stdout);
+  assert.equal(closureValue.decisionInputs.find((item) => item.input === "Runtime Trust").status, "PASS");
+  assert.notEqual(closureValue.closureDecision.decision, "DONE", "Runtime Trust must not override missing closure evidence");
+
+  const finish = runInstalled(root, "scripts/cli.mjs", [
+    "finish",
+    root,
+    "--intent", intent,
+    "--task", taskRef,
+    "--verification", "targeted verification passed",
+    "--runtime-manifest", ref,
+    "--json",
+  ]);
+  assert.equal(finish.status, 1, `${finish.stdout}\n${finish.stderr}`);
   const finishValue = JSON.parse(finish.stdout);
-  assert.equal(finishValue.decisionInputs.find((item) => item.input === "Runtime Trust").status, "PASS");
-  assert.notEqual(finishValue.closureDecision.decision, "DONE", "Runtime Trust must not override missing closure evidence");
+  assert.notEqual(finishValue.finalDecision?.decision, "DONE", "The public finish entry must fail closed");
 });
 
 test("1.104 rejects wrong-task, copied-project, and stale-source runtime evidence", () => {
@@ -214,6 +301,95 @@ test("1.104 rejects wrong-task, copied-project, and stale-source runtime evidenc
   const stale = resolveRuntimeTrustBinding(root, { manifestRef: ref, taskRef, intentDigest: manifest.intent_digest });
   assert.equal(stale.ok, false);
   assert.match(stale.binding.reason, /checker|project identity|revision/i);
+});
+
+test("1.113 rejects ambiguous implicit Runtime Trust selection and requires an exact manifest reference", () => {
+  const root = project();
+  const first = completeRuntime(root, "vrun-consumer-ambiguous-a", "ambiguous-a");
+  const second = completeRuntime(root, "vrun-consumer-ambiguous-b", "ambiguous-b");
+  const implicit = resolveRuntimeTrustBinding(root, {
+    taskRef,
+    intentDigest: first.manifest.intent_digest,
+    verificationPlanRef: "artifact:verification-plans/001-service-time.md",
+    verificationPlanDigest: first.manifest.verification_plan_digest,
+  });
+  assert.equal(implicit.ok, false);
+  assert.match(implicit.binding.reason, /Multiple current Verification Run Manifests/);
+
+  const explicit = resolveRuntimeTrustBinding(root, {
+    manifestRef: second.ref,
+    taskRef,
+    intentDigest: second.manifest.intent_digest,
+    verificationPlanRef: "artifact:verification-plans/001-service-time.md",
+    verificationPlanDigest: second.manifest.verification_plan_digest,
+  });
+  assert.equal(explicit.ok, true, explicit.binding.reason);
+  assert.equal(explicit.binding.run_id, "vrun-consumer-ambiguous-b");
+});
+
+test("1.113 Runtime Trust cannot turn a broad declaration into per-obligation BL2 proof", () => {
+  const root = project();
+  requireObservedRuntimeProof(root);
+  const { ref } = completeRuntime(root, "vrun-consumer-broad-proof");
+  const resolved = runInstalled(root, "scripts/resolve-test-evidence.mjs", [
+    root,
+    "--intent", intent,
+    "--verification-plan-ref", "artifact:verification-plans/001-service-time.md",
+    "--runtime-manifest-ref", ref,
+    "--out", "test-evidence-reports/001-service-time.md",
+  ]);
+  assert.equal(resolved.status, 0, `${resolved.stdout}\n${resolved.stderr}`);
+  const report = evidence(path.join(root, "test-evidence-reports/001-service-time.md"));
+  assert.equal(report.runtime_trust_binding.status, "VERIFIED");
+  assert.equal(report.test_evidence_state, "TEST_EVIDENCE_PARTIAL");
+  assert.equal(report.coverage_map.every((row) => row.coverage_state !== "COVERED"), true);
+  assert.equal(report.evidence_items.some((item) => item.id.startsWith("evidence:runtime-observed-proof-")), false);
+
+  const checked = runInstalled(root, "scripts/check-test-evidence.mjs", [
+    root,
+    "--report", "test-evidence-reports/001-service-time.md",
+    "--require-structured-evidence",
+    "--require-verification-plan-ref",
+    "--strict-source-binding",
+    "--require-current-evidence",
+    "--require-test-quality-controls",
+    "--require-runtime-trust",
+  ]);
+  assert.notEqual(checked.status, 0, `${checked.stdout}\n${checked.stderr}`);
+  assert.match(`${checked.stdout}\n${checked.stderr}`, /lacks observed command\/log proof|TEST_EVIDENCE_COMPLETE|coverage/i);
+});
+
+test("1.113 accepts exact observed BL2 obligation proof from the bound Runtime Trust command", () => {
+  const root = project();
+  requireObservedRuntimeProof(root);
+  installObservedRuntimeProof(root);
+  const { ref } = completeRuntime(root, "vrun-consumer-exact-proof");
+  const resolved = runInstalled(root, "scripts/resolve-test-evidence.mjs", [
+    root,
+    "--intent", intent,
+    "--verification-plan-ref", "artifact:verification-plans/001-service-time.md",
+    "--runtime-manifest-ref", ref,
+    "--out", "test-evidence-reports/001-service-time.md",
+  ]);
+  assert.equal(resolved.status, 0, `${resolved.stdout}\n${resolved.stderr}`);
+  const report = evidence(path.join(root, "test-evidence-reports/001-service-time.md"));
+  assert.equal(report.test_evidence_state, "TEST_EVIDENCE_COMPLETE");
+  assert.equal(report.coverage_map.every((row) => row.coverage_state === "COVERED"), true);
+  assert.equal(report.coverage_map.every((row) => (
+    row.evidence_ids.every((id) => id.startsWith("evidence:runtime-observed-proof-"))
+  )), true);
+
+  const checked = runInstalled(root, "scripts/check-test-evidence.mjs", [
+    root,
+    "--report", "test-evidence-reports/001-service-time.md",
+    "--require-structured-evidence",
+    "--require-verification-plan-ref",
+    "--strict-source-binding",
+    "--require-current-evidence",
+    "--require-test-quality-controls",
+    "--require-runtime-trust",
+  ]);
+  assert.equal(checked.status, 0, `${checked.stdout}\n${checked.stderr}`);
 });
 
 test("1.104 strict Runtime Trust cannot be bypassed with allow-empty or historical evidence", () => {

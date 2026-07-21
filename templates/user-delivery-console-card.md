@@ -74,6 +74,7 @@ What I need from you: {{HUMAN_NEED}}
 
 | Field | Value |
 |---|---|
+| Intent Digest | {{INTENT_DIGEST}} |
 | Work Queue Item Ref | {{WORK_QUEUE_ITEM_REF}} |
 | Work Queue Item Digest | {{WORK_QUEUE_ITEM_DIGEST}} |
 | Work Queue Item State | {{WORK_QUEUE_ITEM_STATE}} |

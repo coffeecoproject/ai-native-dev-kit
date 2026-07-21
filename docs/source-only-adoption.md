@@ -1,14 +1,11 @@
 # Source-Only Adoption
 
-IntentOS is currently adopted from the source repository.
-
-This means users should not assume there is a published npm package, hosted service, installer, dashboard, or one-command production setup.
-
-The repository exposes CLI aliases in `package.json` for local source checkout usage, but the package remains private and is not an npm distribution contract.
+IntentOS is currently adopted from the source repository. There is no public
+npm package, hosted service, dashboard, or global installer contract.
 
 ## Before You Start
 
-Source-only adoption expects local command-line tools:
+The source checkout requires Node.js `>=22`, npm, and git.
 
 ```bash
 node --version
@@ -16,42 +13,82 @@ npm --version
 git --version
 ```
 
-Required baseline:
+## Ordinary User Entry
 
-- Node.js `>=22`
-- npm available with the local Node install
-- git available for clone, status, tag, and repository checks
+Most users should give Codex the project path and describe the goal in ordinary
+language:
 
-If Node is older than `22`, upgrade Node before running IntentOS scripts.
+```text
+Read this IntentOS source checkout and make ../my-project work under it.
+```
 
-## Basic Path
-
-Clone the repository, then run the public entry commands against the project you want Codex to work on:
+When command evidence is useful, there is one public command:
 
 ```bash
 git clone https://github.com/coffeecoproject/ai-native-dev-kit.git
 cd ai-native-dev-kit
-
-node scripts/cli.mjs start ../my-project
-node scripts/cli.mjs next ../my-project
-node scripts/cli.mjs doctor ../my-project
+node scripts/cli.mjs work ../my-project "检查项目并继续完成我的目标"
 ```
 
-These commands are read-only. They help Codex understand the project, recommend the next safe path, and report workflow health.
+Use the same `work` entry to start, continue, inspect, finish, prepare a
+release, or adopt an older project. IntentOS chooses lower-level commands,
+profiles, baselines, tests, review depth, and evidence internally.
 
-## Existing Projects
+The public source-run is read-only. It does not install IntentOS, change the
+target, enable CI, access provider accounts, or authorize release/production.
 
-For existing, governed, dirty, or production-sensitive projects, do not start with direct workflow updates.
+## Older Projects And Profile Authority
 
-Use the public entry first:
+When the target has no installed `.intentos` authority, source-run diagnostics
+use `profiles/*/baseline.json` from this source checkout. The target project's
+own similarly named files cannot replace that source authority. This lets Codex
+classify an old project without first writing governance files into it.
+
+After IntentOS is installed, diagnostics use only the target's
+`.intentos/profiles/*/baseline.json` copy. A missing or damaged installed copy
+fails closed; source-run does not silently borrow a newer source profile.
+
+Profile inference and baseline diagnosis remain technical work. Codex records
+the selection and asks the user only for an unavailable business/external fact
+or consent to one exact prepared real-world effect.
+
+## New And Existing Projects
+
+For an empty project, Codex may derive a starter and prepare controlled
+initialization from the stated product goal.
+
+For an existing, governed, dirty, or production-sensitive project, Codex first
+runs the read-only `work` route, preserves stronger proven project rules, and
+prepares one bounded update plan if installation is needed. The user does not
+choose migration mechanics, profile IDs, baseline levels, action IDs, or
+technical approvers.
+
+## Hosted Automation
+
+Local checker scripts are the core enforcement assets and remain usable without
+GitHub Actions. The GitHub-hosted workflow is an optional platform adapter, not
+an unconditional installation asset.
+
+Codex may prepare that adapter only after project evidence proves the GitHub
+repository/provider path, trigger, permissions, runner, usage/cost class,
+artifact/cache behavior, and separation from release side effects. Enabling or
+running a hosted adapter also requires consent to the exact external execution
+or provider-side effect when one is not already authorized. Missing hosted CI
+does not mean the local IntentOS checker contract is missing.
+
+## Maintainer Diagnostics
+
+These lower-level commands are for maintainers, debugging, and controlled-plan
+evidence. Ordinary users should not be asked to select them.
 
 ```bash
+node scripts/cli.mjs --help-advanced
 node scripts/cli.mjs start ../existing-project
 node scripts/cli.mjs next ../existing-project
 node scripts/cli.mjs doctor ../existing-project
 ```
 
-If workflow assets may need to change, IntentOS should recommend a plan-first path:
+To inspect a possible workflow-asset update without applying it:
 
 ```bash
 node scripts/init-project.mjs \
@@ -60,16 +97,9 @@ node scripts/init-project.mjs \
   --write-plan ./intentos-workflow-update-plan.json
 ```
 
-The plan must be reviewed before any apply step.
-
-## New Projects
-
-For a new empty project, Codex may recommend starter initialization after confirming the goal and platform.
-
-This is still not production approval. Release, CI, hooks, secrets, migrations,
-payments, permissions, and production configuration remain separately gated.
-IntentOS/Codex owns the technical judgment; only a missing business fact or the
-exact prepared real-world effect is routed to the user.
+The plan is non-authorizing. Any later target write must use the controlled
+apply, rollback, receipt, and activation chain. Hosted CI or provider changes
+need their own project/provider facts and exact external-effect consent.
 
 ## Current Boundary
 
@@ -77,7 +107,7 @@ Source-only adoption does not:
 
 - publish or install an npm package;
 - create a global CLI by itself;
-- approve implementation;
-- approve release or production;
+- approve implementation, merge, release, or production;
 - replace existing project governance;
-- change CI, hooks, secrets, deployment, or rollback rules without a reviewed plan and explicit approval.
+- change CI, hooks, secrets, deployment, signing accounts, stores, or rollback
+  rules merely because a diagnostic passed.

@@ -93,13 +93,10 @@
     ]
   },
   "humanApprovalRequiredFor": [
-    "environment-config",
-    "access-rule",
-    "secrets",
-    "deployment",
-    "managed-storage",
-    "value-transfer",
-    "regulated-data"
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release"
   ],
   "maturity": {
     "stage": "draft",

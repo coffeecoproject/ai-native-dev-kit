@@ -36,4 +36,4 @@ The project-owned declaration contains only exact, non-shell local actions and r
 
 ## Failure Behavior
 
-An unsafe command, changed Runtime Plan, changed declaration, reused run ID, failed verification, interruption, owner-marker mismatch, or incomplete cleanup blocks the result. Evidence is retained under `.intentos/runtime-runs/<run_id>/`, while owned runtime resources are removed.
+An unsafe command, changed Runtime Plan, changed declaration, reused run ID, failed verification, interruption, owner-marker mismatch, or incomplete cleanup blocks the result. Evidence is retained under `.intentos/runtime-runs/<run_id>/`, while owned runtime resources are removed. When current-run evidence must survive a clean checkout or source handoff, Codex uses `--durable-evidence-out evidence/runtime-runs/<run_id>`; the executor copies only the completed run workspace, refuses reuse or symlinks, and makes the Run Manifest bind the durable project-local copy.

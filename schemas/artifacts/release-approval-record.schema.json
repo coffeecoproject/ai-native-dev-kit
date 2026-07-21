@@ -120,6 +120,7 @@
         "release_evidence_gate",
         "runtime_hygiene",
         "release_channel_policy",
+        "release_execution_topology",
         "platform_recipe",
         "release_handoff_pack"
       ],

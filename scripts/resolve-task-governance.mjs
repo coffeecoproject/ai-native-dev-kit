@@ -7,15 +7,23 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest } from "./lib/artifact-schema.mjs";
 import { deriveBusinessUniverseRouting } from "./lib/business-universe.mjs";
 import { deriveControlEffectivenessRouting } from "./lib/control-effectiveness.mjs";
+import { applyMonotonicTaskDepth, minimumTaskObligations, taskBehaviorClass } from "./lib/task-obligations.mjs";
+import {
+  normalizeTaskIntent,
+  resolveWorkQueueTaskIdentity,
+  TASK_IDENTITY_VERSION,
+  taskIntentDigest,
+} from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "out", "task-kind"]);
+const knownFlags = new Set(["json", "format", "intent", "out", "task-kind", "work-queue-item"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const intent = String(args.intent || args._.slice(1).join(" ") || "classify task governance").trim();
+const intent = normalizeTaskIntent(args.intent || args._.slice(1).join(" ") || "classify task governance");
 const explicitTaskKind = args["task-kind"] ? String(args["task-kind"]) : "";
 const outputPath = args.out ? resolveOutputPath(projectRoot, String(args.out)) : "";
+const workQueueItemRef = String(args["work-queue-item"] || "").trim();
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -41,7 +49,12 @@ if (outputFormat === "json") {
 }
 
 function buildReport() {
+  const taskGovernanceRef = outputPath
+    ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
+    : "task-governance-reports/generated.md";
+  const taskIdentity = taskIdentityFor(taskGovernanceRef);
   let classification = classifyIntent(intent, explicitTaskKind);
+  classification = enforceTaskKindFloor(classification);
   const adoptionReview = adoptionReviewFor(projectRoot);
   let businessUniverseRouting = deriveBusinessUniverseRouting({
     intent,
@@ -62,21 +75,26 @@ function buildReport() {
     projectRoot,
     taskImpact: classification.task_impact,
   });
-  const requiredBeforeImplementation = requirementsBeforeImplementation(classification.task_impact, businessUniverseRouting, controlEffectivenessRouting);
-  const requiredBeforeCompletion = requirementsBeforeCompletion(classification.task_impact, businessUniverseRouting, controlEffectivenessRouting);
+  const obligations = applyMonotonicTaskDepth(minimumTaskObligations({
+    taskImpact: classification.task_impact,
+    taskKind: classification.task_kind,
+  }), {
+    businessUniverseRequired: businessUniverseRouting.required,
+    controlEffectivenessRequired: controlEffectivenessRouting.required,
+  });
+  const requiredBeforeImplementation = obligations.beforeImplementation;
+  const requiredBeforeCompletion = obligations.beforeCompletion;
   const existingProjectMapping = existingProjectMappingFor(classification.task_impact);
   const blockedBy = blockersFor(classification.task_impact, adoptionReview, requiredBeforeImplementation, requiredBeforeCompletion, existingProjectMapping, businessUniverseRouting, controlEffectivenessRouting);
-  const taskGovernanceRef = outputPath
-    ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
-    : "task-governance-reports/generated.md";
   const baseEvidence = {
-    schema_version: "1.110.0",
+    schema_version: "1.113.0",
     artifact_type: "task_governance",
     intent,
-    intent_digest: digest(intent),
+    intent_digest: taskIntentDigest(intent),
     task_governance_ref: taskGovernanceRef,
     task_governance_digest: "",
-    task_ref: `task:${slug(intent)}`,
+    task_ref: taskIdentity.task_ref,
+    task_lineage: taskIdentity.task_lineage,
     project_adoption_mode: projectAdoptionModeFor(adoptionReview),
     adoption_review: adoptionReview,
     impact_classification: classification,
@@ -109,7 +127,7 @@ function buildReport() {
   };
   return {
     reportType: "TASK_GOVERNANCE",
-    schemaVersion: "1.110.0",
+    schemaVersion: "1.113.0",
     generatedBy: "scripts/resolve-task-governance.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -136,15 +154,64 @@ function buildReport() {
   };
 }
 
+function taskIdentityFor(taskGovernanceRef) {
+  if (workQueueItemRef) {
+    const resolved = resolveWorkQueueTaskIdentity(projectRoot, workQueueItemRef, { requireCurrent: true });
+    if (!resolved.ok) {
+      console.error(`FAIL ${resolved.error}`);
+      process.exit(1);
+    }
+    if (resolved.identity.intent !== intent || resolved.identity.intent_digest !== taskIntentDigest(intent)) {
+      console.error("FAIL Task Governance intent text and digest must exactly match the selected Work Queue item.");
+      process.exit(1);
+    }
+    return {
+      task_ref: resolved.identity.task_ref,
+      task_lineage: {
+        identity_version: TASK_IDENTITY_VERSION,
+        authority: "WORK_QUEUE_ITEM",
+        work_queue_item_ref: resolved.identity.work_queue_item_ref,
+        work_queue_item_digest: resolved.identity.work_queue_item_digest,
+      },
+    };
+  }
+  const compatibilityDigest = digest(JSON.stringify({
+    identity_version: TASK_IDENTITY_VERSION,
+    authority: "UNBOUND_COMPATIBILITY",
+    project_root: projectRoot,
+    task_governance_ref: taskGovernanceRef,
+    intent_digest: taskIntentDigest(intent),
+  }));
+  return {
+    task_ref: `task:${compatibilityDigest.slice("sha256:".length)}`,
+    task_lineage: {
+      identity_version: TASK_IDENTITY_VERSION,
+      authority: "UNBOUND_COMPATIBILITY",
+      work_queue_item_ref: "N/A",
+      work_queue_item_digest: "N/A",
+    },
+  };
+}
+
 function classifyIntent(value, taskKindOverride) {
   const text = value.toLowerCase();
-  const taskKind = taskKindOverride || taskKindFor(text);
+  const behaviorText = behaviorIntentTextFor(text);
+  const inferredTaskKind = taskKindFor(text, behaviorText);
+  const explicitKind = String(taskKindOverride || "").trim();
+  const rejectedNonBehavioralOverride = explicitKind
+    && taskBehaviorClass(inferredTaskKind) === "BEHAVIORAL"
+    && taskBehaviorClass(explicitKind) === "NON_BEHAVIORAL";
+  const taskKind = explicitKind
+    && !rejectedNonBehavioralOverride
+    ? explicitKind
+    : inferredTaskKind;
+  const behavioralTask = taskBehaviorClass(taskKind) === "BEHAVIORAL";
   const highMatches = matchPatterns(text, highImpactPatterns());
   const possibleMatches = matchPatterns(text, possibleHighPatterns());
-  const mediumMatches = matchPatterns(text, mediumPatterns());
+  const mediumMatches = behavioralTask ? matchPatterns(behaviorText, mediumPatterns()) : [];
   const lowMatches = matchPatterns(text, lowPatterns());
-  let taskImpact = taskKind === "code_behavior" ? "POSSIBLE_HIGH" : "LOW";
-  let confidence = taskKind === "code_behavior" ? "low" : "medium";
+  let taskImpact = behavioralTask ? "POSSIBLE_HIGH" : "LOW";
+  let confidence = behavioralTask ? "low" : "medium";
   if (highMatches.length > 0) {
     taskImpact = "HIGH";
     confidence = "high";
@@ -154,15 +221,14 @@ function classifyIntent(value, taskKindOverride) {
   } else if (mediumMatches.length > 0) {
     taskImpact = "MEDIUM";
     confidence = "medium";
-  } else if (lowMatches.length > 0) {
+  } else if (lowMatches.length > 0 && !behavioralTask) {
     taskImpact = "LOW";
     confidence = "high";
   }
-  const unresolvedCodeBehavior = taskKind === "code_behavior"
+  const unresolvedCodeBehavior = behavioralTask
     && highMatches.length === 0
     && possibleMatches.length === 0
-    && mediumMatches.length === 0
-    && lowMatches.length === 0;
+    && mediumMatches.length === 0;
   const effectivePossibleMatches = unresolvedCodeBehavior
     ? ["unclassified code behavior"]
     : possibleMatches;
@@ -193,7 +259,9 @@ function classifyIntent(value, taskKindOverride) {
           inspection_digest: "",
           reason: "",
         },
-    upgrade_history: [],
+    upgrade_history: rejectedNonBehavioralOverride && taskImpact === "MEDIUM"
+      ? ["LOW->MEDIUM: behavioral task-kind floor"]
+      : [],
   };
 }
 
@@ -218,70 +286,17 @@ function stabilizeClassification(classification, routing) {
   };
 }
 
-function requirementsBeforeImplementation(impact, businessUniverseRouting, controlEffectivenessRouting) {
-  const universeRequired = businessUniverseRouting.required;
-  const universeChainRequired = universeRequired === "Yes" ? "Yes" : "No";
-  const controlRequired = controlEffectivenessRouting.required;
-  if (impact === "LOW") {
-    return {
-      scope_check_required: "Yes",
-      short_plan_required: "No",
-      business_universe_coverage_required: universeRequired,
-      control_effectiveness_required: controlRequired,
-      business_rule_closure_required: universeChainRequired,
-      change_impact_coverage_required: universeChainRequired,
-      execution_plan_required: "No",
-      verification_plan_required: universeChainRequired,
-    };
-  }
-  if (impact === "MEDIUM") {
-    return {
-      scope_check_required: "Yes",
-      short_plan_required: "Yes",
-      business_universe_coverage_required: universeRequired,
-      control_effectiveness_required: controlRequired,
-      business_rule_closure_required: universeChainRequired,
-      change_impact_coverage_required: universeChainRequired,
-      execution_plan_required: "No",
-      verification_plan_required: universeChainRequired,
-    };
-  }
-  if (impact === "POSSIBLE_HIGH") {
-    return {
-      scope_check_required: "Yes",
-      short_plan_required: "Yes",
-      business_universe_coverage_required: universeRequired,
-      control_effectiveness_required: controlRequired,
-      business_rule_closure_required: universeChainRequired,
-      change_impact_coverage_required: universeChainRequired,
-      execution_plan_required: "No",
-      verification_plan_required: universeChainRequired,
-    };
-  }
+function enforceTaskKindFloor(classification) {
+  if (taskBehaviorClass(classification.task_kind) !== "BEHAVIORAL" || classification.task_impact !== "LOW") return classification;
   return {
-    scope_check_required: "Yes",
-    short_plan_required: "No",
-    business_universe_coverage_required: universeRequired,
-    control_effectiveness_required: controlRequired,
-    business_rule_closure_required: "Yes",
-    change_impact_coverage_required: "Yes",
-    execution_plan_required: "Yes",
-    verification_plan_required: "Yes",
-  };
-}
-
-function requirementsBeforeCompletion(impact, businessUniverseRouting, controlEffectivenessRouting) {
-  if (impact === "HIGH" || businessUniverseRouting.required === "Yes" || controlEffectivenessRouting.required === "Yes") {
-    return {
-      test_evidence_required: "Yes",
-      execution_assurance_required: "Yes",
-      completion_evidence_required: "Yes",
-    };
-  }
-  return {
-    test_evidence_required: "No",
-    execution_assurance_required: "No",
-    completion_evidence_required: "No",
+    ...classification,
+    task_impact: "MEDIUM",
+    confidence: "medium",
+    triggered_surfaces: [...new Set([...classification.triggered_surfaces, "behavioral implementation"])],
+    trigger_evidence: [...new Set([...classification.trigger_evidence, "Behavioral task kinds cannot use the non-behavioral LOW path."])],
+    low_impact_reason: "",
+    medium_impact_reason: "The task changes behavior and therefore requires the minimum behavioral evidence chain even when its scope is local.",
+    upgrade_history: [...classification.upgrade_history, "LOW->MEDIUM: behavioral task-kind floor"],
   };
 }
 
@@ -305,9 +320,12 @@ function reviewPolicyFor(impact, businessUniverseRouting, controlEffectivenessRo
     };
   }
   if (impact === "MEDIUM") {
-    const coverage = businessUniverseRouting.required === "Yes"
-      ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"]
-      : [];
+    const coverage = [
+      ...(businessUniverseRouting.required === "Yes" ? ["business universe coverage"] : []),
+      "business rule closure",
+      "change impact coverage",
+      "verification plan",
+    ];
     return {
       review_level: "TARGETED",
       codex_self_check_required: "Yes",
@@ -327,9 +345,12 @@ function reviewPolicyFor(impact, businessUniverseRouting, controlEffectivenessRo
     };
   }
   if (impact === "POSSIBLE_HIGH") {
-    const coverage = businessUniverseRouting.required === "Yes"
-      ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"]
-      : [];
+    const coverage = [
+      ...(businessUniverseRouting.required === "Yes" ? ["business universe coverage"] : []),
+      "business rule closure",
+      "change impact coverage",
+      "verification plan",
+    ];
     return {
       review_level: "BLOCKING_CLARIFICATION",
       codex_self_check_required: "Yes",
@@ -377,20 +398,18 @@ function blockersFor(impact, adoptionReview, beforeImplementation, beforeComplet
   if (controlEffectivenessRouting.required === "Yes") blocked.push("missing current effective proof for a relied-on technical control");
   if (controlEffectivenessRouting.routing_result === "TECHNICAL_INSPECTION_REQUIRED") blocked.push("Codex must continue read-only control dependency inspection");
   if (businessUniverseRouting.required === "Yes") {
-    blocked.push("missing Business Rule Closure mapped to coverage scenarios");
-    blocked.push("missing Change Impact Coverage mapped to coverage scenarios");
-    blocked.push("missing Verification Plan mapped to coverage scenarios");
+    blocked.push("missing scenario mapping from Business Universe Coverage into the required evidence chain");
   }
+  if (beforeImplementation.business_rule_closure_required === "Yes" && !hasMatchedProjectNativeBehavior(existingProjectMapping, "Business Rule Closure")) {
+    blocked.push("missing clear business rule or project-native equivalent");
+  }
+  if (beforeImplementation.change_impact_coverage_required === "Yes") blocked.push("missing affected-surface map");
+  if (beforeImplementation.verification_plan_required === "Yes" && !hasMatchedProjectNativeBehavior(existingProjectMapping, "Verification Plan")) {
+    blocked.push("missing verification checklist");
+  }
+  if (beforeCompletion.test_evidence_required === "Yes") blocked.push("test proof is required before any done claim");
   if (impact === "HIGH") {
-    if (beforeImplementation.business_rule_closure_required === "Yes" && !hasMatchedProjectNativeBehavior(existingProjectMapping, "Business Rule Closure")) {
-      blocked.push("missing clear business rule or project-native equivalent");
-    }
-    if (beforeImplementation.change_impact_coverage_required === "Yes") blocked.push("missing affected-surface map");
     if (beforeImplementation.execution_plan_required === "Yes") blocked.push("missing durable execution plan");
-    if (beforeImplementation.verification_plan_required === "Yes" && !hasMatchedProjectNativeBehavior(existingProjectMapping, "Verification Plan")) {
-      blocked.push("missing verification checklist");
-    }
-    if (beforeCompletion.test_evidence_required === "Yes") blocked.push("test proof is required before any done claim");
   }
   return blocked;
 }
@@ -713,14 +732,33 @@ ${JSON.stringify(evidence, null, 2)}
 `;
 }
 
-function taskKindFor(text) {
+function uiActivationPattern() {
+  return /\b(?:click(?:s|ed|ing|able|ability)?|press(?:es|ed|ing|able)?|tap(?:s|ped|ping|pable)?)\b|可点击|点击|按下|按压|按一下|可点按|点按|可轻触|轻触/;
+}
+
+function behaviorIntentTextFor(text) {
+  return text
+    .replace(/\b(?:without|do not|don't|does not|doesn't|must not|mustn't)\s+(?:change|changing|alter|altering|affect|affecting|modify|modifying|impact|impacting)\s+(?:(?:any|the|its|existing|current|other)\s+)*(?:(?:click(?:s|ed|ing|able)?|press(?:es|ed|ing|able)?|tap(?:s|ped|ping|pable)?)\s+)?(?:behavio(?:u)?r|functionality|interaction)s?\b/gi, " ")
+    .replace(/\bno\s+changes?\s+to\s+(?:(?:the|its|existing|current)\s+)*(?:(?:click(?:s|ed|ing|able)?|press(?:es|ed|ing|able)?|tap(?:s|ped|ping|pable)?)\s+)?(?:behavio(?:u)?r|functionality|interaction)s?\b/gi, " ")
+    .replace(/\b(?:behavio(?:u)?r|functionality|interaction)s?\s+(?:remains?|stays?)\s+unchanged\b/gi, " ")
+    .replace(/不\s*(?:改变|修改|影响|涉及)\s*(?:任何|现有|当前|原有|其他)?\s*(?:可点击|点击|按下|按压|按一下|可点按|点按|可轻触|轻触)?\s*(?:行为|功能|交互)/g, " ")
+    .replace(/(?:行为|功能|交互)\s*不变/g, " ");
+}
+
+function taskKindFor(text, behaviorText = behaviorIntentTextFor(text)) {
+  if (/\b(?:deploy|release|ci|hook|rollback)\b|生产|发布|上线/.test(text)) return "release_behavior";
+  if (/\b(?:migration|schema|backfill)\b|迁移|表结构/.test(text)) return "migration_behavior";
+  if (/\b(?:config|env|docker)\b|配置|环境/.test(text)) return "config_behavior";
+  const explicitlyScopedDocumentationContent = /\b(?:readme|docs?|documentation)\s+(?:copy|text|wording|link|typo)\b|\b(?:copy|text|wording|link|typo)\s+(?:in|inside|within)\s+(?:the\s+)?(?:readme|docs?|documentation)\b|(?:文档|说明)(?:文案|文字|措辞|链接|错别字)/.test(text);
+  const mixedDocumentationAndBehavior = /\b(?:and|plus)\b[^.\n]{0,80}\b(?:implement|change|modify|fix|refactor|add|remove)\b[^.\n]{0,40}\b(?:validate|validation|logic|handler|behavior|function|workflow|api|database)\b|(?:并|并且|以及|同时).{0,40}(?:修改|实现|新增|删除|重构|修复).{0,30}(?:校验|验证|逻辑|处理器|行为|函数|流程|接口|数据库)/.test(text);
+  if (explicitlyScopedDocumentationContent && !mixedDocumentationAndBehavior) return "docs_only";
+  const behaviorSignal = uiActivationPattern().test(behaviorText)
+    || /\b(submit|handler|validate|validation|logic|behavior|function|method|event|state|request|response|route|endpoint|component|hook|callback|workflow|api|database|query|mutation)\b|提交|处理器|校验|验证|逻辑|行为|函数|方法|事件|状态|请求|响应|路由|接口|组件|回调|流程|数据库|查询/.test(behaviorText);
+  if (behaviorSignal) return "code_behavior";
   if (/\b(readme|doc|docs|documentation|link|typo)\b|文档|错别字|链接/.test(text)) return "docs_only";
   if (/\btest name|test title|测试名称|测试文案\b/.test(text)) return "test_docs_only";
   if (/\bcopy|text|label|wording\b|文案|标签/.test(text)) return "copy";
-  if (/\bspacing|style|visual|css|颜色|间距|样式/.test(text)) return "visual_only";
-  if (/\bdeploy|release|ci|hook|rollback|生产|发布|上线/.test(text)) return "release_behavior";
-  if (/\bmigration|schema|backfill|迁移|表结构/.test(text)) return "migration_behavior";
-  if (/\bconfig|env|docker|配置|环境/.test(text)) return "config_behavior";
+  if (/\b(spacing|style|visual|css|colou?rs?|padding|margin|font|border)\b|颜色|间距|样式/.test(text)) return "visual_only";
   return "code_behavior";
 }
 
@@ -745,6 +783,7 @@ function possibleHighPatterns() {
 
 function mediumPatterns() {
   return [
+    ["local UI activation", uiActivationPattern()],
     ["local frontend interaction", /\b(local|component|frontend|interaction|modal|tab|form)\b|局部|组件|前端交互/],
     ["list filter display", /\b(filter|sort|display|list)\b|筛选|排序|展示/],
     ["internal parameter", /\binternal query|display parameter|non-critical parameter\b|内部参数/],
@@ -753,7 +792,7 @@ function mediumPatterns() {
 
 function lowPatterns() {
   return [
-    ["copy docs visual", /\b(copy|text|typo|readme|docs|documentation|label|spacing|style|visual|link)\b|文案|错别字|说明|标签|间距|样式|链接/],
+    ["copy docs visual", /\b(copy|text|typo|readme|docs|documentation|label|spacing|style|visual|link|colou?rs?|padding|margin|font|border)\b|文案|错别字|说明|标签|颜色|间距|样式|链接/],
   ];
 }
 

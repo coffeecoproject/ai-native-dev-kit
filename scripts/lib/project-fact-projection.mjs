@@ -195,7 +195,9 @@ function platformProjection(paths, root) {
   const rows = [];
   const pkg = readJson(path.join(root, "package.json"));
   const pkgText = JSON.stringify({ dependencies: pkg?.dependencies || {}, devDependencies: pkg?.devDependencies || {} });
-  if (paths.some((item) => /^(?:src|app|pages|web|frontend)\//.test(item)) || /"(?:react|next|vue|vite|svelte)"/.test(pkgText)) rows.push(surface("web", "IN_PROGRESS"));
+  const explicitWebPath = paths.some((item) => /^(?:app|pages|web|frontend)\//.test(item));
+  const explicitWebConfig = paths.some((item) => /^(?:index\.html|vite\.config\.|next\.config\.|nuxt\.config\.|svelte\.config\.)/.test(item));
+  if (explicitWebPath || explicitWebConfig || /"(?:react|react-dom|next|vue|vite|svelte|@angular\/core)"/.test(pkgText)) rows.push(surface("web", "IN_PROGRESS"));
   if (paths.some((item) => item.endsWith(".xcodeproj") || item.endsWith(".xcworkspace") || item === "Package.swift" || item.startsWith("ios/"))) rows.push(surface("ios", "IN_PROGRESS"));
   if (paths.some((item) => item === "build.gradle" || item === "settings.gradle" || item.startsWith("android/"))) rows.push(surface("android", "IN_PROGRESS"));
   if (paths.some((item) => item === "project.config.json" || item.startsWith("miniprogram/") || item.startsWith("cloudfunctions/"))) rows.push(surface("wechat-miniprogram", "IN_PROGRESS"));

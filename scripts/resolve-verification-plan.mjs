@@ -14,6 +14,7 @@ import {
   deriveControlEffectivenessRouting,
   resolveCurrentControlEffectivenessBinding,
 } from "./lib/control-effectiveness.mjs";
+import { normalizeTaskIntent, taskIntentDigest } from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -31,7 +32,7 @@ const knownFlags = new Set([
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const intent = String(args.intent || args._.slice(1).join(" ") || "").trim();
+const intent = normalizeTaskIntent(args.intent || args._.slice(1).join(" ") || "");
 const businessRuleRef = String(args["business-rule-ref"] || "").trim();
 const impactRef = String(args["impact-ref"] || "").trim();
 const projectLevel = String(args["project-level"] || "BL1").trim().toUpperCase();
@@ -76,17 +77,23 @@ function buildReport(root, userIntent) {
   const businessRule = resolveArtifact(root, businessRuleRef);
   const impact = resolveArtifact(root, impactRef);
   const businessUniverse = resolveBoundBusinessUniverse(root, businessRule.file, businessRule.evidence);
-  const resolvedIntent = userIntent
-    || businessRule.evidence?.user_request
-    || impact.evidence?.user_request?.intent
+  const requestedIntent = normalizeTaskIntent(userIntent);
+  const businessRuleIntent = normalizeTaskIntent(businessRule.evidence?.user_request || "");
+  const impactIntent = normalizeTaskIntent(impact.evidence?.user_request?.intent || "");
+  const resolvedIntent = businessRuleIntent
+    || impactIntent
+    || requestedIntent
     || "Not provided";
+  const lineageMismatch = [requestedIntent, businessRuleIntent, impactIntent]
+    .filter(Boolean)
+    .some((candidate) => candidate !== resolvedIntent);
   const inferredChangeKind = inferChangeKind(resolvedIntent, businessRule.evidence, impact.evidence);
   const effectiveChangeKind = changeKind || inferredChangeKind;
   const effectivePlatformProfiles = platformProfiles.length > 0
     ? platformProfiles
     : inferPlatforms(root, resolvedIntent);
   const taskRef = taskRefFor(resolvedIntent, businessRule.evidence, impact.evidence);
-  const intentDigest = businessRule.evidence?.source_request_digest || digest(resolvedIntent);
+  const intentDigest = taskIntentDigest(resolvedIntent);
   const controlRouting = deriveControlEffectivenessRouting({ projectRoot: root, intent: resolvedIntent, taskImpact: "MEDIUM" });
   const controlEffectivenessBinding = resolveCurrentControlEffectivenessBinding(root, {
     required: controlRouting.required === "Yes",
@@ -99,9 +106,9 @@ function buildReport(root, userIntent) {
   });
   const planSlug = slugify(resolvedIntent);
   const verificationPlanRef = verificationPlanRefForOutput(root, outputPath, planSlug);
-  const surfaces = impact.evidence?.affected_surface_map?.length
+  const surfaces = normalizeTechnicalSurfaceResponsibility(impact.evidence?.affected_surface_map?.length
     ? impact.evidence.affected_surface_map
-    : inferredSurfacesFor(resolvedIntent, effectiveChangeKind, effectivePlatformProfiles);
+    : inferredSurfacesFor(resolvedIntent, effectiveChangeKind, effectivePlatformProfiles));
   const sourceSystems = sourceSystemsFor(businessRule, impact, businessUniverse, controlEffectivenessBinding);
   const riskDomains = riskDomainsFor(resolvedIntent, businessRule.evidence, impact.evidence, surfaces);
   const obligations = obligationsFor({
@@ -120,7 +127,7 @@ function buildReport(root, userIntent) {
     effectiveChangeKind,
     riskDomains,
   });
-  const manualVerification = manualVerificationFor(surfaces, riskDomains);
+  const manualVerification = manualVerificationFor(obligations);
   const notApplicable = notApplicableFor(surfaces);
   const universeBinding = verificationUniverseBindingFor(businessRule.evidence?.business_universe_binding);
   const state = stateFor({
@@ -133,6 +140,7 @@ function buildReport(root, userIntent) {
     obligations,
     manualVerification,
     controlEffectivenessBinding,
+    lineageMismatch,
   });
   const boundaries = boundariesFor();
   const structuredBase = {
@@ -309,18 +317,38 @@ function obligationsFor({ surfaces, businessRule, impact, resolvedIntent, effect
     add("ERROR_COPY", "ERROR_COPY_CHECK", "Blocked users receive clear bounded feedback.", "Error copy, validation message, or not-applicable reason.");
   }
   if (required.has("DATA_MODEL")) {
-    add("DATA_MODEL", "DATA_MODEL_CHECK", "Data model, historical records, migration, and rollback impact are explicit.", "Schema/model/migration evidence or a concrete not-applicable decision.");
+    add("DATA_MODEL", "DATA_MODEL_CHECK", "Data model, historical records, migration, and rollback impact are explicit.", "Current schema/model/migration, historical-data compatibility, and rollback evidence, or project-native evidence that no data-model action is required.", {
+      owner: "codex",
+    });
   }
   if (required.has("PERMISSION_RISK")) {
-    add("PERMISSION_RISK", "PERMISSION_BOUNDARY_TEST", "Role, tenant, visibility, privacy, or audit boundary is verified.", "Role/tenant/owner boundary evidence or domain-owner decision.", {
-      owner: "domain-owner",
-      decisionRef: "human-decision:permission-or-risk-owner",
+    add("PERMISSION_RISK", "PERMISSION_BOUNDARY_TEST", "Role, tenant, visibility, privacy, or audit boundary is verified.", "Current role, tenant, ownership, privacy, and audit boundary tests plus project-native security evidence.", {
+      owner: "codex",
     });
   }
   if (required.has("RELEASE_IMPACT")) {
-    add("RELEASE_IMPACT", "RELEASE_SMOKE_CHECK", "Release, rollback, monitoring, or handoff impact is bounded.", "Release-owner handoff evidence; this does not approve production.", {
-      owner: "release-owner",
-      decisionRef: "human-decision:release-owner",
+    add("RELEASE_IMPACT", "RELEASE_SMOKE_CHECK", "Release, rollback, monitoring, or handoff impact is bounded.", "Current release-path, rollback, monitoring, and handoff evidence; any concrete external release action still requires real-world consent.", {
+      owner: "codex",
+    });
+  }
+  if (required.has("BACKGROUND_WORK")) {
+    add("BACKGROUND_WORK", "INTEGRATION_CONTRACT_CHECK", "Scheduled, queued, retried, or asynchronous work preserves the current business rule and remains idempotent.", "Current-task worker, scheduler, retry, duplicate-delivery, and failure-path evidence.", {
+      owner: "codex",
+    });
+  }
+  if (required.has("EXTERNAL_INTEGRATION")) {
+    add("EXTERNAL_INTEGRATION", "INTEGRATION_CONTRACT_CHECK", "External integration boundaries handle success, timeout, retry, partial failure, and replay without an unauthorized real-world effect.", "Current-task adapter or contract evidence with bounded failure paths; real external actions remain consent-gated.", {
+      owner: "codex",
+    });
+  }
+  if (required.has("RUNTIME_BEHAVIOR")) {
+    add("RUNTIME_BEHAVIOR", "REGRESSION_SMOKE", "The current code runs through the intended service, process, or platform path without stale-runtime substitution.", "Runtime-trusted current-task evidence bound to the current code, service identity, environment, and command output.", {
+      owner: "codex",
+    });
+  }
+  if (required.has("ROLLBACK_RECOVERY")) {
+    add("ROLLBACK_RECOVERY", "RELEASE_SMOKE_CHECK", "Failure, interruption, rollback, and recovery preserve or restore the exact bounded state.", "Current-task rollback or recovery proof including partial-failure and ownership-safe cleanup behavior.", {
+      owner: "codex",
     });
   }
   if (required.has("DOCS_HANDOFF")) {
@@ -341,9 +369,8 @@ function obligationsFor({ surfaces, businessRule, impact, resolvedIntent, effect
   }
 
   if (riskDomains.includes("security-or-privacy") && !required.has("PERMISSION_RISK")) {
-    add("PERMISSION_RISK", "PRIVACY_DATA_CHECK", "Security or privacy impact is bounded.", "Security/privacy boundary evidence or domain-owner decision.", {
-      owner: "domain-owner",
-      decisionRef: "human-decision:security-privacy-owner",
+    add("PERMISSION_RISK", "PRIVACY_DATA_CHECK", "Security or privacy impact is bounded.", "Current security and privacy boundary evidence tied to the project and task.", {
+      owner: "codex",
     });
   }
 
@@ -367,7 +394,7 @@ function testCorrectnessControlsFor({ obligations, surfaces, effectiveChangeKind
   if (surfaces.some((surface) => surface.surface === "FRONTEND_UI") && surfaces.some((surface) => surface.surface === "BACKEND_RULE")) {
     add("control:cross-surface-required", "FRONTEND_UI,BACKEND_RULE", "Cross-surface rules need UI and backend/API evidence.");
   }
-  if (projectLevel === "BL2" || riskDomains.some((item) => ["high-risk-domain", "permission", "security-or-privacy"].includes(item))) {
+  if (projectLevel === "BL2" || riskDomains.some((item) => ["high-risk-domain", "permission", "security-or-privacy", "release"].includes(item))) {
     add("control:generated-test-review-required", "TEST_COVERAGE", "High-risk or BL2 work needs review signals for Codex-generated tests.");
   }
   if (effectiveChangeKind === "BUG_FIX") {
@@ -377,18 +404,22 @@ function testCorrectnessControlsFor({ obligations, surfaces, effectiveChangeKind
   return controls;
 }
 
-function manualVerificationFor(surfaces, riskDomains) {
+function manualVerificationFor(obligations) {
   const manual = [];
-  const needsOwner = surfaces.some((surface) => surface.status === "NEEDS_HUMAN_DECISION")
-    || riskDomains.some((item) => ["high-risk-domain", "permission", "security-or-privacy", "release"].includes(item));
-  if (!needsOwner) return manual;
-  manual.push({
-    id: "manual:domain-or-release-owner",
-    owner: riskDomains.includes("release") ? "release-owner" : "domain-owner",
-    decision_ref: riskDomains.includes("release") ? "human-decision:release-owner" : "human-decision:domain-owner",
-    expected_manual_evidence: "Owner confirms the high-risk verification scope before completion is claimed.",
-    blocking: "Yes",
-  });
+  const seen = new Set();
+  for (const obligation of obligations) {
+    if (obligation.required_proof_strength !== "EXTERNAL_FACT_PROOF") continue;
+    const decisionRef = String(obligation.decision_ref || "external-fact:unresolved");
+    if (seen.has(decisionRef)) continue;
+    seen.add(decisionRef);
+    manual.push({
+      id: `manual:${slugify(decisionRef)}`,
+      owner: "external-source",
+      decision_ref: decisionRef,
+      expected_manual_evidence: `Provide the authoritative business or external fact needed to verify: ${obligation.behavior_under_test}`,
+      blocking: "Yes",
+    });
+  }
   return manual;
 }
 
@@ -401,7 +432,8 @@ function notApplicableFor(surfaces) {
     }));
 }
 
-function stateFor({ effectiveChangeKind, businessRule, impact, businessUniverse, universeBinding, surfaces, obligations, controlEffectivenessBinding }) {
+function stateFor({ effectiveChangeKind, businessRule, impact, businessUniverse, universeBinding, surfaces, obligations, controlEffectivenessBinding, lineageMismatch }) {
+  if (lineageMismatch) return "BLOCKED_BY_UNCLEAR_TEST_SCOPE";
   if (effectiveChangeKind === "BUSINESS_RULE") {
     if (!businessRule.ref) return "NEEDS_BUSINESS_RULE_CLOSURE";
     if (businessRule.evidence?.state !== "READY_FOR_IMPACT_COVERAGE") return "NEEDS_BUSINESS_RULE_CLOSURE";
@@ -510,7 +542,7 @@ function sourceRefsFor(businessRule, impact) {
   const refs = [];
   if (businessRule.ref) refs.push(businessRule.ref);
   if (impact.ref) refs.push(impact.ref);
-  if (refs.length === 0) refs.push("human-decision:verification-scope");
+  if (refs.length === 0) refs.push("task:current-verification-scope");
   return refs;
 }
 
@@ -584,12 +616,12 @@ function inferredSurfacesFor(userIntent, effectiveChangeKind, effectivePlatformP
     surfaces.push(surface("DATA_MODEL", "NOT_APPLICABLE", "No data model change is indicated.", "Reason recorded."));
   }
   if (/\bpermission|role|tenant|security|privacy|权限|角色|租户\b/i.test(text)) {
-    surfaces.push(surface("PERMISSION_RISK", "NEEDS_HUMAN_DECISION", "Permission or privacy risk may be affected.", "Owner decision."));
+    surfaces.push(surface("PERMISSION_RISK", "REQUIRED", "Permission or privacy risk may be affected and must be verified by Codex.", "Current permission, privacy, and audit boundary evidence."));
   } else {
     surfaces.push(surface("PERMISSION_RISK", "NOT_APPLICABLE", "No permission or privacy change is indicated.", "Reason recorded."));
   }
   if (/\brelease|production|deploy|rollback|上线|发布|回滚\b/i.test(text)) {
-    surfaces.push(surface("RELEASE_IMPACT", "NEEDS_HUMAN_DECISION", "Release impact may be affected.", "Release owner decision."));
+    surfaces.push(surface("RELEASE_IMPACT", "REQUIRED", "Release impact may be affected and must be verified by Codex.", "Current release-path, rollback, monitoring, and handoff evidence."));
   } else {
     surfaces.push(surface("RELEASE_IMPACT", "NOT_APPLICABLE", "No release impact is indicated.", "Reason recorded."));
   }
@@ -603,6 +635,18 @@ function surface(name, status, reason, expectedEvidence) {
     reason,
     expected_evidence: expectedEvidence,
   };
+}
+
+function normalizeTechnicalSurfaceResponsibility(surfaces) {
+  return surfaces.map((item) => {
+    if (item.status !== "NEEDS_HUMAN_DECISION") return item;
+    return {
+      ...item,
+      status: "REQUIRED",
+      reason: `${item.reason || "The technical surface may be affected."} Codex owns the technical verification; only a concrete external effect may require user consent.`,
+      expected_evidence: item.expected_evidence || item.expectedEvidence || "Current project-native technical evidence.",
+    };
+  });
 }
 
 function riskDomainsFor(userIntent, businessRule, impact, surfaces) {
@@ -655,6 +699,10 @@ function testRiskFor(surfaceName, type) {
   if (surfaceName === "FRONTEND_UI") return "API-only tests can miss user-facing behavior.";
   if (surfaceName === "DATA_MODEL") return "Tests must account for historical data, migration, and rollback impact.";
   if (surfaceName === "PERMISSION_RISK") return "Tests must account for role, tenant, ownership, and audit boundaries.";
+  if (surfaceName === "BACKGROUND_WORK") return "Happy-path execution can miss retries, duplicate delivery, ordering, and idempotency failures.";
+  if (surfaceName === "EXTERNAL_INTEGRATION") return "Mocks can miss timeout, replay, partial-failure, and external-effect boundaries.";
+  if (surfaceName === "RUNTIME_BEHAVIOR") return "Static or stale-process evidence can pass without exercising the current code and environment.";
+  if (surfaceName === "ROLLBACK_RECOVERY") return "Success-path tests can miss interruption, partial write, unsafe cleanup, and failed restoration.";
   return "Must assert intended behavior rather than implementation details.";
 }
 
@@ -683,7 +731,7 @@ function nextStepFor(state) {
   if (state === "VERIFICATION_PLAN_READY") return "Use this plan during execution, then bind actual test evidence in a later Test Evidence Report.";
   if (state === "NEEDS_BUSINESS_RULE_CLOSURE") return "Create or resolve a READY Business Rule Closure before verification planning is ready.";
   if (state === "NEEDS_IMPACT_COVERAGE") return "Create or resolve a Change Impact Coverage report before verification planning is ready.";
-  if (state === "NEEDS_DOMAIN_OWNER") return "Ask the domain or release owner to confirm high-risk verification scope.";
+  if (state === "NEEDS_DOMAIN_OWNER") return "Record the missing business or authoritative external fact; do not ask the user to decide the technical verification scope.";
   if (state === "BLOCKED_BY_UNCLEAR_TEST_SCOPE") return "Clarify the task or affected surfaces before execution.";
   return "Record a concrete not-applicable reason.";
 }

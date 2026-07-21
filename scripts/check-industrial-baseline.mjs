@@ -89,14 +89,33 @@ function recordRiskOverlayEvidence(issues) {
   for (const issue of issues) fail(issue);
 }
 
-const result = resolveIndustrialBaseline(projectRoot);
+let result;
+try {
+  result = resolveIndustrialBaseline(projectRoot);
+} catch (error) {
+  fail(`industrial baseline resolution failed closed: ${error.message}`);
+  if (outputJson) {
+    console.log(JSON.stringify({
+      projectRoot,
+      checkMode: strict ? "strict" : "baseline",
+      bl2Only,
+      checkStatus: "FAIL",
+      repairHints,
+      checks,
+    }, null, 2));
+  }
+  process.exit(1);
+}
 
 if (!outputJson) {
   console.log(`# Industrial Baseline Check (${strict ? "strict" : "baseline"})`);
   console.log("");
 }
 
-if (bl2Only && result.baselineLevel !== "BL2_INDUSTRIAL") {
+const authorityFailure = Boolean(result.packIndexError)
+  || (Array.isArray(result.invalidPacks) && result.invalidPacks.length > 0);
+
+if (bl2Only && result.baselineLevel !== "BL2_INDUSTRIAL" && !(strict && authorityFailure)) {
   pass(`BL2 industrial baseline is not active: ${result.baselineLevel || "none"}`);
   if (outputJson) {
     console.log(JSON.stringify({
@@ -180,14 +199,13 @@ if (result.baselineLevel === "BL2_INDUSTRIAL") {
     }
   }
 
-  if (result.humanApprovalStatus === "APPROVED") {
-    pass("BL2 human approval is approved");
-  } else {
-    warn(`BL2 human approval is not approved: ${result.humanApprovalStatus || "none"}`);
-  }
+  pass(`BL2 technical selection does not depend on compatibility approval status (${result.humanApprovalStatus || "none"})`);
 
   recordTermCoverage("baseline evidence", result.missingEvidenceTerms);
   recordEvidenceReferenceCoverage(result.evidenceReferenceIssues);
+  if ((result.effectiveRequiredEvidenceBindings || []).length > 0 && result.evidenceReferenceIssues.length === 0) {
+    pass(`BL2 requirement/evidence-type bindings: ${result.effectiveRequiredEvidenceBindings.length}`);
+  }
   recordRiskOverlayEvidence(result.riskOverlayEvidenceIssues);
 }
 
@@ -195,6 +213,11 @@ if (result.baselineLevel === "BL0_LIGHTWEIGHT" || result.baselineLevel === "BL1_
   if (result.selectedIndustrialPacks.length > 0) {
     warn(`industrial packs are selected while baseline level is ${result.baselineLevel}: ${result.selectedIndustrialPacks.join(", ")}`);
   }
+}
+
+if (strict && result.strictStatus?.ready !== true && !failed) {
+  const reason = result.pendingReasons?.join("; ") || result.packIndexError || "baseline readiness was not proven";
+  fail(`industrial baseline strict state is not ready (${result.strictState || result.state || "unresolved"}): ${reason}`);
 }
 
 if (outputJson) {

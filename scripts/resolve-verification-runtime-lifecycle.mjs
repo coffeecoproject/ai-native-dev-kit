@@ -16,6 +16,7 @@ import {
   normalizeActions,
   normalizeResources,
   readLifecycleDeclaration,
+  verificationObligationSelectors,
 } from "./lib/verification-runtime-lifecycle.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -38,6 +39,8 @@ assertNoSymlinkInPath(projectRoot, outputFile, "Verification Runtime Lifecycle P
 
 const mode = lifecycleExecutionMode(runtimePlan.adapter_selection.adapter_kind, runtimePlan.task_tier, declaration.status === "RECORDED" ? declaration.value : null);
 const declarationRef = declaration.status === "RECORDED" ? "file:.intentos/verification-runtime-lifecycle.json" : "N/A";
+const obligationResolution = verificationObligationSelectors(projectRoot, runtimePlan);
+if (!obligationResolution.ok) fail(obligationResolution.errors.join("; "));
 const plan = {
   schema_version: "1.103.0",
   artifact_type: "verification_runtime_lifecycle_plan",
@@ -59,7 +62,7 @@ const plan = {
     current_project_match: declaration.status === "RECORDED" ? "Yes" : "No",
   },
   execution_mode: mode,
-  actions: declaration.status === "RECORDED" ? normalizeActions(declaration.value.actions, runId) : [],
+  actions: declaration.status === "RECORDED" ? normalizeActions(declaration.value.actions, runId, obligationResolution) : [],
   resources: declaration.status === "RECORDED" ? normalizeResources(declaration.value.resources) : [],
   environment_policy: environmentPolicy(),
   run_workspace: `.intentos/runtime-runs/${runId}`,

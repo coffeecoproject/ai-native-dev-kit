@@ -1,6 +1,7 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import {
   evidenceDigest,
   extractMachineReadableEvidence,
@@ -8,8 +9,86 @@ import {
   validateEvidenceBlock,
 } from "./artifact-schema.mjs";
 import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./evidence-authority.mjs";
+import { planContainsCurrentIntent } from "./task-obligations.mjs";
+import {
+  normalizeTaskIntent,
+  resolveWorkQueueTaskIdentity,
+  taskIntentDigest,
+  validateEmbeddedTaskGovernanceLineage,
+  validateTaskGovernanceLineage,
+} from "./task-entry-binding.mjs";
 
 const readyStates = new Set(["PLAN_REVIEW_PASSED", "NO_PLAN_REQUIRED"]);
+const scriptsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const currentPlanReviewSchemaVersion = "1.113.0";
+const sourceContracts = Object.freeze({
+  apply_plan: Object.freeze({
+    digestField: "plan_digest",
+    bindingDigest: "artifact",
+    taskIdentity: false,
+  }),
+  task_governance: Object.freeze({
+    schema: "schemas/artifacts/task-governance.schema.json",
+    digestField: "task_governance_digest",
+    bindingDigest: "file",
+    checker: "check-task-governance.mjs",
+    checkerArgs: ["--require-report", "--require-structured-evidence"],
+    taskIdentity: true,
+  }),
+  verification_plan: Object.freeze({
+    schema: "schemas/artifacts/verification-plan.schema.json",
+    digestField: "verification_plan_digest",
+    bindingDigest: "file",
+    checker: "check-verification-plan.mjs",
+    checkerArgs: ["--require-report", "--require-structured-evidence", "--strict-source-binding", "--require-evidence-authority"],
+    taskIdentity: true,
+  }),
+  business_rule_closure: Object.freeze({
+    schema: "schemas/artifacts/business-rule-closure.schema.json",
+    digestField: "closure_digest",
+    bindingDigest: "file",
+    checker: "check-business-rule-closure.mjs",
+    checkerArgs: ["--require-report", "--require-structured-evidence", "--require-business-rule-closure"],
+    taskIdentity: true,
+  }),
+  change_impact_coverage: Object.freeze({
+    schema: "schemas/artifacts/change-impact-coverage.schema.json",
+    digestField: "impact_digest",
+    bindingDigest: "file",
+    checker: "check-change-impact-coverage.mjs",
+    checkerArgs: ["--require-structured-evidence", "--resolve-evidence-refs"],
+    taskIdentity: true,
+  }),
+  business_universe_coverage: Object.freeze({
+    schema: "schemas/artifacts/business-universe-coverage.schema.json",
+    digestField: "coverage_digest",
+    bindingDigest: "file",
+    checker: "check-business-universe-coverage.mjs",
+    checkerArgs: ["--require-report", "--require-structured-evidence"],
+    readyCheckerArgs: ["--require-ready"],
+    taskIdentity: true,
+  }),
+  control_effectiveness: Object.freeze({
+    schema: "schemas/artifacts/control-effectiveness.schema.json",
+    digestField: "report_digest",
+    bindingDigest: "artifact",
+    checker: "check-control-effectiveness.mjs",
+    checkerArgs: ["--require-report", "--require-structured-evidence"],
+    readyCheckerArgs: ["--require-effective"],
+    checkerIdentityArgs: true,
+    taskIdentity: true,
+    requiresIntentText: false,
+  }),
+  review_surface_card: Object.freeze({
+    bindingDigest: "file",
+    checker: "check-review-surface.mjs",
+    checkerArgs: [],
+    checkerAcceptsReport: false,
+    taskIdentity: false,
+  }),
+  project_native_review_surface: Object.freeze({ bindingDigest: "file", taskIdentity: false }),
+  project_native_equivalent: Object.freeze({ bindingDigest: "file", taskIdentity: false }),
+});
 
 export function checkPlanReviewBinding({
   projectRoot,
@@ -21,6 +100,7 @@ export function checkPlanReviewBinding({
   consumerPlanRef,
   consumerPlanDigest,
   consumerPlanLabel = "consumer plan",
+  requireCurrentTaskLineage,
   pass,
   fail,
 }) {
@@ -94,7 +174,9 @@ export function checkPlanReviewBinding({
   const planReviewEvidence = result.value;
   pass(`${label} referenced Plan Review schema and digest are valid`);
 
-  const sourceValidation = validatePlanReviewSourceEvidence(projectRoot, resolved, planReviewEvidence);
+  const sourceValidation = validatePlanReviewSourceEvidence(projectRoot, resolved, planReviewEvidence, {
+    requireCurrentTaskLineage: requireCurrentTaskLineage ?? mustBePassed,
+  });
   sourceValidation.errors.forEach((error) => fail(`${label} referenced Plan Review ${error}`));
   if (sourceValidation.ok) pass(`${label} referenced Plan Review source chain resolves with current digests`);
 
@@ -123,9 +205,34 @@ export function checkPlanReviewBinding({
   }
 }
 
-export function validatePlanReviewSourceEvidence(projectRoot, reportFile, evidence) {
+export function validatePlanReviewSourceEvidence(projectRoot, reportFile, evidence, options = {}) {
   const errors = [];
-  const check = (name, ref, digest, options = {}) => {
+  const checkerCache = new Map();
+  const currentAuthority = Boolean(options.requireCurrentTaskLineage)
+    || (evidence?.schema_version === currentPlanReviewSchemaVersion
+      && readyStates.has(evidence?.plan_review_state));
+  const normalizedIntent = normalizeTaskIntent(evidence?.intent);
+  if (currentAuthority
+    && (!normalizedIntent
+      || evidence?.intent !== normalizedIntent
+      || evidence?.intent_digest !== taskIntentDigest(normalizedIntent))) {
+    errors.push("intent and intent_digest must be canonical and exact");
+  }
+  if (currentAuthority) {
+    const workQueue = resolveWorkQueueTaskIdentity(projectRoot, evidence?.work_queue_item_ref, {
+      fromFile: reportFile,
+      requireCurrent: true,
+    });
+    if (!workQueue.ok) {
+      errors.push(`Work Queue task lineage is not current authority: ${workQueue.error}`);
+    } else if (evidence.work_queue_item_digest !== workQueue.identity.work_queue_item_digest
+      || evidence.task_ref !== workQueue.identity.task_ref
+      || evidence.intent !== workQueue.identity.intent
+      || evidence.intent_digest !== workQueue.identity.intent_digest) {
+      errors.push("Work Queue item, task_ref, intent text, and intent_digest must bind the exact task instance");
+    }
+  }
+  const checkHistorical = (name, ref, digest, options = {}) => {
     const value = String(ref || "").trim();
     if (!value || value === "N/A" || value.startsWith("derived:")) {
       if (options.required) errors.push(`${name} must resolve to a concrete project-local file`);
@@ -138,34 +245,260 @@ export function validatePlanReviewSourceEvidence(projectRoot, reportFile, eviden
     }
     const acceptedDigests = new Set([canonicalFileDigest(resolved.file)]);
     const sourceEvidence = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
-    if (sourceEvidence?.ok && sourceEvidence.value && typeof sourceEvidence.value === "object") {
-      for (const field of Object.keys(sourceEvidence.value).filter((field) => field.endsWith("_digest"))) {
-        const declaredDigest = sourceEvidence.value[field];
-        if (typeof declaredDigest !== "string") continue;
-        if (declaredDigest === evidenceDigest(sourceEvidence.value, [field])) acceptedDigests.add(declaredDigest);
+    const contract = options.sourceKind ? sourceContracts[options.sourceKind] : null;
+    if (contract?.digestField && sourceEvidence?.ok && sourceEvidence.value && typeof sourceEvidence.value === "object") {
+      const declaredDigest = sourceEvidence.value[contract.digestField];
+      if (typeof declaredDigest === "string"
+        && declaredDigest === evidenceDigest(sourceEvidence.value, [contract.digestField])) {
+        acceptedDigests.add(declaredDigest);
       }
     }
     if (!acceptedDigests.has(digest) && !options.allowStale) {
       errors.push(`${name} digest ${digest || "<missing>"} does not match ${resolved.relativePath}`);
     }
   };
+  const checkCurrent = (name, sourceKind, ref, digest, options = {}) => {
+    const contract = sourceContracts[sourceKind];
+    if (!contract) {
+      errors.push(`${name} uses unsupported current source_kind ${sourceKind || "<missing>"}`);
+      return;
+    }
+    const value = String(ref || "").trim();
+    if (!value || value === "N/A" || value.startsWith("derived:")) {
+      errors.push(`${name} must resolve to a concrete project-local file`);
+      return;
+    }
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, reportFile, value, { markdownOnly: true });
+    if (!resolved.ok) {
+      errors.push(`${name} ${value} is unsafe or unresolved: ${resolved.error}`);
+      return;
+    }
+    const content = fs.readFileSync(resolved.file, "utf8");
+    let sourceEvidence = null;
+    if (contract.schema) {
+      const checked = validateEvidenceBlock(
+        content,
+        loadSchema(projectRoot, contract.schema),
+        name,
+        { require: true, digestField: contract.digestField },
+      );
+      if (!checked.ok) {
+        errors.push(...checked.errors);
+        return;
+      }
+      sourceEvidence = checked.value;
+    }
+    const digestMode = options.bindingDigest || contract.bindingDigest;
+    const expectedDigest = digestMode === "artifact"
+      ? sourceEvidence?.[contract.digestField]
+      : canonicalFileDigest(resolved.file);
+    if (digest !== expectedDigest) {
+      errors.push(`${name} digest ${digest || "<missing>"} does not match the trusted ${digestMode} digest ${expectedDigest || "<missing>"}`);
+    }
+    if (contract.taskIdentity) {
+      const sourceTaskRef = sourceTaskRefFor(sourceEvidence);
+      const sourceIntentDigest = sourceIntentDigestFor(sourceEvidence);
+      const sourceIntent = sourceIntentFor(sourceEvidence);
+      if (!options.taskRef || sourceTaskRef !== options.taskRef) {
+        errors.push(`${name} task_ref ${sourceTaskRef || "<missing>"} does not match ${options.taskRef || "<missing>"}`);
+      }
+      if (!options.intentDigest || sourceIntentDigest !== options.intentDigest) {
+        errors.push(`${name} intent digest ${sourceIntentDigest || "<missing>"} does not match ${options.intentDigest || "<missing>"}`);
+      }
+      if (contract.requiresIntentText !== false
+        && (!options.intent || sourceIntent !== normalizeTaskIntent(options.intent))) {
+        errors.push(`${name} intent text ${sourceIntent || "<missing>"} does not match the Plan Review intent`);
+      }
+      if (options.currentTaskMatch === "Yes"
+        && (sourceTaskRef !== options.taskRef || sourceIntentDigest !== options.intentDigest)) {
+        errors.push(`${name} claims current_task_match Yes without exact task and intent identity`);
+      }
+    }
+    if (currentAuthority && sourceKind === "task_governance") {
+      const lineage = validateTaskGovernanceLineage(projectRoot, sourceEvidence, {
+        fromFile: resolved.file,
+        requireCurrent: true,
+      });
+      errors.push(...lineage.errors.map((error) => `${name} ${error}`));
+      if (lineage.current
+        && (normalizeReference(sourceEvidence.task_lineage?.work_queue_item_ref) !== normalizeReference(evidence.work_queue_item_ref)
+          || sourceEvidence.task_lineage?.work_queue_item_digest !== evidence.work_queue_item_digest)) {
+        errors.push(`${name} Work Queue lineage does not match Plan Review`);
+      }
+    }
+    if (currentAuthority && sourceKind === "business_rule_closure") {
+      const lineage = validateEmbeddedTaskGovernanceLineage(projectRoot, sourceEvidence?.source_rule_refs, {
+        taskRef: evidence.task_ref,
+        intent: evidence.intent,
+        intentDigest: evidence.intent_digest,
+      }, {
+        fromFile: resolved.file,
+        requireCurrent: true,
+      });
+      errors.push(...lineage.errors.map((error) => `${name} ${error}`));
+    }
+    if (options.expectedOutcome) {
+      const observedOutcome = sourceOutcomeFor(sourceEvidence, sourceKind);
+      if (observedOutcome !== options.expectedOutcome) {
+        errors.push(`${name} must be ${options.expectedOutcome}, observed ${observedOutcome || "<missing>"}`);
+      }
+    }
+    if (options.runChecker !== false && contract.checker) {
+      const cacheKey = [contract.checker, resolved.relativePath, options.expectedOutcome, options.taskRef, options.intentDigest, currentAuthority].join("\0");
+      let checker = checkerCache.get(cacheKey);
+      if (!checker) {
+        checker = runTrustedSourceChecker(projectRoot, resolved.relativePath, contract, {
+          requireReady: Boolean(options.expectedOutcome),
+          taskRef: options.taskRef,
+          intentDigest: options.intentDigest,
+          requireCurrentTaskLineage: currentAuthority,
+        });
+        checkerCache.set(cacheKey, checker);
+      }
+      if (!checker.ok) errors.push(`${name} failed trusted ${contract.checker}: ${checker.reason}`);
+    }
+  };
 
   if (evidence.plan_ref !== "N/A") {
-    check("plan_ref", evidence.plan_ref, evidence.plan_digest, {
+    checkHistorical("plan_ref", evidence.plan_ref, evidence.plan_digest, {
       required: !["PLAN_REQUIRED", "PLAN_DRAFTED", "PLAN_REVIEW_REQUIRED"].includes(evidence.plan_review_state),
       allowStale: evidence.plan_review_state === "BLOCKED_BY_STALE_PLAN",
+      sourceKind: "apply_plan",
+    });
+    if (evidence.schema_version === "1.113.0") {
+      const resolved = resolveAuthoritativeEvidenceReference(projectRoot, reportFile, evidence.plan_ref, { markdownOnly: true });
+      if (resolved.ok && !planContainsCurrentIntent(fs.readFileSync(resolved.file, "utf8"), {
+        intent: evidence.intent,
+        intentDigest: evidence.intent_digest,
+      })) {
+        errors.push("plan_ref does not contain the current intent or exact intent digest");
+      }
+    }
+  }
+  if (evidence.schema_version === currentPlanReviewSchemaVersion) {
+    checkCurrent("task_governance.ref", "task_governance", evidence.task_governance?.ref, evidence.task_governance?.digest, {
+      bindingDigest: "artifact",
+      taskRef: evidence.task_ref,
+      intent: evidence.intent,
+      intentDigest: evidence.intent_digest,
+      currentTaskMatch: evidence.task_governance?.current_task_match,
+    });
+  } else {
+    checkHistorical("task_governance.ref", evidence.task_governance?.ref, evidence.task_governance?.digest, {
+      required: ["HIGH", "POSSIBLE_HIGH"].includes(evidence.task_impact) || evidence.plan_review_state === "PLAN_REVIEW_PASSED",
+      sourceKind: "task_governance",
     });
   }
-  check("task_governance.ref", evidence.task_governance?.ref, evidence.task_governance?.digest, {
-    required: ["HIGH", "POSSIBLE_HIGH"].includes(evidence.task_impact) || evidence.plan_review_state === "PLAN_REVIEW_PASSED",
-  });
-  check("review_surface_analysis.ref", evidence.review_surface_analysis?.ref, evidence.review_surface_analysis?.digest, {
+  checkHistorical("review_surface_analysis.ref", evidence.review_surface_analysis?.ref, evidence.review_surface_analysis?.digest, {
     required: evidence.plan_review_state === "PLAN_REVIEW_PASSED" && ["HIGH", "POSSIBLE_HIGH"].includes(evidence.task_impact),
+    sourceKind: evidence.review_surface_analysis?.source,
   });
+  const readyOutcomes = {
+    verification_plan: "VERIFICATION_PLAN_READY",
+    business_rule_closure: "READY_FOR_IMPACT_COVERAGE",
+    change_impact_coverage: "CHANGE_IMPACT_RECORDED",
+    business_universe_coverage: "COVERAGE_READY",
+    control_effectiveness: "CONTROL_PROVEN_EFFECTIVE",
+  };
   for (const source of evidence.source_chain || []) {
-    check(`source_chain.${source.source_kind}`, source.source_ref, source.source_digest, { required: true });
+    if (evidence.schema_version === currentPlanReviewSchemaVersion) {
+      checkCurrent(`source_chain.${source.source_kind}`, source.source_kind, source.source_ref, source.source_digest, {
+        taskRef: evidence.task_ref,
+        intent: evidence.intent,
+        intentDigest: evidence.intent_digest,
+        currentTaskMatch: source.current_task_match,
+        expectedOutcome: evidence.plan_review_state === "PLAN_REVIEW_PASSED" ? readyOutcomes[source.source_kind] : "",
+      });
+    } else {
+      checkHistorical(`source_chain.${source.source_kind}`, source.source_ref, source.source_digest, {
+        required: true,
+        sourceKind: source.source_kind,
+      });
+    }
   }
   return { ok: errors.length === 0, errors };
+}
+
+export function planReviewSourceDigest(sourceKind, file, evidence) {
+  const contract = sourceContracts[sourceKind];
+  if (!contract || !file) return "";
+  if (contract.bindingDigest === "artifact") return String(evidence?.[contract.digestField] || "");
+  return canonicalFileDigest(file);
+}
+
+function runTrustedSourceChecker(projectRoot, relativePath, contract, options) {
+  const checker = path.join(scriptsDir, contract.checker);
+  let checkerStat;
+  try {
+    checkerStat = fs.lstatSync(checker);
+  } catch {
+    return { ok: false, reason: "trusted checker is missing" };
+  }
+  if (!checkerStat.isFile() || checkerStat.isSymbolicLink()) {
+    return { ok: false, reason: "trusted checker is not a regular file" };
+  }
+  const args = [checker, projectRoot];
+  if (contract.checkerAcceptsReport !== false) args.push("--report", relativePath);
+  args.push(...contract.checkerArgs);
+  if (options.requireReady) args.push(...(contract.readyCheckerArgs || []));
+  if (contract.checkerIdentityArgs) {
+    args.push("--task-ref", options.taskRef, "--intent-digest", options.intentDigest);
+  }
+  if (options.requireCurrentTaskLineage) {
+    if (contract.checker === "check-task-governance.mjs") args.push("--require-current-task-lineage");
+    if (["check-business-rule-closure.mjs", "check-change-impact-coverage.mjs", "check-verification-plan.mjs"].includes(contract.checker)) {
+      args.push("--require-task-lineage");
+    }
+  }
+  const result = spawnSync(process.execPath, args, {
+    cwd: projectRoot,
+    encoding: "utf8",
+    maxBuffer: 32 * 1024 * 1024,
+  });
+  return {
+    ok: result.status === 0,
+    reason: result.status === 0 ? "checker passed" : firstCheckerFailure(result.stdout, result.stderr),
+  };
+}
+
+function firstCheckerFailure(stdout, stderr) {
+  const lines = `${stdout || ""}\n${stderr || ""}`
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return (lines.find((line) => line.startsWith("FAIL ")) || lines.at(-1) || "checker failed").slice(0, 500);
+}
+
+function sourceTaskRefFor(value) {
+  return String(value?.task_ref || value?.user_request?.task_ref || "").trim();
+}
+
+function sourceIntentDigestFor(value) {
+  if (typeof value?.intent_digest === "string") return value.intent_digest;
+  if (typeof value?.source_request_digest === "string") return value.source_request_digest;
+  if (typeof value?.user_request?.intent !== "string") return "";
+  return taskIntentDigest(value.user_request.intent);
+}
+
+function sourceIntentFor(value) {
+  if (typeof value?.intent === "string") return normalizeTaskIntent(value.intent);
+  if (typeof value?.user_request === "string") return normalizeTaskIntent(value.user_request);
+  if (typeof value?.user_request?.intent === "string") return normalizeTaskIntent(value.user_request.intent);
+  return "";
+}
+
+function sourceOutcomeFor(value, sourceKind) {
+  const fields = {
+    verification_plan: ["verification_state", "outcome"],
+    business_rule_closure: ["state", "outcome"],
+    change_impact_coverage: ["outcome", "impact_state"],
+    business_universe_coverage: ["outcome"],
+    control_effectiveness: ["outcome", "assessment_outcome"],
+  }[sourceKind] || ["outcome", "state"];
+  for (const field of fields) {
+    if (typeof value?.[field] === "string" && value[field]) return value[field];
+  }
+  return "";
 }
 
 export function planReviewBindingSchema() {

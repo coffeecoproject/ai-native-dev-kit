@@ -18,7 +18,7 @@ Can this go live now?
 ## What It Checks
 
 - Which release candidate is being reviewed.
-- Which release target is intended: preview, internal trial, staging,
+- Which release target is intended: source review, preview, internal trial, staging,
   production review, app-store review, or mini-program review.
 - Whether Completion Evidence exists for the included work.
 - Whether every included Completion Evidence ref is represented in the
@@ -36,6 +36,11 @@ Can this go live now?
   missing evidence.
 - Whether existing project release SOPs are mapped rather than downgraded.
 - Whether any field incorrectly claims release approval or deployment authority.
+
+For a source-only repository, `source_review` validates the exact source
+candidate and current Completion Evidence without inventing build, runtime,
+platform, owner, or external-consent evidence. It cannot authorize publication
+or another real-world effect.
 
 ## Plain-Language Use
 

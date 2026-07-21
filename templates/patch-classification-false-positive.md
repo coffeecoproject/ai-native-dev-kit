@@ -6,24 +6,31 @@ This record does not approve implementation. It only documents why the classifie
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Keep conservative flag | Leave the original high-risk signal in place | Report only | low if respected | Choose when safety is more important than reducing noise |
-| B | Document exception | Record why this case is not high risk | Report only | low/medium | Choose when evidence shows the trigger is narrow |
-| C | Adjust classifier later | Open a separate calibration proposal | Proposal/report only | medium | Choose when repeated false positives create workflow noise |
-| D | Reject false positive | Treat the original classification as correct | Report only | low | Choose when the evidence does not justify calibration |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Calibration Decision And Evidence
+
+Selected disposition: KEEP_CONSERVATIVE / DOCUMENT_EXCEPTION / ADJUST_CLASSIFIER_LATER / REJECT_FALSE_POSITIVE
+
+Can Codex continue now: yes / limited / no
+
+Trigger and root-cause evidence:
+
+Safety and scope analysis:
+
+Verification, review route, and technical recovery:
 
 ## Human Summary
 
@@ -68,13 +75,15 @@ Decision: KEEP_CONSERVATIVE / ADJUST_KEYWORD / DOCUMENT_EXCEPTION / REJECT_FALSE
 
 Rationale:
 
-Human reviewer:
+Codex reviewer and evidence ref:
 
 ## Required Human Decisions
 
-| Decision | Reason | Owner | Status |
-|---|---|---|---|
-|  |  | human | PENDING |
+Compatibility heading: semantically this is the bounded `User Input Queue`; classifier calibration is excluded.
+
+| Input class | Missing business fact, exact prepared effect, or external fact | Why project evidence is insufficient | Source | Status |
+|---|---|---|---|---|
+| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  |  | user / external authority / N/A | PENDING / PROVIDED / CONSENTED / NOT_REQUIRED |
 
 ## Outcome
 

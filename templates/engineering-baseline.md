@@ -1,43 +1,26 @@
 # Engineering Baseline
 
-This file defines engineering decision rules Codex must read before making structural, typing, schema, API, domain, permission, migration, or state-model decisions.
+This file defines engineering decision rules Codex must read before making
+structural, typing, schema, API, domain, permission, migration, or state-model
+decisions. It does not define business requirements.
 
-It does not define business requirements.
-
-## Human Decision Summary
+## Codex Technical Summary
 
 Conclusion:
 
-Recommended choice: A / B / C / D
+Selected baseline level and profiles:
 
-Can AI continue now: yes / limited / no
+Can Codex continue now: yes / limited / no
 
-What I need from you:
+Evidence refs:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Confirm baseline | Use these engineering rules for implementation | Baseline/report only | low | Choose when the rules match the project |
-| B | Fill missing rules | Draft unclear sections for review | Baseline draft only | low/medium | Choose when Codex can infer structure but needs confirmation |
-| C | Stop for engineering decision | Pause before structural, schema, API, permission, migration, or dependency changes | Decision/baseline only | medium/high | Choose when project-wide rules are unclear |
-| D | Keep lightweight | Record only the minimum rules needed now | Baseline/report only | low/medium | Choose for small or early projects |
-
-Recommended reason:
-
-What happens if you do nothing:
-
-## Human Summary
-
-Plain-language summary of the engineering decisions that matter most before AI writes code:
-
-- 
+Missing business or external fact, if any:
 
 ## Status
 
-Baseline status: DRAFT / PARTIAL / CONFIRMED
+Baseline status: DRAFT / PARTIAL / READY
 
-Human decision status: PENDING / APPROVED / REJECTED
-
-Owner:
+Evidence status: MISSING / PARTIAL / VERIFIED
 
 Last reviewed:
 
@@ -54,35 +37,33 @@ This baseline applies to:
 - permissions
 - state model
 
-This baseline does not apply to:
+This baseline does not authorize:
 
-- business requirements
-- feature priority
-- release approval
+- invented business rules
+- feature-priority changes outside the request
+- production or other real-world effects
 
 ## Code Structure Boundary
 
-Where do these concerns belong?
-
-| Concern | Project Location | Source of Truth | Codex May Decide? |
+| Concern | Project location | Source of truth | Codex rule and evidence |
 |---|---|---|---|
-| pages / routes |  |  | Yes / No |
-| components |  |  | Yes / No |
-| hooks |  |  | Yes / No |
-| services |  |  | Yes / No |
-| API client |  |  | Yes / No |
-| domain logic |  |  | Yes / No |
-| shared utilities |  |  | Yes / No |
+| pages / routes |  |  |  |
+| components |  |  |  |
+| hooks |  |  |  |
+| services |  |  |  |
+| API client |  |  |  |
+| domain logic |  |  |  |
+| shared utilities |  |  |  |
 
-## Type Source of Truth
+## Type Source Of Truth
 
-| Type Kind | Source | Generated? | Owner | Codex May Create? |
+| Type kind | Source | Generated? | Authority | Codex creation rule |
 |---|---|---|---|---|
-| API request DTO |  | Yes / No |  | Yes / No |
-| API response DTO |  | Yes / No |  | Yes / No |
-| domain model |  | Yes / No |  | Yes / No |
-| database schema type |  | Yes / No |  | Yes / No |
-| UI view model |  | Yes / No |  | Yes / No |
+| API request DTO |  | Yes / No |  |  |
+| API response DTO |  | Yes / No |  |  |
+| domain model |  | Yes / No |  |  |
+| database schema type |  | Yes / No |  |  |
+| UI view model |  | Yes / No |  |  |
 
 ## DTO / Schema / Domain Rules
 
@@ -96,7 +77,7 @@ Conversion layer:
 
 Codex must not:
 
-- 
+-
 
 ## API Contract Source
 
@@ -106,26 +87,27 @@ Generated client or type command:
 
 Manual contract change rules:
 
-Codex must stop when:
-
-- 
+Required review and verification:
 
 ## Enum / String / Lookup / State Machine Decision Matrix
 
-Do not choose based only on value count. Decide by ownership, change frequency, migration cost, label/i18n needs, sorting, enable-disable behavior, external values, reporting, and state transitions.
+Do not choose based only on value count. Decide by ownership, change frequency,
+migration cost, label/i18n needs, sorting, enable-disable behavior, external
+values, reporting, and state transitions.
 
-| Case | Preferred Pattern | Requires Human Decision? | Notes |
+| Case | Preferred pattern | Required technical evidence | Notes |
 |---|---|---|---|
-| stable small code-owned set | typed constants / enum / union type | No / Yes |  |
-| DB strong constraint, very low change | DB enum with migration / rollback plan | Yes |  |
-| configurable labels / i18n / ordering / enable-disable | lookup table | Yes |  |
-| external system values | string at boundary, mapped to domain type | Maybe |  |
-| state transitions | state machine | Yes |  |
-| UI color / label mapping | mapping layer | No / Yes |  |
+| stable small code-owned set | typed constants / enum / union type | ownership and compatibility review |  |
+| DB strong constraint, very low change | DB enum with migration / rollback plan | migration and rollback evidence |  |
+| configurable labels / i18n / ordering / enable-disable | lookup table | lifecycle and data-integrity evidence |  |
+| external system values | string at boundary, mapped to domain type | boundary contract evidence |  |
+| state transitions | state machine | transition and negative-path tests |  |
+| UI color / label mapping | mapping layer | mapping coverage |  |
 
 ## Frontend Boundary
 
-Fill this when the project has a frontend. Leave as Not applicable when it does not.
+Fill this when the project has a frontend. Mark it Not applicable with evidence
+when it does not.
 
 | Concern | Rule |
 |---|---|
@@ -145,15 +127,15 @@ Fill this when the project has a frontend. Leave as Not applicable when it does 
 
 Codex may edit schema when:
 
-Codex must stop when:
+Required migration evidence:
 
-Migration requires:
+Required rollback evidence:
 
-Rollback requires:
+Real-data or production consent boundary:
 
-## Engineering Decision Required When
+## Engineering Review Required When
 
-Codex must stop and propose an engineering decision for:
+Codex must record and review an explicit technical decision for:
 
 - new directory convention
 - new shared abstraction
@@ -166,21 +148,19 @@ Codex must stop and propose an engineering decision for:
 - new dependency
 - cross-module state pattern
 
+These are internal technical reviews. They do not become user approval prompts.
+
 ## Codex Behavior
 
-If baseline is complete:
+If the baseline is complete, follow it and cite its evidence.
 
-- follow it
-
-If baseline is missing:
-
-- do not invent a project standard
-- use local pattern only for low-risk local changes
-- record the baseline gap
-- create a Decision Brief when needed
+If the baseline is missing, Codex reads local patterns, drafts the missing rule,
+checks it against the project and selected platform pack, records the decision,
+and verifies affected code. Ask the user only for an unavailable business fact,
+external fact, or consent to a concrete real-world effect.
 
 ## Open Engineering Decisions
 
-| Decision | Options | Recommended | Owner | Status |
+| Decision | Options | Codex recommendation | Evidence or experiment | Status |
 |---|---|---|---|---|
-|  |  |  | human | PENDING |
+|  |  |  |  | PENDING_INTERNAL_REVIEW |

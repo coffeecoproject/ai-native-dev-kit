@@ -4,18 +4,27 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { extractMachineReadableEvidence, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import {
+  normalizeTaskIntent,
+  resolveWorkQueueTaskIdentity,
+  taskIntentDigest,
+  validateTaskGovernanceLineage,
+} from "./lib/task-entry-binding.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence"]);
+const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-current-task-lineage", "strict"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const requireCurrentTaskLineage = Boolean(args["require-current-task-lineage"] || args.strict);
+const strictRequested = requireReport || requireStructuredEvidence || requireCurrentTaskLineage || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/work-queue-takeover.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -119,8 +128,8 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("work-queue-takeover-reports");
   if (files.length === 0) {
-    if (allowEmpty) pass("work queue takeover check skipped by explicit --allow-empty: no reports");
-    else if (requireReport || explicitReport) fail("no Work Queue Takeover reports found");
+    if (allowEmpty && !strictRequested) pass("work queue takeover check skipped by explicit --allow-empty: no reports");
+    else if (strictRequested) fail("no Work Queue Takeover reports found");
     else pass("SKIPPED_NO_REPORT: no Work Queue Takeover reports found");
     return;
   }
@@ -147,10 +156,10 @@ function checkReport(file) {
   }
 
   const result = validateEvidenceBlock(content, schema, label, {
-    require: requireStructuredEvidence,
+    require: requireStructuredEvidence || requireCurrentTaskLineage,
     digestField: "work_queue_takeover_digest",
   });
-  if (!result.present && !requireStructuredEvidence) {
+  if (!result.present && !(requireStructuredEvidence || requireCurrentTaskLineage)) {
     pass(`${label} structured evidence optional and not present`);
     return;
   }
@@ -163,6 +172,12 @@ function checkReport(file) {
 }
 
 function checkStructuredEvidence(content, label, file, evidence) {
+  const normalizedIntent = normalizeTaskIntent(evidence.intent);
+  if (evidence.intent === normalizedIntent && evidence.intent_digest === taskIntentDigest(normalizedIntent)) {
+    pass(`${label} intent and intent_digest are canonical`);
+  } else {
+    fail(`${label} intent_digest must be recomputed from normalized intent`);
+  }
   if (reportRefCandidates(file).includes(evidence.work_queue_takeover_ref)) pass(`${label} work_queue_takeover_ref points to this report`);
   else fail(`${label} work_queue_takeover_ref ${evidence.work_queue_takeover_ref || "<missing>"} must point to this report`);
 
@@ -186,12 +201,17 @@ function checkStructuredEvidence(content, label, file, evidence) {
   else fail(`${label} can_codex_write_now must be No`);
   if (evidence.readiness?.can_execute_from_old_todo_directly === "No") pass(`${label} old TODO cannot execute directly`);
   else fail(`${label} can_execute_from_old_todo_directly must be No`);
-  if (evidence.readiness?.takeover_review_ready === evidence.readiness?.takeover_ready) pass(`${label} takeover review readiness is explicit`);
-  else fail(`${label} takeover_review_ready must exist and match takeover_ready`);
+  if (["Yes", "No"].includes(evidence.readiness?.takeover_review_ready)) pass(`${label} takeover review readiness is explicit`);
+  else fail(`${label} takeover_review_ready must be Yes or No`);
+  if (evidence.readiness?.takeover_ready === "Yes" && evidence.readiness?.takeover_review_ready !== "Yes") {
+    fail(`${label} executable takeover cannot be ready before takeover review is ready`);
+  } else {
+    pass(`${label} executable takeover does not outrun review readiness`);
+  }
 
   checkClassConsistency(label, evidence);
   const sourceMap = checkSourceCoverage(label, evidence);
-  checkQueueItems(label, evidence, sourceMap);
+  checkQueueItems(label, file, evidence, sourceMap);
 }
 
 function checkClassConsistency(label, evidence) {
@@ -220,11 +240,13 @@ function checkSourceCoverage(label, evidence) {
     if (source.status !== "MISSING") inventoryRefs.add(source.source_ref);
     if (/^sha256:[a-f0-9]{64}$/.test(source.source_digest || "")) pass(`${label} source ${source.source_ref} has source digest`);
     else fail(`${label} source ${source.source_ref || "<missing>"} must have source_digest`);
-    const sourcePath = path.join(projectRoot, source.source_ref || "");
-    if (source.source_ref && fs.existsSync(sourcePath) && fs.statSync(sourcePath).isFile()) {
-      const expected = digest(`${source.source_ref}\n${fs.readFileSync(sourcePath, "utf8")}`);
+    const sourcePath = resolveAuthoritativeEvidenceReference(projectRoot, "", source.source_ref || "");
+    if (sourcePath.ok) {
+      const expected = digest(`${source.source_ref}\n${fs.readFileSync(sourcePath.file, "utf8")}`);
       if (source.source_digest === expected) pass(`${label} source ${source.source_ref} digest matches file content`);
       else fail(`${label} source ${source.source_ref} digest must match file content`);
+    } else if (source.status !== "MISSING") {
+      fail(`${label} source ${source.source_ref || "<missing>"} is unsafe or unresolved: ${sourcePath.error}`);
     }
     sourceMap.set(source.source_ref, source);
   }
@@ -247,7 +269,7 @@ function checkSourceCoverage(label, evidence) {
   return sourceMap;
 }
 
-function checkQueueItems(label, evidence, sourceMap) {
+function checkQueueItems(label, file, evidence, sourceMap) {
   const queueItems = evidence.queue_items || [];
   const currentItems = queueItems.filter((item) => item.state === "CURRENT");
   if (currentItems.length <= 1) pass(`${label} has at most one CURRENT queue item`);
@@ -264,6 +286,7 @@ function checkQueueItems(label, evidence, sourceMap) {
       if (item.task_governance_ref && item.task_governance_ref !== "N/A") pass(`${label} CURRENT item ${item.item_id} has Task Governance ref`);
       else fail(`${label} CURRENT item ${item.item_id} must have Task Governance ref`);
       if (item.task_governance_binding_status === "PENDING") {
+        if (requireCurrentTaskLineage) fail(`${label} current authority item ${item.item_id} cannot keep Task Governance pending`);
         if (item.task_governance_digest === "N/A") pass(`${label} CURRENT item ${item.item_id} keeps Task Governance digest pending`);
         else fail(`${label} CURRENT item ${item.item_id} must not invent Task Governance digest before binding`);
         if (item.execution_eligible === "No") pass(`${label} CURRENT item ${item.item_id} is not executable before Task Governance binding`);
@@ -271,7 +294,7 @@ function checkQueueItems(label, evidence, sourceMap) {
         if (item.execution_review_eligible_after_task_governance === "Yes") pass(`${label} CURRENT item ${item.item_id} records future review eligibility`);
         else fail(`${label} CURRENT item ${item.item_id} must record review eligibility after Task Governance`);
       } else if (item.task_governance_binding_status === "VERIFIED") {
-        checkVerifiedTaskGovernanceBinding(label, item);
+        checkVerifiedTaskGovernanceBinding(label, file, evidence, item);
       } else {
         fail(`${label} CURRENT item ${item.item_id} must have PENDING or VERIFIED Task Governance binding status`);
       }
@@ -295,7 +318,7 @@ function checkQueueItems(label, evidence, sourceMap) {
   }
 }
 
-function checkVerifiedTaskGovernanceBinding(label, item) {
+function checkVerifiedTaskGovernanceBinding(label, file, takeover, item) {
   if (!item.task_governance_ref || item.task_governance_ref === "N/A") {
     fail(`${label} verified execution eligible item ${item.item_id} must have Task Governance ref`);
     return;
@@ -304,14 +327,54 @@ function checkVerifiedTaskGovernanceBinding(label, item) {
     fail(`${label} verified item ${item.item_id} must have Task Governance digest`);
     return;
   }
-  const refPath = path.join(projectRoot, item.task_governance_ref);
-  if (!fs.existsSync(refPath) || !fs.statSync(refPath).isFile()) {
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", item.task_governance_ref);
+  if (!resolved.ok) {
     fail(`${label} verified item ${item.item_id} Task Governance ref must resolve`);
     return;
   }
-  const expected = digest(fs.readFileSync(refPath, "utf8"));
-  if (item.task_governance_digest === expected) pass(`${label} verified item ${item.item_id} Task Governance digest resolves`);
-  else fail(`${label} verified item ${item.item_id} Task Governance digest must match ref`);
+  const content = fs.readFileSync(resolved.file, "utf8");
+  const validation = validateEvidenceBlock(
+    content,
+    loadSchema(projectRoot, "schemas/artifacts/task-governance.schema.json"),
+    `${label} referenced Task Governance report`,
+    { require: true, digestField: "task_governance_digest" },
+  );
+  if (!validation.ok) {
+    validation.errors.forEach((error) => fail(error));
+    return;
+  }
+  const extracted = extractMachineReadableEvidence(content);
+  if (item.task_governance_digest === extracted.value.task_governance_digest) {
+    pass(`${label} verified item ${item.item_id} Task Governance digest resolves`);
+  } else {
+    fail(`${label} verified item ${item.item_id} Task Governance digest must match structured evidence`);
+  }
+  const governance = extracted.value;
+  if (governance.intent === takeover.intent && governance.intent_digest === takeover.intent_digest) {
+    pass(`${label} verified item ${item.item_id} Task Governance intent text and digest match takeover`);
+  } else {
+    fail(`${label} verified item ${item.item_id} Task Governance intent text and digest must match takeover`);
+  }
+  const itemRef = `artifact:${rel(file)}#${item.item_id}`;
+  const currentIdentityRequired = requireCurrentTaskLineage || governance.task_lineage?.authority === "WORK_QUEUE_ITEM";
+  if (currentIdentityRequired) {
+    const task = resolveWorkQueueTaskIdentity(projectRoot, itemRef, { requireCurrent: true });
+    if (!task.ok) {
+      fail(`${label} verified item ${item.item_id} has invalid task-instance lineage: ${task.error}`);
+      return;
+    }
+    if (governance.task_ref === task.identity.task_ref) pass(`${label} verified item ${item.item_id} task_ref matches Task Governance`);
+    else fail(`${label} verified item ${item.item_id} task_ref must match Task Governance`);
+    const lineage = validateTaskGovernanceLineage(projectRoot, governance, { fromFile: resolved.file, requireCurrent: true });
+    if (lineage.ok) pass(`${label} verified item ${item.item_id} Task Governance lineage binds this Work Queue task instance`);
+    else lineage.errors.forEach((error) => fail(`${label} verified item ${item.item_id} ${error}`));
+    if (governance.task_lineage?.work_queue_item_ref === task.identity.work_queue_item_ref
+      && governance.task_lineage?.work_queue_item_digest === task.identity.work_queue_item_digest) {
+      pass(`${label} verified item ${item.item_id} Task Governance carries exact Work Queue ref and digest`);
+    } else {
+      fail(`${label} verified item ${item.item_id} Task Governance must carry exact Work Queue ref and digest`);
+    }
+  }
 }
 
 function requireValue(label, actual, expected, name) {
@@ -353,7 +416,7 @@ function emitAndExit() {
     console.log("");
     console.log("Work queue takeover check passed.");
   }
-  process.exit(failed ? 1 : 0);
+  process.exitCode = failed ? 1 : 0;
 }
 
 function markdownFiles(dir) {

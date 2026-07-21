@@ -54,6 +54,7 @@
     },
     "release_target": {
       "enum": [
+        "source_review",
         "preview",
         "internal_trial",
         "staging",

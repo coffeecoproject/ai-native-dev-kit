@@ -37,3 +37,54 @@ export function createCheckRecorder(options = {}) {
     },
   };
 }
+
+export const CONSUMER_OUTCOMES = Object.freeze({
+  VALID: "VALID",
+  READY: "READY",
+  NOT_APPLICABLE_WITH_EVIDENCE: "NOT_APPLICABLE_WITH_EVIDENCE",
+  BLOCKED: "BLOCKED",
+  MISSING: "MISSING",
+  INVALID: "INVALID",
+});
+
+const knownConsumerOutcomes = new Set(Object.values(CONSUMER_OUTCOMES));
+
+export function deriveConsumerOutcome({
+  hasArtifact = true,
+  invalid = false,
+  blocked = false,
+  ready = false,
+  notApplicableWithEvidence = false,
+} = {}) {
+  if (!hasArtifact) return CONSUMER_OUTCOMES.MISSING;
+  if (invalid) return CONSUMER_OUTCOMES.INVALID;
+  if (blocked) return CONSUMER_OUTCOMES.BLOCKED;
+  if (notApplicableWithEvidence) return CONSUMER_OUTCOMES.NOT_APPLICABLE_WITH_EVIDENCE;
+  if (ready) return CONSUMER_OUTCOMES.READY;
+  return CONSUMER_OUTCOMES.VALID;
+}
+
+export function validateConsumerResult(result) {
+  const outcome = String(result?.consumerOutcome || "");
+  if (!knownConsumerOutcomes.has(outcome)) {
+    return { ok: false, outcome, reason: "missing or unknown consumerOutcome" };
+  }
+  return { ok: true, outcome, reason: "" };
+}
+
+export function requireAcceptedOutcome(result, acceptedOutcomes = [
+  CONSUMER_OUTCOMES.READY,
+  CONSUMER_OUTCOMES.NOT_APPLICABLE_WITH_EVIDENCE,
+]) {
+  const validation = validateConsumerResult(result);
+  if (!validation.ok) return validation;
+  const accepted = new Set(acceptedOutcomes);
+  if (!accepted.has(validation.outcome)) {
+    return {
+      ok: false,
+      outcome: validation.outcome,
+      reason: `consumerOutcome ${validation.outcome} is not accepted; expected ${[...accepted].join(" or ")}`,
+    };
+  }
+  return validation;
+}

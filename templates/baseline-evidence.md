@@ -4,22 +4,31 @@
 
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Accept evidence | Treat listed evidence as confirmed | Evidence/report only | low | Choose when every requirement has proof or N/A reason |
-| B | Add missing evidence | Fill missing evidence refs or N/A reasons | Evidence/report only | low/medium | Choose when proof exists but is not recorded |
-| C | Stop for confirmation | Pause until owner confirms evidence or exception | Evidence/decision only | medium/high | Choose when evidence depends on human knowledge |
-| D | Mark not ready | Keep baseline pending | Report only | low if respected | Choose when evidence is not available |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Evidence Decision
+
+Selected disposition: CONFIRM_EVIDENCE / COLLECT_MISSING_EVIDENCE / MARK_NOT_APPLICABLE / KEEP_NOT_READY
+
+Can Codex continue now: yes / limited / no
+
+Decision rationale:
+
+Evidence refs:
+
+Risk response:
+
+Verification and review route:
+
+Technical recovery path:
 
 ## Plain Summary
 
@@ -29,7 +38,7 @@ One-sentence conclusion:
 
 User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Decision:
+Exact question or prepared effect, if needed:
 
 ## Next Safe Step
 
@@ -43,9 +52,9 @@ User input status: NOT_NEEDED / PENDING / PROVIDED / BLOCKED
 
 ## Evidence Index
 
-| Requirement | Evidence Type | Evidence Ref | Status | Reason if skipped | Owner | Review date |
+| Requirement | Evidence Type | Evidence Ref | Status | Reason if skipped | Evidence authority | Review date |
 |---|---|---|---|---|---|---|
-|  | test / doc / release / audit / screenshot / trace / command / not-applicable |  | Pending / Done / Not applicable / Not audited |  |  |  |
+|  | test / doc / release / audit / screenshot / trace / command / not-applicable |  | Pending / Done / Not applicable / Not audited |  | Codex / external authority |  |
 
 Rules:
 
@@ -95,12 +104,12 @@ Evidence:
 
 ## Exceptions
 
-| Requirement | Exception | Reason | Owner | Review date |
+| Requirement | Exception | Reason | Codex disposition | Review date |
 |---|---|---|---|---|
 |  |  |  |  |  |
 
 ## Residual Risks
 
-| Risk | Impact | Mitigation | Owner | Accepted |
+| Risk | Impact | Mitigation | Handling authority | Disposition |
 |---|---|---|---|---|
-|  |  |  |  | Yes / No |
+|  |  |  | Codex | MITIGATED / BLOCKED / EXACT_EFFECT_CONSENT_NEEDED |

@@ -1,12 +1,12 @@
 # Industrial Pack Selection Guide
 
-This guide helps a project choose BL2 industrial packs without making every project heavy by default.
+This guide tells IntentOS Codex how to derive BL2 industrial packs without making every project heavy by default.
 
-Use it after platform profiles are selected and before `docs/baseline-selection.md` is approved.
+Use it after Codex has established platform profiles from current project evidence and before baseline readiness is claimed. The user does not select or approve technical packs.
 
 ## Short Rule
 
-Select the smallest pack set that covers the real runtime, capability, and risk.
+Codex selects the smallest pack set that covers the real runtime, capability, and risk.
 
 ```text
 primary platform pack
@@ -14,11 +14,11 @@ primary platform pack
   + risk-overlay packs only when the risk exists
 ```
 
-Do not select a pack because it exists. Select it because the project would be unsafe, unclear, or hard to verify without it.
+Pack availability alone never activates a pack. Codex activates it only when the project would otherwise be unsafe, unclear, or hard to verify.
 
 ## Pack Maturity
 
-All current industrial packs are draft packs. They are executable with explicit human confirmation, but they are not yet stable defaults.
+All current industrial packs are draft packs. Codex may select a draft pack when current project risk requires it, but must keep its maturity visible and satisfy the pack's evidence contract before readiness can be claimed.
 
 BL2 selection means the project chose stronger governance. It does not mean the selected pack is
 stable, production-ready, or externally validated.
@@ -27,7 +27,7 @@ Lifecycle stages:
 
 | Stage | Use |
 |---|---|
-| `draft` | Controlled dogfood with explicit human acceptance. |
+| `draft` | Controlled project use with strict evidence and review; not a stable default. |
 | `candidate` | Broader governed trial after early real-project evidence. |
 | `stable` | Normal BL2 input after repeated real-project evidence and false-positive review. |
 | `deprecated` | Existing reference only; avoid new selection. |
@@ -41,12 +41,12 @@ Current maturity shape:
 | Backend / Auth / Data / Internal Admin | usable draft | Best treated as Web BL2 companion packs for real service-backed work. |
 | iOS / Android | platform draft | Runtime and release baselines exist, but they need more project dogfood before stable use. |
 | WeChat Mini Program | deeper platform draft | Runtime, login, permission, cloud/access-rule, privacy/payment, release-review baselines, and a BL2 dogfood example exist; real project dogfood is still required before stable use. |
-| Payment / Value Transfer / High-risk Change | risk-overlay draft | Use only when the risk exists and human approval is explicit. |
+| Payment / Value Transfer / High-risk Change | risk-overlay draft | Use only when concrete project risk exists; real-world execution still requires its own bounded consent. |
 | CloudBase | capability draft | Use when managed cloud functions, access rules, storage, or platform cloud services are part of the project. |
 
 ## Primary Platform Packs
 
-Choose at most the primary platform packs that match the project runtime.
+Codex limits primary platform packs to those that match the project runtime.
 
 | Project runtime | Candidate pack |
 |---|---|
@@ -55,7 +55,7 @@ Choose at most the primary platform packs that match the project runtime.
 | Android application | `android-app-industrial` |
 | WeChat Mini Program | `wechat-miniprogram-industrial` |
 
-Multi-platform products may select more than one primary platform pack, but each selected pack must have evidence ownership.
+Multi-platform products may select more than one primary platform pack, but each selected pack must have project-bound evidence.
 
 ## Capability Packs
 
@@ -121,12 +121,13 @@ Use this split:
 
 The backend/admin packs are optional, but they become required when those surfaces are in project scope. The mini program pack should reference those companion packs; it should not absorb their responsibilities.
 
-## Selection Procedure
+## Codex Selection Procedure
 
-1. Select platform profiles in `docs/project-profile.md`.
-2. Choose BL level in `docs/baseline-selection.md`.
-3. If BL2 is selected, choose the smallest relevant industrial pack set.
-4. Install only selected packs:
+1. Read project code, configuration, existing governance, and the business goal.
+2. Derive platform and capability profiles and record the evidence in `docs/project-profile.md`.
+3. Derive the BL level and standard baseline first.
+4. If concrete risk requires BL2, select the smallest complete industrial pack set.
+5. Create a controlled plan and install only selected packs:
 
 ```bash
 node intentos/scripts/init-project.mjs \
@@ -135,7 +136,7 @@ node intentos/scripts/init-project.mjs \
   --industrial-packs web-app-industrial,backend-api-industrial
 ```
 
-5. Check selected packs:
+6. Check selected packs:
 
 ```bash
 node scripts/check-industrial-pack.mjs . --selected-only
@@ -143,18 +144,21 @@ node scripts/resolve-industrial-baseline.mjs .
 node scripts/check-industrial-baseline.mjs . --bl2-only
 ```
 
-6. Fill `docs/baseline-evidence.md` with project evidence refs.
+7. Bind every required evidence row to concrete current-project evidence in `docs/baseline-evidence.md`.
+8. Do not enter task implementation until the platform, standard baseline, industrial pack, and evidence checks are ready.
 
-## Human Decision Questions
+## User Input Boundary
 
-Before approving BL2 selection, answer:
+Codex records these technical conclusions internally:
 
-- Which runtime is actually being delivered?
-- Which data or permission boundary would fail dangerously if wrong?
-- Which selected pack has a real owner for evidence?
-- Which packs are deliberately not selected, and why?
-- Are any selected packs draft-only and accepted as draft?
-- Which task gates should block implementation until evidence exists?
+- the runtime actually being delivered;
+- the data or permission boundary whose failure would be dangerous;
+- the concrete evidence for every selected pack;
+- deliberately unselected packs and their exclusion reasons;
+- draft selections that require stricter evidence;
+- task gates that block implementation until evidence exists.
+
+The user is asked only for a missing business fact, a genuine product preference, a concrete real-world action consent, or an external fact that cannot be established from the project. Technical uncertainty remains Codex work and blocks readiness until resolved.
 
 ## What Not To Do
 
@@ -179,6 +183,6 @@ Minimum promotion bar:
 - Release or recovery evidence exists where the pack requires it.
 - Workflow retros record false positives, missing checks, and follow-up changes.
 
-Until those conditions are met, keep the pack as draft and require explicit human acceptance before using it as a BL2 project baseline.
+Until those conditions are met, keep the pack as draft. Codex may use it only with strict project evidence and must not describe it as a stable default.
 
 Pack files prove the standard exists. They do not prove that a real project already satisfies it.

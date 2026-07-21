@@ -2,42 +2,41 @@
 
 ## Status
 
-Draft status: DRAFT / CONFIRMED
+Strategy status: DRAFT / READY / BLOCKED_BY_MISSING_FACT
 
-Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED
+Last reviewed:
 
 ## Decision Summary
 
-| Layer | Selected option | Alternatives considered | Decision status |
-|---|---|---|---|
-| Frontend / client |  |  | PENDING |
-| Backend |  |  | PENDING |
-| Data store |  |  | PENDING |
-| Auth / identity |  |  | PENDING |
-| Permissions |  |  | PENDING |
-| Testing |  |  | PENDING |
-| Deployment / distribution |  |  | PENDING |
-| Monitoring |  |  | PENDING |
+| Layer | Codex-selected option | Alternatives considered | Project evidence | Status |
+|---|---|---|---|---|
+| Frontend / client |  |  |  | PENDING |
+| Backend |  |  |  | PENDING |
+| Data store |  |  |  | PENDING |
+| Auth / identity |  |  |  | PENDING |
+| Permissions |  |  |  | PENDING |
+| Testing |  |  |  | PENDING |
+| Deployment / distribution |  |  |  | PENDING |
+| Monitoring |  |  |  | PENDING |
 
 ## Constraints
 
-- Existing code or team constraints:
-- Budget / cost constraints:
-- Compliance / policy constraints:
-- Runtime / hosting constraints:
+- Existing code constraints:
+- Product and business constraints:
+- Budget or real-world cost constraints:
+- Compliance or external-policy constraints:
+- Runtime or hosting constraints:
 - Performance constraints:
 
 ## Dependency Policy
 
-New production dependencies require explicit approval when they affect:
+Codex selects and reviews dependencies within the requested task boundary.
+Security, authentication, permissions, data storage, payments, regulated data,
+production runtime, and long-term maintenance effects require stronger internal
+review and verification, not a technical choice from the user.
 
-- security
-- auth / permissions
-- data storage
-- payments or value transfer
-- regulated data
-- deployment or production runtime
-- long-term maintainability
+Ask for user consent only before a concrete paid service, external account,
+production change, irreversible real-data action, or other real-world effect.
 
 ## Verification Strategy
 
@@ -49,17 +48,17 @@ Minimum verification before completion:
 - integration:
 - end-to-end:
 - build:
-- manual:
+- manual or external evidence:
 
-## AI Boundaries
+## Codex Boundaries
 
-AI may propose stack options and tradeoffs.
+Codex owns technical selection, implementation, review, and verification.
+Codex must preserve stronger project-owned rules and must not claim that a
+passing technical review authorizes production, payment, real-user
+communication, or unresolved legal/compliance conclusions.
 
-AI must not commit the project to a production stack, production service, paid service, or external dependency without human approval.
+## Open Items
 
-## Open Decisions
-
-| Decision | Recommendation | Human decision | Status |
-|---|---|---|---|
-|  |  |  | PENDING |
-
+| Item | Classification | Codex recommendation | Evidence needed | Status |
+|---|---|---|---|---|
+|  | NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  |  | OPEN |

@@ -15,6 +15,7 @@ import {
   validateControlEffectivenessBinding,
   validateControlEffectivenessEvidence,
 } from "../scripts/lib/control-effectiveness.mjs";
+import { validatePlanReviewSourceEvidence } from "../scripts/lib/plan-review-binding.mjs";
 
 const kitRoot = path.resolve(import.meta.dirname, "..");
 const checker = path.join(kitRoot, "scripts", "check-control-effectiveness.mjs");
@@ -111,6 +112,41 @@ test("blocked bindings are valid only as explicit non-ready evidence", () => {
     report_ref: "artifact:control-effectiveness-reports/missing.md",
   };
   assert.equal(validateControlEffectivenessBinding(root, partialReference, { required: true, allowBlocked: true }).ok, false);
+});
+
+test("Plan Review accepts digest-only Control Effectiveness identity without weakening task binding", () => {
+  const root = fixtureRoot();
+  const report = writeReport(root);
+  const planReviewDir = path.join(root, "plan-review-reports");
+  fs.mkdirSync(planReviewDir, { recursive: true });
+  const planReviewFile = path.join(planReviewDir, "blocked.md");
+  fs.writeFileSync(planReviewFile, "# Blocked Plan Review\n");
+  const intent = "verify quality gate";
+  const base = {
+    schema_version: "1.113.0",
+    plan_review_state: "BLOCKED_BY_INCOMPLETE_REVIEW",
+    plan_ref: "N/A",
+    task_ref: report.evidence.task_ref,
+    intent,
+    intent_digest: sha(intent),
+    task_governance: { ref: "N/A", digest: "N/A", current_task_match: "Unknown" },
+    source_chain: [{
+      source_kind: "control_effectiveness",
+      source_ref: "artifact:control-effectiveness-reports/task.md",
+      source_digest: report.evidence.report_digest,
+      source_state: "CONTROL_PROVEN_EFFECTIVE",
+      current_task_match: "Yes",
+    }],
+  };
+
+  const valid = validatePlanReviewSourceEvidence(root, planReviewFile, base);
+  assert.doesNotMatch(valid.errors.join("\n"), /source_chain\.control_effectiveness intent text/);
+  assert.doesNotMatch(valid.errors.join("\n"), /source_chain\.control_effectiveness intent digest/);
+
+  const wrongIntent = structuredClone(base);
+  wrongIntent.intent_digest = sha("another task");
+  const rejected = validatePlanReviewSourceEvidence(root, planReviewFile, wrongIntent);
+  assert.match(rejected.errors.join("\n"), /source_chain\.control_effectiveness intent digest/);
 });
 
 function fixtureRoot() {

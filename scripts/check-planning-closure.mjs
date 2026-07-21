@@ -4,12 +4,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { deriveConsumerOutcome } from "./lib/check-result.mjs";
 import { validatePlanningClosureEvidence } from "./lib/planning-closure.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-ready", "task-ref", "intent-digest"]);
+const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-ready", "task-ref", "intent-digest", "post-write-consumer"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = canonicalRoot(path.resolve(process.cwd(), args._[0] || "."));
 const outputJson = Boolean(args.json);
@@ -19,6 +20,8 @@ const explicitReport = args.report ? safeReport(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/planning-closure.schema.json");
 const checks = [];
 let failed = false;
+let reportCount = 0;
+let readyCount = 0;
 
 if (unknown.length > 0) abort(`unknown option: --${unknown.join(", --")}`);
 if (args.report && !explicitReport) abort("--report must be a project-relative planning-closure-reports/*.md path");
@@ -50,6 +53,7 @@ function checkAssets() {
 
 function checkReports() {
   const reports = explicitReport ? [explicitReport] : reportFiles();
+  reportCount = reports.length;
   if (reports.length === 0) {
     if (strict) fail("no Planning Closure reports found");
     else if (allowEmpty) pass("Planning Closure skipped by explicit --allow-empty: no reports");
@@ -72,7 +76,9 @@ function checkReport(file) {
   const checked = validateEvidenceBlock(content, schema, label, { require: true, digestField: "report_digest" });
   if (!checked.ok) return checked.errors.forEach(fail);
   pass(`${label} has valid strict 1.111 structured evidence`);
-  const semantic = validatePlanningClosureEvidence(projectRoot, file, checked.value);
+  const semantic = validatePlanningClosureEvidence(projectRoot, file, checked.value, {
+    allowRevisionAdvance: Boolean(args["post-write-consumer"]),
+  });
   if (semantic.ok) pass(`${label} binds current project, task, intent, source reports, and non-authorizing contract semantics`);
   else semantic.errors.forEach((error) => fail(`${label}: ${error}`));
   if (args["task-ref"] && checked.value.task_ref !== String(args["task-ref"])) fail(`${label} does not match --task-ref`);
@@ -80,7 +86,10 @@ function checkReport(file) {
   if (args["intent-digest"] && checked.value.intent_digest !== String(args["intent-digest"])) fail(`${label} does not match --intent-digest`);
   else if (args["intent-digest"]) pass(`${label} matches --intent-digest`);
   if (args["require-ready"] && checked.value.outcome !== "PLANNING_READY") fail(`${label} strict readiness requires PLANNING_READY`);
-  else if (checked.value.outcome === "PLANNING_READY") pass(`${label} planning is ready with a non-authorizing contract`);
+  else if (checked.value.outcome === "PLANNING_READY") {
+    readyCount += 1;
+    pass(`${label} planning is ready with a non-authorizing contract`);
+  }
   else pass(`${label} remains visibly ${checked.value.outcome} and emits no contract`);
   if (checked.value.technical_decision_required_from_user === "No") pass(`${label} keeps technical decisions inside IntentOS/Codex`);
   else fail(`${label} delegates a technical decision to the user`);
@@ -117,6 +126,14 @@ function canonicalRoot(root) { try { return fs.realpathSync(root); } catch { abo
 function rel(file) { return path.relative(projectRoot, file).split(path.sep).join("/"); }
 function pass(message) { checks.push({ status: "PASS", message }); if (!outputJson) console.log(`PASS ${message}`); }
 function fail(message) { failed = true; checks.push({ status: "FAIL", message }); if (!outputJson) console.log(`FAIL ${message}`); }
-function emit() { if (outputJson) process.stdout.write(`${JSON.stringify({ status: failed ? "FAIL" : "PASS", checks }, null, 2)}\n`); process.exit(failed ? 1 : 0); }
+function emit() {
+  const consumerOutcome = deriveConsumerOutcome({
+    hasArtifact: reportCount > 0,
+    invalid: failed,
+    blocked: reportCount > 0 && readyCount !== reportCount,
+    ready: !failed && reportCount > 0 && readyCount === reportCount,
+  });
+  if (outputJson) process.stdout.write(`${JSON.stringify({ status: failed ? "FAIL" : "PASS", consumerOutcome, checks }, null, 2)}\n`);
+  process.exit(failed ? 1 : 0);
+}
 function abort(message) { if (outputJson) process.stdout.write(`${JSON.stringify({ status: "FAIL", checks: [{ status: "FAIL", message }] }, null, 2)}\n`); else console.error(`FAIL ${message}`); process.exit(1); }
-

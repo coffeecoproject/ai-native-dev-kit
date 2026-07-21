@@ -4,15 +4,21 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest, extractMachineReadableEvidence, resolveEvidenceReference } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { deriveBusinessUniverseRouting } from "./lib/business-universe.mjs";
+import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import {
+  encodeTaskGovernanceLineage,
+  normalizeTaskIntent,
+  taskIntentDigest,
+} from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "intent", "out", "task-governance-ref", "business-universe-ref"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const intent = String(args.intent || args._.slice(1).join(" ") || "").trim();
+const intent = normalizeTaskIntent(args.intent || args._.slice(1).join(" ") || "");
 const taskGovernanceRef = String(args["task-governance-ref"] || "").trim();
 const businessUniverseRef = String(args["business-universe-ref"] || "").trim();
 const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
@@ -41,9 +47,11 @@ if (outputFormat === "json") {
 }
 
 function buildReport(root, userIntent) {
+  userIntent = normalizeTaskIntent(userIntent);
   const signals = collectSignals(root, userIntent);
   const classification = classifyBusinessRule(userIntent, signals);
   const taskGovernance = readStructuredEvidence(root, taskGovernanceRef);
+  if (taskGovernanceRef) requireMatchingTaskGovernance(taskGovernance, userIntent);
   const routing = taskGovernance.evidence?.business_universe_routing
     || deriveBusinessUniverseRouting({
       intent: userIntent,
@@ -55,10 +63,13 @@ function buildReport(root, userIntent) {
   const businessUniverseBinding = businessUniverseBindingFor({ routing, taskGovernance, universe, userIntent, businessUniverseRef });
   const businessRuleScenarioMappings = businessRuleScenarioMappingsFor(universe.evidence, classification);
   const taskSlug = slugify(userIntent);
-  const taskRef = taskGovernance.evidence?.task_ref || `tasks/001-${taskSlug}.md`;
   const businessRuleId = `business-rule:${taskSlug}`;
   const businessRuleRef = businessRuleRefForOutput(root, outputPath, taskSlug);
-  const sourceRuleRefs = sourceRuleRefsFor(root);
+  const taskRef = taskGovernance.evidence?.task_ref || unboundTaskRef(root, businessRuleRef, userIntent);
+  const taskGovernanceLineage = taskGovernance.evidence
+    ? encodeTaskGovernanceLineage(taskGovernance.ref, taskGovernance.evidence.task_governance_digest)
+    : "";
+  const sourceRuleRefs = [...sourceRuleRefsFor(root), ...(taskGovernanceLineage ? [taskGovernanceLineage] : [])];
   const conflicts = conflictsFor(userIntent, sourceRuleRefs);
   const dimensions = dimensionsFor(userIntent, classification, signals, conflicts, businessUniverseBinding);
   const safeDefaults = safeDefaultsFor(userIntent, signals);
@@ -88,7 +99,7 @@ function buildReport(root, userIntent) {
     business_rule_scenario_mappings: businessRuleScenarioMappings,
     state,
   };
-  const sourceRequestDigest = digest(userIntent);
+  const sourceRequestDigest = taskIntentDigest(userIntent);
   const businessRuleDigest = evidenceDigest(ruleModel, []);
   const structuredEvidenceBase = {
     schema_version: "1.108.0",
@@ -245,12 +256,17 @@ function riskDomainsFor(signals, userIntent) {
 
 function dimensionsFor(userIntent, classification, signals, conflicts, businessUniverseBinding) {
   const dims = new Map();
+  const universeReady = businessUniverseBinding.required === "No" || businessUniverseBinding.business_universe_state === "COVERAGE_READY";
+  const universeEvidence = businessUniverseBinding.business_universe_ref !== "N/A" ? [businessUniverseBinding.business_universe_ref] : [];
+  const defaultEvidenceRefs = universeReady && universeEvidence.length > 0
+    ? universeEvidence
+    : ["human-decision:rule-understanding"];
   const add = (dimension, status, summary, options = {}) => {
     dims.set(dimension, {
       dimension,
       status,
       summary,
-      evidence_refs: options.evidenceRefs || ["human-decision:rule-understanding"],
+      evidence_refs: options.evidenceRefs || defaultEvidenceRefs,
       decision_refs: options.decisionRefs || [],
       safe_default_refs: options.safeDefaultRefs || [],
       notes: options.notes || "",
@@ -264,8 +280,6 @@ function dimensionsFor(userIntent, classification, signals, conflicts, businessU
     add("FAILURE_PATH", "NEEDS_USER_CONFIRMATION", "What should happen when the rule fails?");
     return [...dims.values()];
   }
-  const universeReady = businessUniverseBinding.required === "No" || businessUniverseBinding.business_universe_state === "COVERAGE_READY";
-  const universeEvidence = businessUniverseBinding.business_universe_ref !== "N/A" ? [businessUniverseBinding.business_universe_ref] : [];
   add("ACTOR", universeReady ? "CLOSED" : "BLOCKED_CONTRADICTORY", universeReady
     ? signals.hasAppointment ? "Affected actors are bound through the current business-universe evidence." : "Affected actors are bound through current project evidence or a concrete not-required reason."
     : "Business-universe evidence is required before affected actors can be closed.", { evidenceRefs: universeEvidence });
@@ -299,7 +313,7 @@ function dimensionsFor(userIntent, classification, signals, conflicts, businessU
   add("SOURCE_RULE_CONFLICT", conflicts.some((conflict) => conflict.status === "UNRESOLVED") ? "BLOCKED_CONTRADICTORY" : "CLOSED", conflicts.some((conflict) => conflict.status === "UNRESOLVED") ? "Existing rule conflict is unresolved." : "No existing rule conflict is recorded.");
   add("REAL_ENVIRONMENT_VALIDATION", "CLOSED", "Local smoke evidence first; staging or internal trial before release review when available.");
   add("OUT_OF_SCOPE", "CLOSED", "Release, production, and batch data mutation are out of scope for this closure.");
-  add("HUMAN_DECISION", "CLOSED", "No blocking human decision remains for low-risk validation semantics.");
+  add("HUMAN_DECISION", "CLOSED", "No missing business fact, external fact, or concrete real-world consent blocks this technical interpretation.");
   if (classification.riskDomains.includes("high-risk-domain")) {
     add("HUMAN_DECISION", "NEEDS_DOMAIN_OWNER", "A high-risk business or external-policy fact is missing; no additional technical choice is delegated to the user.", {
       decisionRefs: ["decision:external-business-fact"],
@@ -494,10 +508,36 @@ function nextStepFor(state, businessUniverseBinding = {}) {
 
 function readStructuredEvidence(root, ref) {
   if (!ref) return { file: "", evidence: null };
-  const file = resolveEvidenceReference(root, "", ref);
-  if (!file) return { file: "", evidence: null };
-  const extracted = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
-  return { file, evidence: extracted?.ok ? extracted.value : null };
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", ref, { markdownOnly: true });
+  if (!resolved.ok) return { file: "", ref: "", evidence: null, error: resolved.error };
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  return {
+    file: resolved.file,
+    ref: `artifact:${resolved.relativePath}`,
+    evidence: extracted?.ok ? extracted.value : null,
+    error: extracted?.ok ? "" : "invalid structured evidence",
+  };
+}
+
+function requireMatchingTaskGovernance(taskGovernance, userIntent) {
+  const governance = taskGovernance.evidence;
+  if (!governance || governance.artifact_type !== "task_governance") {
+    console.error(`FAIL Task Governance reference is unsafe, missing, or invalid: ${taskGovernance.error || taskGovernanceRef}`);
+    process.exit(1);
+  }
+  if (governance.task_governance_digest !== evidenceDigest(governance, ["task_governance_digest"])) {
+    console.error("FAIL Task Governance digest is invalid.");
+    process.exit(1);
+  }
+  if (governance.intent !== userIntent || governance.intent_digest !== taskIntentDigest(userIntent)) {
+    console.error("FAIL Business Rule Closure intent text and digest must match Task Governance exactly.");
+    process.exit(1);
+  }
+}
+
+function unboundTaskRef(root, ref, userIntent) {
+  const value = digest(JSON.stringify({ root, ref, intent_digest: taskIntentDigest(userIntent) }));
+  return `task:${value.slice("sha256:".length)}`;
 }
 
 function businessUniverseBindingFor({ routing, taskGovernance, universe, userIntent, businessUniverseRef: ref }) {

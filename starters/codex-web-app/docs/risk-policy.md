@@ -84,14 +84,19 @@ Required:
 
 ## Stop Conditions
 
-Stop and ask before proceeding when:
+Stop the dependent engineering path and resolve it internally when:
 
-- the requested change crosses the approved scope
+- the requested change crosses the natural-language task boundary
 - the spec and task card conflict
-- required data, credentials, or production access is missing
+- required technical data or credentials are missing
 - the same verification failure repeats twice
-- a high-risk decision is needed
+- a high-risk technical decision lacks evidence or independent review
 - rollback is unclear for an irreversible or production-impacting change
+
+Do not turn these conditions into a request for technical approval. Codex
+inspects, narrows, tests, reviews, repairs, or keeps the dependent capability
+disabled. Ask the user only for an unavailable business/external fact or exact
+consent immediately before a prepared real-world effect.
 
 ## Project-specific Risks
 

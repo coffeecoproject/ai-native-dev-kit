@@ -4,11 +4,25 @@
   "defaultTaskLevel": "L1",
   "escalationRules": [
     {
-      "when": ["architecture", "persistence", "networking-contract", "runtime-permission", "background-work", "cross-module-state"],
+      "when": [
+        "architecture",
+        "persistence",
+        "networking-contract",
+        "runtime-permission",
+        "background-work",
+        "cross-module-state"
+      ],
       "minLevel": "L2"
     },
     {
-      "when": ["signing", "keystore", "play-console-release", "sensitive-permission", "destructive-migration", "value-transfer"],
+      "when": [
+        "signing",
+        "keystore",
+        "play-console-release",
+        "sensitive-permission",
+        "destructive-migration",
+        "value-transfer"
+      ],
       "minLevel": "L3"
     }
   ],
@@ -28,11 +42,24 @@
     "docs/privacy-data-inventory.md"
   ],
   "riskGateMappings": {
-    "runtime-permission": ["permission", "personal data"],
-    "manifest-permission": ["permission"],
-    "signing": ["production config", "secrets"],
-    "destructive-migration": ["migration", "data deletion"],
-    "value-transfer": ["value transfer"]
+    "runtime-permission": [
+      "permission",
+      "personal data"
+    ],
+    "manifest-permission": [
+      "permission"
+    ],
+    "signing": [
+      "production config",
+      "secrets"
+    ],
+    "destructive-migration": [
+      "migration",
+      "data deletion"
+    ],
+    "value-transfer": [
+      "value transfer"
+    ]
   },
   "requiredVerification": [
     "Gradle build check",
@@ -41,32 +68,53 @@
     "connected/emulator tests for critical flows where present",
     "manifest permission review when permissions change"
   ],
-  "verificationKeywords": ["gradle", "build", "unit", "lint", "emulator", "manifest", "permission"],
-  "verifyScriptKeywords": ["gradle", "test", "lint", "assemble"],
-  "highRiskKeywords": ["signing", "keystore", "manifest", "permission", "migration", "release"],
-  "humanApprovalRequiredFor": [
+  "verificationKeywords": [
+    "gradle",
+    "build",
+    "unit",
+    "lint",
+    "emulator",
+    "manifest",
+    "permission"
+  ],
+  "verifyScriptKeywords": [
+    "gradle",
+    "test",
+    "lint",
+    "assemble"
+  ],
+  "highRiskKeywords": [
     "signing",
     "keystore",
-    "runtime-permission",
-    "manifest-permission",
-    "destructive-migration",
-    "play-console-release",
-    "value-transfer"
+    "manifest",
+    "permission",
+    "migration",
+    "release"
+  ],
+  "humanApprovalRequiredFor": [
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release",
+    "real-user-communication"
   ],
   "releaseChecks": [
-    "signing, keystore, manifest permissions, and Play Console release settings reviewed when touched",
+    "signing, keystore, manifest permissions, and Play Console settings are technically reviewed by Codex when touched",
     "emulator or device launch evidence captured for UI and runtime changes",
-    "Play Console, billing, and release actions require human approval"
+    "exact user consent is required only for a prepared Play Console publication, billing or value-transfer effect, provider-account action, real-user communication, or irreversible production-data effect"
   ],
   "aiBoundaries": {
     "may": [
-      "edit Android UI, app logic, tests, build-safe configuration, and documentation inside approved task scope",
-      "diagnose Gradle, lint, emulator, and test failures from local evidence"
+      "edit Android UI, app logic, tests, build-safe configuration, signing configuration references, and documentation inside the current governed task scope",
+      "diagnose and repair Gradle, lint, emulator, permission, signing configuration, and test failures from project evidence"
     ],
     "mustNot": [
-      "change signing credentials, keystores, sensitive permissions, billing, or Play Console release behavior without human approval",
-      "handle secrets, destructive migrations, or value-transfer behavior without human approval"
+      "delegate signing, keystore, manifest permission, dependency, migration, or test strategy choices to the user",
+      "use external account credentials, publish to Play Console, create a paid or value-transfer effect, communicate with real users, or perform an irreversible production-data effect without exact consent"
     ]
   },
-  "compatibleStarters": ["generic-project", "codex-android-app"]
+  "compatibleStarters": [
+    "generic-project",
+    "codex-android-app"
+  ]
 }

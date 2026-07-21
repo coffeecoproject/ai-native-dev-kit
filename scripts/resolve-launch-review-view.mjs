@@ -8,6 +8,7 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest } from "./lib/artifact-schema.mjs";
 import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { defaultIgnoredDirs, walkRelativePaths } from "./lib/project-signals.mjs";
+import { validateReleaseSurfaceEvidence } from "./lib/release-surface-evidence.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -224,7 +225,7 @@ function collectLaunchInputs(root, options) {
     boundSurface(root, "Environment", options.environment || findEvidence(root, ["environment-baseline.md", "env", "runtime"]), "Runtime or environment evidence"),
     boundSurface(root, "Monitoring", options.monitoring || findEvidence(root, ["monitor", "observability", "sentry", "logging"]), "Failure observation evidence"),
     boundSurface(root, "Rollback", options.rollback || findEvidence(root, ["rollback", "recovery", "feature-flag"]), "Rollback, fallback, or feature-disable path"),
-    ownerSurface("Release consent", options.releaseOwner, "Current-user consent reference for the concrete external release effect"),
+    ownerSurface("Release ownership", options.releaseOwner, "Specific confirmer or release owner for the concrete external release effect"),
     boundSurface(root, "Post-launch smoke", options.postLaunchSmoke || findEvidence(root, ["smoke", "post-launch", "verification"]), "Post-launch smoke or observation"),
   ];
 }
@@ -233,6 +234,10 @@ function boundSurface(root, name, reference, finding) {
   if (!reference || reference === "N/A") return surface(name, "MISSING", "N/A", finding, "N/A");
   const resolved = resolveAuthoritativeEvidenceReference(root, "", reference);
   if (!resolved.ok) return surface(name, "MISSING", String(reference), `${finding}; evidence is unresolved or unsafe.`, "N/A");
+  const semantic = validateReleaseSurfaceEvidence(name, resolved);
+  if (!semantic.ok) {
+    return surface(name, "MISSING", resolved.relativePath, `${finding}; ${semantic.errors.join("; ")}`, canonicalFileDigest(resolved.file));
+  }
   return surface(name, "PASS", resolved.relativePath, `${name} evidence resolves to a current project file.`, canonicalFileDigest(resolved.file));
 }
 
@@ -245,7 +250,7 @@ function ownerSurface(name, reference, finding) {
 function chooseSafeLaunchLabel(closure, inputs) {
   if (closure.decision === "BLOCKED" || closure.decision === "NEEDS_HUMAN_DECISION") return "BLOCKED";
   if (closure.decision !== "DONE" || closure.canCountAsDone !== "Yes" || closure.durable !== true) return "NOT_READY";
-  const required = ["Monitoring", "Rollback", "Release consent", "Post-launch smoke"];
+  const required = ["Monitoring", "Rollback", "Release ownership", "Post-launch smoke"];
   const missingRequired = inputs.some((item) => required.includes(item.surface) && item.status !== "PASS");
   if (!missingRequired) return "READY_FOR_RELEASE_REVIEW";
   const anyLaunchEvidence = inputs.some((item) => item.status === "PASS");

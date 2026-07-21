@@ -27,13 +27,49 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "enum": ["1.83.0", "1.83.1", "1.83.2", "1.83.3", "1.108.0", "1.110.0"] },
+    "schema_version": { "enum": ["1.83.0", "1.83.1", "1.83.2", "1.83.3", "1.108.0", "1.110.0", "1.113.0"] },
     "artifact_type": { "const": "task_governance" },
     "intent": { "type": "string", "minLength": 1 },
     "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "task_governance_ref": { "type": "string", "minLength": 1 },
     "task_governance_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "task_ref": { "type": "string", "minLength": 1 },
+    "task_lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity_version",
+        "authority",
+        "work_queue_item_ref",
+        "work_queue_item_digest"
+      ],
+      "properties": {
+        "identity_version": { "const": "task-instance/v1" },
+        "authority": { "enum": ["WORK_QUEUE_ITEM", "UNBOUND_COMPATIBILITY"] },
+        "work_queue_item_ref": { "type": "string", "minLength": 1 },
+        "work_queue_item_digest": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "authority": { "const": "WORK_QUEUE_ITEM" } } },
+          "then": {
+            "properties": {
+              "work_queue_item_ref": { "pattern": "^(artifact:)?[^#]+#[A-Za-z0-9][A-Za-z0-9._:-]*$" },
+              "work_queue_item_digest": { "pattern": "^sha256:[a-f0-9]{64}$" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "authority": { "const": "UNBOUND_COMPATIBILITY" } } },
+          "then": {
+            "properties": {
+              "work_queue_item_ref": { "const": "N/A" },
+              "work_queue_item_digest": { "const": "N/A" }
+            }
+          }
+        }
+      ]
+    },
     "project_adoption_mode": {
       "enum": ["none", "partial", "adapter_only", "behavior_complete", "full_native", "unknown"]
     },
@@ -536,7 +572,7 @@
     {
       "if": {
         "properties": {
-          "schema_version": { "const": "1.110.0" }
+          "schema_version": { "enum": ["1.110.0", "1.113.0"] }
         },
         "required": ["schema_version"]
       },

@@ -101,14 +101,10 @@
     ]
   },
   "humanApprovalRequiredFor": [
-    "auth",
-    "permission",
-    "role-change",
-    "tenant-boundary",
-    "credential-lifecycle",
-    "privileged-access",
-    "secrets",
-    "regulated-data"
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "production-or-external-release",
+    "real-user-communication"
   ],
   "maturity": {
     "stage": "draft",

@@ -4,42 +4,57 @@ Use this report only when baseline gaps need durable follow-up. Do not generate 
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Accept gaps | Keep gaps recorded and block affected work | Gap report only | low if respected | Choose when the gaps are real and unresolved |
-| B | Fill missing baseline records | Add missing docs, evidence, or N/A reasons | Baseline/report only | low/medium | Choose when the baseline exists but is not recorded |
-| C | Stop for baseline decision | Pause until owner chooses profile, BL level, or pack | Decision/report only | medium/high | Choose when continuing would guess project rules |
-| D | Mark not applicable | Record why a gap does not apply | Baseline/report only | low/medium | Choose only when there is a clear reason |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Gap Decision And Evidence
+
+Selected disposition: KEEP_BLOCKING_GAP / FILL_BASELINE_RECORD / MARK_NOT_APPLICABLE / REPLAN_BASELINE
+
+Can Codex continue now: yes / limited / no
+
+Selected profile, level, and packs:
+
+Gap evidence and rationale:
+
+Risk response:
+
+Verification, review, and technical recovery:
 
 ## Human Summary
 
 Current gap status:
 
-Next decision needed:
+Next Codex decision:
 
 ## Gap List
 
 | ID | Layer | Gap | Evidence | Risk | Owner | Status |
 |---|---|---|---|---|---|---|
-| G1 | Engineering / Environment / Platform / Industrial |  |  | Low / Medium / High | human | PENDING_CONFIRMATION / CONFIRMED / NOT_APPLICABLE |
+| G1 | Engineering / Environment / Platform / Industrial |  |  | Low / Medium / High | Codex | PENDING_EVIDENCE / CONFIRMED / NOT_APPLICABLE |
 
 ## Blocked Work
 
-| Work item | Blocked by gap | Can Codex continue? | Required decision |
+| Work item | Blocked by gap | Can Codex continue? | Required Codex evidence or bounded user input |
 |---|---|---|---|
 |  |  | Yes / No |  |
+
+## Bounded User Input
+
+| Input class | Missing business fact, exact prepared effect, or external fact | Source | Status |
+|---|---|---|---|
+| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  | user / external authority / N/A | PENDING / PROVIDED / CONSENTED / NOT_REQUIRED |
 
 ## Safe Next Actions
 

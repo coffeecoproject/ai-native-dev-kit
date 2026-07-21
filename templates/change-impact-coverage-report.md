@@ -35,6 +35,10 @@ Summarize what may be incomplete if this change is implemented in only one layer
 | `DOCS_HANDOFF` | `REQUIRED / OPTIONAL / NOT_APPLICABLE / NEEDS_HUMAN_DECISION` |  |  |
 | `PERMISSION_RISK` | `REQUIRED / OPTIONAL / NOT_APPLICABLE / NEEDS_HUMAN_DECISION` |  |  |
 | `RELEASE_IMPACT` | `REQUIRED / OPTIONAL / NOT_APPLICABLE / NEEDS_HUMAN_DECISION` |  |  |
+| `BACKGROUND_WORK` | `REQUIRED / OPTIONAL / NOT_APPLICABLE / NEEDS_HUMAN_DECISION` |  |  |
+| `EXTERNAL_INTEGRATION` | `REQUIRED / OPTIONAL / NOT_APPLICABLE / NEEDS_HUMAN_DECISION` |  |  |
+| `RUNTIME_BEHAVIOR` | `REQUIRED / OPTIONAL / NOT_APPLICABLE / NEEDS_HUMAN_DECISION` |  |  |
+| `ROLLBACK_RECOVERY` | `REQUIRED / OPTIONAL / NOT_APPLICABLE / NEEDS_HUMAN_DECISION` |  |  |
 
 ## Out-of-Scope Decisions
 
@@ -44,7 +48,10 @@ Summarize what may be incomplete if this change is implemented in only one layer
 
 ## Human Decisions Needed
 
-1. None recorded yet.
+None. When project evidence cannot provide a business fact, authoritative external
+fact, or concrete real-world consent, record only one of
+`BUSINESS_FACT_NEEDED`, `EXTERNAL_FACT_NEEDED`, or
+`REAL_WORLD_CONSENT_NEEDED`. Technical coverage decisions remain Codex-owned.
 
 ## Implementation Coverage
 
@@ -88,10 +95,12 @@ When precision mode is enabled, evidence files must contain meaningful non-place
 
 ```json
 {
-  "schema_version": "1.49.0",
+  "schema_version": "1.113.0",
   "artifact_type": "change_impact_coverage",
   "artifact_id": "change-impact-example",
   "impact_digest": "sha256:<computed>",
+  "task_ref": "<current task ref>",
+  "intent_digest": "sha256:<normalized intent digest>",
   "mode": "preflight",
   "user_request": {
     "intent": "<request>",
@@ -111,6 +120,7 @@ When precision mode is enabled, evidence files must contain meaningful non-place
     "missed_surfaces_found": "No",
     "notes": "<notes>"
   },
+  "pending_decisions": [],
   "boundaries": {
     "writes_target_files": false,
     "authorizes_implementation": false,

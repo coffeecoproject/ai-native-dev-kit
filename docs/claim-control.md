@@ -21,7 +21,8 @@ node scripts/check-claim-control.mjs .
 - "simulated dogfood passed"
 - "generated-project smoke passed"
 - "advisory by default"
-- "requires human confirmation"
+- "requires exact consent before the prepared production effect"
+- "requires an external fact that project evidence cannot prove"
 - "known limitations remain"
 
 ## Bad Wording
@@ -33,6 +34,10 @@ node scripts/check-claim-control.mjs .
 - "report approves release"
 - "draft pack is stable"
 
-## Human Decision
+## Codex Claim Decision
 
-Claims about release, customer delivery, commercial use, legal terms, production readiness, or risk acceptance must be confirmed by a human.
+Codex sets claim strength from the available evidence, records limitations, and owns release-readiness and risk-treatment wording. It must not turn missing technical evidence into a user decision.
+
+## Bounded User Input
+
+User input is permitted only when a claim depends on a missing business fact, exact consent to a prepared real-world effect, or an external legal, regulatory, provider, or third-party fact that project evidence cannot prove. Otherwise use `NO_USER_ACTION`.

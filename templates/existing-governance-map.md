@@ -2,28 +2,39 @@
 
 Use this file to map IntentOS concepts to governance assets that already exist in a project.
 
-This map prevents duplicate workflow systems. It should preserve existing authority unless the human explicitly approves an adapter change.
+This map prevents duplicate workflow systems. It preserves existing authority while Codex selects any adapter change from project evidence, controlled scope, rollback, and verification.
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Keep existing governance | Map IntentOS concepts to current rules only | No, unless this report is being saved | low | Choose when the project already has strong governance |
-| B | Docs-only bridge | Add adapter docs without changing gates or code | Docs only | low/medium | Choose when the team needs a shared bridge layer |
-| C | Thin operational bridge | Add selected scripts or references after review | Yes, approved workflow assets only | medium/high | Choose after confirming no conflict with existing gates |
-| D | Pause | Stop mapping and wait | No | low | Choose when authority or ownership is unclear |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Governance Decision And Evidence
+
+Selected bridge mode: NO_WRITE_MAP / DOCS_ONLY_BRIDGE / THIN_OPERATIONAL_BRIDGE / NOT_PROPOSED
+
+Can Codex continue now: yes / limited / no
+
+Existing authority evidence:
+
+Conflict analysis:
+
+Exact write boundary and rollback:
+
+Verification and review route:
+
+Technical recovery path:
 
 ## Mapping Status
 
@@ -60,7 +71,7 @@ Existing governance summary:
 | Platform baseline |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
 | Industrial baseline |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
 | Risk Gate |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
-| Human Approval |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
+| Real-world consent compatibility field |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
 | Evidence refs |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
 | Release evidence |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
 | Skill candidates |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
@@ -75,9 +86,9 @@ Existing governance summary:
 | CI / gates |  | Do not replace |
 | Release / rollback |  | Do not replace |
 | Security / privacy |  | Do not weaken |
-| Data / migrations |  | Stop for human approval |
-| Production config |  | Stop for human approval |
-| Existing docs |  | Preserve unless mapping is approved |
+| Data / migrations |  | Codex plans, verifies, and recovers; request exact consent only for a prepared real-world effect |
+| Production config |  | Codex prepares the change and rollback; request exact consent before the production effect |
+| Existing docs |  | Preserve unless included in the recorded Codex boundary |
 
 ## Recommended Profiles
 
@@ -103,30 +114,33 @@ Rationale:
 
 ## Adapter Setup Proposal
 
-Recommended bridge layer mode:
+Codex-selected bridge layer mode: `NO_WRITE_MAP` / `DOCS_ONLY_BRIDGE` / `THIN_OPERATIONAL_BRIDGE` / `NOT_PROPOSED`
 
-- `NO_WRITE_MAP`
-- `DOCS_ONLY_BRIDGE`
-- `THIN_OPERATIONAL_BRIDGE`
-- `NOT_PROPOSED`
+Selection evidence:
 
-Allowed writes after approval:
+Allowed writes after Codex readiness checks:
 
 - 
 
-Forbidden writes without separate approval:
+Writes excluded from this plan:
 
 - 
 
 Notes:
 
 - `NO_WRITE_MAP` means no target writes.
-- `DOCS_ONLY_BRIDGE` may write only approved adoption or governance-map docs.
-- `THIN_OPERATIONAL_BRIDGE` may write only an approved adapter that points to existing authority.
-- Full bootstrap is exceptional for strong governed projects and requires separate human approval.
+- `DOCS_ONLY_BRIDGE` may write only adoption or governance-map docs inside the recorded boundary.
+- `THIN_OPERATIONAL_BRIDGE` may write only a Codex-selected adapter that points to existing authority and passes verification.
+- Full bootstrap is exceptional for strong governed projects and requires a separate evidence-backed Codex plan; any prepared real-world effect still requires exact consent.
 
-## Open Decisions
+## Codex Decision Record
 
-| Decision | Owner | Status | Notes |
+| Decision | Evidence | Codex disposition | Status | Notes |
+|---|---|---|---|---|
+|  |  |  | PENDING_EVIDENCE / SELECTED / BLOCKED |  |
+
+## Bounded User Input
+
+| Input class | Missing business fact, exact prepared effect, or external fact | Source | Status |
 |---|---|---|---|
-|  |  | PENDING |  |
+| NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED |  | user / external authority / N/A | PENDING / PROVIDED / CONSENTED / NOT_REQUIRED |

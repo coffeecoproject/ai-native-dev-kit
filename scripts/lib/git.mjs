@@ -1,10 +1,25 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
+const READ_ONLY_GIT_CONFIG = [
+  ["core.fsmonitor", "false"],
+  ["core.hooksPath", os.devNull],
+  ["core.pager", "cat"],
+  ["pager.branch", "false"],
+  ["pager.diff", "false"],
+  ["pager.status", "false"],
+  ["diff.external", ""],
+  ["diff.trustExitCode", "false"],
+  ["interactive.diffFilter", ""],
+  ["credential.helper", ""],
+  ["credential.interactive", "false"],
+];
+
 export function gitWorktreeState(root) {
-  const inside = spawnSync("git", ["-C", root, "rev-parse", "--is-inside-work-tree"], {
+  const inside = spawnReadOnlyGit(root, ["rev-parse", "--is-inside-work-tree"], {
     encoding: "utf8",
   });
   if (inside.status !== 0 || inside.stdout.trim() !== "true") {
@@ -16,19 +31,18 @@ export function gitWorktreeState(root) {
       currentBranch: null,
       changedFileCount: 0,
       changedFilesSample: [],
+      changedPaths: [],
       changedFilesDigest: nonGitSourceDigest(root),
     };
   }
 
-  const branch = spawnSync("git", ["-C", root, "branch", "--show-current"], {
+  const branch = spawnReadOnlyGit(root, ["branch", "--show-current"], {
     encoding: "utf8",
   });
-  const status = spawnSync("git", ["-C", root, "status", "--porcelain", "--untracked-files=all", "--", "."], {
+  const status = spawnReadOnlyGit(root, ["status", "--porcelain", "--untracked-files=all", "--", "."], {
     encoding: "utf8",
   });
-  const changedFiles = status.status === 0
-    ? status.stdout.split("\n").map((line) => line.trim()).filter(Boolean)
-    : [];
+  const changedPaths = status.status === 0 ? worktreeChangedPaths(root) : [];
 
   if (status.status !== 0) {
     return {
@@ -39,6 +53,7 @@ export function gitWorktreeState(root) {
       currentBranch: branch.status === 0 ? branch.stdout.trim() || null : null,
       changedFileCount: null,
       changedFilesSample: [],
+      changedPaths: [],
       changedFilesDigest: null,
     };
   }
@@ -46,25 +61,48 @@ export function gitWorktreeState(root) {
     isGitRepository: true,
     observationStatus: "CURRENT",
     error: "",
-    isDirty: changedFiles.length > 0,
+    isDirty: changedPaths.length > 0,
     currentBranch: branch.status === 0 ? branch.stdout.trim() || null : null,
-    changedFileCount: changedFiles.length,
-    changedFilesSample: changedFiles.slice(0, 12),
+    changedFileCount: changedPaths.length,
+    changedFilesSample: changedPaths.slice(0, 12),
+    changedPaths,
     changedFilesDigest: worktreeDigest(root),
   };
 }
 
+function worktreeChangedPaths(root) {
+  const options = { encoding: "buffer", maxBuffer: 1024 * 1024 * 32 };
+  const tracked = spawnReadOnlyGit(root, ["diff", "--no-ext-diff", "--no-textconv", "--name-only", "-z", "HEAD", "--", "."], options);
+  const staged = tracked.status === 0
+    ? { status: 0, stdout: Buffer.alloc(0) }
+    : spawnReadOnlyGit(root, ["diff", "--cached", "--no-ext-diff", "--no-textconv", "--name-only", "-z", "--", "."], options);
+  const unstaged = tracked.status === 0
+    ? { status: 0, stdout: Buffer.alloc(0) }
+    : spawnReadOnlyGit(root, ["diff", "--no-ext-diff", "--no-textconv", "--name-only", "-z", "--", "."], options);
+  const untracked = spawnReadOnlyGit(root, ["ls-files", "--others", "--exclude-standard", "-z", "--", "."], options);
+  const outputs = tracked.status === 0
+    ? [tracked.stdout, untracked.status === 0 ? untracked.stdout : Buffer.alloc(0)]
+    : [
+        staged.status === 0 ? staged.stdout : Buffer.alloc(0),
+        unstaged.status === 0 ? unstaged.stdout : Buffer.alloc(0),
+        untracked.status === 0 ? untracked.stdout : Buffer.alloc(0),
+      ];
+  return [...new Set(outputs.flatMap((output) => output.toString("utf8").split("\0"))
+    .map((value) => value.trim().replaceAll("\\", "/"))
+    .filter(Boolean))].sort();
+}
+
 function worktreeDigest(root) {
   const options = { encoding: "utf8", maxBuffer: 1024 * 1024 * 32 };
-  let tracked = spawnSync("git", ["-C", root, "diff", "--binary", "--no-ext-diff", "HEAD", "--", "."], options);
+  let tracked = spawnReadOnlyGit(root, ["diff", "--binary", "--no-ext-diff", "--no-textconv", "HEAD", "--", "."], options);
   if (tracked.status !== 0) {
-    const staged = spawnSync("git", ["-C", root, "diff", "--cached", "--binary", "--no-ext-diff", "--", "."], options);
-    const unstaged = spawnSync("git", ["-C", root, "diff", "--binary", "--no-ext-diff", "--", "."], options);
+    const staged = spawnReadOnlyGit(root, ["diff", "--cached", "--binary", "--no-ext-diff", "--no-textconv", "--", "."], options);
+    const unstaged = spawnReadOnlyGit(root, ["diff", "--binary", "--no-ext-diff", "--no-textconv", "--", "."], options);
     tracked = {
       stdout: `${staged.status === 0 ? staged.stdout : ""}\n${unstaged.status === 0 ? unstaged.stdout : ""}`,
     };
   }
-  const untracked = spawnSync("git", ["-C", root, "ls-files", "--others", "--exclude-standard", "-z", "--", "."], {
+  const untracked = spawnReadOnlyGit(root, ["ls-files", "--others", "--exclude-standard", "-z", "--", "."], {
     encoding: "buffer",
     maxBuffer: 1024 * 1024 * 8,
   });
@@ -123,7 +161,7 @@ function digest(value) {
 export function changedFiles(root, options = {}) {
   const base = options.base || "HEAD";
   const pathspecs = Array.isArray(options.pathspecs) ? options.pathspecs : [];
-  const result = spawnSync("git", ["-C", root, "diff", "--name-only", "--diff-filter=ACMR", base, "--", ...pathspecs], {
+  const result = spawnReadOnlyGit(root, ["diff", "--no-ext-diff", "--no-textconv", "--name-only", "--diff-filter=ACMR", base, "--", ...pathspecs], {
     encoding: "utf8",
   });
   return {
@@ -135,4 +173,19 @@ export function changedFiles(root, options = {}) {
       ? result.stdout.split("\n").map((line) => line.trim()).filter(Boolean)
       : [],
   };
+}
+
+function spawnReadOnlyGit(root, args, options = {}) {
+  const config = READ_ONLY_GIT_CONFIG.flatMap(([key, value]) => ["-c", `${key}=${value}`]);
+  return spawnSync("git", ["-C", root, "--no-pager", ...config, ...args], {
+    ...options,
+    env: {
+      ...process.env,
+      GIT_OPTIONAL_LOCKS: "0",
+      GIT_TERMINAL_PROMPT: "0",
+      GCM_INTERACTIVE: "Never",
+      GIT_PAGER: "cat",
+      PAGER: "cat",
+    },
+  });
 }

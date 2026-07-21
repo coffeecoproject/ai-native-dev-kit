@@ -4,22 +4,27 @@
 
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Keep workflow | Record retro with no process change | Retro only | low | Choose when issues are one-off |
-| B | Create improvement | Draft a workflow improvement or intentos proposal | Proposal/report only | low/medium | Choose when repeated problems appear |
-| C | Route bounded input | Stop only when a business fact, exact real-world consent, or external fact is required | Input/proposal only | medium/high | Use when internal evidence cannot resolve the input |
-| D | Watch only | Track signals without acting | Retro only | low | Choose when evidence is too weak |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Retrospective Decision And Evidence
+
+Selected disposition: KEEP_WORKFLOW / CREATE_IMPROVEMENT / WATCH_SIGNALS / BLOCKED_BY_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Repeated-pattern evidence:
+
+Selected process change and scope:
+
+Risk response, verification, review, and technical recovery:
 
 ## Plain Summary
 
@@ -92,10 +97,10 @@ Repeated execution patterns that may deserve a Skill candidate:
 
 ## Decisions
 
-- Keep:
-- Change:
-- Watch:
+- Codex keeps:
+- Codex changes:
+- Codex watches:
 
 ## Follow-up Owners
 
-- 
+- Codex:

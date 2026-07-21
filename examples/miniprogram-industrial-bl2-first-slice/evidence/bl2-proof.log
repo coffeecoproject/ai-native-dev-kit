@@ -1,0 +1,33 @@
+{
+  "artifact_type": "bl2_execution_receipt",
+  "schema_version": "1.113.0",
+  "command": "fixture-verification",
+  "exit_code": 0,
+  "result": "PASS",
+  "source_revision": "sha256:7d84401e52f8af155e16e766a3889f23d3a95d0aadf8613d7767ce9ee8864775",
+  "requirement_ids": [
+    "bl2:wechat-miniprogram-industrial:client-storage:client-storage-minimization-evidence",
+    "bl2:wechat-miniprogram-industrial:client-storage:sensitive-data-handling-evidence",
+    "bl2:wechat-miniprogram-industrial:cloud-function-access-rule:api-failure-and-recovery-evidence",
+    "bl2:wechat-miniprogram-industrial:cloud-function-access-rule:cloud-access-rule-evidence",
+    "bl2:wechat-miniprogram-industrial:cloud-function-access-rule:cloud-function-boundary-evidence",
+    "bl2:wechat-miniprogram-industrial:cloud-function-access-rule:production-configuration-review",
+    "bl2:wechat-miniprogram-industrial:platform-permission:denied-permission-evidence",
+    "bl2:wechat-miniprogram-industrial:platform-permission:platform-permission-prompt-evidence",
+    "bl2:wechat-miniprogram-industrial:platform-permission:privacy-authorization-evidence",
+    "bl2:wechat-miniprogram-industrial:release:experience-version-evidence",
+    "bl2:wechat-miniprogram-industrial:release:monitoring-evidence",
+    "bl2:wechat-miniprogram-industrial:release:platform-review-readiness",
+    "bl2:wechat-miniprogram-industrial:release:release-submission-readiness",
+    "bl2:wechat-miniprogram-industrial:release:rollback-or-mitigation-plan",
+    "bl2:wechat-miniprogram-industrial:ui-state:critical-flow-behavior-evidence",
+    "bl2:wechat-miniprogram-industrial:ui-state:mini-program-lifecycle-evidence",
+    "bl2:wechat-miniprogram-industrial:ui-state:mini-program-loading-empty-error-forbidden-evidence",
+    "bl2:wechat-miniprogram-industrial:ui-state:navigation-and-return-path-evidence",
+    "bl2:wechat-miniprogram-industrial:wechat-login:denied-permission-evidence",
+    "bl2:wechat-miniprogram-industrial:wechat-login:session-binding-evidence",
+    "bl2:wechat-miniprogram-industrial:wechat-login:wechat-login-state-evidence"
+  ],
+  "scope": "EXAMPLE_FIXTURE_ONLY",
+  "external_effect": "NONE"
+}

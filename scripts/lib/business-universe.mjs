@@ -51,9 +51,9 @@ export const BUSINESS_UNIVERSE_PROOF_STRENGTH = Object.freeze([
 
 const sourceExtensions = new Set([
   ".c", ".cc", ".cpp", ".cs", ".dart", ".ex", ".exs", ".go", ".graphql",
-  ".h", ".hpp", ".java", ".js", ".jsx", ".kt", ".kts", ".m", ".mm",
+  ".h", ".hpp", ".java", ".js", ".jsx", ".cjs", ".mjs", ".kt", ".kts", ".m", ".mm",
   ".php", ".prisma", ".py", ".rb", ".rs", ".scala", ".sql", ".swift",
-  ".ts", ".tsx", ".vue", ".xml", ".yaml", ".yml", ".json",
+  ".ts", ".tsx", ".cts", ".mts", ".vue", ".xml", ".yaml", ".yml", ".json",
 ]);
 const semanticDocumentNames = new Set([
   "project-profile.md", "business-spec-index.md", "domain-model.md", "permission-model.md",

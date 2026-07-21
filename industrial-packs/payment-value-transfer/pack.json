@@ -97,18 +97,14 @@
     "release": [
       "rollback or compensation plan",
       "monitoring evidence",
-      "human approval evidence"
+      "exact real-world consent evidence for the prepared external effect"
     ]
   },
   "humanApprovalRequiredFor": [
-    "payment",
-    "refund",
-    "value-transfer",
-    "balance",
-    "credit",
-    "reconciliation",
-    "privileged-adjustment",
-    "financial-risk"
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release"
   ],
   "maturity": {
     "stage": "draft",

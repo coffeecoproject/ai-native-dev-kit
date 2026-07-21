@@ -12,6 +12,7 @@ import {
   runtimeTrustBindingsAgree,
 } from "./lib/verification-runtime-consumer.mjs";
 import { controlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
+import { validateExecutionAssuranceForCompletion } from "./lib/execution-assurance-consumer.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -57,7 +58,7 @@ if (outputFormat === "json") {
 }
 
 function buildReport(root) {
-  const sources = [
+  let sources = [
     sourceFor(root, "business_rule_closure", args["business-rule-ref"], {
       stateField: "state",
       digestField: "closure_digest",
@@ -81,6 +82,31 @@ function buildReport(root) {
     }),
   ];
   const taskRef = explicitTask || firstTaskRef(sources) || `tasks/001-${slugify(intent)}.md`;
+  const executionSource = sources.find((source) => source.name === "execution_assurance");
+  const taskEntryBinding = executionSource?.evidence?.task_entry_binding
+    ? JSON.parse(JSON.stringify(executionSource.evidence.task_entry_binding))
+    : null;
+  const planReviewBinding = executionSource?.evidence?.plan_review_binding
+    ? JSON.parse(JSON.stringify(executionSource.evidence.plan_review_binding))
+    : null;
+  const executionAuthority = validateExecutionAssuranceForCompletion({
+    projectRoot: root,
+    executionAssuranceRef: executionSource?.ref,
+    fromFile: outputPath || path.join(root, "completion-evidence-reports", "generated.md"),
+    expectedTaskRef: taskRef,
+    expectedIntentDigest: digest(intent),
+  });
+  if (executionSource && !executionAuthority.ok) {
+    executionSource.ready = "No";
+    executionSource.reason = executionAuthority.errors.join("; ");
+  }
+  const sourceRequirements = executionAuthority.requirements || {
+    business_rule_closure: true,
+    verification_plan: true,
+    test_evidence: true,
+    execution_assurance: true,
+  };
+  sources = applyCompletionSourceRequirements(sources, sourceRequirements, taskRef, digest(intent));
   const verificationPlan = sources.find((source) => source.name === "verification_plan");
   const runtimeTrustRequired = Boolean(args["runtime-manifest-ref"])
     || runtimeTrustRequiredFor(sources);
@@ -93,14 +119,14 @@ function buildReport(root) {
     verificationPlanRef: verificationPlan?.ref,
     verificationPlanDigest: verificationPlan?.digest,
   });
-  const businessUniverse = businessUniverseCompletionFor(sources);
-  const controlEffectiveness = controlEffectivenessCompletionFor(sources);
+  const businessUniverse = businessUniverseCompletionFor(sources, sourceRequirements);
+  const controlEffectiveness = controlEffectivenessCompletionFor(sources, sourceRequirements);
   const completionEvidenceRef = completionEvidenceRefForOutput(root, outputPath, slugify(intent));
-  const checks = buildChecks(sources, taskRef, digest(intent), runtimeTrust, businessUniverse, controlEffectiveness);
+  const checks = buildChecks(sources, taskRef, digest(intent), runtimeTrust, businessUniverse, controlEffectiveness, sourceRequirements);
   const state = stateFor(checks);
   const canClaimComplete = state === "COMPLETION_EVIDENCE_READY" ? "Yes" : "No";
   const base = {
-    schema_version: "1.110.0",
+    schema_version: "1.113.0",
     artifact_type: "completion_evidence_gate",
     task_ref: taskRef,
     intent,
@@ -111,6 +137,7 @@ function buildReport(root) {
     can_claim_complete: canClaimComplete,
     source_chain: sources.map((source) => ({
       name: source.name,
+      requirement: source.requirement,
       status: source.status,
       ref: source.ref || "not provided",
       task_ref: source.taskRef || "not provided",
@@ -126,6 +153,8 @@ function buildReport(root) {
     scenario_completion_map: businessUniverse.scenarios,
     gate_checks: checks,
     task_consistency: taskConsistencyFor(sources, taskRef),
+    ...(taskEntryBinding ? { task_entry_binding: taskEntryBinding } : {}),
+    ...(planReviewBinding ? { plan_review_binding: planReviewBinding } : {}),
     missing_or_blocking_items: checks
       .filter((check) => check.status !== "PASS")
       .map((check) => `${check.id}: ${check.reason}`),
@@ -140,6 +169,10 @@ function buildReport(root) {
       intentDigest: base.intent_digest,
       sourceRefs: [
         ...sources.filter((source) => source.status === "RECORDED").map((source) => source.ref),
+        ...[taskEntryBinding?.work_queue_item_ref, taskEntryBinding?.task_governance_ref, taskEntryBinding?.resume_review_ref]
+          .filter((ref) => /^(artifact|file):/.test(String(ref || ""))),
+        ...[planReviewBinding?.plan_review_ref, planReviewBinding?.plan_ref]
+          .filter((ref) => /^(artifact|file):/.test(String(ref || ""))),
         runtimeTrust.binding.run_manifest_ref,
         ...(/^(artifact|file):/.test(businessUniverse.binding.business_universe_ref)
           ? [businessUniverse.binding.business_universe_ref]
@@ -154,7 +187,7 @@ function buildReport(root) {
   structuredEvidence.completion_gate_digest = evidenceDigest(structuredEvidence, ["completion_gate_digest"]);
   return {
     reportType: "COMPLETION_EVIDENCE_GATE",
-    schemaVersion: "1.110.0",
+    schemaVersion: "1.113.0",
     generatedBy: "scripts/resolve-completion-evidence.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -238,7 +271,41 @@ function sourceFor(root, name, refValue, options) {
   };
 }
 
-function buildChecks(sources, taskRef, intentDigest, runtimeTrust, businessUniverse, controlEffectiveness) {
+function applyCompletionSourceRequirements(sources, requirements, taskRef, intentDigest) {
+  const labels = {
+    business_rule_closure: "Business Rule Closure",
+    verification_plan: "Verification Plan",
+    test_evidence: "Test Evidence",
+    execution_assurance: "Execution Assurance",
+  };
+  return sources.map((source) => {
+    const required = requirements[source.name] !== false;
+    if (required) return { ...source, requirement: "REQUIRED" };
+    if (source.status !== "NOT_PROVIDED") {
+      return {
+        ...source,
+        requirement: "NOT_REQUIRED",
+        reason: source.ready === "Yes"
+          ? `${labels[source.name]} is not required by current Task Governance; the supplied current artifact remains valid but does not increase completion authority.`
+          : `${labels[source.name]} is not required by current Task Governance, but the supplied optional artifact is invalid and cannot be included in a ready completion claim.`,
+      };
+    }
+    return {
+      ...source,
+      requirement: "NOT_REQUIRED",
+      status: "NOT_REQUIRED",
+      ref: "N/A",
+      taskRef: "N/A",
+      intentDigest: "N/A",
+      outcome: "NOT_REQUIRED_WITH_REASON",
+      digest: "N/A",
+      ready: "Yes",
+      reason: `${labels[source.name]} is explicitly not required by the exact current Task Governance obligation projection for this bounded task.`,
+    };
+  });
+}
+
+function buildChecks(sources, taskRef, intentDigest, runtimeTrust, businessUniverse, controlEffectiveness, requirements) {
   const required = [
     ["business_rule_closure", "Business Rule Closure is READY_FOR_IMPACT_COVERAGE."],
     ["verification_plan", "Verification Plan is VERIFICATION_PLAN_READY."],
@@ -247,14 +314,21 @@ function buildChecks(sources, taskRef, intentDigest, runtimeTrust, businessUnive
   ];
   const checks = required.map(([name, label]) => {
     const source = sources.find((item) => item.name === name);
-    const pass = source?.status === "RECORDED" && source.ready === "Yes";
+    const requiredByTask = requirements[name] !== false;
+    const pass = requiredByTask
+      ? source?.status === "RECORDED" && source.ready === "Yes"
+      : (source?.status === "NOT_REQUIRED" || source?.status === "RECORDED") && source.ready === "Yes";
     return {
       id: `check:${name}`,
       status: pass ? "PASS" : "FAIL",
       source: name,
-      expected: label,
+      expected: requiredByTask
+        ? label
+        : `${labelsForSource(name)} is explicitly NOT_REQUIRED by current Task Governance, or a supplied optional artifact is current and valid.`,
       actual: source?.outcome || source?.status || "NOT_PROVIDED",
-      reason: pass ? "Required source is ready." : source?.reason || "Required source is missing.",
+      reason: pass
+        ? requiredByTask ? "Required source is ready." : "Task Governance-backed proportional source decision is valid."
+        : source?.reason || (requiredByTask ? "Required source is missing." : "Optional source decision is invalid."),
     };
   });
   checks.push({
@@ -297,12 +371,15 @@ function buildChecks(sources, taskRef, intentDigest, runtimeTrust, businessUnive
   });
   const testEvidence = sources.find((item) => item.name === "test_evidence")?.evidence;
   const executionAssurance = sources.find((item) => item.name === "execution_assurance")?.evidence;
+  const requiredConsumerBindings = [executionAssurance?.runtime_trust_binding];
+  if (requirements.test_evidence || testEvidence?.runtime_trust_binding) {
+    requiredConsumerBindings.unshift(testEvidence?.runtime_trust_binding);
+  }
   const agreement = runtimeTrustBindingsAgree([
     runtimeTrust.binding,
-    testEvidence?.runtime_trust_binding,
-    executionAssurance?.runtime_trust_binding,
+    ...requiredConsumerBindings,
   ]);
-  const completeConsumerSet = Boolean(testEvidence?.runtime_trust_binding && executionAssurance?.runtime_trust_binding);
+  const completeConsumerSet = requiredConsumerBindings.every(Boolean);
   checks.push({
     id: "check:runtime-consumer-agreement",
     status: runtimeTrust.ok && completeConsumerSet && agreement.ok ? "PASS" : "FAIL",
@@ -352,12 +429,28 @@ function buildChecks(sources, taskRef, intentDigest, runtimeTrust, businessUnive
   return checks;
 }
 
-function controlEffectivenessCompletionFor(sources) {
+function controlEffectivenessCompletionFor(sources, requirements) {
   const byName = new Map(sources.map((item) => [item.name, item.evidence]));
   const verificationPlan = byName.get("verification_plan");
   const verificationBinding = verificationPlan?.control_effectiveness_binding;
   const testBinding = byName.get("test_evidence")?.control_effectiveness_binding;
   const executionBinding = byName.get("execution_assurance")?.control_effectiveness_binding;
+  if (!requirements.verification_plan && !requirements.test_evidence) {
+    const ready = executionBinding?.requirement === "NOT_REQUIRED" && executionBinding?.status === "NOT_REQUIRED";
+    const binding = ready
+      ? JSON.parse(JSON.stringify(executionBinding))
+      : controlEffectivenessBinding({
+        required: true,
+        reason: "Execution Assurance does not carry the Task Governance-backed non-required Control Effectiveness decision.",
+      });
+    return {
+      binding,
+      ok: ready,
+      reason: ready
+        ? "The exact current Execution Assurance preserves the proportional non-required Control Effectiveness decision."
+        : binding.reason,
+    };
+  }
   const legacyProjection = !verificationBinding
     && verificationPlan?.schema_version !== "1.110.0"
     && testBinding?.requirement === "NOT_REQUIRED"
@@ -403,7 +496,21 @@ function runtimeTrustRequiredFor(sources) {
       .some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF"));
 }
 
-function businessUniverseCompletionFor(sources) {
+function businessUniverseCompletionFor(sources, requirements) {
+  if (!requirements.business_rule_closure) {
+    return {
+      binding: {
+        required: "No",
+        routing_result: "NOT_REQUIRED_WITH_REASON",
+        business_universe_ref: "N/A",
+        business_universe_digest: "N/A",
+        business_universe_state: "NOT_REQUIRED_WITH_REASON",
+        coverage_scenario_ids: [],
+        coverage_mapping_status: "NOT_REQUIRED",
+      },
+      scenarios: [],
+    };
+  }
   const fallback = {
     required: "Unknown",
     routing_result: "TECHNICAL_INSPECTION_REQUIRED",
@@ -581,24 +688,40 @@ function sourceChainBindingFor(sources) {
   const vp = byName.get("verification_plan");
   const te = byName.get("test_evidence");
   const ea = byName.get("execution_assurance");
-  if ([brc, vp, te, ea].some((item) => item?.status !== "RECORDED")) {
+  const required = [brc, vp, te, ea].filter((item) => item?.requirement === "REQUIRED");
+  if (required.some((item) => item?.status !== "RECORDED")) {
     return {
       all_source_bindings_match: "No",
-      reason: "All four source artifacts must be recorded before source-chain binding can pass.",
+      reason: "Every Task Governance-required source artifact must be recorded before source-chain binding can pass.",
     };
   }
   const failures = [];
-  if (!sameRef(vp.evidence?.business_rule_ref, brc.ref)) failures.push("Verification Plan business_rule_ref does not match Completion Evidence BRC ref");
-  if (vp.evidence?.business_rule_digest !== brc.evidence?.business_rule_digest) failures.push("Verification Plan business_rule_digest does not match referenced BRC");
-  if (!sourceSystemsContains(vp.evidence?.source_systems, "business_rule_closure", brc.ref, brc.evidence?.business_rule_digest, brc.outcome)) failures.push("Verification Plan source_systems does not bind BRC ref/digest/outcome");
-  if (!sameRef(te.evidence?.verification_plan_ref, vp.ref)) failures.push("Test Evidence verification_plan_ref does not match Completion Evidence Verification Plan ref");
-  if (te.evidence?.verification_plan_digest !== vp.digest) failures.push("Test Evidence verification_plan_digest does not match referenced Verification Plan");
-  if (!sourceSystemsContains(te.evidence?.source_systems, "verification_plan", vp.ref, vp.digest, vp.outcome)) failures.push("Test Evidence source_systems does not bind Verification Plan ref/digest/outcome");
-  if (!executionAssuranceContainsTestEvidence(ea.evidence, te)) failures.push("Execution Assurance does not bind the referenced Test Evidence");
+  if (vp?.requirement === "REQUIRED") {
+    if (!sameRef(vp.evidence?.business_rule_ref, brc?.ref)) failures.push("Verification Plan business_rule_ref does not match Completion Evidence BRC ref");
+    if (vp.evidence?.business_rule_digest !== brc?.evidence?.business_rule_digest) failures.push("Verification Plan business_rule_digest does not match referenced BRC");
+    if (!sourceSystemsContains(vp.evidence?.source_systems, "business_rule_closure", brc?.ref, brc?.evidence?.business_rule_digest, brc?.outcome)) failures.push("Verification Plan source_systems does not bind BRC ref/digest/outcome");
+  }
+  if (te?.requirement === "REQUIRED") {
+    if (!sameRef(te.evidence?.verification_plan_ref, vp?.ref)) failures.push("Test Evidence verification_plan_ref does not match Completion Evidence Verification Plan ref");
+    if (te.evidence?.verification_plan_digest !== vp?.digest) failures.push("Test Evidence verification_plan_digest does not match referenced Verification Plan");
+    if (!sourceSystemsContains(te.evidence?.source_systems, "verification_plan", vp?.ref, vp?.digest, vp?.outcome)) failures.push("Test Evidence source_systems does not bind Verification Plan ref/digest/outcome");
+    if (!executionAssuranceContainsTestEvidence(ea?.evidence, te)) failures.push("Execution Assurance does not bind the referenced Test Evidence");
+  }
   return {
     all_source_bindings_match: failures.length === 0 ? "Yes" : "No",
-    reason: failures.length === 0 ? "BRC, Verification Plan, Test Evidence, and Execution Assurance form one bound source chain." : failures.join("; "),
+    reason: failures.length === 0
+      ? "Every Task Governance-required source forms one proportional bound source chain."
+      : failures.join("; "),
   };
+}
+
+function labelsForSource(name) {
+  return {
+    business_rule_closure: "Business Rule Closure",
+    verification_plan: "Verification Plan",
+    test_evidence: "Test Evidence",
+    execution_assurance: "Execution Assurance",
+  }[name] || name;
 }
 
 function expectedDigestForSource(source) {
@@ -723,9 +846,9 @@ ${evidence.gate_checks.map((check) => `| \`${check.id}\` | \`${check.status}\` |
 
 ## Source Chain
 
-| Source | Status | Ref | Task Ref | Intent Digest | Outcome | Ready | Digest | Reason |
-|---|---|---|---|---|---|---|---|---|
-${evidence.source_chain.map((source) => `| \`${source.name}\` | \`${source.status}\` | \`${source.ref}\` | \`${source.task_ref}\` | \`${source.intent_digest || "not provided"}\` | \`${source.source_outcome}\` | \`${source.ready}\` | \`${source.digest}\` | ${source.reason} |`).join("\n")}
+| Source | Requirement | Status | Ref | Task Ref | Intent Digest | Outcome | Ready | Digest | Reason |
+|---|---|---|---|---|---|---|---|---|---|
+${evidence.source_chain.map((source) => `| \`${source.name}\` | \`${source.requirement}\` | \`${source.status}\` | \`${source.ref}\` | \`${source.task_ref}\` | \`${source.intent_digest || "not provided"}\` | \`${source.source_outcome}\` | \`${source.ready}\` | \`${source.digest}\` | ${source.reason} |`).join("\n")}
 
 ## Runtime Trust Binding
 
@@ -762,6 +885,18 @@ ${evidence.scenario_completion_map.length > 0
 - Expected task ref: \`${evidence.task_consistency.expected_task_ref}\`
 - All sources same task: \`${evidence.task_consistency.all_sources_same_task}\`
 - Reason: ${evidence.task_consistency.reason}
+
+## Task Entry Binding
+
+${evidence.task_entry_binding
+    ? `- Work Queue item: \`${evidence.task_entry_binding.work_queue_item_ref}\`\n- Task Governance report: \`${evidence.task_entry_binding.task_governance_ref}\`\n- Task tier: \`${evidence.task_entry_binding.task_governance_tier}\`\n- Completion requirements satisfied: \`${evidence.task_entry_binding.tier_completion_requirements_satisfied}\``
+    : "- Not recorded because the current Execution Assurance source is missing or blocked."}
+
+## Plan Review Binding
+
+${evidence.plan_review_binding
+    ? `- Required: \`${evidence.plan_review_binding.required}\`\n- Plan Review: \`${evidence.plan_review_binding.plan_review_ref}\`\n- Review state: \`${evidence.plan_review_binding.plan_review_state}\`\n- Plan: \`${evidence.plan_review_binding.plan_ref}\`\n- Current task match: \`${evidence.plan_review_binding.current_task_match}\``
+    : "- Not recorded because the current task does not carry a Plan Review binding."}
 
 ## Missing Or Blocking Items
 

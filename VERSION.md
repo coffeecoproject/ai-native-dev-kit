@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.112.0`
+Current version: `1.113.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,25 @@ Current version: `1.112.0`
 
 ## Current Release
 
-`1.112.0`
+`1.113.0`
 
 Includes:
+
+- Cross-Domain Consumer And Behavioral Closure Hardening `1.113.0`: closes
+  the P0/P1 root causes promoted by the 1.112 audit through typed consumer
+  outcomes, proportional task obligations, strict Execution Assurance
+  consumption, one public completion authority, effective-guidance coverage,
+  required boundary/baseline evidence, interruption-safe controlled apply,
+  and fresh-session activation proof.
+- The nineteen required consumer edges are reclassified without a known P0/P1
+  fail-open, duplicate final authority, or disconnected P0/P1 consumer. The
+  nine domains remain internal audit lenses; no public workflow, technical
+  user-choice menu, or external execution authority was added.
+- Existing-project adoption and later controlled updates bind the current
+  natural-language request, project identity, revision, source state, canonical
+  plan, and exact reversible action graph to a short-lived single-use local
+  authority. Legacy agent rules are preserved behind the canonical Codex entry;
+  business code and external effects remain outside this authority.
 
 - Nine-Domain Capability Authority Mapping And Closure Audit `1.112.0`: maps
   current authorities and nineteen required consumer edges across Project

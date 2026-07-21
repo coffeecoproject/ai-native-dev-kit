@@ -21,16 +21,16 @@ Human decision status: CONFIRMED
 | privacy authorization evidence | doc | evidence/miniprogram-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
 | cloud function boundary evidence | doc | evidence/miniprogram-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
 | cloud access rule evidence | doc | evidence/miniprogram-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
-| storage access evidence | not-applicable |  | Not applicable | no cloud file storage in this first slice | example-owner | 2026-06-26 |
+| storage access evidence | not-applicable | evidence/dispositions/storage-access.json | Not applicable | no cloud file storage in this first slice | example-owner | 2026-06-26 |
 | API failure and recovery evidence | doc | evidence/miniprogram-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
 | production configuration review | release | releases/001-miniprogram-login-cloud-read-release.md | Done |  | example-owner | 2026-06-26 |
 | client storage minimization evidence | doc | evidence/miniprogram-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
 | sensitive data handling evidence | doc | evidence/miniprogram-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
-| subscription message authorization evidence | not-applicable |  | Not applicable | no subscription message in this first slice | example-owner | 2026-06-26 |
-| share entry behavior evidence | not-applicable |  | Not applicable | no share entry in this first slice | example-owner | 2026-06-26 |
-| payment request validation evidence | not-applicable |  | Not applicable | no payment in this first slice | example-owner | 2026-06-26 |
-| payment callback idempotency evidence | not-applicable |  | Not applicable | no payment callback in this first slice | example-owner | 2026-06-26 |
-| refund or failure recovery evidence | not-applicable |  | Not applicable | no refund flow in this first slice | example-owner | 2026-06-26 |
+| subscription message authorization evidence | not-applicable | evidence/dispositions/subscription-message.json | Not applicable | no subscription message in this first slice | example-owner | 2026-06-26 |
+| share entry behavior evidence | not-applicable | evidence/dispositions/share-entry.json | Not applicable | no share entry in this first slice | example-owner | 2026-06-26 |
+| payment request validation evidence | not-applicable | evidence/dispositions/payment-request.json | Not applicable | no payment in this first slice | example-owner | 2026-06-26 |
+| payment callback idempotency evidence | not-applicable | evidence/dispositions/payment-callback.json | Not applicable | no payment callback in this first slice | example-owner | 2026-06-26 |
+| refund or failure recovery evidence | not-applicable | evidence/dispositions/refund-recovery.json | Not applicable | no refund flow in this first slice | example-owner | 2026-06-26 |
 | experience version evidence | release | releases/001-miniprogram-login-cloud-read-release.md | Done |  | example-owner | 2026-06-26 |
 | release submission readiness | release | releases/001-miniprogram-login-cloud-read-release.md | Done |  | example-owner | 2026-06-26 |
 | platform review readiness | release | releases/001-miniprogram-login-cloud-read-release.md | Done |  | example-owner | 2026-06-26 |

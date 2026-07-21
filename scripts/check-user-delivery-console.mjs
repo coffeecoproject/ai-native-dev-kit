@@ -188,9 +188,15 @@ function checkCards() {
     else fail(`${label} user-facing current state must be plain language, not internal enum: ${state || "<empty>"}`);
     const taskDone = taskDoneValue(content);
     const taskRef = taskRefValue(content);
+    const intentDigest = intentDigestValue(content);
     checkTaskEntryBinding({
       content,
-      evidence: { task_done: taskDone, outcome: codeOrTextValue(sectionBody(content, "Outcome", { fallback: "" })), task_ref: taskRef },
+      evidence: {
+        task_done: taskDone,
+        outcome: codeOrTextValue(sectionBody(content, "Outcome", { fallback: "" })),
+        task_ref: taskRef,
+        intent_digest: intentDigest,
+      },
       label,
       projectRoot,
       consumer: "user_delivery_console",
@@ -408,6 +414,13 @@ function currentState(content) {
 function taskRefValue(content) {
   const body = sectionBody(content, "Delivery Status", { fallback: "" });
   const row = body.split(/\r?\n/).find((line) => /\|\s*Task ref\s*\|/i.test(line));
+  if (!row) return "";
+  return stripPipes(row).split("|")[1]?.replace(/`/g, "").trim() || "";
+}
+
+function intentDigestValue(content) {
+  const body = sectionBody(content, "Task Entry Binding", { fallback: "" });
+  const row = body.split(/\r?\n/).find((line) => /\|\s*Intent digest\s*\|/i.test(line));
   if (!row) return "";
   return stripPipes(row).split("|")[1]?.replace(/`/g, "").trim() || "";
 }

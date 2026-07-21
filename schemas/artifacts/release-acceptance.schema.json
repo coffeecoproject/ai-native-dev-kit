@@ -1,0 +1,325 @@
+{
+  "schemaVersion": "1.113.0",
+  "artifactType": "release_acceptance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "acceptance_id",
+    "acceptance_digest",
+    "release_version",
+    "candidate",
+    "review",
+    "findings",
+    "checks",
+    "contradictions",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.113.0"
+    },
+    "artifact_type": {
+      "const": "release_acceptance"
+    },
+    "acceptance_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "acceptance_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "release_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_ref",
+        "candidate_digest",
+        "candidate_revision",
+        "base_revision"
+      ],
+      "properties": {
+        "candidate_ref": {
+          "type": "string",
+          "pattern": "^artifact:release-candidates/[A-Za-z0-9._/-]+$"
+        },
+        "candidate_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "candidate_revision": {
+          "$ref": "#/$defs/digest"
+        },
+        "base_revision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40,64}$"
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "reviewer_identity",
+        "reviewed_at",
+        "provenance"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "ACCEPTED",
+            "REJECTED",
+            "BLOCKED"
+          ]
+        },
+        "reviewer_identity": {
+          "$ref": "#/$defs/reviewerIdentity"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref",
+            "digest"
+          ],
+          "properties": {
+            "ref": {
+              "type": "string",
+              "pattern": "^artifact:release-review-provenance/[A-Za-z0-9._/-]+\\.(?:json|md)$"
+            },
+            "digest": {
+              "$ref": "#/$defs/digest"
+            }
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "p0_open",
+        "p1_open",
+        "unresolved_finding_ids"
+      ],
+      "properties": {
+        "p0_open": {
+          "type": "integer"
+        },
+        "p1_open": {
+          "type": "integer"
+        },
+        "unresolved_finding_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "check_id",
+          "status",
+          "authority_artifact_type",
+          "evidence_ref",
+          "evidence_digest",
+          "checker"
+        ],
+        "properties": {
+          "check_id": {
+            "enum": [
+              "full_verification",
+              "p0_p1_closure"
+            ]
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "NOT_RUN"
+            ]
+          },
+          "authority_artifact_type": {
+            "enum": [
+              "test_evidence",
+              "completion_evidence_gate"
+            ]
+          },
+          "evidence_ref": {
+            "type": "string",
+            "pattern": "^artifact:[A-Za-z0-9._/-]+$"
+          },
+          "evidence_digest": {
+            "$ref": "#/$defs/digest"
+          },
+          "checker": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "check_id": {
+                  "const": "full_verification"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "authority_artifact_type": {
+                  "const": "test_evidence"
+                },
+                "evidence_ref": {
+                  "pattern": "^artifact:test-evidence-reports/[A-Za-z0-9._/-]+\\.md$"
+                },
+                "checker": {
+                  "const": "node scripts/check-test-evidence.mjs . --report {evidence_ref} --require-structured-evidence --strict-source-binding --require-current-evidence --require-test-quality-controls --require-evidence-authority --require-runtime-trust"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "check_id": {
+                  "const": "p0_p1_closure"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "authority_artifact_type": {
+                  "const": "completion_evidence_gate"
+                },
+                "evidence_ref": {
+                  "pattern": "^artifact:completion-evidence-reports/[A-Za-z0-9._/-]+\\.md$"
+                },
+                "checker": {
+                  "const": "node scripts/check-completion-evidence.mjs . --report {evidence_ref} --require-ready --require-task-governance --require-work-queue --strict-task-consumer --require-plan-review --require-evidence-authority"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "contradictions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "markdown_result_conflict",
+        "candidate_identity_conflict",
+        "unresolved_evidence_conflict"
+      ],
+      "properties": {
+        "markdown_result_conflict": {
+          "const": "No"
+        },
+        "candidate_identity_conflict": {
+          "const": "No"
+        },
+        "unresolved_evidence_conflict": {
+          "const": "No"
+        }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorizes_tag",
+        "authorizes_push",
+        "authorizes_release",
+        "authorizes_production",
+        "authorizes_external_effect"
+      ],
+      "properties": {
+        "authorizes_tag": {
+          "const": "No"
+        },
+        "authorizes_push": {
+          "const": "No"
+        },
+        "authorizes_release": {
+          "const": "No"
+        },
+        "authorizes_production": {
+          "const": "No"
+        },
+        "authorizes_external_effect": {
+          "const": "No"
+        }
+      }
+    },
+    "outcome": {
+      "enum": [
+        "RELEASE_CANDIDATE_ACCEPTED",
+        "RELEASE_CANDIDATE_REJECTED",
+        "RELEASE_CANDIDATE_BLOCKED"
+      ]
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "reviewerIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "principal_type",
+        "subject_id",
+        "issuer",
+        "source_control_email",
+        "identity_digest"
+      ],
+      "properties": {
+        "principal_type": {
+          "enum": [
+            "HUMAN",
+            "AGENT",
+            "SERVICE"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{2,127}$"
+        },
+        "issuer": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{1,127}$"
+        },
+        "source_control_email": {
+          "type": "string",
+          "pattern": "^[^\\s@]+@[^\\s@]+$"
+        },
+        "identity_digest": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    }
+  }
+}

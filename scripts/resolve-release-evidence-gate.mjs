@@ -446,6 +446,7 @@ function existingReleaseRuleMapping() {
 function gateStateFor(target, missing, ownerState) {
   if (target === "unknown") return "NOT_READY_FOR_RELEASE_REVIEW";
   if (missing.length > 0) return "BLOCKED_BY_MISSING_RELEASE_EVIDENCE";
+  if (target === "source_review") return "OUT_OF_SCOPE_FOR_RELEASE_GATE";
   if (ownerState.releaseOwnerIdentified !== "Yes") return "BLOCKED_BY_HUMAN_RELEASE_DECISION";
   if (target === "preview" || target === "internal_trial") return "READY_FOR_INTERNAL_TRIAL_REVIEW";
   return "READY_FOR_RELEASE_OWNER_REVIEW";
@@ -453,14 +454,15 @@ function gateStateFor(target, missing, ownerState) {
 
 function ownerDecisionsFor(ownerState, target, missing) {
   const decisions = [];
-  if (ownerState.releaseOwnerIdentified !== "Yes") decisions.push("Identify the human release owner.");
+  if (target !== "source_review" && ownerState.releaseOwnerIdentified !== "Yes") decisions.push("Identify the human release owner.");
   if (isProductionLike(target) && ownerState.riskOwnerIdentified !== "Yes") decisions.push("Identify the risk owner.");
   if (isProductionLike(target) && ownerState.environmentOwnerIdentified !== "Yes") decisions.push("Identify the environment/config owner.");
   if (missing.includes("data-migration-decision")) decisions.push("Confirm whether data migration is required.");
   if (ownerState.releaseApprovalRef !== "out_of_scope" && ownerState.releaseApprovalRef !== "pending" && !ownerState.releaseApprovalRef.startsWith("human-decision:")) {
     decisions.push("Keep release approval outside this gate unless a human decision record exists.");
   }
-  if (decisions.length === 0) decisions.push("No release approval is granted; handoff is for review only.");
+  if (decisions.length === 0 && target === "source_review") decisions.push("No external release effect or release approval is in scope for source review.");
+  else if (decisions.length === 0) decisions.push("No release approval is granted; handoff is for review only.");
   return decisions;
 }
 
@@ -468,6 +470,7 @@ function nextStepFor(state, missing) {
   if (state === "READY_FOR_RELEASE_OWNER_REVIEW") return "Hand the evidence package to the human release owner for formal review; do not deploy from this report.";
   if (state === "READY_FOR_INTERNAL_TRIAL_REVIEW") return "Hand the evidence package to the trial/review owner; do not treat it as production approval.";
   if (missing.length > 0) return `Collect or map missing release evidence first: ${missing.slice(0, 4).join(", ")}.`;
+  if (state === "OUT_OF_SCOPE_FOR_RELEASE_GATE") return "Review the exact source candidate and its completion evidence; do not treat source review as an external release authorization.";
   return "Clarify the release target before preparing release review evidence.";
 }
 
@@ -601,7 +604,7 @@ ${evidence.next_step}
 
 function normalizeReleaseTarget(value) {
   const normalized = String(value || "unknown").trim().toLowerCase().replace(/-/g, "_");
-  const allowed = new Set(["preview", "internal_trial", "staging", "production_review", "app_store_review", "mini_program_review", "unknown"]);
+  const allowed = new Set(["source_review", "preview", "internal_trial", "staging", "production_review", "app_store_review", "mini_program_review", "unknown"]);
   if (allowed.has(normalized)) return normalized;
   if (/prod/.test(normalized)) return "production_review";
   if (/mini|wechat|weixin/.test(normalized)) return "mini_program_review";

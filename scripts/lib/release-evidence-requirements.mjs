@@ -1,4 +1,5 @@
 const matrix = Object.freeze({
+  source_review: ["completion-evidence"],
   preview: ["completion-evidence", "build-or-preview-evidence", "runtime-smoke", "release-owner"],
   internal_trial: ["completion-evidence", "runtime-smoke", "rollback", "release-owner"],
   staging: ["completion-evidence", "environment-config", "runtime-smoke", "monitoring", "rollback", "release-owner"],

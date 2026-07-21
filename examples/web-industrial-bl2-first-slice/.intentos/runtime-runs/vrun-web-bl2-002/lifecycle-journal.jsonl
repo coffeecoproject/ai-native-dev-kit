@@ -1,0 +1,17 @@
+{"at":"2026-07-19T11:48:25.067Z","event":"PREFLIGHT_RUNNING","run_id":"vrun-web-bl2-002"}
+{"at":"2026-07-19T11:48:25.068Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"EXECUTABLE_AVAILABILITY","result":"PASS","reason":"all 1 declared executables resolved in the bounded executor PATH"}
+{"at":"2026-07-19T11:48:25.068Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SOURCE_IDENTITY","result":"PASS","reason":"current project identity matches sha256:02e68bd33899cb6b6e642dbdb7d2dc87bc34e19a1f47075f1f696c090c090538"}
+{"at":"2026-07-19T11:48:25.068Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"WORKTREE_STATE","result":"PASS","reason":"the exact pre-run worktree identity was captured for post-run comparison"}
+{"at":"2026-07-19T11:48:25.068Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"OLD_PROCESS","result":"PASS","reason":"no process with an exact declared SERVICE argv was running before this run"}
+{"at":"2026-07-19T11:48:25.068Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"PORT_CONFLICT","result":"PASS","reason":"no network port is declared or reused by this lifecycle"}
+{"at":"2026-07-19T11:48:25.068Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SENSITIVE_ENVIRONMENT","result":"PASS","reason":"child environment is rebuilt from the non-sensitive allowlist: PATH, LANG, LC_ALL, CI, TERM"}
+{"at":"2026-07-19T11:48:25.069Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"DATA_IDENTITY","result":"PASS","reason":"all 0 declared resources are new run-scoped, non-production, and non-shared paths"}
+{"at":"2026-07-19T11:48:25.069Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SESSION_RESIDUE","result":"PASS","reason":"no run-scoped session namespace existed before execution (0 declared)"}
+{"at":"2026-07-19T11:48:25.069Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"PRODUCTION_RESOURCE_GUARD","result":"PASS","reason":"all actions and resources are explicitly non-production and contain no external-effect command marker"}
+{"at":"2026-07-19T11:48:25.069Z","event":"EXECUTABLE_RESOLVED","action_id":"web-bl2-all","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-19T11:48:25.069Z","event":"PREFLIGHT_PASSED"}
+{"at":"2026-07-19T11:48:25.069Z","event":"ACTION_STARTING","action_id":"web-bl2-all","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-19T11:48:25.109Z","event":"ACTION_FINISHED","action_id":"web-bl2-all","exit_code":0,"timed_out":false}
+{"at":"2026-07-19T11:48:25.109Z","event":"CLEANUP_EVIDENCE_BEFORE_RECORDED"}
+{"at":"2026-07-19T11:48:25.109Z","event":"CLEANING_UP"}
+{"at":"2026-07-19T11:48:25.109Z","event":"COMPLETED"}

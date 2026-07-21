@@ -2,24 +2,31 @@
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Continue as-is | Keep the original approved scope | Current approved task files only | low | Choose when the new request is not needed now |
-| B | Create new task | Treat the new request as separate work | New request/task record only | low/medium | Choose when the request is valid but outside current scope |
-| C | Update current task after approval | Expand or change the current scope | Approved workflow records and task files | medium/high | Choose when the current task must change |
-| D | Stop for decision | Pause until scope is clarified | No | low if respected | Choose when impact is unclear |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Scope Decision And Evidence
+
+Selected disposition: CONTINUE_AS_IS / CREATE_NEW_TASK / UPDATE_CURRENT_TASK / STOP_OR_REPLAN / REJECT_AS_OUT_OF_SCOPE
+
+Can Codex continue now: yes / limited / no
+
+Request-bound scope evidence:
+
+Risk response and file boundary:
+
+Verification, review route, and technical recovery:
 
 ## Human Summary
 
@@ -27,7 +34,7 @@ Plain-language explanation of the proposed scope change.
 
 ## Old Scope
 
-What was already approved.
+What was already request-bound.
 
 ## New Request
 
@@ -52,10 +59,18 @@ What changes in risk, release, payment, privacy, security, migration, production
 
 `CONTINUE_AS_IS` / `CREATE_NEW_TASK` / `UPDATE_CURRENT_TASK_AFTER_APPROVAL` / `STOP_FOR_DECISION` / `REJECT_AS_OUT_OF_SCOPE`
 
+`AFTER_APPROVAL` and `STOP_FOR_DECISION` are compatibility values. Codex owns technical scope mechanics; they may wait on the user only for one of the bounded input classes.
+
 ## Human Decision
 
-`Pending` / `Approved` / `Rejected` / `Needs Revision`
+Compatibility heading: semantically this is the bounded `User Input Record`.
+
+Status: `Pending` / `Approved` / `Rejected` / `Needs Revision`
+
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
+
+Exact question or prepared effect, if needed:
 
 ## Applied Changes
 
-What changed after approval. Use `None` when still pending.
+What changed after the Codex scope decision and any required bounded input. Use `None` when still pending.

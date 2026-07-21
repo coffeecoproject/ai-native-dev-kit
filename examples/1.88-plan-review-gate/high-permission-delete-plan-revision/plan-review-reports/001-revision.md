@@ -132,8 +132,10 @@
   "schema_version": "1.88.0",
   "artifact_type": "plan_review",
   "plan_review_ref": "plan-review-reports/001-revision.md",
-  "plan_review_digest": "sha256:51d8fbaf972e8ccf794af06521f3e2af4c3e2167f3408e092aa75d180bc723d3",
+  "plan_review_digest": "sha256:30d0154163edb98838542453b4501723015e597ed2f0aeca6fd74bd078982660",
   "task_ref": "task:change-permission-delete-behavior",
+  "intent": "change permission delete behavior",
+  "intent_digest": "sha256:0855eea6547fddac76f211fc9807ced2560bc73115a2b4be30d3d6132a413547",
   "work_queue_item_ref": "N/A",
   "work_queue_item_digest": "N/A",
   "review_surface_analysis": {

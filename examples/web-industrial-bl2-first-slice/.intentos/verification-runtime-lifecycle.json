@@ -1,0 +1,48 @@
+{
+  "version": "1.103.0",
+  "adapter_kind": "COMMAND_ONLY",
+  "actions": [
+    {
+      "id": "web-bl2-all",
+      "phase": "VERIFY",
+      "kind": "COMMAND",
+      "argv": [
+        "node",
+        "scripts/bl2-proof.mjs",
+        "all"
+      ],
+      "cwd": ".",
+      "timeout_ms": 10000,
+      "environment": [],
+      "obligation_ids": [
+        "bl2:web-app-industrial:accessibility:keyboard-focus-and-accessible-name-evidence",
+        "bl2:web-app-industrial:accessibility:status-message-and-contrast-evidence",
+        "bl2:web-app-industrial:api-error-handling:api-failure-and-recovery-evidence",
+        "bl2:web-app-industrial:api-error-handling:auth-and-validation-error-behavior-evidence",
+        "bl2:web-app-industrial:dependency-change:client-bundle-impact-review",
+        "bl2:web-app-industrial:form-interaction:form-submission-validation-and-duplicate-submit-evidence",
+        "bl2:web-app-industrial:performance:bundle-asset-and-loading-impact-evidence",
+        "bl2:web-app-industrial:performance:interaction-responsiveness-evidence",
+        "bl2:web-app-industrial:permission-change:forbidden-state-evidence",
+        "bl2:web-app-industrial:permission-change:resource-scope-evidence",
+        "bl2:web-app-industrial:permission-change:server-side-permission-test-evidence",
+        "bl2:web-app-industrial:production-config:deployment-configuration-evidence",
+        "bl2:web-app-industrial:production-config:environment-variable-review",
+        "bl2:web-app-industrial:production-config:secret-exposure-review",
+        "bl2:web-app-industrial:release:monitoring-evidence",
+        "bl2:web-app-industrial:release:release-record",
+        "bl2:web-app-industrial:release:rollback-plan",
+        "bl2:web-app-industrial:ui-change:critical-flow-behavior-evidence",
+        "bl2:web-app-industrial:ui-change:loading-empty-error-forbidden-evidence",
+        "bl2:web-app-industrial:ui-change:responsive-behavior-evidence",
+        "bl2:web-app-industrial:ui-change:success-and-layout-stability-evidence"
+      ],
+      "positive_path": "Yes",
+      "negative_path": "No",
+      "resource_ids": [],
+      "external_effect": "No",
+      "depends_on": []
+    }
+  ],
+  "resources": []
+}

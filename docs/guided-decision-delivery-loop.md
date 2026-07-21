@@ -21,23 +21,25 @@ After this layer, Codex should lead with:
 I recommend the smallest safe first slice.
 Here is what it includes.
 Here is what it excludes.
-Here is what I can do after you confirm.
-Here is what I must not do without a separate decision.
+Here is what I will do next.
+Here is any exact real-world effect that still needs your consent.
 ```
 
 ## User Role
 
-The user decides:
+The user supplies only what cannot be derived safely from the project:
 
-- goal
-- priority
-- product/business tradeoff
-- whether the recommended first slice is right
-- risk acceptance when they are accountable
-- who must review expert or high-risk decisions
-- final approval for launch, release, production, or handoff
+- the desired business outcome and priority;
+- missing business facts;
+- product preferences where several outcomes are genuinely acceptable;
+- consent to one prepared, concrete real-world effect such as production
+  deployment, paid resource use, real-user notification, or irreversible data
+  change;
+- external facts that are unavailable to Codex.
 
-The user should not be forced to answer raw technical implementation questions when Codex can recommend a safe default.
+The user does not choose architecture, baseline, implementation scope, risk
+treatment, reviewer depth, verification strategy, or release readiness. Codex
+must resolve those technical judgments from evidence and independent review.
 
 ## Codex Role
 
@@ -47,9 +49,9 @@ Codex should:
 - keep one current mainline visible
 - recommend the smallest safe path
 - park side ideas instead of losing or executing them
-- translate technical choices into understandable options
-- create decision briefs for expert-risk items
-- execute only confirmed and bounded work
+- choose technical defaults and explain their business effect when useful
+- automatically arrange the required review depth
+- execute only task-authorized and bounded work
 - verify, review, report, and recommend the next safe action
 
 ## Example
@@ -63,19 +65,20 @@ I want to build an appointment mini app.
 Better Codex response:
 
 ```text
-I recommend first building a demo appointment loop: service list, appointment form, and appointment records.
+I will first build a bounded appointment loop: service list, appointment form, and appointment records.
 Payment, production release, SMS, and complex role permissions should stay out of scope for this first slice.
 
-If you confirm this direction, I can create the request/spec/eval/task chain and implement only that first slice.
+I will create the task chain, implement that slice, and verify it. I will ask
+only if a missing business rule changes what the product should do.
 ```
 
-This keeps the human decision simple:
+When a genuine product preference is unresolved, the user question stays simple:
 
 ```text
 Is this first slice the right product direction?
 ```
 
-Codex handles the workflow mechanics after confirmation.
+Codex handles the workflow mechanics and technical decisions automatically.
 
 ## When To Create Artifacts
 
@@ -90,8 +93,8 @@ Use `guided-decision-summary` when:
 
 - the user needs to choose between product/effort/risk paths
 - a technical choice needs translation into human meaning
-- Codex recommends a default but needs confirmation
-- an expert or accountable owner decision is needed
+- a business fact, product preference, exact real-world consent, or unavailable
+  external fact is needed
 
 Do not create these artifacts for every tiny task.
 

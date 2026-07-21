@@ -5,6 +5,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import { discoverReleaseWorkflowFacts } from "./lib/release-action-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -158,7 +160,12 @@ function buildEvidence() {
 }
 
 function detectProjectSignals(root) {
-  const workflowFiles = listFiles(path.join(root, ".github", "workflows"), [".yml", ".yaml"]);
+  const workflowFacts = discoverReleaseWorkflowFacts(root);
+  if (workflowFacts.errors.length > 0) {
+    for (const error of workflowFacts.errors) console.error(`FAIL ${error}`);
+    process.exit(1);
+  }
+  const workflowFiles = workflowFacts.workflowFiles.map((item) => item.file);
   const workflowText = workflowFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n");
   const packageJson = readText(path.join(root, "package.json"));
   const dockerText = [
@@ -175,7 +182,7 @@ function detectProjectSignals(root) {
     readText(path.join(root, "wrangler.toml")),
     readText(path.join(root, "app.yaml")),
   ].join("\n");
-  const combined = `${workflowText}\n${packageJson}\n${dockerText}\n${providerText}`;
+  const executableReleaseText = `${workflowText}\n${dockerText}\n${providerText}`;
   return {
     projectType: fs.existsSync(path.join(root, "intentos-manifest.json")) ? "new_project" : "existing_project",
     workflowFiles,
@@ -184,16 +191,24 @@ function detectProjectSignals(root) {
     dockerText,
     providerText,
     releaseDocs,
-    hasTagTrigger: /push:\s*[\s\S]*tags:|on:\s*\[[^\]]*push[^\]]*\][\s\S]*tags:/i.test(workflowText),
-    hasReleaseEvent: /\bon:\s*release\b|release:\s*[\r\n]/i.test(workflowText),
-    hasWorkflowDispatch: /workflow_dispatch:/i.test(workflowText),
-    hasGithubReleaseAction: /gh\s+release\s+(create|upload)|softprops\/action-gh-release|ncipollo\/release-action|actions\/create-release|actions\/upload-release-asset/i.test(workflowText),
-    hasUploadArtifact: /actions\/upload-artifact/i.test(workflowText),
-    hasDockerPush: /docker\s+push/i.test(combined),
-    hasPackagePublish: /\b(npm|pnpm)\s+publish\b|twine\s+upload/i.test(combined),
-    hasProviderDeploy: /vercel\s+deploy\s+--prod|firebase\s+deploy|gcloud\s+run\s+deploy|wrangler\s+deploy|kubectl\s+apply/i.test(combined),
-    hasServerCopy: /\b(scp|rsync)\b[\s\S]*(server|deploy|prod|production)/i.test(combined),
+    releaseWorkflowFiles: workflowFacts.releaseWorkflowFiles,
+    tagTriggerWorkflowFiles: workflowFacts.tagTriggerWorkflowFiles,
+    githubHostedRunner: workflowFacts.githubHostedRunner,
+    selfHostedRunner: workflowFacts.selfHostedRunner,
+    runnerType: workflowFacts.runnerType,
+    hasTagTrigger: workflowFacts.tagTrigger,
+    hasReleaseEvent: workflowFacts.releaseEvent,
+    hasWorkflowDispatch: workflowFacts.workflowDispatch,
+    hasActionBasedDeploy: workflowFacts.actionBasedDeploy,
+    hasGithubReleaseAction: workflowFacts.githubReleaseAction,
+    hasUploadArtifact: workflowFacts.uploadArtifact,
+    hasDockerPush: workflowFacts.dockerPush || /docker\s+push/i.test(executableReleaseText),
+    hasPackagePublish: workflowFacts.packagePublish || /\b(npm|pnpm|yarn)\s+publish\b|twine\s+upload/i.test(executableReleaseText),
+    hasProviderDeploy: workflowFacts.providerDeploy || /vercel\s+deploy(?:\s+--prod)?|firebase\s+deploy|gcloud\s+(?:run\s+deploy|app\s+deploy|functions\s+deploy)|wrangler\s+deploy|kubectl\s+(?:apply|set\s+image)|helm\s+(?:install|upgrade)/i.test(executableReleaseText),
+    hasUnresolvedExternalEffect: workflowFacts.packageScriptResolutionUnknown,
+    hasServerCopy: /\b(scp|rsync)\b[\s\S]*(server|deploy|prod|production)/i.test(executableReleaseText),
     hasReleaseSop: releaseDocs.length > 0,
+    hasReleaseWorkflow: workflowFacts.releaseWorkflow,
   };
 }
 
@@ -206,7 +221,7 @@ function sourceIdentityFor(detected) {
     tag_allowed_as_identity: "Yes",
     tag_used: normalizeYesNoUnknown(args["tag-used"] || (tagTrigger === "Yes" ? "Yes" : "Unknown")),
     tag_triggers_release_workflow: tagTrigger,
-    tag_trigger_workflow_ref: String(args["tag-trigger-workflow-ref"] || (detected.hasTagTrigger ? sourceRefForFirst(detected.workflowFiles) : "not_applicable")),
+    tag_trigger_workflow_ref: String(args["tag-trigger-workflow-ref"] || (detected.hasTagTrigger ? sourceRefForFirst(detected.tagTriggerWorkflowFiles.map((item) => item.file)) : "not_applicable")),
   };
 }
 
@@ -227,11 +242,11 @@ function githubReleasePolicyFor(detected) {
 }
 
 function githubActionsPolicyFor(detected) {
-  const workflowDetected = normalizeYesNoUnknown(args["release-workflow-detected"] || (detected.hasTagTrigger || detected.hasReleaseEvent || detected.hasWorkflowDispatch ? "Yes" : "No"));
+  const workflowDetected = normalizeYesNoUnknown(args["release-workflow-detected"] || (detected.hasReleaseWorkflow ? "Yes" : "No"));
   const uploadArtifact = normalizeYesNoUnknown(args["actions-artifact-used-as-release-package"] || (detected.hasUploadArtifact ? "Yes" : "No"));
   const packages = normalizeYesNoUnknown(args["github-packages-used-as-release-package"] || (detected.hasPackagePublish ? "Unknown" : "No"));
-  const hosted = normalizeYesNoUnknown(args["github-hosted-runner-used"] || (workflowDetected === "Yes" ? "Unknown" : "No"));
-  const selfHosted = normalizeYesNoUnknown(args["self-hosted-runner-used"] || "Unknown");
+  const hosted = normalizeYesNoUnknown(args["github-hosted-runner-used"] || detected.githubHostedRunner);
+  const selfHosted = normalizeYesNoUnknown(args["self-hosted-runner-used"] || detected.selfHostedRunner);
   const retention = String(args["artifact-retention-policy-ref"] || (uploadArtifact === "Yes" ? "missing" : "not_applicable"));
   return {
     release_workflow_detected: workflowDetected,
@@ -245,7 +260,7 @@ function githubActionsPolicyFor(detected) {
 }
 
 function githubActionsBillingProfileFor(detected, actionsPolicy) {
-  const runnerType = String(args["runner-type"] || "unknown");
+  const runnerType = String(args["runner-type"] || detected.runnerType || "unknown");
   const hasGithubHostedReleaseWork = actionsPolicy.release_workflow_detected === "Yes" || actionsPolicy.actions_artifact_used_as_release_package === "Yes";
   const defaultActionsMinutesRisk = runnerType === "self_hosted" ? "No"
     : hasGithubHostedReleaseWork ? "Unknown"
@@ -344,6 +359,12 @@ function effectiveReleaseChannelFor({ projectType, detected, channel, githubRele
   if (releasePackageIdentity.identity_type !== "none" && (releasePackageIdentity.identity_ref === "missing" || releasePackageIdentity.digest_or_id === "missing")) {
     blockedBy.push("missing_release_package_identity");
   }
+  if (channel === "source_only" && detected.hasProviderDeploy) {
+    blockedBy.push("source_only_conflicts_with_detected_provider_deploy");
+  }
+  if (channel === "source_only" && detected.hasUnresolvedExternalEffect) {
+    blockedBy.push("source_only_external_effect_not_proven_absent");
+  }
   return {
     channel,
     recommendation_class: recommendationClass,
@@ -356,11 +377,16 @@ function effectiveReleaseChannelFor({ projectType, detected, channel, githubRele
 }
 
 function sourceChainFor(detected) {
+  const workflowRefs = args["ci-workflow-ref"]
+    ? [String(args["ci-workflow-ref"])]
+    : detected.releaseWorkflowFiles.length > 0
+      ? detected.releaseWorkflowFiles.map((item) => `file:${item.relativePath}`)
+      : [sourceRefForFirst(detected.workflowFiles)];
   return [
     sourceRecord("release_evidence_gate", args["release-evidence-gate-ref"], "release_candidate"),
     sourceRecord("runtime_hygiene", args["runtime-hygiene-ref"], "release_candidate"),
     sourceRecord("project_sop", args["project-sop-ref"] || sourceRefForFirst(detected.releaseDocs), "project"),
-    sourceRecord("ci_workflow", args["ci-workflow-ref"] || sourceRefForFirst(detected.workflowFiles), "project"),
+    ...workflowRefs.map((ref) => sourceRecord("ci_workflow", ref, "project")),
     sourceRecord("package_config", args["package-config-ref"] || (fs.existsSync(path.join(projectRoot, "package.json")) ? "file:package.json" : ""), "project"),
     sourceRecord("docker_config", args["docker-config-ref"] || (fs.existsSync(path.join(projectRoot, "Dockerfile")) ? "file:Dockerfile" : ""), "project"),
     sourceRecord("provider_config", args["provider-config-ref"] || "not_applicable", "project"),
@@ -384,12 +410,9 @@ function sourceRecord(kind, refValue, scope) {
 function currentReleaseCandidateMatch(kind, sourceRef) {
   const expected = normalizeCandidateRef(args["release-candidate-ref"]);
   if (!expected || ["missing", "unknown", "not_applicable"].includes(sourceRef)) return "Unknown";
-  if (!sourceRef.startsWith("file:") && !sourceRef.startsWith("artifact:")) return "Unknown";
-  const raw = sourceRef.replace(/^(file|artifact):/, "");
-  const file = path.resolve(projectRoot, raw);
-  const relative = path.relative(projectRoot, file);
-  if (relative.startsWith("..") || path.isAbsolute(relative) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return "Unknown";
-  const extracted = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", sourceRef, { markdownOnly: true });
+  if (!resolved.ok) return "Unknown";
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
   if (!extracted?.ok) return "Unknown";
   const actual = kind === "release_evidence_gate"
     ? extracted.value.release_scope?.release_candidate_ref
@@ -635,6 +658,7 @@ function currentChannelSummary(detected) {
   if (detected.hasDockerPush) signals.push("Docker registry publish");
   if (detected.hasPackagePublish) signals.push("package registry publish");
   if (detected.hasTagTrigger) signals.push("tag-triggered workflow");
+  if (detected.hasUnresolvedExternalEffect) signals.push("unresolved package-script external effect");
   return signals.length ? signals.join(", ") : "No release channel signal detected.";
 }
 
@@ -644,7 +668,18 @@ function recommendedChannelSummary(channel, recommendation) {
 
 function plainSummary(channel, releasePolicy, actionsPolicy, costRisk) {
   if (channel.blocked === "Yes") {
-    return `I found release-channel gaps (${channel.blocked_by.join(", ")}). I will keep release review blocked and prepare only evidence, not release execution.`;
+    const reasons = channel.blocked_by.map((item) => ({
+      missing_release_owner: "consent to the exact external release action has not been given",
+      missing_cost_owner: "the real release cost is not yet established or accepted",
+      notes_only_release_event_workflow_unreviewed: "the release-event workflow still needs technical inspection",
+      missing_artifact_retention_policy: "the artifact retention behavior still needs technical inspection",
+      unknown_release_package_identity: "the exact release package has not been identified",
+      release_channel_requires_package_identity: "the selected external channel has no exact package identity",
+      missing_release_package_identity: "the selected release package is not digest-bound",
+      source_only_conflicts_with_detected_provider_deploy: "the selected source-only policy conflicts with a detected provider deploy",
+      source_only_external_effect_not_proven_absent: "a workflow package script cannot be proven free of external effects",
+    }[item] || "a release prerequisite is not yet proven"));
+    return `I will keep the external release blocked because ${reasons.join("; ")}. I will continue the technical checks and prepare evidence; you do not need to choose the technical release path.`;
   }
   if (releasePolicy.github_release_assets_uploaded === "No" && actionsPolicy.actions_artifact_used_as_release_package === "No") {
     return "I will keep GitHub for code and evidence, and will not treat GitHub Release assets or Actions artifacts as the release package by default.";
@@ -671,9 +706,9 @@ function sourceRefForFirst(files) {
 
 function digestSource(ref) {
   if (!ref || ref === "missing" || ref === "not_applicable") return digest(ref || "");
-  if (ref.startsWith("file:")) {
-    const filePath = path.resolve(projectRoot, ref.slice(5));
-    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) return digest(fs.readFileSync(filePath));
+  if (/^(?:file|artifact):/i.test(ref)) {
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", ref);
+    if (resolved.ok) return canonicalFileDigest(resolved.file);
   }
   return digest(ref);
 }

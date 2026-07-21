@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.41.0",
+  "schemaVersion": "1.113.0",
   "artifactType": "controlled_apply_readiness",
   "required": [
     "schema_version",
@@ -21,7 +21,8 @@
     "schema_version": {
       "type": "string",
       "enum": [
-        "1.41.0"
+        "1.41.0",
+        "1.113.0"
       ]
     },
     "artifact_type": {
@@ -40,6 +41,7 @@
         "NO_APPLY_PLAN",
         "NOT_READY",
         "READY_FOR_HUMAN_APPROVED_APPLY",
+        "READY_FOR_REQUEST_BOUND_LOCAL_APPLY",
         "HUMAN_ONLY",
         "BLOCKED"
       ]
@@ -69,6 +71,16 @@
         }
       }
     },
+    "apply_authority": {
+      "type": "object",
+      "required": ["path", "artifact_id", "authority_mode", "authority_digest"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "authority_mode": { "type": "string", "enum": ["REQUEST_BOUND_LOCAL"] },
+        "authority_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
     "actions": {
       "type": "array",
       "items": {
@@ -87,6 +99,7 @@
             "type": "string",
             "enum": [
               "LOW_RISK_CANDIDATE",
+              "REQUEST_BOUND_LOCAL",
               "HUMAN_ONLY",
               "BLOCKED"
             ]

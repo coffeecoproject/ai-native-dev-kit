@@ -160,7 +160,7 @@ function taskGovernanceSource() {
 
 function verificationPlanSource(governance) {
   const explicit = String(args["verification-plan-ref"] || "").trim();
-  const candidate = explicit || latestMarkdown("verification-plans");
+  const candidate = explicit || latestMatchingVerificationPlan(governance);
   if (!candidate) {
     if (effectiveTaskTier(governance.tier, args["task-tier"]) === "LOW") {
       return { status: "NOT_REQUIRED", ref: "N/A", digest: "N/A", state: "NOT_APPLICABLE_WITH_REASON", task_ref: "", intent: "", intent_digest: "" };
@@ -186,15 +186,30 @@ function verificationPlanSource(governance) {
   };
 }
 
-function blockedGovernance(ref, digest) {
-  return { status: "BLOCKED", ref, digest, tier: "POSSIBLE_HIGH", task_ref: "", intent: "", intent_digest: "" };
+function latestMatchingVerificationPlan(governance) {
+  const dir = path.join(projectRoot, "verification-plans");
+  if (!fs.existsSync(dir)) return "";
+  const expectedTaskRef = String(args["task-ref"] || governance.task_ref || "task:current");
+  const expectedIntentDigest = governance.intent_digest || digestText(requestedIntent);
+  const files = fs.readdirSync(dir)
+    .filter((name) => name.endsWith(".md") && name !== ".gitkeep")
+    .sort()
+    .reverse();
+  for (const name of files) {
+    const file = path.join(dir, name);
+    const parsed = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
+    const value = parsed?.ok ? parsed.value : null;
+    if (value?.artifact_type === "verification_plan"
+      && value.task_ref === expectedTaskRef
+      && value.intent_digest === expectedIntentDigest) {
+      return `verification-plans/${name}`;
+    }
+  }
+  return "";
 }
 
-function latestMarkdown(relativeDir) {
-  const dir = path.join(projectRoot, relativeDir);
-  if (!fs.existsSync(dir)) return "";
-  const files = fs.readdirSync(dir).filter((name) => name.endsWith(".md") && name !== ".gitkeep").sort();
-  return files.length ? `${relativeDir}/${files.at(-1)}` : "";
+function blockedGovernance(ref, digest) {
+  return { status: "BLOCKED", ref, digest, tier: "POSSIBLE_HIGH", task_ref: "", intent: "", intent_digest: "" };
 }
 
 function resolveOutputPath(root, value) {

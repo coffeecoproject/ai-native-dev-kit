@@ -22,7 +22,7 @@
     "server API, domain DTOs, database schema, migrations, or API integration is in scope"
   ],
   "canBeRecommendedByAI": true,
-  "selectionRequiresHumanDecision": true,
+  "selectionOwnedByCodex": true,
   "canAuthorizeWrites": false,
   "canApproveImplementation": false,
   "canApproveRelease": false,

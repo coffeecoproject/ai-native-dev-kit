@@ -36,7 +36,10 @@
     "test_evidence_ref": { "type": "string" },
     "test_evidence_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "verification_plan_ref": { "type": "string" },
-    "verification_plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "verification_plan_digest": {
+      "type": "string",
+      "pattern": "^(sha256:[a-f0-9]{64}|not provided)$"
+    },
     "verification_plan_state": { "type": "string" },
     "source_systems": {
       "type": "array",

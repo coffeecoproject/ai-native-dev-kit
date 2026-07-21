@@ -10,9 +10,9 @@ This project-level baseline defines engineering decision rules Codex must read b
 
 Baseline status: DRAFT
 
-Human decision status: PENDING
+Human decision status: NOT_REQUIRED_FOR_TECHNICAL_DERIVATION
 
-Owner: human
+Owner: IntentOS/Codex
 
 Last reviewed:
 
@@ -35,23 +35,23 @@ This baseline does not define business requirements.
 
 | Concern | Project Location | Source of Truth | Codex May Decide? |
 |---|---|---|---|
-| pages / routes | PENDING | project decision | No |
-| components | PENDING | project decision | No |
-| hooks | PENDING | project decision | No |
-| services | PENDING | project decision | No |
-| API client | PENDING | project decision | No |
-| domain logic | PENDING | project decision | No |
-| shared utilities | PENDING | project decision | No |
+| pages / routes | PENDING | project evidence + Codex decision | Yes |
+| components | PENDING | project evidence + Codex decision | Yes |
+| hooks | PENDING | project evidence + Codex decision | Yes |
+| services | PENDING | project evidence + Codex decision | Yes |
+| API client | PENDING | project evidence + Codex decision | Yes |
+| domain logic | PENDING | project evidence + Codex decision | Yes |
+| shared utilities | PENDING | project evidence + Codex decision | Yes |
 
 ## Type Source of Truth
 
 | Type Kind | Source | Generated? | Owner | Codex May Create? |
 |---|---|---|---|---|
-| API request DTO | PENDING | PENDING | human | No |
-| API response DTO | PENDING | PENDING | human | No |
-| domain model | PENDING | PENDING | human | No |
-| database schema type | PENDING | PENDING | human | No |
-| UI view model | PENDING | PENDING | human | No |
+| API request DTO | PENDING | PENDING | IntentOS/Codex | Yes, with evidence |
+| API response DTO | PENDING | PENDING | IntentOS/Codex | Yes, with evidence |
+| domain model | PENDING | PENDING | IntentOS/Codex | Yes, with evidence |
+| database schema type | PENDING | PENDING | IntentOS/Codex | Yes, with evidence |
+| UI view model | PENDING | PENDING | IntentOS/Codex | Yes, with evidence |
 
 ## DTO / Schema / Domain Rules
 
@@ -83,10 +83,10 @@ Codex must stop when:
 
 | Case | Preferred Pattern | Requires Internal Decision Record? | Notes |
 |---|---|---|---|
-| stable small code-owned set | typed constants / enum / union type | Maybe | Confirm ownership first |
+| stable small code-owned set | typed constants / enum / union type | Maybe | Derive ownership from project evidence |
 | DB strong constraint, very low change | DB enum with migration / rollback plan | Yes | Do not decide silently |
 | configurable labels / i18n / ordering / enable-disable | lookup table | Yes | Usually business-owned |
-| external system values | string at boundary, mapped to domain type | Maybe | Confirm mapping owner |
+| external system values | string at boundary, mapped to domain type | Maybe | Derive mapping authority from project evidence |
 | state transitions | state machine | Yes | Define allowed transitions |
 | UI color / label mapping | mapping layer | Maybe | Do not derive directly from enum value |
 
@@ -139,13 +139,15 @@ If baseline is complete:
 
 If baseline is missing:
 
-- do not invent a project standard
-- use local pattern only for low-risk local changes
+- inspect current project evidence and derive the safest technically complete
+  baseline
+- use local patterns for low-risk local changes while unsupported broad
+  conventions remain blocked
 - record the baseline gap
-- create a Decision Brief when needed
+- create and internally review a Decision Brief when needed
 
 ## Open Engineering Decisions
 
 | Decision | Options | Recommended | Owner | Status |
 |---|---|---|---|---|
-| Derive project engineering baseline | Fill this file from existing code and verified project evidence | Start with existing local patterns | IntentOS/Codex | PENDING |
+| Derive project engineering baseline | Fill this file from existing code and verified project evidence | Start with existing local patterns | IntentOS/Codex | CODEX_ACTION_REQUIRED |

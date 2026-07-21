@@ -99,12 +99,22 @@ if (!outputJson) {
   console.log("");
 }
 
-if (result.state === "MISSING_PROFILE") {
-  const message = result.pendingReasons.length > 0 ? result.pendingReasons.join("; ") : "no selected profiles";
-  if (strict) fail(message);
+if (result.state !== "BASELINE_READY") {
+  const reasons = result.strictStatus?.blockingReasons?.length > 0
+    ? result.strictStatus.blockingReasons
+    : result.pendingReasons;
+  const message = `${result.state}: ${reasons.length > 0 ? reasons.join("; ") : "platform baseline is not ready"}`;
+  if (strict || result.state === "PROFILE_INVALID") fail(message);
   else warn(message);
 } else {
   pass(`selected profiles: ${result.selectedProfiles.join(", ")}`);
+}
+
+if (strict && result.state === "BASELINE_READY" && result.strictState !== "BASELINE_READY") {
+  const reasons = result.strictStatus?.blockingReasons?.length > 0
+    ? result.strictStatus.blockingReasons.join("; ")
+    : "strict baseline evidence is incomplete";
+  fail(`${result.strictState}: ${reasons}`);
 }
 
 for (const item of result.missingProfiles) {

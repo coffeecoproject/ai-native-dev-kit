@@ -4,7 +4,7 @@
 
 Draft status: DRAFT / CONFIRMED
 
-Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED
+Technical selection status: PENDING_EVIDENCE / CONFIRMED / BLOCKED
 
 ## Baseline Level
 
@@ -24,29 +24,41 @@ Rationale:
 
 - <industrial-pack-id>
 
+## Goal Platform Evidence
+
+Product goal:
+
+Derived signals:
+
+- <profile-id>: <matched natural-language signal or project evidence>
+
+Goal/profile conflict: None / BLOCKED with reason
+
 ## Baseline Rationale
 
-| Selection | Why it applies | Human confirmed |
+| Selection | Why it applies | Project evidence |
 |---|---|---|
-|  |  | Yes / No |
+|  |  |  |
 
-## Human Approval
+## Technical Selection Authority
 
-Status: PENDING / APPROVED / REJECTED
+Status: EVIDENCE_PENDING / VERIFIED / BLOCKED
 
-Approval scope:
+Authority: Codex, bound to the exact project goal and controlled action graph.
+
+User technical decision required: No
 
 ## Baseline Exceptions
 
-| Requirement | Exception | Reason | Owner | Review date | Human accepted |
+| Requirement | Exception | Reason | Handling authority | Review date | Disposition evidence |
 |---|---|---|---|---|---|
-|  |  |  |  |  | Yes / No |
+|  |  |  | Codex |  |  |
 
 ## Residual Risk Register
 
-| Risk | Impact | Mitigation | Owner | Review date | Accepted by human |
+| Risk | Impact | Mitigation | Handling authority | Review date | External consent status |
 |---|---|---|---|---|---|
-|  |  |  |  |  | Yes / No |
+|  |  |  | Codex |  | Not applicable / exact-effect consent ref |
 
 ## Review Cadence
 

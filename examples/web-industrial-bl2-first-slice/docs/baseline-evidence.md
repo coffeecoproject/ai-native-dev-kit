@@ -15,7 +15,7 @@ Human decision status: CONFIRMED
 | responsive behavior evidence | doc | evidence/web-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
 | critical flow behavior evidence | doc | evidence/web-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
 | form submission validation and duplicate-submit evidence | doc | evidence/web-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
-| destructive action and recovery evidence | not-applicable |  | Not applicable | no destructive action in this first slice | example-owner | 2026-06-26 |
+| destructive action and recovery evidence | not-applicable | evidence/destructive-action-disposition.json | Not applicable | the selected read-only slice contains no destructive action or destructive recovery path | example-owner | 2026-06-26 |
 | API failure and recovery evidence | doc | evidence/web-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
 | auth and validation error behavior evidence | doc | evidence/web-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
 | keyboard focus and accessible name evidence | doc | evidence/web-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
@@ -31,7 +31,7 @@ Human decision status: CONFIRMED
 | environment variable review | release | releases/001-web-runtime-quality-release.md | Done |  | example-owner | 2026-06-26 |
 | secret exposure review | release | releases/001-web-runtime-quality-release.md | Done |  | example-owner | 2026-06-26 |
 | deployment configuration evidence | release | releases/001-web-runtime-quality-release.md | Done |  | example-owner | 2026-06-26 |
-| dependency rationale and vulnerability review | not-applicable |  | Not applicable | no dependency added in this first slice | example-owner | 2026-06-26 |
+| dependency rationale and vulnerability review | not-applicable | evidence/dependency-rationale-disposition.json | Not applicable | the selected slice adds no dependency and therefore creates no dependency rationale or vulnerability-review obligation | example-owner | 2026-06-26 |
 | client bundle impact review | doc | evidence/web-runtime-evidence.md | Done |  | example-owner | 2026-06-26 |
 
 ## Production Readiness

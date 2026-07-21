@@ -18,7 +18,7 @@ The reviewer must not approve release.
 
 - Review Packet: stable input for a human reviewer, GPT Pro, a second model, or another review process.
 - GPT Review Prompt: copyable read-only reviewer instruction for GPT Pro or another external reviewer.
-- Review Loop Report: record of review rounds, findings, automatic fixes, verification, repeated issues, and human-decision queue.
+- Review Loop Report: record of review rounds, findings, automatic fixes, verification, repeated issues, and any bounded user-input queue.
 - Follow-up Proposal: optional record for a bounded suggestion that is related to the task but outside current scope.
 - Final Report: durable task result summary when chat output is not enough.
 
@@ -51,13 +51,13 @@ For L2/L3 tasks, `scripts/check-workflow-artifacts.mjs --mode implementation --t
 Every finding must use one of these categories:
 
 - AUTO_FIX: deterministic, low-risk fix inside approved task scope.
-- NEEDS_HUMAN_DECISION: compatibility category used only when a business fact, exact real-world consent, or external fact is unavailable.
-- NEEDS_CLARIFICATION: reviewer cannot decide from available evidence.
+- NEEDS_HUMAN_DECISION: compatibility category used only when the missing input is classified as `BUSINESS_FACT_NEEDED`, `REAL_WORLD_CONSENT_NEEDED`, or `EXTERNAL_FACT_NEEDED`. It must never carry a technical choice.
+- NEEDS_CLARIFICATION: reviewer cannot decide from available project evidence. Codex owns the investigation and technical resolution.
 - NO_ACTION: noted issue does not require a change; reason must be recorded.
 
 NO_ACTION requires a reason.
 
-NEEDS_CLARIFICATION can be attempted once by asking for or adding evidence. If it is still unclear after one attempt, convert it to NEEDS_HUMAN_DECISION.
+Codex must investigate `NEEDS_CLARIFICATION` once by reading project evidence, reproducing the issue, or using stricter review. If the gap remains technical, keep it internal and mark the loop `BLOCKED`; do not convert it to a user decision. Convert it to `NEEDS_HUMAN_DECISION` only when the unresolved input belongs to one of the three allowed user-input classes above.
 
 Use this distinction:
 
@@ -89,7 +89,7 @@ Codex may auto-fix only when all conditions are true:
 
 - The finding is inside the approved task scope.
 - The fix is deterministic and low-risk.
-- The fix does not require new approval.
+- The fix does not cross an exact real-world consent or external-authority boundary.
 - The fix can be verified with existing commands or evidence.
 
 Allowed examples:
@@ -120,7 +120,7 @@ AUTO_FIX is limited to 2 rounds.
 For each round:
 
 1. Review findings.
-2. Split AUTO_FIX from human-decision items.
+2. Split AUTO_FIX from internal replanning items and the bounded user-input classes.
 3. Apply only allowed AUTO_FIX items.
 4. Run verification.
 5. Re-review resolved and changed areas.
@@ -128,16 +128,24 @@ For each round:
 
 ## Stop Conditions
 
-Stop and ask the human when any condition appears:
+Stop automatic repair and return control to Codex's internal planning/review path when any condition appears:
 
 - Same finding appears twice.
 - Auto-fix introduces a new P0 or P1 finding.
-- Fix requires scope expansion.
-- Fix requires a new dependency.
-- Fix requires changing risk approval, Human Approval, or Approval scope.
-- Verification fails repeatedly for the same reason.
+- The implementation crosses the current technical change boundary.
+- A fix may require a new or upgraded dependency.
+- A fix changes architecture, migration design, verification strategy, technical risk treatment, or an evidence boundary.
+- Verification fails repeatedly for the same technical reason.
 - Reviewer output is unstructured or missing evidence.
-- Reviewer asks for whole-repo context beyond the Review Packet without a concrete missing artifact reason.
+- Reviewer asks for whole-repo context beyond the Review Packet without a concrete missing-artifact reason.
+
+These conditions do not create a user decision. Codex must diagnose the root cause, revise the implementation plan or change boundary, assess dependencies and migration mechanics, obtain stronger evidence, and run the required review again. If the stated business outcome itself would change, request only the missing business fact or product preference in plain language.
+
+Ask the user only when one of these bounded conditions remains after technical investigation:
+
+- `BUSINESS_FACT_NEEDED`: the project cannot establish a required business rule or product preference.
+- `REAL_WORLD_CONSENT_NEEDED`: a specific production, cost, real-user, external-account, payment/value-transfer, or irreversible-data effect is prepared and ready for exact consent.
+- `EXTERNAL_FACT_NEEDED`: a legal, tax, compliance, provider, account, or third-party fact cannot be established from project evidence.
 
 ## GPT / External Reviewer Use
 
@@ -157,7 +165,7 @@ A Review Loop can finish as:
 
 - DONE: no remaining findings, or remaining NO_ACTION findings have reasons.
 - AUTO_FIXED: all AUTO_FIX findings were fixed and verified.
-- NEEDS_HUMAN_DECISION: at least one finding needs a human decision.
+- NEEDS_HUMAN_DECISION: at least one finding needs one of the three bounded user-input classes; no technical option may be presented.
 - BLOCKED: required evidence, verification, or reviewer output is unavailable.
 
-The final Codex response must summarize what was automatically fixed, what remains open, what needs human decision, what verification was run, and any bounded next-step suggestions.
+The final Codex response must summarize what was automatically fixed, what remains open, any bounded user input that is genuinely needed, what verification was run, and any bounded next-step suggestions. It must not ask the user to choose architecture, dependencies, migration mechanics, repair strategy, review depth, or how to respond to repeated verification failures.

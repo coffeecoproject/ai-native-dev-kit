@@ -96,12 +96,9 @@
     ]
   },
   "humanApprovalRequiredFor": [
-    "data-migration",
-    "data-deletion",
-    "production-data",
-    "regulated-data",
-    "retention-policy",
-    "irreversible-operation"
+    "irreversible-production-data-effect",
+    "production-or-external-release",
+    "regulated-data-export-to-external-recipient"
   ],
   "maturity": {
     "stage": "draft",

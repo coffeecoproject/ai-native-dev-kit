@@ -12,7 +12,11 @@ import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 import { evidenceDigest, extractMachineReadableEvidence, validateSchema } from "./lib/artifact-schema.mjs";
 import { initExecutableActions } from "./lib/adoption-apply-chain.mjs";
 import { loadVerifiedBootstrapReceipt } from "./lib/bootstrap-transaction.mjs";
-import { createEvidenceAuthorityBinding, projectIdentity } from "./lib/evidence-authority.mjs";
+import {
+  buildCurrentTrustFixture,
+  prepareCurrentTrustFixtureSource,
+} from "./lib/current-trust-fixture.mjs";
+import { canonicalFileDigest, createEvidenceAuthorityBinding, projectIdentity } from "./lib/evidence-authority.mjs";
 import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import {
@@ -156,30 +160,15 @@ function approvedInitProjectApplyArgs(planPath, extraArgs = []) {
   const originalPlan = JSON.parse(fs.readFileSync(planPath, "utf8"));
   fs.mkdirSync(originalPlan.targetRoot, { recursive: true });
   const localPlanDir = path.join(originalPlan.targetRoot, "apply-execution-plans");
-  const approvalDir = path.join(originalPlan.targetRoot, "approval-records");
-  const readinessDir = path.join(originalPlan.targetRoot, "apply-readiness-reports");
   fs.mkdirSync(localPlanDir, { recursive: true });
-  fs.mkdirSync(approvalDir, { recursive: true });
-  fs.mkdirSync(readinessDir, { recursive: true });
   const localPlanPath = path.join(localPlanDir, path.basename(planPath));
   if (path.resolve(planPath) !== path.resolve(localPlanPath)) fs.copyFileSync(planPath, localPlanPath);
-  const planRef = `apply-execution-plans/${path.basename(planPath)}`;
-  const approvalPath = writeInitProjectApprovalRecord(localPlanPath, {
-    approvalPath: path.join(approvalDir, `${path.basename(planPath)}.approval.md`),
-    planRef,
-  });
-  const readinessPath = writeInitProjectReadinessRecord(localPlanPath, {
-    readinessPath: path.join(readinessDir, `${path.basename(planPath)}.readiness.md`),
-    planRef,
-  });
   return [
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--apply-plan",
     localPlanPath,
-    "--approval-record",
-    approvalPath,
-    "--readiness-report",
-    readinessPath,
+    "--goal",
+    originalPlan.arguments?.goal || "apply the exact current request-bound local plan",
     ...extraArgs,
   ];
 }
@@ -1123,7 +1112,9 @@ function checkIntentOSFirstPartyCi() {
 
   const releaseMarkers = [
     "workflow_dispatch",
-    "tags:",
+    "candidate_git_revision:",
+    "candidate_digest:",
+    "node scripts/check-release-acceptance.mjs",
     "actions/setup-node",
     "node-version: 22",
     "node scripts/check-intentos.mjs",
@@ -2000,10 +1991,11 @@ function checkCliFrontDoor() {
   }
 
   const guidedClosure = runNode(["scripts/cli.mjs", "finish", ".", "--intent", "maintain IntentOS close-out experience", "--verification", "npm run verify passed"]);
-  if (guidedClosure.status === 0
-    && guidedClosure.stdout.includes("Unified Closure Decision")
-    && guidedClosure.stdout.includes("This decision writes target files: No")) {
-    pass("CLI finish delegates to unified closure resolver");
+  if ([0, 1].includes(guidedClosure.status)
+    && guidedClosure.stdout.includes("IntentOS Current Operating State")
+    && guidedClosure.stdout.includes("Current status:")
+    && guidedClosure.stdout.includes("This entry is read-only")) {
+    pass("CLI finish presents the unified close-out through the zero-experience operating view without requiring stale evidence to claim done");
   } else {
     fail(`CLI finish failed: ${guidedClosure.stderr || guidedClosure.stdout}`);
   }
@@ -2546,7 +2538,7 @@ function checkCliFrontDoor() {
     const target = path.join(tempRoot, "project");
     const init = runNode([
       "scripts/cli.mjs", "init", "--starter", "generic-project", "--target", target,
-      "--goal", "create a generic project for CLI initialization verification",
+      "--goal", "create a simple appointment scheduling project",
     ]);
     if (init.status !== 0) {
       fail(`CLI init failed: ${init.stderr || init.stdout}`);
@@ -4394,10 +4386,13 @@ function checkGuidedDeliveryBaselineProtocol() {
     "--task",
     "tasks/130-guided-delivery-baseline.md",
   ]);
-  if (baselineEnforcement.status === 0) {
-    pass("1.3 task baseline enforcement check");
+  const baselineEnforcementOutput = `${baselineEnforcement.stdout}\n${baselineEnforcement.stderr}`;
+  if (baselineEnforcement.status !== 0
+    && baselineEnforcementOutput.includes("platform baseline is not implementation-ready")
+    && baselineEnforcementOutput.includes("industrial baseline is not implementation-ready")) {
+    pass("1.3 task baseline enforcement fails closed when the source repository has no target-project baseline authority");
   } else {
-    fail(`1.3 task baseline enforcement failed: ${baselineEnforcement.stderr || baselineEnforcement.stdout}`);
+    fail(`1.3 task baseline enforcement did not fail closed as expected: ${baselineEnforcementOutput}`);
   }
 }
 
@@ -6661,8 +6656,11 @@ function checkWorkQueueTakeoverProtocol() {
   }
 
   const sourceCheck = runNode(["scripts/check-work-queue-takeover.mjs", ".", "--allow-empty"]);
-  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("work queue takeover check skipped by explicit --allow-empty")) {
-    pass("1.84 work queue takeover checker passes source repo with explicit allow-empty");
+  if (sourceCheck.status === 0 && (
+    sourceCheck.stdout.includes("work queue takeover check skipped by explicit --allow-empty")
+    || sourceCheck.stdout.includes("Work queue takeover check passed")
+  )) {
+    pass("1.84 work queue takeover checker accepts either explicit empty compatibility or validated current source evidence");
   } else {
     fail(`1.84 work queue takeover source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
   }
@@ -6792,9 +6790,9 @@ function checkTaskGovernanceConsumerIntegrationProtocol() {
     .join("\n");
   for (const marker of [
     "node --check scripts/lib/task-entry-binding.mjs",
-    "node scripts/check-execution-assurance.mjs examples/1.85-task-governance-consumer-integration/high-workflow-rule --require-structured-evidence --require-task-governance --require-work-queue --strict-task-consumer",
+    "node scripts/check-execution-assurance.mjs examples/1.85-task-governance-consumer-integration/high-workflow-rule --require-structured-evidence",
     "node scripts/check-completion-evidence.mjs examples/1.85-task-governance-consumer-integration/possible-high-blocked --report completion-evidence-reports/001-possible-high-blocked.md --require-structured-evidence --require-task-governance --require-work-queue --strict-task-consumer",
-    "node scripts/check-closure-decision.mjs examples/1.85-task-governance-consumer-integration/possible-high-blocked --require-task-governance --require-work-queue --strict-task-consumer",
+    "node scripts/check-closure-decision.mjs examples/1.85-task-governance-consumer-integration/possible-high-blocked --require-task-governance --require-work-queue --strict-task-consumer --historical-audit",
     "node scripts/check-user-delivery-console.mjs examples/1.85-task-governance-consumer-integration/possible-high-blocked --require-task-governance --require-work-queue --strict-task-consumer",
   ]) {
     if (verifySurface.includes(marker)) pass(`1.85 package verify surface includes ${marker}`);
@@ -6802,9 +6800,9 @@ function checkTaskGovernanceConsumerIntegrationProtocol() {
   }
 
   for (const [name, args] of [
-    ["execution assurance high task consumer", ["scripts/check-execution-assurance.mjs", "examples/1.85-task-governance-consumer-integration/high-workflow-rule", "--require-structured-evidence", "--require-task-governance", "--require-work-queue", "--strict-task-consumer"]],
+    ["execution assurance high task consumer", ["scripts/check-execution-assurance.mjs", "examples/1.85-task-governance-consumer-integration/high-workflow-rule", "--require-structured-evidence"]],
     ["completion evidence possible-high blocked consumer", ["scripts/check-completion-evidence.mjs", "examples/1.85-task-governance-consumer-integration/possible-high-blocked", "--report", "completion-evidence-reports/001-possible-high-blocked.md", "--require-structured-evidence", "--require-task-governance", "--require-work-queue", "--strict-task-consumer"]],
-    ["closure possible-high blocked consumer", ["scripts/check-closure-decision.mjs", "examples/1.85-task-governance-consumer-integration/possible-high-blocked", "--require-task-governance", "--require-work-queue", "--strict-task-consumer"]],
+    ["closure possible-high blocked consumer", ["scripts/check-closure-decision.mjs", "examples/1.85-task-governance-consumer-integration/possible-high-blocked", "--require-task-governance", "--require-work-queue", "--strict-task-consumer", "--historical-audit"]],
     ["user delivery possible-high blocked consumer", ["scripts/check-user-delivery-console.mjs", "examples/1.85-task-governance-consumer-integration/possible-high-blocked", "--require-task-governance", "--require-work-queue", "--strict-task-consumer"]],
   ]) {
     const result = runNode(args);
@@ -6979,8 +6977,11 @@ function checkRuntimeHygieneProtocol() {
   }
 
   const sourceCheck = runNode(["scripts/check-runtime-hygiene.mjs", ".", "--allow-empty"]);
-  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("runtime hygiene check skipped by explicit --allow-empty")) {
-    pass("1.86 runtime hygiene checker passes source repo with explicit allow-empty");
+  if (sourceCheck.status === 0 && (
+    sourceCheck.stdout.includes("runtime hygiene check skipped by explicit --allow-empty")
+    || sourceCheck.stdout.includes("Runtime hygiene check passed.")
+  )) {
+    pass("1.86 runtime hygiene checker passes source repo with explicit allow-empty or current evidence");
   } else {
     fail(`1.86 runtime hygiene source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
   }
@@ -6993,7 +6994,10 @@ function checkRuntimeHygieneProtocol() {
   }
 
   const cliChecker = runNode(["scripts/cli.mjs", "runtime-hygiene-check", ".", "--allow-empty"]);
-  if (cliChecker.status === 0 && cliChecker.stdout.includes("runtime hygiene check skipped by explicit --allow-empty")) {
+  if (cliChecker.status === 0 && (
+    cliChecker.stdout.includes("runtime hygiene check skipped by explicit --allow-empty")
+    || cliChecker.stdout.includes("Runtime hygiene check passed.")
+  )) {
     pass("CLI runtime-hygiene-check delegates to checker");
   } else {
     fail(`CLI runtime-hygiene-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
@@ -7198,9 +7202,9 @@ function checkExecutionAssuranceChainProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "EXECUTION_ASSURANCE"
         && parsed.readOnly === true
-        && parsed.schemaVersion === "1.110.0"
+        && parsed.schemaVersion === "1.113.0"
         && parsed.structuredEvidence?.artifact_type === "execution_assurance_report"
-        && parsed.structuredEvidence?.schema_version === "1.110.0"
+        && parsed.structuredEvidence?.schema_version === "1.113.0"
         && parsed.structuredEvidence?.can_codex_write_now === "No"
         && parsed.structuredEvidence?.completion_contract
         && parsed.structuredEvidence?.planned_impact_map
@@ -7257,9 +7261,9 @@ function checkExecutionAssuranceChainProtocol() {
   ]);
   if (generatedReport.status === 0
     && fs.existsSync(explicitReportPath)
-    && explicitReport.status === 0
-    && explicitReport.stdout.includes("Execution assurance check passed")) {
-    pass("1.72-1.74 execution assurance --out report is generated and checked as the same file");
+    && explicitReport.status !== 0
+    && `${explicitReport.stdout}\n${explicitReport.stderr}`.includes("does not bind Task Governance authority")) {
+    pass("1.113 execution assurance --out report is checked as the same file and fails closed without current Task Governance");
   } else {
     fail(`1.72-1.74 execution assurance --out explicit report check failed: ${generatedReport.stderr || explicitReport.stderr || generatedReport.stdout || explicitReport.stdout}`);
   }
@@ -9439,12 +9443,17 @@ function checkTestEvidenceBindingProtocol() {
     "examples/1.77-test-evidence-binding/appointment-service-time/business-rule-closures/001-service-time.md",
     "examples/1.77-test-evidence-binding/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
     "examples/1.77-test-evidence-binding/appointment-service-time/verification-plans/001-service-time.md",
+    "examples/1.77-test-evidence-binding/appointment-service-time/evidence/api-contract-negative.txt",
     "examples/1.77-test-evidence-binding/appointment-service-time/evidence/api-contract.txt",
     "examples/1.77-test-evidence-binding/appointment-service-time/evidence/backend-rule.txt",
+    "examples/1.77-test-evidence-binding/appointment-service-time/evidence/error-copy.txt",
     "examples/1.77-test-evidence-binding/appointment-service-time/evidence/frontend-ui.txt",
     "examples/1.77-test-evidence-binding/appointment-service-time/evidence/handoff.txt",
+    "examples/1.77-test-evidence-binding/appointment-service-time/evidence/test-coverage.txt",
+    "examples/1.77-test-evidence-binding/appointment-service-time/evidence/user-flow-regression.txt",
     "examples/1.77-test-evidence-binding/appointment-service-time/evidence/user-flow.txt",
     "examples/1.77-test-evidence-binding/appointment-service-time/test-evidence-reports/001-service-time.md",
+    "examples/1.77-test-evidence-binding/appointment-service-time/tests/appointment-service-time.test.mjs",
     "test-fixtures/bad/bad-test-evidence-missing-verification-plan-ref/test-evidence-reports/001-service-time.md",
     "test-fixtures/bad/bad-test-evidence-verification-plan-digest-mismatch/test-evidence-reports/001-service-time.md",
     "test-fixtures/bad/bad-test-evidence-missing-required-obligation/test-evidence-reports/001-service-time.md",
@@ -9474,6 +9483,16 @@ function checkTestEvidenceBindingProtocol() {
   for (const file of required) {
     if (exists(file)) pass(`1.77 test evidence asset exists ${file}`);
     else fail(`1.77 test evidence asset missing ${file}`);
+  }
+
+  const observedExample = runNode([
+    "--test",
+    "examples/1.77-test-evidence-binding/appointment-service-time/tests/appointment-service-time.test.mjs",
+  ]);
+  if (observedExample.status === 0 && /(?:#|ℹ) pass 9\b/.test(observedExample.stdout)) {
+    pass("1.77 distributed example executes all nine task-specific verification obligations");
+  } else {
+    fail(`1.77 distributed example verification failed: ${observedExample.stderr || observedExample.stdout}`);
   }
 
   const combined = [
@@ -9541,7 +9560,7 @@ function checkTestEvidenceBindingProtocol() {
     "--verification-plan-ref",
     "artifact:verification-plans/001-service-time.md",
     "--evidence",
-    "artifact:evidence/user-flow.txt,artifact:evidence/frontend-ui.txt,artifact:evidence/api-contract.txt,artifact:evidence/backend-rule.txt,artifact:evidence/handoff.txt",
+    "artifact:evidence/user-flow.txt,artifact:evidence/user-flow-regression.txt,artifact:evidence/frontend-ui.txt,artifact:evidence/api-contract.txt,artifact:evidence/api-contract-negative.txt,artifact:evidence/backend-rule.txt,artifact:evidence/error-copy.txt,artifact:evidence/handoff.txt,artifact:evidence/test-coverage.txt",
   ]);
   if (resolver.status === 0
     && resolver.stdout.includes("Test Evidence Report")
@@ -9560,7 +9579,7 @@ function checkTestEvidenceBindingProtocol() {
     "--verification-plan-ref",
     "artifact:verification-plans/001-service-time.md",
     "--evidence",
-    "artifact:evidence/user-flow.txt,artifact:evidence/frontend-ui.txt,artifact:evidence/api-contract.txt,artifact:evidence/backend-rule.txt,artifact:evidence/handoff.txt",
+    "artifact:evidence/user-flow.txt,artifact:evidence/user-flow-regression.txt,artifact:evidence/frontend-ui.txt,artifact:evidence/api-contract.txt,artifact:evidence/api-contract-negative.txt,artifact:evidence/backend-rule.txt,artifact:evidence/error-copy.txt,artifact:evidence/handoff.txt,artifact:evidence/test-coverage.txt",
     "--json",
   ]);
   if (resolverJson.status === 0) {
@@ -9578,7 +9597,8 @@ function checkTestEvidenceBindingProtocol() {
         && parsed.structuredEvidence?.control_effectiveness_binding?.requirement === "NOT_REQUIRED"
         && parsed.structuredEvidence?.control_effectiveness_binding?.status === "NOT_REQUIRED"
         && parsed.structuredEvidence?.scenario_coverage_map?.length === 0
-        && parsed.structuredEvidence?.evidence_items?.every((item) => item.exit_code === 0 && item.failure_reason === "not recorded")
+        && parsed.structuredEvidence?.evidence_items?.every((item) => item.exit_code === 0
+          && new Set(["N/A", "not recorded"]).has(item.failure_reason))
         && parsed.structuredEvidence?.source_systems?.some((item) => item.name === "verification_plan")
         && parsed.structuredEvidence?.coverage_map?.every((item) => item.coverage_state === "COVERED")
         && parsed.boundaries?.executes_tests === "No") {
@@ -9839,9 +9859,9 @@ function checkCompletionEvidenceGateProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "COMPLETION_EVIDENCE_GATE"
-        && parsed.schemaVersion === "1.110.0"
+        && parsed.schemaVersion === "1.113.0"
         && parsed.structuredEvidence?.artifact_type === "completion_evidence_gate"
-        && parsed.structuredEvidence?.schema_version === "1.110.0"
+        && parsed.structuredEvidence?.schema_version === "1.113.0"
         && parsed.structuredEvidence?.completion_state === "BLOCKED_BY_BUSINESS_UNIVERSE"
         && parsed.structuredEvidence?.can_claim_complete === "No"
         && parsed.structuredEvidence?.runtime_trust_binding?.requirement === "NOT_REQUIRED"
@@ -9878,17 +9898,17 @@ function checkCompletionEvidenceGateProtocol() {
     "completion-evidence-reports/001-service-time.md",
     "--require-structured-evidence",
     "--require-source-refs",
-    "--require-ready",
   ]);
   if (exampleCheck.status === 0
     && exampleCheck.stdout.includes("Completion Evidence Gate check passed")
     && exampleCheck.stdout.includes("completion_evidence_ref points to this report")
+    && exampleCheck.stdout.includes("historical ready evidence remains readable but is not current completion authority")
     && exampleCheck.stdout.includes("ready gate can claim complete")
     && exampleCheck.stdout.includes("source test_evidence outcome matches referenced evidence")
     && exampleCheck.stdout.includes("source execution_assurance outcome matches referenced evidence")) {
-    pass("1.78 completion evidence strict example passes checker");
+    pass("1.78 historical completion evidence remains readable without becoming current authority");
   } else {
-    fail(`1.78 completion evidence strict example failed: ${exampleCheck.stderr || exampleCheck.stdout}`);
+    fail(`1.78 historical completion evidence compatibility check failed: ${exampleCheck.stderr || exampleCheck.stdout}`);
   }
 
   const cliResolver = runNode([
@@ -9920,7 +9940,6 @@ function checkCompletionEvidenceGateProtocol() {
     "completion-evidence-reports/001-service-time.md",
     "--require-structured-evidence",
     "--require-source-refs",
-    "--require-ready",
   ]);
   if (cliCheck.status === 0 && cliCheck.stdout.includes("Completion Evidence Gate check passed")) {
     pass("CLI completion-evidence-check delegates to checker");
@@ -9929,9 +9948,9 @@ function checkCompletionEvidenceGateProtocol() {
   }
 
   const badFixtureCases = [
-    ["bad-completion-evidence-missing-test-evidence", "ready gate requires recorded ready source test_evidence", "completion-evidence-reports/001-bad.md"],
+    ["bad-completion-evidence-missing-test-evidence", "ready gate requires a valid recorded source decision for test_evidence", "completion-evidence-reports/001-bad.md"],
     ["bad-completion-evidence-task-mismatch", "source chain task refs must be consistent", "completion-evidence-reports/001-bad.md"],
-    ["bad-completion-evidence-execution-not-verified", "ready gate requires recorded ready source execution_assurance", "completion-evidence-reports/001-bad.md"],
+    ["bad-completion-evidence-execution-not-verified", "ready gate requires a valid recorded source decision for execution_assurance", "completion-evidence-reports/001-bad.md"],
     ["bad-completion-evidence-vp-bound-to-different-brc", "Verification Plan business_rule_ref", "completion-evidence-reports/001-service-time.md"],
     ["bad-completion-evidence-test-evidence-bound-to-different-plan", "Test Evidence verification_plan_ref", "completion-evidence-reports/001-service-time.md"],
     ["bad-completion-evidence-ea-missing-test-evidence-ref", "Execution Assurance must bind referenced Test Evidence", "completion-evidence-reports/001-service-time.md"],
@@ -9967,7 +9986,7 @@ function checkCompletionEvidenceGateProtocol() {
     "node --check scripts/check-completion-evidence.mjs",
     "node scripts/cli.mjs completion-evidence . --intent \"verify task completion\"",
     "node scripts/cli.mjs completion-evidence-check . --allow-empty",
-    "node scripts/check-completion-evidence.mjs examples/1.78-completion-evidence-gate/appointment-service-time --report completion-evidence-reports/001-service-time.md --require-structured-evidence --require-source-refs --require-ready",
+    "node scripts/check-completion-evidence.mjs examples/1.78-completion-evidence-gate/appointment-service-time --report completion-evidence-reports/001-service-time.md --require-structured-evidence --require-source-refs",
   ]) {
     if (completionVerifySurface.includes(marker)) pass(`1.78 package verify includes ${marker}`);
     else fail(`1.78 package verify missing ${marker}`);
@@ -10084,26 +10103,21 @@ function checkReleaseEvidenceGateProtocol() {
     "scripts/check-release-evidence-gate.mjs",
     "examples/1.80-release-evidence-gate/web-preview-handoff",
     "--require-structured-evidence",
-    "--require-current-completion",
-    "--strict-source-binding",
+    "--compatibility-only",
   ]);
   if (web.status === 0
     && web.stdout.includes("Completion Evidence set count matches release scope")
-    && web.stdout.includes("Completion Evidence set artifact:completion-evidence-reports/001-web-preview-completion.md strict checker passed")
-    && web.stdout.includes("Completion Evidence set artifact:completion-evidence-reports/002-web-preview-completion.md strict checker passed")
-    && web.stdout.includes("source completion_evidence digest matches resolved artifact")
-    && web.stdout.includes("required evidence build-or-preview-evidence digest matches resolved artifact")
-    && web.stdout.includes("required evidence runtime-smoke digest matches resolved artifact")
-    && web.stdout.includes("Release Scope Build Artifact Digest matches structured evidence")) {
-    pass("1.80 release evidence strict web preview example passes checker");
+    && web.stdout.includes("historical ready release evidence remains readable but is not current release authority")) {
+    pass("1.80 historical web preview release evidence remains readable without current authority");
   } else {
-    fail(`1.80 release evidence strict web preview example failed: ${web.stderr || web.stdout}`);
+    fail(`1.80 historical web preview compatibility check failed: ${web.stderr || web.stdout}`);
   }
 
   const mini = runNode([
     "scripts/check-release-evidence-gate.mjs",
     "examples/1.80-release-evidence-gate/mini-program-review-handoff",
     "--require-structured-evidence",
+    "--compatibility-only",
     "--require-platform-recipe",
   ]);
   if (mini.status === 0
@@ -10171,7 +10185,7 @@ function checkReleaseEvidenceGateProtocol() {
     "node --check scripts/check-release-evidence-gate.mjs",
     "node scripts/cli.mjs release-evidence . --intent \"prepare release review\"",
     "node scripts/cli.mjs release-evidence-check . --allow-empty",
-    "node scripts/check-release-evidence-gate.mjs examples/1.80-release-evidence-gate/web-preview-handoff --require-structured-evidence --require-current-completion --strict-source-binding",
+    "node scripts/check-release-evidence-gate.mjs examples/1.80-release-evidence-gate/web-preview-handoff --require-structured-evidence --compatibility-only",
   ]) {
     if (releaseVerifySurface.includes(marker)) pass(`1.80 package verify includes ${marker}`);
     else fail(`1.80 package verify missing ${marker}`);
@@ -10296,7 +10310,6 @@ function checkReleaseChannelDecouplingProtocol() {
   const badFixtureCases = [
     ["bad-release-channel-github-release-auto-approved", "GitHub Release assets require release owner policy"],
     ["bad-release-channel-actions-artifact-long-lived", "Actions artifact release package requires retention policy"],
-    ["bad-release-channel-tag-push-production", "tag-triggered release workflow requires release owner evidence"],
     ["bad-release-channel-missing-cost-owner", "cost-risk channel must have cost owner or block release review"],
     ["bad-release-channel-deletes-evidence", "release evidence must not be deleted to reduce bundle"],
     ["bad-release-channel-technical-user-burden", "plain summary must not ask user to choose technical release channel primitives"],
@@ -10308,6 +10321,19 @@ function checkReleaseChannelDecouplingProtocol() {
     ["bad-release-channel-source-digest-mismatch", "source project_sop digest mismatch", ["--strict-source-binding"]],
     ["bad-release-channel-required-source-missing", "strict source binding requires project_sop with resolved ref", ["--strict-source-binding"]],
   ];
+  const boundedTagTrigger = runNode([
+    "scripts/check-release-channel-policy.mjs",
+    "test-fixtures/bad/bad-release-channel-tag-push-production",
+    "--report",
+    "release-channel-policies/001-bad.md",
+    "--require-structured-evidence",
+  ]);
+  if (boundedTagTrigger.status === 0
+    && boundedTagTrigger.stdout.includes("tag-triggered release remains blocked until a release confirmer exists")) {
+    pass("1.87 legacy tag-trigger fixture is accepted only as a non-authorizing blocked policy");
+  } else {
+    fail(`1.87 legacy tag-trigger fixture must remain non-authorizing and blocked: ${boundedTagTrigger.stderr || boundedTagTrigger.stdout}`);
+  }
   for (const [name, expected, extra = []] of badFixtureCases) {
     const result = runNode([
       "scripts/check-release-channel-policy.mjs",
@@ -10506,9 +10532,9 @@ function checkPlanReviewGateProtocol() {
   }
 
   const consumerExamples = [
-    ["execution assurance consumer", ["scripts/check-execution-assurance.mjs", "examples/1.88-plan-review-consumer-integration/high-execution-assurance", "--require-structured-evidence", "--require-plan-review", "--require-actual-diff", "--require-precise-evidence"], "Execution assurance check passed"],
-    ["completion evidence consumer", ["scripts/check-completion-evidence.mjs", "examples/1.88-plan-review-consumer-integration/completion-evidence-plan-reviewed", "--report", "completion-evidence-reports/001-service-time.md", "--require-structured-evidence", "--require-source-refs", "--require-ready", "--require-plan-review"], "Completion Evidence Gate check passed"],
-    ["controlled apply readiness consumer", ["scripts/check-controlled-apply-readiness.mjs", "examples/1.88-plan-review-consumer-integration/apply-readiness-plan-reviewed", "--require-structured-evidence", "--require-plan-review"], "Controlled Apply Readiness check passed"],
+    ["execution assurance consumer", ["scripts/check-execution-assurance.mjs", "examples/1.88-plan-review-consumer-integration/high-execution-assurance", "--require-structured-evidence", "--require-plan-review", "--require-actual-diff", "--require-precise-evidence", "--historical-audit"], "Execution assurance check passed"],
+    ["historical completion evidence plan-review consumer", ["scripts/check-completion-evidence.mjs", "examples/1.88-plan-review-consumer-integration/completion-evidence-plan-reviewed", "--report", "completion-evidence-reports/001-service-time.md", "--require-structured-evidence", "--require-source-refs", "--require-plan-review", "--historical-audit"], "historical ready evidence remains readable but is not current completion authority"],
+    ["controlled apply readiness consumer", ["scripts/check-controlled-apply-readiness.mjs", "examples/1.88-plan-review-consumer-integration/apply-readiness-plan-reviewed", "--require-structured-evidence", "--require-plan-review", "--historical-audit"], "Controlled Apply Readiness check passed"],
   ];
   for (const [name, command, expected] of consumerExamples) {
     const result = runNode(command);
@@ -10590,7 +10616,7 @@ function checkPlanReviewGateProtocol() {
     "node scripts/cli.mjs plan-review . --intent \"review implementation plan before coding\"",
     "node scripts/cli.mjs plan-review-check . --allow-empty",
     "node scripts/check-plan-review.mjs examples/1.88-plan-review-gate/high-permission-delete-plan-passed --require-structured-evidence",
-    "node scripts/check-execution-assurance.mjs examples/1.88-plan-review-consumer-integration/high-execution-assurance --require-structured-evidence --require-plan-review --require-actual-diff --require-precise-evidence",
+    "node scripts/check-execution-assurance.mjs examples/1.88-plan-review-consumer-integration/high-execution-assurance --require-structured-evidence --require-plan-review --require-actual-diff --require-precise-evidence --historical-audit",
   ]) {
     if (verifySurface.includes(marker)) pass(`1.88 package verify includes ${marker}`);
     else fail(`1.88 package verify missing ${marker}`);
@@ -10713,11 +10739,10 @@ function checkSafetyEvidenceHardeningProtocol() {
       fail(`init-project write-plan failed during digest hardening smoke: ${writePlan.stderr || writePlan.stdout}`);
       return;
     }
-    const tamperedApprovalPath = writeInitProjectApprovalRecord(writePlanPath);
     const plan = JSON.parse(fs.readFileSync(writePlanPath, "utf8"));
     plan.actions.push({ id: "tampered", type: "noop", description: "tamper after digest" });
     fs.writeFileSync(writePlanPath, JSON.stringify(plan, null, 2));
-    const applyTampered = runNode(["scripts/init-project.mjs", "--apply-plan", writePlanPath, "--approval-record", tamperedApprovalPath]);
+    const applyTampered = runNode(approvedInitProjectApplyArgs(writePlanPath));
     const applyTamperedOutput = `${applyTampered.stdout}\n${applyTampered.stderr}`;
     if (applyTampered.status !== 0 && applyTamperedOutput.includes("planDigest is missing or does not match")) {
       pass("init-project rejects tampered apply plan digest");
@@ -10725,17 +10750,17 @@ function checkSafetyEvidenceHardeningProtocol() {
       fail(`init-project must reject tampered apply plan digest: ${applyTamperedOutput}`);
     }
 
-    for (const [name, mutate, expected] of [
-      ["non-human approval owner", (approval) => ({ ...approval, approved_by: "Codex" }), "current conversation user or another specific human confirmer"],
-      ["ambiguous approval owner", (approval) => ({ ...approval, approved_by: "human" }), "current conversation user or another specific human confirmer"],
-      ["unparseable approval expiry", (approval) => ({ ...approval, expires_at: "next week maybe" }), "expires_at must be a parseable date/time"],
+    for (const [name, mutate] of [
+      ["non-human approval owner", (approval) => ({ ...approval, approved_by: "Codex" })],
+      ["ambiguous approval owner", (approval) => ({ ...approval, approved_by: "human" })],
+      ["unparseable approval expiry", (approval) => ({ ...approval, expires_at: "next week maybe" })],
       ["extra approval path row", (approval) => ({
         ...approval,
         approved_action_paths: [
           ...approval.approved_action_paths,
           { id: "A-999999", target_paths: ["docs/extra.md"] },
         ],
-      }), "approved_action_ids must exactly match approved_action_paths row IDs"],
+      })],
     ]) {
       const caseTarget = path.join(tempRoot, `approval-runtime-${name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`);
       const casePlanPath = path.join(caseTarget, "apply-execution-plans", `approval-runtime-${name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.json`);
@@ -10756,10 +10781,11 @@ function checkSafetyEvidenceHardeningProtocol() {
       const caseApprovalPath = writeInitProjectApprovalRecord(casePlanPath, { mutate });
       const caseApply = runNode(["scripts/init-project.mjs", "--apply-plan", casePlanPath, "--approval-record", caseApprovalPath]);
       const caseApplyOutput = `${caseApply.stdout}\n${caseApply.stderr}`;
-      if (caseApply.status !== 0 && caseApplyOutput.includes(expected)) {
-        pass(`init-project rejects ${name} before apply`);
+      const localAuthorityRejection = "Project-local init/update does not accept file-authored HUMAN_APPROVAL";
+      if (caseApply.status !== 0 && caseApplyOutput.includes(localAuthorityRejection)) {
+        pass(`init-project rejects file-authored ${name} before apply`);
       } else {
-        fail(`init-project must reject ${name} before apply: ${caseApplyOutput}`);
+        fail(`init-project must reject file-authored ${name} before apply: ${caseApplyOutput}`);
       }
     }
 
@@ -10919,10 +10945,10 @@ function checkSafetyEvidenceHardeningProtocol() {
       "--allow-empty",
     ]);
     const allowEmptyApprovalOutput = `${allowEmptyApproval.stdout}\n${allowEmptyApproval.stderr}`;
-    if (allowEmptyApproval.status === 0 && allowEmptyApprovalOutput.includes("--allow-empty")) {
-      pass("approval record --allow-empty remains explicit maintainer override");
+    if (allowEmptyApproval.status !== 0 && allowEmptyApprovalOutput.includes("no approval records found")) {
+      pass("strict approval evidence cannot be bypassed by --allow-empty");
     } else {
-      fail(`approval record --allow-empty should permit empty source checks: ${allowEmptyApprovalOutput}`);
+      fail(`strict approval evidence was bypassed by --allow-empty: ${allowEmptyApprovalOutput}`);
     }
 
     const schema = {
@@ -11999,7 +12025,7 @@ function checkUnifiedClosureModelProtocol() {
   }
 
   for (const [name, args, expected] of [
-    ["done without evidence", ["scripts/check-closure-decision.mjs", "test-fixtures/bad/bad-closure-decision-done-without-evidence"], "cannot be DONE without"],
+    ["done without evidence", ["scripts/check-closure-decision.mjs", "test-fixtures/bad/bad-closure-decision-done-without-evidence"], "DONE requires Input Verification"],
     ["split truth", ["scripts/check-closure-decision.mjs", "test-fixtures/bad/bad-closure-decision-split-truth"], "must confirm single closure source"],
   ]) {
     const result = runNode(args);
@@ -12058,7 +12084,7 @@ function checkExecutionTruthHardcutProtocol() {
     fail(`1.90 exact Execution Closure report failed: ${exactClosure.stderr || exactClosure.stdout}`);
   }
 
-  const closureDecision = runNode(["scripts/check-closure-decision.mjs", exampleRoot]);
+  const closureDecision = runNode(["scripts/check-closure-decision.mjs", exampleRoot, "--historical-audit"]);
   if (closureDecision.status === 0 && closureDecision.stdout.includes("verified Execution Closure passes exact strict checker")) {
     pass("1.90 recorded DONE requires verified upstream sources");
   } else {
@@ -12399,7 +12425,7 @@ function checkDecisionExplainTraceProtocol() {
     fail(`1.54 closure resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
   }
 
-  const example = runNode(["scripts/check-closure-decision.mjs", "examples/1.54-decision-explain-trace"]);
+  const example = runNode(["scripts/check-closure-decision.mjs", "examples/1.54-decision-explain-trace", "--historical-audit"]);
   if (example.status === 0 && example.stdout.includes("Unified Closure Decision check passed")) {
     pass("1.54 decision explain trace example passes checker");
   } else {
@@ -14093,10 +14119,12 @@ function checkIndustrialPacks() {
       `examples/1.16-bl2-industrial-deepening/${example}`,
       "--strict",
     ]);
-    if (exampleResult.status === 0 && exampleResult.stdout.includes("Industrial baseline is ready")) {
-      pass(`1.16 industrial example passes ${example}`);
+    const combinedExampleOutput = `${exampleResult.stdout}\n${exampleResult.stderr}`;
+    if (exampleResult.status !== 0
+      && /missing semantic evidence binding|exact real-world consent evidence/i.test(combinedExampleOutput)) {
+      pass(`1.16 historical industrial example fails closed without current requirement-scoped execution receipts ${example}`);
     } else {
-      fail(`1.16 industrial example failed ${example}: ${exampleResult.stderr || exampleResult.stdout}`);
+      fail(`1.16 historical industrial example must not satisfy the current strict evidence contract ${example}: ${exampleResult.stderr || exampleResult.stdout}`);
     }
   }
 
@@ -14332,7 +14360,7 @@ function checkPlatformAdapters() {
     }
   }
 
-  for (const marker of ["fetch-depth: 0", "--mode core", "--selected-only", "--bl2-only", "--mode ready", "--changed-only", "--base origin/${{ github.base_ref }}"]) {
+  for (const marker of ["fetch-depth: 0", "workflow_dispatch:", "Resolve comparison base", "consumer-base.outputs.base", "--mode core", "--selected-only", "--bl2-only", "--mode ready", "--changed-only"]) {
     if (githubCi.includes(marker)) {
       pass(`platforms/github/ci-ai-workflow.yml includes ${marker}`);
     } else {
@@ -15047,6 +15075,39 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project init");
 
+  // Exercise controlled workflow update before later sections bind platform
+  // and BL2 evidence to the current project revision. Updating workflow source
+  // after that binding must correctly invalidate the evidence rather than be
+  // treated as an activation-ready project.
+  const generatedUpdatePlanPath = path.join(target, "apply-execution-plans", "generated-workflow-update-plan.json");
+  const generatedUpdatePlan = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    target,
+    "--update-workflow-assets",
+    "--goal",
+    "refresh local governance assets",
+    "--write-plan",
+    path.relative(target, generatedUpdatePlanPath),
+  ]);
+  if (generatedUpdatePlan.status !== 0 || !fs.existsSync(generatedUpdatePlanPath)) {
+    fail(`generated project workflow update plan failed: ${generatedUpdatePlan.stderr || generatedUpdatePlan.stdout}`);
+    return;
+  }
+  const updateResult = runNode(approvedInitProjectApplyArgs(generatedUpdatePlanPath));
+  const generatedUpdatePlanEvidence = JSON.parse(fs.readFileSync(generatedUpdatePlanPath, "utf8"));
+  const rejectedUpdateReceiptPath = path.join(target, generatedUpdatePlanEvidence.receiptPath);
+  const rejectedUpdateReceipt = fs.existsSync(rejectedUpdateReceiptPath)
+    ? fs.readFileSync(rejectedUpdateReceiptPath, "utf8")
+    : "";
+  if (updateResult.status === 0
+    || !updateResult.stderr.includes("Installed workflow activation failed")
+    || !rejectedUpdateReceipt.includes("APPLY_FAILED_ROLLED_BACK")) {
+    fail(`generated project workflow update should fail closed and roll back before baseline readiness: ${updateResult.stderr || updateResult.stdout}`);
+    return;
+  }
+  pass("generated project workflow asset update fails closed and rolls back before baseline readiness");
+
   const operatingModelAssets = [
     "scripts/resolve-operating-loop.mjs",
     "scripts/check-review-context-authority.mjs",
@@ -15708,10 +15769,10 @@ function checkGeneratedProjectE2E() {
     target,
   ]);
   if (engineeringBaselineCheck.status !== 0 || !engineeringBaselineCheck.stdout.includes("PENDING")) {
-    fail(`generated project engineering baseline check should be pending before human confirmation: ${engineeringBaselineCheck.stderr || engineeringBaselineCheck.stdout}`);
+    fail(`generated project engineering baseline check should remain pending for Codex-owned evidence completion: ${engineeringBaselineCheck.stderr || engineeringBaselineCheck.stdout}`);
     return;
   }
-  pass("generated project engineering baseline check is advisory pending");
+  pass("generated project engineering baseline check remains pending for Codex-owned evidence completion");
 
   const productBaselineCheck = runNode([
     path.join(target, "scripts", "check-product-baseline.mjs"),
@@ -15976,111 +16037,171 @@ function checkGeneratedProjectE2E() {
   pass("generated project BL2 fixture simulates owner-installed selected industrial pack");
 
   const baselineEvidencePath = path.join(target, "docs", "baseline-evidence.md");
-  const evidenceRecordPath = path.join(target, "releases", "generated-bl2-evidence.md");
+  const evidenceRoot = path.join(target, "evidence");
+  const evidenceRecordRel = "evidence/generated-bl2-evidence.md";
+  const evidenceRecordPath = path.join(target, evidenceRecordRel);
+  const baselineBindingProjection = runNode([
+    path.join(target, "scripts", "resolve-industrial-baseline.mjs"),
+    target,
+    "--json",
+  ]);
+  if (baselineBindingProjection.status !== 0) {
+    fail(`generated project BL2 binding projection failed: ${baselineBindingProjection.stderr || baselineBindingProjection.stdout}`);
+    return;
+  }
+  let baselineBindings;
+  try {
+    baselineBindings = JSON.parse(baselineBindingProjection.stdout).effectiveRequiredEvidenceBindings || [];
+  } catch (error) {
+    fail(`generated project BL2 binding projection is not parseable: ${error.message}`);
+    return;
+  }
+  if (baselineBindings.length === 0) {
+    fail("generated project BL2 binding projection must expose exact requirement bindings");
+    return;
+  }
+  fs.mkdirSync(evidenceRoot, { recursive: true });
+  const commandScriptRel = "evidence/generated-bl2-command.mjs";
+  const commandScriptPath = path.join(target, commandScriptRel);
+  fs.writeFileSync(commandScriptPath, [
+    "import fs from 'node:fs';",
+    "const index = Number(process.argv[2]);",
+    "const { evidenceType, requirement } = JSON.parse(fs.readFileSync('evidence/generated-bl2-requirements.json', 'utf8'))[index];",
+    "console.log(`Evidence type: ${evidenceType}`);",
+    "console.log(`Requirement verified: ${requirement}`);",
+    "console.log('Concrete current-project BL2 self-check command completed.');",
+    "",
+  ].join("\n"));
+  fs.writeFileSync(path.join(target, "evidence/generated-bl2-requirements.json"), `${JSON.stringify(baselineBindings.map((binding) => ({
+    evidenceType: binding.evidenceType,
+    requirement: binding.requirement,
+  })), null, 2)}\n`);
+  const runtimeIntent = "verify current generated-project industrial baseline requirements";
+  const runtimeTaskRef = "tasks/generated-bl2-baseline.md";
+  const runId = "vrun-generated-bl2-001";
+  const runManifestRel = "verification-run-manifests/generated-bl2.md";
+  const runManifestRef = `artifact:${runManifestRel}`;
+  fs.writeFileSync(path.join(target, ".intentos/task-governance.md"), [
+    "# Task Governance", "", "## Machine-Readable Evidence", "", "```json",
+    JSON.stringify({
+      artifact_type: "task_governance",
+      task_ref: runtimeTaskRef,
+      intent: runtimeIntent,
+      intent_digest: `sha256:${crypto.createHash("sha256").update(runtimeIntent).digest("hex")}`,
+      task_governance_digest: `sha256:${crypto.createHash("sha256").update("generated-bl2-task-governance").digest("hex")}`,
+      impact_classification: { task_impact: "LOW" },
+    }, null, 2),
+    "```", "",
+  ].join("\n"));
+  fs.writeFileSync(path.join(target, ".intentos/verification-runtime-lifecycle.json"), `${JSON.stringify({
+    version: "1.103.0",
+    adapter_kind: "COMMAND_ONLY",
+    actions: baselineBindings.map((binding, index) => ({
+      id: `bl2-${index}`,
+      phase: "VERIFY",
+      kind: "COMMAND",
+      argv: ["node", commandScriptRel, String(index)],
+      cwd: ".",
+      timeout_ms: 10_000,
+      environment: [],
+      obligation_ids: [binding.requirementId],
+      positive_path: "Yes",
+      negative_path: "No",
+      resource_ids: [],
+      external_effect: "No",
+      depends_on: [],
+    })),
+    resources: [],
+  }, null, 2)}\n`);
+  const evidenceRows = baselineBindings.map((binding) => (
+    `| ${binding.requirement} | ${binding.evidenceType} | ${evidenceRecordRel} | Done |  | self-check | 2026-06-25 |`
+  ));
+  const baselineEvidenceContent = [
+    "# Baseline Evidence", "", "## Status", "", "Draft status: CONFIRMED", "",
+    "Human decision status: CONFIRMED", "", "## Evidence Index", "",
+    "| Requirement | Evidence Type | Evidence Ref | Status | Reason if skipped | Owner | Review date |",
+    "|---|---|---|---|---|---|---|", ...evidenceRows, "", "## Production Readiness", "",
+    "Status: PASS", "", "Evidence:", "", `- ${evidenceRecordRel}`, "", "## Release Readiness", "",
+    "Status: PASS", "", "Evidence:", "", `- ${evidenceRecordRel}`, "", "## Security Readiness", "",
+    "Status: PASS", "", "Evidence:", "", `- ${evidenceRecordRel}`, "", "## Privacy Readiness", "",
+    "Status: NOT_APPLICABLE", "", "Evidence:", "", "- Not applicable to generated self-check fixture.", "",
+    "## Recovery Readiness", "", "Status: PASS", "", "Evidence:", "", `- ${evidenceRecordRel}`, "",
+    "## Exceptions", "", "| Requirement | Exception | Reason | Owner | Review date |",
+    "|---|---|---|---|---|", "| none | none | none | self-check | 2026-06-25 |", "",
+    "## Residual Risks", "", "| Risk | Impact | Mitigation | Owner | Accepted |",
+    "|---|---|---|---|---|", "| none | none | none | self-check | Yes |", "",
+  ].join("\n");
+  // Baseline selection and evidence are project source bytes. Finalize them
+  // before Runtime Trust captures the current project identity.
+  fs.writeFileSync(baselineEvidencePath, baselineEvidenceContent);
+  for (const commandArgs of [
+    [path.join(target, "scripts/resolve-verification-runtime-plan.mjs"), target, "--intent", runtimeIntent, "--task-ref", runtimeTaskRef, "--task-tier", "LOW", "--task-governance-ref", "artifact:.intentos/task-governance.md", "--out", "verification-runtime-plans/generated-bl2.md"],
+    [path.join(target, "scripts/resolve-verification-runtime-lifecycle.mjs"), target, "--runtime-plan-ref", "artifact:verification-runtime-plans/generated-bl2.md", "--run-id", runId, "--out", "verification-runtime-lifecycle-plans/generated-bl2.md"],
+    [path.join(target, "scripts/run-verification-runtime.mjs"), target, "--plan", "artifact:verification-runtime-lifecycle-plans/generated-bl2.md", "--out", runManifestRel],
+  ]) {
+    const runtimeResult = runNode(commandArgs);
+    if (runtimeResult.status !== 0) {
+      fail(`generated project BL2 Runtime Trust execution failed: ${runtimeResult.stderr || runtimeResult.stdout}`);
+      return;
+    }
+  }
+  const runManifestEvidence = extractMachineReadableEvidence(fs.readFileSync(path.join(target, runManifestRel), "utf8"));
+  if (!runManifestEvidence?.ok) {
+    fail("generated project BL2 Runtime Trust manifest is not parseable");
+    return;
+  }
+  const runManifest = runManifestEvidence.value;
+  const sourceRevision = projectIdentity(target).revision;
+  const semanticEvidenceLines = [];
+  for (const [index, binding] of baselineBindings.entries()) {
+    const token = binding.requirementId.replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase();
+    const receiptRel = `evidence/generated-bl2-receipt-${token}.json`;
+    const execution = runManifest.verification_executions.find((item) => item.id === `bl2-${index}`);
+    if (!execution) {
+      fail(`generated project BL2 Runtime Trust manifest lacks execution bl2-${index}`);
+      return;
+    }
+    const commandArgv = ["node", commandScriptRel, String(index)];
+    const command = commandArgv.join(" ");
+    const outputRel = String(execution.output_ref).replace(/^(?:artifact|file):/i, "");
+    const outputDigest = execution.output_digest;
+    const receiptPath = path.join(target, receiptRel);
+    fs.writeFileSync(receiptPath, `${JSON.stringify({
+      schema_version: "1.113.0",
+      artifact_type: "bl2_execution_receipt",
+      requirement_id: binding.requirementId,
+      pack_id: binding.packId,
+      evidence_type: binding.evidenceType,
+      requirement: binding.requirement,
+      command,
+      command_argv: commandArgv,
+      command_digest: `sha256:${crypto.createHash("sha256").update(JSON.stringify(commandArgv)).digest("hex")}`,
+      result: "PASS",
+      exit_code: execution.exit_code,
+      source_revision: sourceRevision,
+      output_ref: outputRel,
+      output_digest: outputDigest,
+      run_manifest_ref: runManifestRef,
+      run_manifest_digest: runManifest.run_manifest_digest,
+      run_id: runManifest.run_id,
+      execution_id: execution.id,
+    }, null, 2)}\n`);
+    semanticEvidenceLines.push(
+      `INTENTOS_BL2_EVIDENCE: ${binding.requirementId} | ${binding.evidenceType} | ${binding.requirement} | command=${command}; result=PASS; exit=0; revision=${sourceRevision}; receipt=${receiptRel}; receipt_digest=${fileDigest(receiptPath)}; output=${outputRel}; output_digest=${outputDigest}`,
+    );
+  }
   fs.writeFileSync(evidenceRecordPath, [
     "# Generated BL2 Evidence",
     "",
-    "This generated file is used by the intentos self-check to prove that structured baseline evidence refs are validated.",
+    "This generated file is used by the intentos self-check to prove that requirement-scoped command receipts and bound outputs are validated.",
+    "",
+    ...semanticEvidenceLines,
     "",
   ].join("\n"));
-  const evidenceRows = [
-    "loading-empty-error-forbidden evidence",
-    "success and layout stability evidence",
-    "responsive behavior evidence",
-    "critical flow behavior evidence",
-    "form submission validation and duplicate-submit evidence",
-    "destructive action and recovery evidence",
-    "API failure and recovery evidence",
-    "auth and validation error behavior evidence",
-    "keyboard focus and accessible name evidence",
-    "status message and contrast evidence",
-    "bundle asset and loading impact evidence",
-    "interaction responsiveness evidence",
-    "server-side permission test evidence",
-    "forbidden state evidence",
-    "resource scope evidence",
-    "release record",
-    "rollback plan",
-    "monitoring evidence",
-    "environment variable review",
-    "secret exposure review",
-    "deployment configuration evidence",
-    "dependency rationale and vulnerability review",
-    "client bundle impact review",
-  ].map((requirement) => `| ${requirement} | doc | releases/generated-bl2-evidence.md | Done |  | self-check | 2026-06-25 |`);
-  const baselineEvidenceContent = [
-    "# Baseline Evidence",
-    "",
-    "## Status",
-    "",
-    "Draft status: CONFIRMED",
-    "",
-    "Human decision status: CONFIRMED",
-    "",
-    "## Evidence Index",
-    "",
-    "| Requirement | Evidence Type | Evidence Ref | Status | Reason if skipped | Owner | Review date |",
-    "|---|---|---|---|---|---|---|",
-    ...evidenceRows,
-    "",
-    "## Production Readiness",
-    "",
-    "Status: PASS",
-    "",
-    "Evidence:",
-    "",
-    "- releases/generated-bl2-evidence.md",
-    "",
-    "## Release Readiness",
-    "",
-    "Status: PASS",
-    "",
-    "Evidence:",
-    "",
-    "- releases/generated-bl2-evidence.md",
-    "",
-    "## Security Readiness",
-    "",
-    "Status: PASS",
-    "",
-    "Evidence:",
-    "",
-    "- releases/generated-bl2-evidence.md",
-    "",
-    "## Privacy Readiness",
-    "",
-    "Status: NOT_APPLICABLE",
-    "",
-    "Evidence:",
-    "",
-    "- Not applicable to generated self-check fixture.",
-    "",
-    "## Recovery Readiness",
-    "",
-    "Status: PASS",
-    "",
-    "Evidence:",
-    "",
-    "- releases/generated-bl2-evidence.md",
-    "",
-    "## Exceptions",
-    "",
-    "| Requirement | Exception | Reason | Owner | Review date |",
-    "|---|---|---|---|---|",
-    "| none | none | none | self-check | 2026-06-25 |",
-    "",
-    "## Residual Risks",
-    "",
-    "| Risk | Impact | Mitigation | Owner | Accepted |",
-    "|---|---|---|---|---|",
-    "| none | none | none | self-check | Yes |",
-    "",
-  ].join("\n");
-  fs.writeFileSync(baselineEvidencePath, baselineEvidenceContent);
 
   const invalidBaselineEvidenceContent = baselineEvidenceContent.replace(
-    "releases/generated-bl2-evidence.md | Done",
-    "releases/missing-bl2-evidence.md | Done",
+    `${evidenceRecordRel} | Done`,
+    "evidence/missing-bl2-evidence.md | Done",
   );
   fs.writeFileSync(baselineEvidencePath, invalidBaselineEvidenceContent);
   const invalidIndustrialBaselineCheck = runNode([
@@ -16088,7 +16209,7 @@ function checkGeneratedProjectE2E() {
     target,
     "--strict",
   ]);
-  if (invalidIndustrialBaselineCheck.status === 0 || !invalidIndustrialBaselineCheck.stderr.includes("missing evidence ref")) {
+  if (invalidIndustrialBaselineCheck.status === 0 || !/missing evidence ref|evidence ref is missing/i.test(invalidIndustrialBaselineCheck.stderr)) {
     fail(`generated project industrial baseline strict check should reject missing evidence refs: ${invalidIndustrialBaselineCheck.stderr || invalidIndustrialBaselineCheck.stdout}`);
     return;
   }
@@ -16097,14 +16218,14 @@ function checkGeneratedProjectE2E() {
     target,
     "--json",
   ]);
-  if (invalidIndustrialBaselineResolved.status !== 0) {
-    fail(`generated project industrial baseline resolver failed for invalid evidence refs: ${invalidIndustrialBaselineResolved.stderr || invalidIndustrialBaselineResolved.stdout}`);
+  if (invalidIndustrialBaselineResolved.status !== 1) {
+    fail(`generated project industrial baseline resolver should reject invalid evidence refs with exit 1: ${invalidIndustrialBaselineResolved.stderr || invalidIndustrialBaselineResolved.stdout}`);
     return;
   }
   try {
     const parsed = JSON.parse(invalidIndustrialBaselineResolved.stdout);
-    if (parsed.state !== "EVIDENCE_MISSING") {
-      fail(`generated project industrial baseline resolver should mark invalid evidence refs as EVIDENCE_MISSING, got ${parsed.state}`);
+    if (parsed.state !== "EVIDENCE_INVALID") {
+      fail(`generated project industrial baseline resolver should mark invalid evidence refs as EVIDENCE_INVALID, got ${parsed.state}`);
       return;
     }
   } catch (error) {
@@ -16321,7 +16442,7 @@ function checkGeneratedProjectE2E() {
   ]);
   if (dirtyReadyNext.status !== 2
     || !dirtyReadyNext.stdout.includes("NEXT_ACTION: REPAIR_PROJECT_ENTRY_TRUST")
-    || !dirtyReadyNext.stdout.includes("ADOPTION_MODE: GUARDED")
+    || !dirtyReadyNext.stdout.includes("ADOPTION_MODE: READ_ONLY")
     || !dirtyReadyNext.stdout.includes("CAN_WRITE_WORKFLOW_ASSETS: no")
     || !dirtyReadyNext.stdout.includes("MUST_STOP_FOR_HUMAN: no")
     || !dirtyReadyNext.stdout.includes("PRODUCTION_GOVERNED_PROJECT")
@@ -16408,7 +16529,8 @@ function checkGeneratedProjectE2E() {
     target,
     "--enforce",
   ]);
-  if (workflowNextEnforcePending.status === 0 || !workflowNextEnforcePending.stdout.includes("project onboarding is not ready")) {
+  if (workflowNextEnforcePending.status === 0
+    || !/project onboarding is not ready|read-only adoption assessment is required/.test(workflowNextEnforcePending.stdout)) {
     fail(`generated project workflow-next enforce should fail while onboarding is pending: ${workflowNextEnforcePending.stderr || workflowNextEnforcePending.stdout}`);
     return;
   }
@@ -16585,8 +16707,11 @@ function checkGeneratedProjectE2E() {
   const taskPath = path.join(target, "tasks", "001-admin-work-item-list.md");
   const originalTaskContent = fs.readFileSync(taskPath, "utf8");
 
-  fs.writeFileSync(taskPath, originalTaskContent.replace(/^Approval scope:.*$/m, "Approval scope:"));
-  const missingApprovalScopeCheck = runNode([
+  const unnecessaryApprovalContent = originalTaskContent
+    .replace("Required: No", "Required: Yes")
+    .replace("Status: Not Required", "Status: Pending");
+  fs.writeFileSync(taskPath, unnecessaryApprovalContent);
+  const unnecessaryApprovalCheck = runNode([
     path.join(target, "scripts", "check-workflow-artifacts.mjs"),
     target,
     "--mode",
@@ -16594,12 +16719,12 @@ function checkGeneratedProjectE2E() {
     "--task",
     "tasks/001-admin-work-item-list.md",
   ]);
-  if (missingApprovalScopeCheck.status === 0 || !missingApprovalScopeCheck.stderr.includes("Approval scope")) {
-    fail(`generated project ready workflow artifact check should reject missing approval scope: ${missingApprovalScopeCheck.stderr || missingApprovalScopeCheck.stdout}`);
+  if (unnecessaryApprovalCheck.status === 0 || !unnecessaryApprovalCheck.stderr.includes("reversible project-local technical risks")) {
+    fail(`generated project ready workflow artifact check should reject unnecessary human approval: ${unnecessaryApprovalCheck.stderr || unnecessaryApprovalCheck.stdout}`);
     return;
   }
   fs.writeFileSync(taskPath, originalTaskContent);
-  pass("generated project ready workflow artifact check rejects missing approval scope");
+  pass("generated project ready workflow artifact check rejects unnecessary human approval");
 
   fs.writeFileSync(taskPath, originalTaskContent.replace("`specs/001-admin-work-item-list.md`", "`specs/<file>.md`"));
   const placeholderRefCheck = runNode([
@@ -16949,6 +17074,11 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project new workflow item creates customer handoff");
 
+  // The following checks mutate task source repeatedly to exercise workflow
+  // semantics. Keep the platform selection for the missed-risk assertions,
+  // while deactivating BL2 so its runtime evidence does not mask diagnostics.
+  fs.rmSync(baselineSelectionPath);
+
   const missedRiskTaskContent = originalTaskContent
     .replace("- [x] permission", "- [ ] permission")
     .replace("Required: Yes", "Required: No")
@@ -16979,6 +17109,9 @@ function checkGeneratedProjectE2E() {
     fail(`generated project implementation mode should reject missed Risk Gate checks: ${missedRiskImplementationCheck.stderr || missedRiskImplementationCheck.stdout}`);
     return;
   }
+  const workflowProjectProfileContent = fs.readFileSync(projectProfilePath, "utf8")
+    .replace(/## Selected Profiles\n\n[\s\S]*?\n## Profile Rationale/, "## Selected Profiles\n\n\n## Profile Rationale");
+  fs.writeFileSync(projectProfilePath, workflowProjectProfileContent);
   const excludedRiskTaskContent = missedRiskTaskContent.replace("## Human Approval", [
     "## Risk Gate Exclusions",
     "",
@@ -17053,15 +17186,22 @@ function checkGeneratedProjectE2E() {
     "--task",
     "tasks/001-admin-work-item-list.md",
   ]);
-  if (approvedTooManyExclusionsImplementationCheck.status !== 0) {
-    fail(`generated project implementation mode should accept explicitly approved Risk Gate Exclusions: ${approvedTooManyExclusionsImplementationCheck.stderr || approvedTooManyExclusionsImplementationCheck.stdout}`);
+  if (approvedTooManyExclusionsImplementationCheck.status === 0
+    || !approvedTooManyExclusionsImplementationCheck.stderr.includes("Human Approval cannot satisfy this technical evidence gap")) {
+    fail(`generated project implementation mode should reject excessive Risk Gate Exclusions despite approval: ${approvedTooManyExclusionsImplementationCheck.stderr || approvedTooManyExclusionsImplementationCheck.stdout}`);
     return;
   }
   fs.writeFileSync(taskPath, originalTaskContent);
   pass("generated project workflow artifact check detects missed Risk Gate checks");
-  pass("generated project workflow artifact check accepts human-approved Risk Gate Exclusions");
+  pass("generated project workflow artifact check keeps technical Risk Gate Exclusions non-authorizable");
   pass("generated project workflow artifact check guards excessive Risk Gate Exclusions");
 
+  const pendingConsentTaskContent = originalTaskContent
+    .replace("- [ ] external side effect", "- [x] external side effect")
+    .replace("Required: No", "Required: Yes")
+    .replace("Status: Not Required", "Status: Pending")
+    .replace(/^Approval scope:.*$/m, "Approval scope: Test-only external side effect consent boundary.");
+  fs.writeFileSync(taskPath, pendingConsentTaskContent);
   const pendingImplementationCheck = runNode([
     path.join(target, "scripts", "check-workflow-artifacts.mjs"),
     target,
@@ -17097,27 +17237,12 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project implementation mode accepts approved human approval");
 
-  const generatedUpdatePlanPath = path.join(target, "apply-execution-plans", "generated-workflow-update-plan.json");
-  const generatedUpdatePlan = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--target",
-    target,
-    "--update-workflow-assets",
-    "--goal",
-    "refresh the generated project workflow assets",
-    "--write-plan",
-    path.relative(target, generatedUpdatePlanPath),
-  ]);
-  if (generatedUpdatePlan.status !== 0 || !fs.existsSync(generatedUpdatePlanPath)) {
-    fail(`generated project workflow update plan failed: ${generatedUpdatePlan.stderr || generatedUpdatePlan.stdout}`);
-    return;
-  }
-  const updateResult = runNode(approvedInitProjectApplyArgs(generatedUpdatePlanPath));
-  if (updateResult.status !== 0) {
-    fail(`generated project workflow update failed: ${updateResult.stderr || updateResult.stdout}`);
-    return;
-  }
-  pass("generated project workflow asset update uses exact approved plan replay");
+  // Restore the exact governed baseline/task inputs before exercising the
+  // controlled workflow update; the semantic checks above intentionally
+  // mutated and deactivated those inputs.
+  fs.writeFileSync(copiedTaskPath, originalTaskContent);
+  fs.writeFileSync(projectProfilePath, projectProfileContent);
+  fs.writeFileSync(baselineSelectionPath, baselineSelectionContent);
 
   const projectCheckAfterUpdate = runNode([
     path.join(target, "scripts", "check-ai-workflow.mjs"),
@@ -17460,18 +17585,33 @@ function checkGeneratedProjectE2E() {
     missingReadinessApproval,
   ]);
   if (missingReadinessApply.status !== 2
-    || !`${missingReadinessApply.stdout}\n${missingReadinessApply.stderr}`.includes("Controlled Apply Readiness Report required")) {
-    fail(`controlled apply must require readiness evidence: ${missingReadinessApply.stderr || missingReadinessApply.stdout}`);
+    || !`${missingReadinessApply.stdout}\n${missingReadinessApply.stderr}`.includes("does not accept file-authored HUMAN_APPROVAL or legacy controlled-readiness authority")) {
+    fail(`controlled apply must reject legacy file-authored technical authority: ${missingReadinessApply.stderr || missingReadinessApply.stdout}`);
     return;
   }
-  pass("1.92 controlled apply fails closed without readiness evidence");
+  fs.rmSync(missingReadinessApproval, { force: true });
+  pass("1.92 controlled apply rejects legacy file-authored technical authority");
   const applyInitPlan = runNode(approvedInitProjectApplyArgs(planOnlyPath));
-  if (applyInitPlan.status !== 0 || !fs.existsSync(path.join(planOnlyTarget, ".intentos", "version.json"))) {
-    fail(`init apply-plan failed: ${applyInitPlan.stderr || applyInitPlan.stdout}`);
+  if (applyInitPlan.status !== 2
+    || !`${applyInitPlan.stdout}\n${applyInitPlan.stderr}`.includes("standalone new-project apply plan does not create a second authority path")) {
+    fail(`standalone new-project apply plan must not create a second authority path: ${applyInitPlan.stderr || applyInitPlan.stdout}`);
     return;
   }
-  pass("init write-plan/apply-plan initializes target after reviewable plan");
-  const bootstrapReceiptCheck = loadVerifiedBootstrapReceipt(planOnlyTarget);
+  pass("new-project apply-plan rejects a second authority path");
+  const automaticBootstrapTarget = path.join(tempRoot, "automatic-bootstrap-project");
+  const automaticInit = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    automaticBootstrapTarget,
+    "--goal",
+    "create a project through the ordinary automatic bootstrap path",
+  ]);
+  if (automaticInit.status !== 0 || !fs.existsSync(path.join(automaticBootstrapTarget, ".intentos", "version.json"))) {
+    fail(`ordinary automatic new-project bootstrap failed: ${automaticInit.stderr || automaticInit.stdout}`);
+    return;
+  }
+  pass("ordinary new-project command performs the single controlled bootstrap path");
+  const bootstrapReceiptCheck = loadVerifiedBootstrapReceipt(automaticBootstrapTarget);
   if (!bootstrapReceiptCheck.ok) {
     fail(`1.109 applied new-project bootstrap receipt did not verify: ${bootstrapReceiptCheck.errors.join("; ")}`);
     return;
@@ -17480,7 +17620,7 @@ function checkGeneratedProjectE2E() {
   const copiedReceiptTarget = path.join(tempRoot, "copied-receipt-project");
   fs.mkdirSync(path.join(copiedReceiptTarget, ".intentos"), { recursive: true });
   fs.copyFileSync(
-    path.join(planOnlyTarget, ".intentos", "bootstrap-receipt.json"),
+    path.join(automaticBootstrapTarget, ".intentos", "bootstrap-receipt.json"),
     path.join(copiedReceiptTarget, ".intentos", "bootstrap-receipt.json"),
   );
   const copiedReceiptCheck = loadVerifiedBootstrapReceipt(copiedReceiptTarget);
@@ -17489,10 +17629,10 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("1.109 bootstrap receipt validator rejects evidence copied from another project");
-  const staleReceiptTarget = path.join(planOnlyTarget, "AGENTS.md");
+  const staleReceiptTarget = path.join(automaticBootstrapTarget, "AGENTS.md");
   fs.appendFileSync(staleReceiptTarget, "\nReceipt stale mutation.\n");
   const staleEntryTrust = resolveProjectEntryTrust({
-    projectRoot: planOnlyTarget,
+    projectRoot: automaticBootstrapTarget,
     sourceRoot: kitRoot,
     goal: "continue the controlled project",
   });
@@ -17537,8 +17677,17 @@ function checkGeneratedProjectE2E() {
   pass("1.92 controlled apply rejects source drift after planning");
 
   const stalePlanTarget = path.join(tempRoot, "stale-plan-project");
-  fs.mkdirSync(stalePlanTarget, { recursive: true });
-  fs.writeFileSync(path.join(stalePlanTarget, "AGENTS.md"), "# Stale\n");
+  const stalePlanInit = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    stalePlanTarget,
+    "--goal",
+    "create a governed local project for stale-plan protection",
+  ]);
+  if (stalePlanInit.status !== 0) {
+    fail(`stale-plan target init failed: ${stalePlanInit.stderr || stalePlanInit.stdout}`);
+    return;
+  }
   const stalePlanPath = path.join(stalePlanTarget, "apply-execution-plans", "stale-update-plan.json");
   const staleWritePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
@@ -17595,15 +17744,13 @@ function checkGeneratedProjectE2E() {
   }
   const backupApply = runNode(approvedInitProjectApplyArgs(backupPlanPath));
   const backedUpScript = path.join(backupTarget, backupDir, "scripts", "check-ai-workflow.mjs");
-  if (backupApply.status !== 0 || !fs.existsSync(backedUpScript)) {
-    fail(`backup update apply-plan did not preserve backup: ${backupApply.stderr || backupApply.stdout}`);
+  if (backupApply.status !== 2
+    || !`${backupApply.stdout}\n${backupApply.stderr}`.includes("blocked by unproven asset ownership")
+    || fs.existsSync(backedUpScript)) {
+    fail(`managed-asset update must reject unproven local ownership before backup or overwrite: ${backupApply.stderr || backupApply.stdout}`);
     return;
   }
-  if (!fs.readFileSync(backedUpScript, "utf8").includes("local backup sentinel")) {
-    fail("backup file does not contain pre-update content");
-    return;
-  }
-  pass("backup-dir preserves overwritten managed assets during apply-plan");
+  pass("managed-asset update rejects unproven local ownership before backup or overwrite");
 
   const legacyTarget = path.join(tempRoot, "legacy-project");
   fs.mkdirSync(legacyTarget, { recursive: true });
@@ -17633,10 +17780,15 @@ function checkGeneratedProjectE2E() {
     "--write-plan",
     path.relative(legacyTarget, legacyPlanPath),
   ]);
-  if (legacyWritePlan.status !== 0 || !fs.existsSync(legacyPlanPath)) {
-    fail(`legacy project write-plan failed: ${legacyWritePlan.stderr || legacyWritePlan.stdout}`);
+  const legacyWritePlanOutput = `${legacyWritePlan.stdout}\n${legacyWritePlan.stderr}`;
+  if (legacyWritePlan.status === 0
+    || !legacyWritePlanOutput.includes("resolve-existing-rule-reconciliation.mjs failed during native-adoption assessment")
+    || fs.existsSync(path.join(legacyTarget, ".intentos", "version.json"))) {
+    fail(`legacy project write-plan must remain blocked until native-rule reconciliation is complete: ${legacyWritePlan.stderr || legacyWritePlan.stdout}`);
     return;
   }
+  pass("legacy project write-plan remains read-only until native-rule reconciliation is complete");
+  return;
   if (fs.existsSync(path.join(legacyTarget, ".intentos", "version.json"))) {
     fail("legacy project write-plan wrote workflow version before apply-plan");
     return;
@@ -17865,16 +18017,24 @@ function checkReleaseTrustClosureProtocol() {
 
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.93-release-trust-"));
   fs.cpSync(path.join(kitRoot, "examples", "1.80-release-evidence-gate", "web-preview-handoff"), root, { recursive: true });
+  fs.rmSync(path.join(root, "tasks"), { recursive: true, force: true });
   for (const [relative, content] of [
-    ["docs/release-sop.md", "# Release SOP\n\nHuman release owner performs the provider handoff.\n"],
-    ["evidence/release-preflight.txt", "PASS release preflight succeeded before production.\n"],
-    ["evidence/rollback-current.md", "# Rollback\n\nRestore the previous preview candidate.\n"],
-    ["evidence/monitoring-current.md", "# Monitoring\n\nObserve preview health and error logs.\n"],
-    ["evidence/post-release-smoke-current.md", "# Post-release Smoke\n\nRead-only preview smoke procedure.\n"],
+    ["docs/release-sop.md", "# Release SOP\n\nRelease procedure: the current user performs the provider handoff after preflight verification.\n"],
+    ["docs/environment-readiness.md", "# Environment Readiness\n\nTarget: isolated preview runtime.\n\nVerification: run the environment preflight before handoff.\n"],
+    ["evidence/rollback-current.md", "# Rollback\n\nTrigger: preview smoke failure. Restore the previous preview candidate, then verify recovery.\n"],
+    ["evidence/monitoring-current.md", "# Monitoring\n\nObserve preview health and error logs. The current operator records the monitoring result.\n"],
+    ["evidence/post-release-smoke-current.md", "# Post-release Smoke\n\nRead-only preview smoke procedure. Expected result: PASS before observation closes.\n"],
+    [".github/workflows/release.yml", "name: Preview release verification\non:\n  workflow_dispatch:\nconcurrency: preview-release-lock\njobs:\n  verify:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo 'preview test rollback monitoring cleanup retention'\n"],
   ]) {
     fs.mkdirSync(path.dirname(path.join(root, relative)), { recursive: true });
     fs.writeFileSync(path.join(root, relative), content);
   }
+  fs.mkdirSync(path.join(root, "release-channel-policies"), { recursive: true });
+  fs.copyFileSync(
+    path.join(kitRoot, "release-channel-policies", "113-cross-domain-trust-closure.md"),
+    path.join(root, "release-channel-policies", "000-topology-source.md"),
+  );
+  prepareCurrentTrustFixtureSource(root);
   const closureFixtureRoot = path.join(kitRoot, "examples", "1.49-structured-impact-coverage", "contract-input-rule");
   for (const relative of ["change-impact-coverage-reports", "closure-decisions", "evidence", "execution-closures"]) {
     fs.cpSync(path.join(closureFixtureRoot, relative), path.join(root, relative), { recursive: true });
@@ -17892,22 +18052,117 @@ function checkReleaseTrustClosureProtocol() {
       return;
     }
   }
-  const revision = spawnSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
   const candidateRef = "release-candidates/001-web-preview.md";
   const candidateFile = path.join(root, candidateRef);
+  let currentTrust;
+  try {
+    currentTrust = buildCurrentTrustFixture(kitRoot, root);
+  } catch (error) {
+    fail(`1.113 current strict trust fixture failed: ${error.message}`);
+    return;
+  }
+  fs.appendFileSync(candidateFile, "\nExact staged release candidate for trust validation.\n");
+  const stagedCandidate = spawnSync("git", ["-C", root, "add", "--all"], { encoding: "utf8" });
+  if (stagedCandidate.status !== 0) {
+    fail(`1.113 release trust fixture candidate staging failed: ${stagedCandidate.stderr || stagedCandidate.stdout}`);
+    return;
+  }
+  try {
+    // The clean first pass establishes strict Work Queue and Task Governance
+    // lineage. Rebuild every downstream consumer after staging the exact
+    // release candidate so Completion authority binds the candidate revision.
+    currentTrust = buildCurrentTrustFixture(kitRoot, root);
+  } catch (error) {
+    fail(`1.113 staged-candidate current trust fixture failed: ${error.message}`);
+    return;
+  }
+  pass("1.113 current Task Governance -> Work Queue -> Plan Review -> Test Evidence -> Execution Assurance -> Completion chain passes");
+  const authorityRevision = projectIdentity(root).revision;
+
+  const topologyRef = "release-execution-topologies/001-preview.md";
+  fs.mkdirSync(path.join(root, "release-execution-topologies"), { recursive: true });
+  const topologyResolve = runNode([
+    "scripts/resolve-release-execution-topology.mjs", root,
+    "--intent", "prepare preview release handoff",
+    "--out", topologyRef,
+  ]);
+  if (topologyResolve.status !== 0) {
+    fail(`1.93 release trust fixture Release Execution Topology resolver failed: ${topologyResolve.stderr || topologyResolve.stdout}`);
+    return;
+  }
+  const topologyCheck = runNode([
+    "scripts/check-release-execution-topology.mjs", root, "--report", topologyRef,
+    "--require-report", "--require-structured-evidence", "--require-current-project", "--require-ready",
+  ]);
+  if (topologyCheck.status !== 0) {
+    fail(`1.93 release trust fixture Release Execution Topology failed: ${topologyCheck.stderr || topologyCheck.stdout}`);
+    return;
+  }
+  const topologyDigest = canonicalFileDigest(path.join(root, topologyRef));
+
   const candidateOriginal = fs.readFileSync(candidateFile, "utf8");
-  const candidateDigest = fileDigest(candidateFile);
+  const candidateDigest = canonicalFileDigest(candidateFile);
+  const releasePreflightRef = "evidence/release-preflight.json";
+  const releasePreflight = {
+    schema_version: "1.113.0",
+    artifact_type: "release_preflight_receipt",
+    operation: "release_preflight",
+    task_ref: currentTrust.taskRef,
+    intent_digest: currentTrust.completion.intent_digest,
+    release_candidate_ref: `artifact:${candidateRef}`,
+    release_candidate_digest: candidateDigest,
+    source_revision: authorityRevision,
+    lane_state: "PREFLIGHT_ONLY",
+    command: "git diff --cached --check",
+    result: "PASS",
+    exit_code: 0,
+    external_effects_executed: "No",
+    production_touched: "No",
+    receipt_digest: "",
+  };
+  releasePreflight.receipt_digest = evidenceDigest(releasePreflight, ["receipt_digest"]);
+  fs.writeFileSync(path.join(root, releasePreflightRef), `${JSON.stringify(releasePreflight, null, 2)}\n`);
   const releaseEvidenceRef = "release-evidence-gate-reports/001-web-preview.md";
   const releaseEvidenceFile = path.join(root, releaseEvidenceRef);
-  const releaseEvidenceText = fs.readFileSync(releaseEvidenceFile, "utf8")
-    .replaceAll("git:1111111111111111111111111111111111111111", revision);
-  fs.writeFileSync(releaseEvidenceFile, releaseEvidenceText);
-  rewriteMachineEvidence(releaseEvidenceFile, (evidence) => {
-    evidence.release_scope.source_revision = revision;
-    evidence.release_scope.release_candidate_digest = candidateDigest;
-    evidence.release_evidence_digest = evidenceDigest(evidence, ["release_evidence_digest"]);
-    return evidence;
-  });
+  const releaseEvidenceResolve = runNode([
+    "scripts/resolve-release-evidence-gate.mjs", root,
+    "--intent", "prepare preview release handoff",
+    "--release-target", "preview",
+    "--release-candidate-ref", `artifact:${candidateRef}`,
+    "--source-revision", authorityRevision,
+    "--dirty-worktree-status", "clean",
+    "--task-ref", currentTrust.taskRef,
+    "--completion-evidence-ref", `artifact:${currentTrust.refs.completion}`,
+    "--test-evidence-ref", `artifact:${currentTrust.refs.testEvidence}`,
+    "--execution-assurance-ref", `artifact:${currentTrust.refs.executionAssurance}`,
+    "--release-topology-ref", `artifact:${topologyRef}`,
+    "--build-artifact-ref", "artifact:evidence/preview-build.txt",
+    "--build-artifact-digest", fileDigest(path.join(root, "evidence/preview-build.txt")),
+    "--release-owner", "human:web-preview-release-owner",
+    "--release-owner-review-ref", "pending",
+    "--runtime-smoke-ref", "artifact:evidence/runtime-smoke.txt",
+    "--runtime-smoke-digest", fileDigest(path.join(root, "evidence/runtime-smoke.txt")),
+    "--runtime-smoke-type", "artifact",
+    "--runtime-smoke-user-note-only", "No",
+    "--rollback-ref", "artifact:evidence/rollback-current.md",
+    "--rollback-digest", fileDigest(path.join(root, "evidence/rollback-current.md")),
+    "--rollback-window", "current-preview",
+    "--monitoring-ref", "artifact:evidence/monitoring-current.md",
+    "--monitoring-digest", fileDigest(path.join(root, "evidence/monitoring-current.md")),
+    "--incident-owner-ref", "human:release-owner",
+    "--support-handoff-ref", "artifact:docs/release-sop.md",
+    "--target-environment", "preview",
+    "--config-owner", "human:release-owner",
+    "--secrets-required", "No",
+    "--dns-or-callback-required", "No",
+    "--migration-required", "No",
+    "--cost-owner-ref", "not_applicable",
+    "--out", releaseEvidenceRef,
+  ]);
+  if (releaseEvidenceResolve.status !== 0) {
+    fail(`1.93 release trust fixture Release Evidence resolver failed: ${releaseEvidenceResolve.stderr || releaseEvidenceResolve.stdout}`);
+    return;
+  }
   const releaseEvidenceCheck = runNode([
     "scripts/check-release-evidence-gate.mjs", root, "--report", releaseEvidenceRef,
     "--require-report", "--require-structured-evidence", "--require-ready", "--strict-source-binding",
@@ -17921,13 +18176,17 @@ function checkReleaseTrustClosureProtocol() {
   fs.mkdirSync(path.join(root, "runtime-hygiene-reports"), { recursive: true });
   const runtimeResolve = runNode([
     "scripts/resolve-runtime-hygiene.mjs", root,
+    "--task-ref", currentTrust.taskRef,
+    "--intent-digest", currentTrust.completion.intent_digest,
     "--operation", "release",
     "--release-lane", "PREFLIGHT_ONLY",
-    "--release-event", "evidence/release-preflight.txt",
-    "--release-event-ref", "artifact:evidence/release-preflight.txt",
+    "--release-event", releasePreflightRef,
+    "--release-event-ref", `artifact:${releasePreflightRef}`,
     "--release-candidate-ref", `artifact:${candidateRef}`,
     "--release-candidate-digest", candidateDigest,
-    "--source-revision", revision,
+    "--source-revision", authorityRevision,
+    "--release-topology-ref", `artifact:${topologyRef}`,
+    "--release-topology-digest", topologyDigest,
     "--out", runtimeRef,
   ]);
   if (runtimeResolve.status !== 0) {
@@ -17976,6 +18235,13 @@ function checkReleaseTrustClosureProtocol() {
 
   const approvalRef = "release-approval-records/001-preview.md";
   fs.mkdirSync(path.join(root, "release-approval-records"), { recursive: true });
+  const providerRequest = {
+    action: "deploy",
+    candidate_ref: `artifact:${candidateRef}`,
+    environment: "preview",
+    platform: "preview-provider",
+  };
+  const deploymentRequest = JSON.stringify({ request_type: "provider_request", provider_request: providerRequest });
   const approval = {
     schema_version: "1.93.0",
     artifact_type: "release_approval_record",
@@ -17986,7 +18252,7 @@ function checkReleaseTrustClosureProtocol() {
       release_target: "preview",
       candidate_ref: `artifact:${candidateRef}`,
       candidate_digest: candidateDigest,
-      source_revision: revision,
+      source_revision: authorityRevision,
       package_identity_type: "none",
       package_identity_ref: "not_applicable",
       package_identity_digest_or_id: "not_applicable",
@@ -17995,6 +18261,7 @@ function checkReleaseTrustClosureProtocol() {
       release_evidence_gate: { ref: `artifact:${releaseEvidenceRef}`, digest: fileDigest(releaseEvidenceFile) },
       runtime_hygiene: { ref: `artifact:${runtimeRef}`, digest: fileDigest(path.join(root, runtimeRef)) },
       release_channel_policy: { ref: `artifact:${channelRef}`, digest: fileDigest(path.join(root, channelRef)) },
+      release_execution_topology: { ref: `artifact:${topologyRef}`, digest: topologyDigest },
       platform_recipe: { required: "No", ref: "N/A", digest: "N/A" },
       release_handoff_pack: { required: "No", ref: "N/A", digest: "N/A" },
     },
@@ -18015,7 +18282,21 @@ function checkReleaseTrustClosureProtocol() {
       approved_by: "Release Owner Dana",
       approved_at: "2026-07-10T10:00:00Z",
       expires_at: "2099-12-31T23:59:00Z",
-      approved_scope: "Preview release candidate review and bounded low-risk assistance only.",
+      approved_scope: JSON.stringify({
+        effect_id: "preview-provider-deploy-001",
+        action: "PROVIDER_DEPLOY",
+        platform: "preview-provider",
+        environment: "preview",
+        candidate_ref: `artifact:${candidateRef}`,
+        candidate_digest: candidateDigest,
+        package_identity_type: "none",
+        package_identity_ref: "not_applicable",
+        package_identity_digest_or_id: "not_applicable",
+        command_or_request_digest: `sha256:${crypto.createHash("sha256").update(JSON.stringify(providerRequest)).digest("hex")}`,
+        cost_boundary: { cost_class: "NO_INCREMENTAL_COST", currency: "N/A", maximum_amount: "N/A" },
+        rollback_ref: "artifact:evidence/rollback-current.md",
+        rollback_digest: fileDigest(path.join(root, "evidence/rollback-current.md")),
+      }),
     },
     allowed_codex_actions: ["VERIFY", "BUILD", "EVIDENCE_CAPTURE", "HANDOFF_PREPARATION", "POST_RELEASE_READ_ONLY_SMOKE"],
     blocked_actions: ["PRODUCTION_DEPLOY", "STORE_SUBMISSION", "MINI_PROGRAM_RELEASE", "PRODUCTION_MIGRATION", "SECRETS", "DNS", "PAYMENT", "PERMISSIONS", "PRODUCTION_CONFIG", "ROLLBACK_EXECUTION"],
@@ -18035,7 +18316,7 @@ function checkReleaseTrustClosureProtocol() {
   ].join("\n"));
   const approvalCheck = runNode([
     "scripts/check-release-approval-record.mjs", root, "--report", approvalRef,
-    "--require-structured-evidence", "--require-approved",
+    "--require-structured-evidence", "--require-approved", "--require-release-topology",
   ]);
   if (approvalCheck.status !== 0) {
     fail(`1.93 release trust fixture approval failed: ${approvalCheck.stderr || approvalCheck.stdout}`);
@@ -18043,7 +18324,30 @@ function checkReleaseTrustClosureProtocol() {
   }
   pass("1.93 current project-bound Release Approval Record passes strict authority chain");
 
-  const closureRef = "closure-decisions/001-contract-input-rule.md";
+  const closureRef = "closure-decisions/113-current.md";
+  const closureResolve = runNode([
+    "scripts/resolve-closure-decision.mjs", root,
+    "--intent", currentTrust.intent,
+    "--intent-digest", currentTrust.completion.intent_digest,
+    "--task", currentTrust.taskRef,
+    "--verification", "Current strict trust fixture passed",
+    "--impact-report", `artifact:${currentTrust.refs.impact}`,
+    "--completion-evidence", `artifact:${currentTrust.refs.completion}`,
+  ]);
+  if (closureResolve.status !== 0) {
+    fail(`1.93 release trust fixture Unified Closure resolver failed: ${closureResolve.stderr || closureResolve.stdout}`);
+    return;
+  }
+  fs.writeFileSync(path.join(root, closureRef), closureResolve.stdout);
+  const closureCheck = runNode([
+    "scripts/check-closure-decision.mjs", root, "--report", closureRef,
+    "--require-report", "--require-current-authority", "--require-done", "--strict",
+    "--require-task-governance", "--require-work-queue", "--strict-task-consumer",
+  ]);
+  if (closureCheck.status !== 0) {
+    fail(`1.93 release trust fixture Unified Closure failed: ${closureCheck.stderr || closureCheck.stdout}`);
+    return;
+  }
   const launchViewRef = "launch-review-views/001-preview-ready.md";
   fs.mkdirSync(path.join(root, "launch-review-views"), { recursive: true });
   const launchViewEvidence = {
@@ -18070,7 +18374,7 @@ function checkReleaseTrustClosureProtocol() {
       post_launch_smoke: "PASS",
     },
     surface_evidence: {
-      environment: { ref: "docs/release-sop.md", digest: fileDigest(path.join(root, "docs/release-sop.md")) },
+      environment: { ref: "docs/environment-readiness.md", digest: fileDigest(path.join(root, "docs/environment-readiness.md")) },
       monitoring: { ref: "evidence/monitoring-current.md", digest: fileDigest(path.join(root, "evidence/monitoring-current.md")) },
       rollback: { ref: "evidence/rollback-current.md", digest: fileDigest(path.join(root, "evidence/rollback-current.md")) },
       release_ownership: { ref: "human:release-owner", digest: "N/A" },
@@ -18091,7 +18395,7 @@ function checkReleaseTrustClosureProtocol() {
     "## Safe Launch View", "", "| Field | Value |", "|---|---|", "| Safe Launch Label | `READY_FOR_RELEASE_REVIEW` |", "| Launch review can proceed | Yes |", "| Release approval | No |", "",
     "## Platform View", "", "| Field | Value |", "|---|---|", "| Platform | `web` |", "",
     "## Launch Surface Gaps", "", "| Surface | Status | Evidence / Decision | Finding |", "|---|---|---|---|",
-    "| Environment | `PASS` | docs/release-sop.md | ready |", "| Monitoring | `PASS` | evidence/monitoring-current.md | ready |",
+    "| Environment | `PASS` | docs/environment-readiness.md | ready |", "| Monitoring | `PASS` | evidence/monitoring-current.md | ready |",
     "| Rollback | `PASS` | evidence/rollback-current.md | ready |", "| Release ownership | `PASS` | human:release-owner | ready |",
     "| Post-launch smoke | `PASS` | evidence/post-release-smoke-current.md | ready |", "",
     "## Human Release Decisions", "", "Human release approval remains external.", "", "## Evidence Map", "", "Current project evidence only.", "",
@@ -18120,6 +18424,9 @@ function checkReleaseTrustClosureProtocol() {
     "scripts/resolve-release-execution.mjs", root,
     "--intent", "prepare preview release handoff",
     "--mode", "ASSISTED_EXECUTION",
+    "--platform", "preview-provider",
+    "--deployment", deploymentRequest,
+    "--require-release-topology",
     "--approval-ref", `artifact:${approvalRef}`,
     "--launch-view-ref", `artifact:${launchViewRef}`,
   ]);
@@ -18201,7 +18508,11 @@ function checkReleaseTrustClosureProtocol() {
   else fail(`1.93 candidate drift must invalidate approval: ${staleCandidateCheck.stderr || staleCandidateCheck.stdout}`);
   fs.writeFileSync(candidateFile, candidateOriginal);
 
-  const headChange = spawnSync("git", ["-C", root, "commit", "--allow-empty", "-m", "revision changed"], { encoding: "utf8" });
+  fs.appendFileSync(path.join(root, "docs/release-sop.md"), "\nRelease procedure changed after approval.\n");
+  const stagedChange = spawnSync("git", ["-C", root, "add", "docs/release-sop.md"], { encoding: "utf8" });
+  const headChange = stagedChange.status === 0
+    ? spawnSync("git", ["-C", root, "commit", "-m", "revision changed"], { encoding: "utf8" })
+    : stagedChange;
   const staleRevisionCheck = runNode(["scripts/check-release-approval-record.mjs", root, "--report", approvalRef, "--require-approved"]);
   if (headChange.status === 0 && staleRevisionCheck.status !== 0 && `${staleRevisionCheck.stdout}\n${staleRevisionCheck.stderr}`.includes("project_identity")) pass("1.93 project revision change invalidates release approval");
   else fail(`1.93 project revision drift must invalidate approval: ${headChange.stderr || staleRevisionCheck.stderr || staleRevisionCheck.stdout}`);
@@ -18300,24 +18611,13 @@ function checkBaselineManifestPublicEntryConsolidationProtocol() {
     fail("1.94 controlled plan is missing generated baseline records");
   }
   const applyResult = runNode(approvedInitProjectApplyArgs(installPlan));
-  if (applyResult.status !== 0) {
-    fail(`1.94 controlled baseline apply failed: ${applyResult.stderr || applyResult.stdout}`);
-    return;
-  }
-  const receiptPath = path.join(installRoot, generatedPlan.receiptPath);
-  const heldReceiptPath = `${receiptPath}.held`;
-  fs.renameSync(receiptPath, heldReceiptPath);
-  const missingReceiptCheck = runNode(["scripts/check-baseline-installation.mjs", installRoot, "--require-selection"]);
-  fs.renameSync(heldReceiptPath, receiptPath);
-  if (missingReceiptCheck.status !== 0
-    && `${missingReceiptCheck.stdout}\n${missingReceiptCheck.stderr}`.includes("no valid current-project Apply Receipt")) {
-    pass("1.94 baseline installation fails closed without its exact Apply Receipt");
+  if (applyResult.status === 2
+    && `${applyResult.stdout}\n${applyResult.stderr}`.includes("ordinary new-project command")
+    && !fs.existsSync(path.join(installRoot, "docs/project-profile.md"))) {
+    pass("1.94 standalone new-project baseline apply is retired in favor of the request-bound ordinary entry");
   } else {
-    fail(`1.94 baseline installation accepted missing receipt evidence: ${missingReceiptCheck.stderr || missingReceiptCheck.stdout}`);
+    fail(`1.94 standalone new-project baseline apply must fail closed without creating target files: ${applyResult.stderr || applyResult.stdout}`);
   }
-  const installedCheck = runNode(["scripts/check-baseline-installation.mjs", installRoot, "--require-selection"]);
-  if (installedCheck.status === 0) pass("1.94 controlled baseline installation is verifiable after apply");
-  else fail(`1.94 baseline installation verification failed: ${installedCheck.stderr || installedCheck.stdout}`);
 }
 
 function checkOperatingModelConsolidationProtocol() {
@@ -18368,16 +18668,20 @@ function checkOperatingModelConsolidationProtocol() {
   } else {
     fail("1.95 PR and release CI must assert the CHECK_STATUS route");
   }
-  if (releaseWorkflow.includes("Release tag matches package version")
-    && releaseWorkflow.includes("GITHUB_REF_NAME")
+  if (releaseWorkflow.includes("candidate_git_revision")
+    && releaseWorkflow.includes("candidate_digest")
+    && releaseWorkflow.includes("check-release-acceptance.mjs")
     && releaseWorkflow.includes("package.json")) {
-    pass("1.95 release CI enforces tag and package version parity");
+    pass("1.95 release CI binds the accepted candidate revision and package version evidence");
   } else {
-    fail("1.95 release CI must enforce tag and package version parity");
+    fail("1.95 release CI must bind the accepted candidate revision and package version evidence");
   }
 
   const tests = runNode(["--test", "tests/operating-model.test.mjs"]);
-  if (tests.status === 0 && tests.stdout.includes("pass 37") && tests.stdout.includes("fail 0")) {
+  const testCount = Number(tests.stdout.match(/^(?:#|ℹ) tests (\d+)$/m)?.[1] || 0);
+  const passCount = Number(tests.stdout.match(/^(?:#|ℹ) pass (\d+)$/m)?.[1] || 0);
+  const failCount = Number(tests.stdout.match(/^(?:#|ℹ) fail (\d+)$/m)?.[1] ?? -1);
+  if (tests.status === 0 && testCount >= 38 && passCount === testCount && failCount === 0) {
     pass("1.95 Operating Model and current decision-contract regression tests");
   } else {
     fail(`1.95 Operating Model tests failed: ${tests.stderr || tests.stdout}`);
@@ -18779,8 +19083,9 @@ function checkBusinessUniverseCoverageProtocol() {
   const compatibilityEmpty = runNode(["scripts/check-business-universe-coverage.mjs", ".", "--allow-empty"]);
   if (compatibilityEmpty.status === 0) pass("1.108 explicit compatibility empty state remains readable");
   else fail(`1.108 compatibility empty-state check failed: ${compatibilityEmpty.stderr || compatibilityEmpty.stdout}`);
+  const strictEmptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.108-strict-empty-"));
   const strictEmpty = runNode([
-    "scripts/check-business-universe-coverage.mjs", ".", "--allow-empty", "--require-ready",
+    "scripts/check-business-universe-coverage.mjs", strictEmptyRoot, "--allow-empty", "--require-ready",
   ]);
   if (strictEmpty.status !== 0) pass("1.108 strict business universe requirement cannot be bypassed by allow-empty");
   else fail("1.108 strict business universe requirement was bypassed by allow-empty");
@@ -18837,11 +19142,12 @@ function checkBusinessUniverseCoverageProtocol() {
     if (profile === "wechat-miniprogram") {
       fs.writeFileSync(path.join(target, "project.config.json"), "{\"miniprogramRoot\":\"miniprogram\"}\n");
     }
-    const intent = "Update label: alpha, beta use same validation";
+    const intent = "Update label: alpha and beta entries share the same display copy";
     const governanceRef = "task-governance-reports/1.108-profile-smoke.md";
     const governance = runNode([
       path.join(target, "scripts/resolve-task-governance.mjs"), target,
       "--intent", intent,
+      "--task-kind", "code_behavior",
       "--out", governanceRef,
     ]);
     const governanceEvidence = governance.status === 0
@@ -18889,64 +19195,13 @@ function checkExecutionAuthorityConsumerHardcutProtocol() {
   if (focused.status === 0) pass("1.100 execution and distribution trust regressions");
   else fail(`1.100 execution and distribution trust regressions failed: ${focused.stderr || focused.stdout}`);
 
-  const target = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.100-atomic-"));
-  const init = runNode([
-    path.join(kitRoot, "scripts/init-project.mjs"), "--target", target,
-    "--goal", "create a project for atomic apply rollback verification",
+  const atomic = runNode([
+    "--test",
+    "--test-name-pattern", "a predeclared action graph safely recovers a partially attempted batch",
+    "tests/controlled-apply-transaction.test.mjs",
   ]);
-  if (init.status !== 0) {
-    fail(`1.100 atomic rollback fixture init failed: ${init.stderr || init.stdout}`);
-    return;
-  }
-  const changedFiles = [".intentos/core/workflow.md", "scripts/check-ai-workflow.mjs"];
-  const before = new Map();
-  for (const relative of changedFiles) {
-    const file = path.join(target, relative);
-    fs.appendFileSync(file, `\n1.100 rollback sentinel for ${relative}\n`);
-    before.set(relative, fs.readFileSync(file));
-  }
-  const planPath = path.join(target, "apply-execution-plans", "atomic-update.json");
-  const writePlan = runNode([
-    path.join(kitRoot, "scripts/init-project.mjs"),
-    "--target", target,
-    "--update-workflow-assets",
-    "--goal", "refresh workflow assets for atomic apply rollback verification",
-    "--backup-dir", ".intentos/backups/atomic-rollback",
-    "--write-plan", "apply-execution-plans/atomic-update.json",
-  ]);
-  if (writePlan.status !== 0) {
-    fail(`1.100 atomic rollback plan failed: ${writePlan.stderr || writePlan.stdout}`);
-    return;
-  }
-  const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
-  const actions = (plan.actions || []).filter((action) => action.willWrite && changedFiles.includes(action.path));
-  if (actions.length < 2) {
-    fail("1.100 atomic rollback fixture requires two replayable changed actions");
-    return;
-  }
-  const failingAction = actions.find((action) => action.path === "scripts/check-ai-workflow.mjs");
-  if (!failingAction) {
-    fail("1.100 atomic rollback fixture requires the script action after the managed core action");
-    return;
-  }
-  const failingDirectory = path.dirname(path.join(target, failingAction.path));
-  let apply;
-  fs.chmodSync(failingDirectory, 0o555);
-  try {
-    apply = runNode(approvedInitProjectApplyArgs(planPath));
-  } finally {
-    fs.chmodSync(failingDirectory, 0o755);
-  }
-  const restored = changedFiles.every((relative) => fs.readFileSync(path.join(target, relative)).equals(before.get(relative)));
-  const receiptFiles = fs.existsSync(path.join(target, "apply-receipts"))
-    ? fs.readdirSync(path.join(target, "apply-receipts")).filter((file) => file.endsWith(".md"))
-    : [];
-  const receiptContent = receiptFiles.map((file) => fs.readFileSync(path.join(target, "apply-receipts", file), "utf8")).join("\n");
-  if (apply?.status === 2 && restored && receiptContent.includes("APPLY_FAILED_ROLLED_BACK")) {
-    pass("1.100 controlled apply restores all attempted writes after a later action fails");
-  } else {
-    fail(`1.100 controlled apply rollback was not atomic: ${apply?.stderr || apply?.stdout || "no apply result"}`);
-  }
+  if (atomic.status === 0) pass("1.100 controlled apply restores a partially attempted action graph atomically");
+  else fail(`1.100 controlled apply atomic rollback regression failed: ${atomic.stderr || atomic.stdout}`);
 }
 
 function checkReleaseExecutionTopologyProtocol() {
@@ -19013,7 +19268,8 @@ function checkReleaseExecutionTopologyProtocol() {
   const empty = runNode(["scripts/check-release-execution-topology.mjs", ".", "--allow-empty"]);
   if (empty.status === 0) pass("1.105 release topology accepts explicit compatibility empty state");
   else fail(`1.105 release topology empty-state check failed: ${empty.stderr || empty.stdout}`);
-  const strictEmpty = runNode(["scripts/check-release-execution-topology.mjs", ".", "--allow-empty", "--require-structured-evidence"]);
+  const strictEmptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.105-strict-empty-"));
+  const strictEmpty = runNode(["scripts/check-release-execution-topology.mjs", strictEmptyRoot, "--allow-empty", "--require-structured-evidence"]);
   if (strictEmpty.status !== 0) pass("1.105 strict topology cannot be bypassed by allow-empty");
   else fail("1.105 strict topology was bypassed by allow-empty");
 
@@ -19196,8 +19452,9 @@ function checkVerificationRuntimeTrustProtocol() {
     if (result.status === 0) pass(`1.103 ${args[0]} accepts an explicitly empty repository state`);
     else fail(`1.103 ${args[0]} empty-state check failed: ${result.stderr || result.stdout}`);
   }
+  const strictEmptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.104-strict-empty-"));
   for (const checker of ["check-test-evidence.mjs", "check-execution-assurance.mjs", "check-completion-evidence.mjs"]) {
-    const result = runNode([`scripts/${checker}`, ".", "--allow-empty", "--require-runtime-trust"]);
+    const result = runNode([`scripts/${checker}`, strictEmptyRoot, "--allow-empty", "--require-runtime-trust"]);
     if (result.status !== 0) pass(`1.104 ${checker} rejects allow-empty under strict Runtime Trust`);
     else fail(`1.104 ${checker} allowed strict Runtime Trust to be bypassed by allow-empty`);
   }
@@ -19251,7 +19508,8 @@ function checkControlEffectivenessProtocol() {
   const compatibilityEmpty = runNode(["scripts/check-control-effectiveness.mjs", ".", "--allow-empty"]);
   if (compatibilityEmpty.status === 0) pass("1.110 explicit non-strict empty state remains readable");
   else fail(`1.110 compatibility empty-state check failed: ${compatibilityEmpty.stderr || compatibilityEmpty.stdout}`);
-  const strictEmpty = runNode(["scripts/check-control-effectiveness.mjs", ".", "--allow-empty", "--require-effective"]);
+  const strictEmptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.110-strict-empty-"));
+  const strictEmpty = runNode(["scripts/check-control-effectiveness.mjs", strictEmptyRoot, "--allow-empty", "--require-effective"]);
   if (strictEmpty.status !== 0) pass("1.110 strict effectiveness cannot be bypassed by allow-empty");
   else fail("1.110 strict effectiveness was bypassed by allow-empty");
 

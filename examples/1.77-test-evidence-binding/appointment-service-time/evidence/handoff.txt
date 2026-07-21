@@ -1,16 +1,22 @@
 id: evidence:handoff
 evidence_type: COMMAND_OUTPUT
 result_state: PASSED
-command: npm run docs:check -- appointment-service-time
+command: node --test --test-name-pattern "verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders" tests/appointment-service-time.test.mjs
 owner: automated-test-command
-environment: local-ci-node-20
-ran_at: 2026-07-06T10:04:00Z
+environment: node-v23.11.0
+ran_at: 2026-07-19T00:03:32.893Z
 exit_code: 0
-failure_reason: not recorded
+failure_reason: N/A
 ran_after_change: Yes
 current_task_match: Yes
-covers_obligations: verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders, verify:test-coverage-regression-smoke-task-specific-verification-exists
-limitations: Handoff evidence only; release approval is out of scope.
-
-PASS service-time rule appears in handoff notes.
-PASS test evidence maps to each required Verification Plan obligation.
+covers_obligations: verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders
+limitations: Task handoff evidence; release approval is outside this example.
+✔ [verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders] tests/appointment-service-time.test.mjs :: handoff explains the service-time rule and enforcement surfaces (1.985166ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39.231625

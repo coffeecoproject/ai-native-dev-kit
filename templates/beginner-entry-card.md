@@ -2,15 +2,29 @@
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
+Conclusion: <what bounded input, if any, is missing>
+
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
+
+User input needed now: Yes / No
+
+Plain-language question or exact consent request, if needed: <question or none>
+
+Why available evidence cannot answer it: <reason or none>
+
+What happens if you do nothing: No action occurs.
+
+## Codex Decision And Evidence
+
 Conclusion: <what Codex understood in one sentence>
 
-Recommended path: <plain-language next path>
+Selected path: <plain-language next path>
 
-Can Codex change files now: No
+Can Codex continue now: yes / limited / no
 
-What I need from you: <1-3 concise decisions>
-
-What happens if you do nothing: No files are changed. No CI, hooks, documents, task state, release, or production behavior is changed.
+Scope, risk, verification, review, and recovery evidence: <summary and refs>
 
 ## What I Understood
 
@@ -22,15 +36,17 @@ What happens if you do nothing: No files are changed. No CI, hooks, documents, t
 
 ## What I Need From You
 
-1. <decision question>
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
+
+Exact question or prepared effect, if needed: <question or none>
 
 ## What Codex Can Do Next
 
-- <safe read-only or plan-first action>
+- <Codex-selected next action>
 
 ## What Codex Must Not Do Yet
 
-- <forbidden action>
+- <action blocked by missing evidence, scope, or exact real-world consent>
 
 ## Routing Evidence
 

@@ -75,7 +75,7 @@
     "execution_entry_contract": {
           "type": ["object", "null"], "additionalProperties": false,
           "required": [
-            "contract_id", "contract_digest", "project_identity_digest", "source_revision_digest",
+            "contract_id", "contract_digest", "project_identity_digest", "source_revision_digest", "source_git_commit",
             "task_ref", "intent_digest", "task_impact", "planning_closure_ref", "planning_closure_digest",
             "source_bindings", "authorizes_implementation", "authorizes_project_writes", "authorizes_apply",
             "authorizes_release", "authorizes_production", "requires_pre_write_revalidation"
@@ -85,6 +85,7 @@
             "contract_digest": { "$ref": "#/$defs/digest" },
             "project_identity_digest": { "$ref": "#/$defs/digest" },
             "source_revision_digest": { "type": "string", "minLength": 1 },
+            "source_git_commit": { "type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64}|N/A)$" },
             "task_ref": { "type": "string", "minLength": 1 },
             "intent_digest": { "$ref": "#/$defs/digest" },
             "task_impact": { "enum": ["LOW", "MEDIUM", "HIGH"] },

@@ -165,15 +165,11 @@
     ]
   },
   "humanApprovalRequiredFor": [
-    "auth",
-    "permission",
-    "production-config",
-    "secrets",
-    "irreversible-operation",
-    "destructive-operation",
-    "value-transfer",
-    "accessibility-critical-exception",
-    "performance-exception"
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release",
+    "real-user-communication"
   ],
   "maturity": {
     "stage": "draft",

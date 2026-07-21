@@ -138,6 +138,7 @@ Use this section for `RELEASE_PREFLIGHT_READY`; otherwise record `N/A` values.
   "runtime_hygiene_ref": "runtime-hygiene-reports/generated.md",
   "runtime_hygiene_digest": "sha256:<64 hex>",
   "task_ref": "task:<id>",
+  "intent_digest": "sha256:<64 hex>",
   "work_queue_item_ref": "N/A",
   "task_governance_ref": "N/A",
   "task_entry_binding": {

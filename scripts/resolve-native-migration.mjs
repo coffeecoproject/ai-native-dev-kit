@@ -11,6 +11,7 @@ import {
   walkRelativePaths,
 } from "./lib/project-signals.mjs";
 import { extractNativeRulesFromMarkdown } from "./lib/native-rule-extraction.mjs";
+import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
 import { sameRunBindingFromTrust } from "./lib/same-run-evidence-envelope.mjs";
 
@@ -428,28 +429,44 @@ function classifyRules(root, signals, projectState) {
       });
       continue;
     }
-    const content = fs.readFileSync(full, "utf8");
-    const extracted = extractNativeRulesFromMarkdown(content, rel);
-    coverage.push(toCoverage(extracted.coverage));
-    warnings.push(...extracted.coverage.parser_warnings);
-    extractedRules.push(...extracted.rules);
-    if (extracted.rules.length === 0) {
+    const authoritative = resolveAuthoritativeEvidenceReference(root, "", rel);
+    if (!authoritative.ok) {
+      const warning = `${rel} is not a safe project-local governance source: ${authoritative.error}`;
+      coverage.push({
+        sourceFile: rel,
+        linesScanned: 0,
+        rulesExtracted: 1,
+        unclassifiedBlocks: [],
+        skippedBlocks: [],
+        lowSignalBlocks: [],
+        parserWarnings: [warning],
+      });
+      warnings.push(warning);
       extractedRules.push({
         source_file: rel,
         source_start_line: 1,
-        source_end_line: Math.max(1, content.split(/\r?\n/).length),
-        source_excerpt: `No rule-like lines extracted from ${rel}.`,
-        context_heading: "file scan",
+        source_end_line: 1,
+        source_excerpt: rel,
+        context_heading: "unsafe governance source",
         rule_class: "UNKNOWN_AUTHORITY",
         authority: "Unresolved project authority",
         default_handling: "stop for classification",
         preserve_or_replace: "preserve until classified",
-        reason: "The file remains authoritative because rule-level extraction was not confident.",
-        risk_surfaces: "workflow",
-        target_action: "Codex preserves the source and stops before apply until it can classify authority from project evidence",
+        reason: "A governance source must be a project-contained non-symlink file before IntentOS can classify or reconcile it.",
+        risk_surfaces: "workflow authority",
+        target_action: "Codex blocks governance replacement until the unsafe source is removed or replaced by project-local evidence",
         human_decision_required: "No",
         confidence: "LOW",
       });
+      continue;
+    }
+    const content = fs.readFileSync(authoritative.file, "utf8");
+    const extracted = extractNativeRulesFromMarkdown(content, authoritative.relativePath);
+    coverage.push(toCoverage(extracted.coverage));
+    warnings.push(...extracted.coverage.parser_warnings);
+    extractedRules.push(...extracted.rules);
+    if (extracted.rules.length === 0) {
+      warnings.push(`${rel} contains no actionable governance rule; it remains project context but does not create a synthetic authority blocker.`);
     }
   }
 

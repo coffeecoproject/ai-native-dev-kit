@@ -5,6 +5,9 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { deriveConsumerOutcome } from "./lib/check-result.mjs";
+import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import { discoverReleaseWorkflowFacts } from "./lib/release-action-authority.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
@@ -24,6 +27,7 @@ const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const strictSourceBinding = Boolean(args["strict-source-binding"]);
+const strictRequested = requireReport || requireStructuredEvidence || strictSourceBinding || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/release-channel-policy.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -80,6 +84,7 @@ const forbiddenClaims = [
 
 let failed = false;
 const checks = [];
+const reportOutcomes = [];
 
 if (!outputJson) {
   console.log("# Release Channel Policy Check");
@@ -136,8 +141,8 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("release-channel-policies");
   if (files.length === 0) {
-    if (allowEmpty) pass("release channel policy check skipped by explicit --allow-empty: no reports");
-    else if (requireReport || explicitReport) fail("no Release Channel Policy reports found");
+    if (allowEmpty && !strictRequested) pass("release channel policy check skipped by explicit --allow-empty: no reports");
+    else if (strictRequested) fail("no Release Channel Policy reports found");
     else pass("SKIPPED_NO_REPORT: no Release Channel Policy reports found");
     return;
   }
@@ -177,7 +182,17 @@ function checkReport(file) {
     return;
   }
   pass(`${label} has valid structured evidence`);
+  reportOutcomes.push({
+    blocked: evidenceBlocksReleaseReview(result.value),
+    outcome: String(result.value.outcome || ""),
+  });
   checkStructuredEvidence(content, label, file, result.value);
+}
+
+function evidenceBlocksReleaseReview(evidence) {
+  return evidence?.effective_release_channel?.blocked === "Yes"
+    || evidence?.decision?.blocks_release_review === "Yes"
+    || /^BLOCKED_/i.test(String(evidence?.outcome || ""));
 }
 
 function checkStructuredEvidence(content, label, file, evidence) {
@@ -209,7 +224,10 @@ function checkStructuredEvidence(content, label, file, evidence) {
   else fail(`${label} plain summary must not ask user to choose technical release channel primitives`);
 
   checkPolicyConsistency(label, evidence);
-  if (strictSourceBinding) checkSourceBinding(label, evidence);
+  if (strictSourceBinding) {
+    checkSourceBinding(label, evidence);
+    checkRepositoryWorkflowFacts(label, evidence);
+  }
 }
 
 function checkPolicyConsistency(label, evidence) {
@@ -239,6 +257,7 @@ function checkPolicyConsistency(label, evidence) {
   }
   if (evidence.source_identity?.source_ref_role === "release_trigger" || evidence.source_identity?.tag_triggers_release_workflow === "Yes") {
     if (owners.release_owner_ref !== "missing") pass(`${label} tag-triggered release has release owner`);
+    else if (channel.blocked === "Yes" && decision.needs_release_owner_decision === "Yes") pass(`${label} tag-triggered release remains blocked until a release confirmer exists`);
     else fail(`${label} tag-triggered release workflow requires release owner evidence`);
   }
   if (releasePolicy.github_release_notes_only === "Yes" && releasePolicy.release_event_workflow_detected === "Yes") {
@@ -259,7 +278,9 @@ function checkPolicyConsistency(label, evidence) {
   }
   if (actionsPolicy.release_workflow_detected === "Yes" && billing.runner_type === "github_hosted") {
     if (cost.cost_owner_ref !== "missing") pass(`${label} GitHub-hosted release workflow has cost owner`);
-    else fail(`${label} GitHub-hosted release workflow requires cost owner`);
+    else if (channel.blocked === "Yes" && decision.needs_cost_owner_decision === "Yes") {
+      pass(`${label} GitHub-hosted release workflow stays blocked until concrete cost consent exists`);
+    } else fail(`${label} GitHub-hosted release workflow requires cost consent or a blocked release review`);
   }
   if (cost.cost_owner_required === "Yes") {
     if (cost.cost_owner_ref !== "missing" && owners.cost_owner_ref !== "missing") pass(`${label} cost-risk channel has cost owner`);
@@ -322,6 +343,76 @@ function checkSourceBinding(label, evidence) {
   }
 }
 
+function checkRepositoryWorkflowFacts(label, evidence) {
+  const facts = discoverReleaseWorkflowFacts(projectRoot);
+  for (const error of facts.errors) fail(`${label} ${error}`);
+  const sourceIdentity = evidence.source_identity || {};
+  const actions = evidence.github_actions_policy || {};
+  const release = evidence.github_release_policy || {};
+  const billing = evidence.github_actions_billing_profile || {};
+  const channel = evidence.effective_release_channel || {};
+
+  compareObservedFact(label, "tag_triggers_release_workflow", sourceIdentity.tag_triggers_release_workflow, yesNo(facts.tagTrigger));
+  compareObservedFact(label, "release_event_workflow_detected", release.release_event_workflow_detected, yesNo(facts.releaseEvent));
+  compareObservedFact(label, "release_workflow_detected", actions.release_workflow_detected, yesNo(facts.releaseWorkflow));
+  compareObservedFact(label, "github_hosted_runner_used", actions.github_hosted_runner_used, facts.githubHostedRunner);
+  compareObservedFact(label, "self_hosted_runner_used", actions.self_hosted_runner_used, facts.selfHostedRunner);
+  compareObservedFact(label, "runner_type", billing.runner_type, facts.runnerType);
+
+  if (facts.githubReleaseAction) {
+    if (release.github_release_used === "Yes" && release.github_release_assets_uploaded === "Yes") {
+      pass(`${label} GitHub Release action is represented by the policy`);
+    } else {
+      fail(`${label} repository contains a GitHub Release action that the policy does not report`);
+    }
+  }
+  if (facts.externalReleaseAction && channel.channel === "source_only") {
+    requireObservedWorkflowBlock(label, evidence, "a deploy, publish, submission, or release action exists in project workflows");
+  }
+  if (facts.packageScriptResolutionUnknown && channel.channel === "source_only") {
+    requireObservedWorkflowBlock(label, evidence, "a workflow package script cannot be proven free of external effects");
+  }
+  if (facts.workflowDispatchActionBasedDeploy && channel.channel === "source_only") {
+    requireObservedWorkflowBlock(label, evidence, "a workflow_dispatch path invokes a deploy or publish action");
+  }
+  if (facts.tagTrigger && facts.githubHostedRunner === "Yes" && channel.channel === "source_only") {
+    requireObservedWorkflowBlock(label, evidence, "a tag triggers a GitHub-hosted workflow");
+  }
+  if (facts.unknownRunner && facts.tagTrigger && channel.channel === "source_only") {
+    requireObservedWorkflowBlock(label, evidence, "a tag-triggered workflow has unresolved runner authority");
+  }
+
+  const sources = Array.isArray(evidence.source_chain) ? evidence.source_chain : [];
+  for (const workflow of facts.releaseWorkflowFiles) {
+    const expectedRef = `file:${workflow.relativePath}`;
+    const expectedDigest = digest(fs.readFileSync(workflow.file));
+    const bound = sources.find((source) => source.source_kind === "ci_workflow"
+      && source.source_ref === expectedRef
+      && source.source_digest === expectedDigest);
+    if (bound) pass(`${label} binds observed release workflow ${workflow.relativePath}`);
+    else fail(`${label} strict source binding must include current digest for observed release workflow ${workflow.relativePath}`);
+  }
+}
+
+function requireObservedWorkflowBlock(label, evidence, reason) {
+  if (evidence.effective_release_channel?.blocked === "Yes"
+    && evidence.decision?.blocks_release_review === "Yes"
+    && evidence.outcome === "BLOCKED_RELEASE_CHANNEL_POLICY") {
+    pass(`${label} source_only correctly blocks release review because ${reason}`);
+  } else {
+    fail(`${label} source_only must block release review because ${reason}`);
+  }
+}
+
+function compareObservedFact(label, field, recorded, observed) {
+  if (recorded === observed) pass(`${label} ${field} matches repository workflow facts`);
+  else fail(`${label} ${field} reports ${recorded || "<missing>"}, but repository workflows resolve to ${observed}`);
+}
+
+function yesNo(value) {
+  return value ? "Yes" : "No";
+}
+
 function requireResolvedSource(sourcesByKind, kind, label) {
   const source = sourcesByKind.get(kind);
   if (!source) {
@@ -347,36 +438,24 @@ function checkSourceRefDigest(label, source, { required }) {
     else pass(`${label} source ${source.source_kind} is not applicable`);
     return;
   }
-  if (ref.startsWith("file:")) {
-    const resolved = resolveFileSource(ref);
+  if (/^(?:file|artifact):/i.test(ref)) {
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", ref);
     if (!resolved.ok) {
       fail(`${label} source ${source.source_kind} ${resolved.error}`);
       return;
     }
-    const actualDigest = digest(fs.readFileSync(resolved.file));
+    const actualDigest = canonicalFileDigest(resolved.file);
     if (source.source_digest === actualDigest) pass(`${label} source ${source.source_kind} file digest matches`);
     else fail(`${label} source ${source.source_kind} digest mismatch: expected ${actualDigest}, got ${source.source_digest}`);
     if (source.source_scope_match === "project" && source.project_match === "Yes") pass(`${label} source ${source.source_kind} belongs to project`);
     else if (source.source_scope_match === "project") fail(`${label} source ${source.source_kind} project source must have project_match Yes`);
     return;
   }
-  const expectedDigest = digest(ref);
-  if (source.source_digest === expectedDigest) pass(`${label} source ${source.source_kind} ref digest matches`);
-  else fail(`${label} source ${source.source_kind} ref digest mismatch: expected ${expectedDigest}, got ${source.source_digest}`);
+  fail(`${label} source ${source.source_kind} must use a project-local file: or artifact: reference`);
 }
 
 function isMissingSourceRef(ref) {
   return !ref || ref === "missing" || ref === "unknown";
-}
-
-function resolveFileSource(ref) {
-  const raw = ref.slice("file:".length);
-  if (!raw || path.isAbsolute(raw) || raw.includes("\0")) return { ok: false, error: "file source must be a relative file path" };
-  const resolved = path.resolve(projectRoot, raw);
-  const relative = path.relative(projectRoot, resolved);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) return { ok: false, error: "file source escapes project root" };
-  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) return { ok: false, error: `file source does not exist: ${ref}` };
-  return { ok: true, file: resolved };
 }
 
 function digest(value) {
@@ -459,7 +538,18 @@ function fail(message) {
 
 function emitAndExit() {
   if (outputJson) {
-    console.log(JSON.stringify({ ok: !failed, checks }, null, 2));
+    const hasArtifact = reportOutcomes.length > 0;
+    const blocked = reportOutcomes.some((item) => item.blocked);
+    console.log(JSON.stringify({
+      ok: !failed,
+      consumerOutcome: deriveConsumerOutcome({
+        hasArtifact,
+        invalid: failed,
+        blocked,
+        ready: hasArtifact && !blocked,
+      }),
+      checks,
+    }, null, 2));
   }
   process.exit(failed ? 1 : 0);
 }

@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.112.0`.
+Current release: `1.113.0`.
 
-Release record: [releases/1.112.0/release-record.md](releases/1.112.0/release-record.md).
+Release record: [releases/1.113.0/release-record.md](releases/1.113.0/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
@@ -52,6 +52,19 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.113.0 closes the P0/P1 consumer-chain defects found by the 1.112 audit.
+Required checks now report typed outcomes, every task keeps a proportional
+minimum verification and completion chain, Completion Evidence revalidates
+current execution evidence, and public finish has one fail-closed technical
+authority. Generated and installed projects, controlled-apply interruption,
+future-session activation, and strict release preparation are covered without
+adding a public workflow or asking the user to make technical decisions.
+Existing-project adoption now binds the original request, project identity,
+revision, source state, canonical plan, and exact reversible action graph to a
+short-lived single-use local authority. It preserves legacy agent rules while
+creating the canonical Codex entry, and cannot authorize business code, CI,
+hooks, release, production, secrets, paid resources, or irreversible data work.
 
 1.112.0 audits the complete IntentOS trust chain through nine capability
 domains and nineteen required consumer edges. It confirms substantial current

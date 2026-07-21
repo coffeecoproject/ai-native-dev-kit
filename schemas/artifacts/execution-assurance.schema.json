@@ -29,7 +29,7 @@
   ],
   "properties": {
     "schema_version": {
-      "enum": ["1.74.0", "1.104.0", "1.108.0", "1.110.0"]
+      "enum": ["1.74.0", "1.104.0", "1.108.0", "1.110.0", "1.113.0"]
     },
     "artifact_type": {
       "const": "execution_assurance_report"
@@ -188,8 +188,13 @@
           "type": "string",
           "minLength": 1
         },
+        "base_revision": {
+          "type": "string",
+          "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64}|N/A)$"
+        },
         "changed_files": {
           "type": "array",
+          "uniqueItems": true,
           "items": {
             "type": "string"
           }
@@ -292,6 +297,12 @@
     },
     "task_entry_binding": {
       "$ref": "#/$defs/taskEntryBinding"
+    },
+    "planning_closure_binding": {
+      "$ref": "#/$defs/planningClosureBinding"
+    },
+    "pre_write_revalidation": {
+      "$ref": "#/$defs/preWriteRevalidation"
     },
     "pending_human_decisions": {
       "type": "array",
@@ -439,11 +450,128 @@
       "then": { "required": ["business_universe_binding", "scenario_assurance_map", "runtime_trust_binding", "authority_binding"] }
     },
     {
-      "if": { "properties": { "schema_version": { "const": "1.110.0" } } },
-      "then": { "required": ["business_universe_binding", "scenario_assurance_map", "runtime_trust_binding", "control_effectiveness_binding", "authority_binding"] }
+      "if": { "properties": { "schema_version": { "const": "1.110.0" } }, "required": ["schema_version"] },
+      "then": { "required": ["business_universe_binding", "scenario_assurance_map", "runtime_trust_binding", "control_effectiveness_binding", "planning_closure_binding", "authority_binding"] }
+    },
+    {
+      "if": { "properties": { "schema_version": { "const": "1.113.0" } }, "required": ["schema_version"] },
+      "then": { "required": ["business_universe_binding", "scenario_assurance_map", "runtime_trust_binding", "control_effectiveness_binding", "planning_closure_binding", "pre_write_revalidation", "authority_binding"] }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": { "const": "1.113.0" },
+          "actual_diff": {
+            "properties": { "diff_source": { "const": "git:cached" } },
+            "required": ["diff_source"]
+          }
+        },
+        "required": ["schema_version", "actual_diff"]
+      },
+      "then": {
+        "properties": {
+          "actual_diff": { "required": ["base_revision"] }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": { "const": "1.113.0" },
+          "assurance_state": { "const": "VERIFIED_DONE" }
+        },
+        "required": ["schema_version", "assurance_state"]
+      },
+      "then": {
+        "properties": {
+          "pending_human_decisions": { "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": { "const": "1.113.0" },
+          "execution_kind": { "const": "FEATURE_IMPLEMENTATION" },
+          "assurance_state": { "const": "VERIFIED_DONE" }
+        },
+        "required": ["schema_version", "execution_kind", "assurance_state"]
+      },
+      "then": {
+        "properties": {
+          "actual_diff": {
+            "properties": {
+              "diff_source": { "const": "git:working-tree" },
+              "changed_files": { "minItems": 1 }
+            }
+          }
+        }
+      }
     }
   ],
   "$defs": {
+    "preWriteRevalidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "checked_at", "project_identity", "planning_closure_ref", "planning_closure_core_digest",
+        "execution_entry_contract_digest", "source_revision_digest", "source_git_commit", "candidate_base_revision",
+        "planned_target_paths_digest", "actual_changed_paths_digest", "result", "reason"
+      ],
+      "properties": {
+        "status": { "enum": ["VERIFIED", "BLOCKED"] },
+        "checked_at": { "type": "string", "minLength": 1 },
+        "project_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "fingerprint", "revision"],
+          "properties": {
+            "kind": { "enum": ["GIT", "NON_GIT"] },
+            "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+            "revision": { "type": "string", "minLength": 1 }
+          }
+        },
+        "planning_closure_ref": { "type": "string", "minLength": 1 },
+        "planning_closure_core_digest": { "type": "string", "minLength": 1 },
+        "execution_entry_contract_digest": { "type": "string", "minLength": 1 },
+        "source_revision_digest": { "type": "string", "minLength": 1 },
+        "source_git_commit": { "type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64}|N/A)$" },
+        "candidate_base_revision": { "type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64}|N/A)$" },
+        "planned_target_paths_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "actual_changed_paths_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "result": { "enum": ["PRE_WRITE_SNAPSHOT_REPLAYED", "BLOCKED"] },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "planningClosureBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement", "status", "planning_closure_ref", "planning_closure_report_digest",
+        "planning_closure_core_digest", "planning_closure_outcome", "task_ref", "intent_digest",
+        "current_project_match", "current_task_match", "current_intent_match",
+        "execution_entry_contract_digest", "contract_non_authorizing",
+        "requires_pre_write_revalidation", "checker", "reason"
+      ],
+      "properties": {
+        "requirement": { "const": "REQUIRED" },
+        "status": { "enum": ["VERIFIED", "BLOCKED"] },
+        "planning_closure_ref": { "type": "string", "minLength": 1 },
+        "planning_closure_report_digest": { "type": "string", "minLength": 1 },
+        "planning_closure_core_digest": { "type": "string", "minLength": 1 },
+        "planning_closure_outcome": { "enum": ["PLANNING_READY", "PLANNING_IN_PROGRESS", "PLANNING_INPUT_NEEDED", "PLANNING_DISCOVERY_NEEDED", "PLANNING_BLOCKED", "PLANNING_INVALID"] },
+        "task_ref": { "type": "string", "minLength": 1 },
+        "intent_digest": { "type": "string", "minLength": 1 },
+        "current_project_match": { "enum": ["Yes", "No"] },
+        "current_task_match": { "enum": ["Yes", "No"] },
+        "current_intent_match": { "enum": ["Yes", "No"] },
+        "execution_entry_contract_digest": { "type": "string", "minLength": 1 },
+        "contract_non_authorizing": { "enum": ["Yes", "No"] },
+        "requires_pre_write_revalidation": { "enum": ["Yes", "No"] },
+        "checker": { "const": "scripts/check-planning-closure.mjs --require-ready + scripts/check-execution-entry-contract.mjs --require-contract" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
     "controlEffectivenessBinding": {
       "type": "object",
       "additionalProperties": false,

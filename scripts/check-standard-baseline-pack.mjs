@@ -34,7 +34,7 @@ const allowedIndexEntryKeys = new Set([
   "appliesToProfiles",
   "recommendedWhen",
   "canBeRecommendedByAI",
-  "selectionRequiresHumanDecision",
+  "selectionOwnedByCodex",
   "canAuthorizeWrites",
   "canApproveImplementation",
   "canApproveRelease",
@@ -55,7 +55,7 @@ const allowedPackMetadataKeys = new Set([
   "appliesToProfiles",
   "recommendedWhen",
   "canBeRecommendedByAI",
-  "selectionRequiresHumanDecision",
+  "selectionOwnedByCodex",
   "canAuthorizeWrites",
   "canApproveImplementation",
   "canApproveRelease",
@@ -278,7 +278,7 @@ function validatePackMetadata(pack, source, packId) {
   else fail(`${packId} missing allowedForBL`);
   validateBooleanFalse(pack, "activeByDefault", packId);
   validateBooleanTrue(pack, "canBeRecommendedByAI", packId);
-  validateBooleanTrue(pack, "selectionRequiresHumanDecision", packId);
+  validateBooleanTrue(pack, "selectionOwnedByCodex", packId);
   validateBooleanFalse(pack, "canAuthorizeWrites", packId);
   validateBooleanFalse(pack, "canApproveImplementation", packId);
   validateBooleanFalse(pack, "canApproveRelease", packId);
@@ -369,7 +369,7 @@ function validateIndexEntry(entry, root, seenIds, seenPaths) {
   else if (entry.status === "draft") fail(`${packId} index draft status must use draft maturityStage`);
   validateBooleanFalse(entry, "activeByDefault", `${packId} index`);
   validateBooleanTrue(entry, "canBeRecommendedByAI", `${packId} index`);
-  validateBooleanTrue(entry, "selectionRequiresHumanDecision", `${packId} index`);
+  validateBooleanTrue(entry, "selectionOwnedByCodex", `${packId} index`);
   validateBooleanFalse(entry, "canAuthorizeWrites", `${packId} index`);
   validateBooleanFalse(entry, "canApproveImplementation", `${packId} index`);
   validateBooleanFalse(entry, "canApproveRelease", `${packId} index`);

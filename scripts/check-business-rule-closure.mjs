@@ -9,6 +9,12 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence, loadSchema, resolveEvidenceReference, validateSchema } from "./lib/artifact-schema.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import {
+  decodeTaskGovernanceLineage,
+  normalizeTaskIntent,
+  taskIntentDigest,
+  validateEmbeddedTaskGovernanceLineage,
+} from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -18,6 +24,8 @@ const knownFlags = new Set([
   "require-report",
   "require-structured-evidence",
   "require-business-rule-closure",
+  "require-task-lineage",
+  "strict",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = canonicalProjectRoot(path.resolve(process.cwd(), args._[0] || "."));
@@ -25,6 +33,8 @@ const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"] || args["require-business-rule-closure"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const requireTaskLineage = Boolean(args["require-task-lineage"] || args.strict);
+const strictRequested = requireReport || requireStructuredEvidence || requireTaskLineage || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schemaPath = "schemas/artifacts/business-rule-closure.schema.json";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -229,9 +239,9 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("business-rule-closures");
   if (files.length === 0) {
-    if (allowEmpty) {
+    if (allowEmpty && !strictRequested) {
       pass("business rule closure check skipped by explicit --allow-empty: no reports");
-    } else if (requireReport || explicitReport) {
+    } else if (strictRequested) {
       fail("no business rule closure reports found; run `business-rule --out <relative-report-path>` first");
     } else {
       pass("SKIPPED_NO_REPORT: no business rule closure reports found; no readiness claim made");
@@ -260,7 +270,7 @@ function checkReport(file) {
     pass(`${label} states read-only business-rule interpretation boundary`);
   }
   for (const section of requiredSections) requireSection(content, section, label);
-  if (requireStructuredEvidence) requireSection(content, "Machine-Readable Evidence", label);
+  if (requireStructuredEvidence || requireTaskLineage) requireSection(content, "Machine-Readable Evidence", label);
   requireBoundaryNo(content, label, "This closure writes target files");
   requireBoundaryNo(content, label, "This closure authorizes implementation");
   requireBoundaryNo(content, label, "This closure approves release or production");
@@ -294,7 +304,7 @@ function checkSummary(content, label) {
 function checkStructuredEvidence(content, label) {
   const body = sectionBody(content, "Machine-Readable Evidence", { fallback: "" }) || "";
   if (!body.trim()) {
-    if (requireStructuredEvidence) fail(`${label} must include Machine-Readable Evidence in strict mode`);
+    if (requireStructuredEvidence || requireTaskLineage) fail(`${label} must include Machine-Readable Evidence in strict mode`);
     return null;
   }
   const jsonText = fencedJson(body);
@@ -310,7 +320,7 @@ function checkStructuredEvidence(content, label) {
     fail(`${label} Machine-Readable Evidence JSON invalid: ${error.message}`);
     return null;
   }
-  if (requireStructuredEvidence) {
+  if (requireStructuredEvidence || requireTaskLineage) {
     const schema = loadSchema(projectRoot, schemaPath);
     if (!schema) {
       fail(`${label} Machine-Readable Evidence schema is missing`);
@@ -323,7 +333,10 @@ function checkStructuredEvidence(content, label) {
       else for (const error of validation.errors) fail(error);
     }
   }
-  const sourceDigest = digest(parsed.user_request || "");
+  const normalizedIntent = normalizeTaskIntent(parsed.user_request);
+  const sourceDigest = taskIntentDigest(normalizedIntent);
+  if (parsed.user_request === normalizedIntent) pass(`${label} user_request is normalized`);
+  else fail(`${label} user_request must be normalized before digesting`);
   if (parsed.source_request_digest === sourceDigest) pass(`${label} source_request_digest matches user_request`);
   else fail(`${label} source_request_digest does not match user_request`);
   const ruleDigest = evidenceDigest(businessRuleModelFrom(parsed), []);
@@ -332,7 +345,23 @@ function checkStructuredEvidence(content, label) {
   const closureDigest = evidenceDigest(parsed, ["closure_digest"]);
   if (parsed.closure_digest === closureDigest) pass(`${label} closure_digest matches structured evidence`);
   else fail(`${label} closure_digest does not match structured evidence`);
+  checkTaskLineage(label, parsed);
   return parsed;
+}
+
+function checkTaskLineage(label, evidence) {
+  const hasLineage = (evidence.source_rule_refs || []).some((item) => decodeTaskGovernanceLineage(item));
+  if (!hasLineage && !requireTaskLineage) {
+    pass(`${label} historical Business Rule Closure has no current task lineage authority`);
+    return;
+  }
+  const validation = validateEmbeddedTaskGovernanceLineage(projectRoot, evidence.source_rule_refs, {
+    taskRef: evidence.task_ref,
+    intent: evidence.user_request,
+    intentDigest: evidence.source_request_digest,
+  }, { requireCurrent: requireTaskLineage });
+  if (validation.ok) pass(`${label} Task Governance ref, digest, task_ref, and intent lineage are exact`);
+  else validation.errors.forEach((error) => fail(`${label} ${error}`));
 }
 
 function checkMarkdownJsonConsistency(content, label, summary, evidence) {

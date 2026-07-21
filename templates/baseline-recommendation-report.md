@@ -4,22 +4,29 @@
 
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Inspect only | Read current project signals and report baseline gaps | No | low | Choose when you only want diagnosis |
-| B | Plan first | Draft a baseline plan for review | Plan/report only | low/medium | Choose when the project baseline should be confirmed before files change |
-| C | Apply reviewed baseline | Apply authority-bound engineering/environment/profile docs | Yes, controlled baseline docs only | medium | Use only after readiness and rollback checks pass |
-| D | Pause | Stop baseline setup and wait | No | low | Choose when the project direction is not ready |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Baseline Decision And Evidence
+
+Selected action: INSPECT_ONLY / PLAN_BASELINE / PREPARE_CONTROLLED_APPLY / BLOCKED_BY_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Selected profile, level, and packs:
+
+Project evidence and rationale:
+
+Scope and exact write boundary:
+
+Risk response, verification, and recovery:
 
 ## Plain Summary
 
@@ -40,7 +47,7 @@ Recommendation:
 
 | Profile | Status | Evidence |
 |---|---|---|
-|  | CANDIDATE / PENDING_CONFIRMATION / REJECTED |  |
+|  | CANDIDATE / PENDING_EVIDENCE / SELECTED / REJECTED |  |
 
 ## Baseline State
 
@@ -48,8 +55,8 @@ Recommendation:
 |---|---|---|---|
 | Engineering | MISSING / PENDING / PRESENT | `docs/engineering-baseline.md` |  |
 | Environment | MISSING / PENDING / PRESENT | `docs/environment-baseline.md` |  |
-| Platform | PENDING_CONFIRMATION | profiles |  |
-| Industrial | NOT_APPLICABLE / PENDING_CONFIRMATION | selected packs only |  |
+| Platform | PENDING_EVIDENCE / SELECTED | profiles |  |
+| Industrial | NOT_APPLICABLE / PENDING_EVIDENCE / SELECTED | selected packs only |  |
 
 ## Gap Summary
 
@@ -69,7 +76,7 @@ Recommendation:
 |---|---|---|---|
 | Read baseline recommendation | `node scripts/cli.mjs baseline <project>` | No | No |
 | Write proposal | `node scripts/baseline-project.mjs <project> --write-plan baseline-recommendations/baseline-plan.json` | Project-local proposal file only | Internal plan evidence |
-| Prepare controlled apply | `node scripts/init-project.mjs --target <project> --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan <project>/apply-execution-plans/baseline.json` | Exact plan file only | Yes |
+| Prepare controlled apply | `node scripts/init-project.mjs --target <project> --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan <project>/apply-execution-plans/baseline.json` | Exact plan file only | Codex evidence; exact consent only for a prepared real-world effect |
 
 ## Actions AI Must Not Take Yet
 

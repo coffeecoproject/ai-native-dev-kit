@@ -73,7 +73,7 @@ function buildGuidedClosureCard(root, userIntent, verificationNote) {
     whatIChecked: whatIChecked(signals, internal),
     whatIsStillNeeded: missing,
     whatCodexCanDoNext: nextActions,
-    whatNeedsHumanDecision: decisions.length > 0 ? decisions : ["No decision needed for this read-only close-out card."],
+    whatNeedsHumanDecision: decisions.length > 0 ? decisions : ["NO_USER_ACTION: Codex owns the remaining technical close-out work."],
     technicalDetails: {
       intent: userIntent || "Not provided",
       changedFilesDetected: git.changedFileCount,
@@ -83,6 +83,7 @@ function buildGuidedClosureCard(root, userIntent, verificationNote) {
       internalChecksSelected: internal.selectedChecks.map((item) => item.plainName).join(", ") || "Project existence and task context",
       workflowGuidanceStatus: internal.workflowGuidance.status,
       executionClosureStatus: internal.executionClosure.status,
+      finalClosureAuthority: "UNIFIED_CLOSURE_DECISION",
     },
     boundaries: {
       writesTargetFiles: "No",
@@ -171,15 +172,15 @@ function classifyClosureState(signals, internal) {
     return state("NEEDS_IMPACT_COVERAGE", "No", "This looks like a behavior or rule change, so related surfaces still need to be checked.", "NEEDS_HUMAN_DECISION");
   }
   if (signals.highRisk) {
-    return state("NEEDS_HUMAN_DECISION", "Limited", "A high-risk area is involved, so closure needs an explicit human risk decision.", "NEEDS_HUMAN_DECISION");
+    return state("NEEDS_VERIFICATION", "No", "A high-risk area is involved, so Codex must complete stricter verification and independent review before closure.", "CLOSURE_GUIDANCE_RECORDED");
   }
   if (signals.verification !== "pass") {
     return state("NEEDS_VERIFICATION", "No", "The task has not shown passing verification evidence yet.", "NEEDS_HUMAN_DECISION");
   }
   if (signals.git.isDirty || signals.hasIntent || internal.hasClosureReport) {
-    return state("READY_FOR_REVIEW", "Limited", "The task can move to review summary, but this does not approve commit, push, release, or production.", "CLOSURE_GUIDANCE_RECORDED");
+    return state("READY_FOR_REVIEW", "No", "The task can move to review summary, but only Unified Closure can decide whether it counts as done.", "CLOSURE_GUIDANCE_RECORDED");
   }
-  return state("CLOSE_WITH_LIMITATIONS", "Limited", "There is enough context to record a limited close-out, but no implementation evidence was detected.", "CLOSURE_GUIDANCE_RECORDED");
+  return state("CLOSE_WITH_LIMITATIONS", "No", "A limited summary can be recorded, but only Unified Closure can decide whether the task counts as done.", "CLOSURE_GUIDANCE_RECORDED");
 }
 
 function state(name, canCountAsDone, reason, outcome) {
@@ -250,21 +251,9 @@ function whatIChecked(signals, internal) {
 function humanDecisionsFor(stateValue, signals) {
   const decisions = [];
   if (stateValue.name === "NO_TASK_TO_CLOSE") {
-    decisions.push("Confirm which task or change should be closed.");
+    decisions.push("BUSINESS_FACT_NEEDED: describe the business outcome or task that should be assessed.");
   }
-  if (stateValue.name === "NEEDS_VERIFICATION") {
-    decisions.push("Confirm which verification result should count for this task.");
-  }
-  if (stateValue.name === "NEEDS_IMPACT_COVERAGE") {
-    decisions.push("Confirm whether Codex may prepare a related-surface coverage report.");
-  }
-  if (signals.highRisk) {
-    decisions.push("Confirm the high-risk boundary before closure continues.");
-  }
-  if (stateValue.name === "READY_FOR_REVIEW") {
-    decisions.push("Confirm whether Codex should prepare a review summary instead of committing or pushing.");
-  }
-  return decisions.slice(0, signals.highRisk ? 5 : 3);
+  return decisions;
 }
 
 function missingItemsFor(stateValue, signals, internal) {
@@ -272,18 +261,18 @@ function missingItemsFor(stateValue, signals, internal) {
   if (!signals.hasIntent) missing.push("A clear task intent or task reference.");
   if (signals.verification !== "pass") missing.push("Passing verification evidence.");
   if (signals.behaviorChange && !internal.hasImpactReport) missing.push("Related-surface coverage for the changed behavior.");
-  if (signals.highRisk) missing.push("Explicit human decision for the high-risk boundary.");
+  if (signals.highRisk) missing.push("Stricter Codex-owned verification and independent review for the high-risk surface.");
   if (missing.length === 0) missing.push("Nothing obvious from this read-only pass; keep review and release approval separate.");
   return missing;
 }
 
 function nextActionsFor(stateValue, signals) {
   if (stateValue.name === "BLOCKED") return ["Stop closure and fix the blocking issue first."];
-  if (stateValue.name === "NO_TASK_TO_CLOSE") return ["Confirm the task being closed, then rerun the close-out entry."];
-  if (stateValue.name === "NEEDS_VERIFICATION") return ["Run or record verification before marking this task done."];
-  if (stateValue.name === "NEEDS_IMPACT_COVERAGE") return ["Prepare related-surface coverage, then close the task against that evidence."];
-  if (stateValue.name === "NEEDS_HUMAN_DECISION") return ["Ask for the risk decision, then continue only inside the confirmed boundary."];
-  if (stateValue.name === "READY_FOR_REVIEW") return ["Prepare a review summary with changed scope, verification, remaining debt, and evidence links."];
+  if (stateValue.name === "NO_TASK_TO_CLOSE") return ["Ask only for the missing business goal, then derive the canonical task identity."];
+  if (stateValue.name === "NEEDS_VERIFICATION") return ["Codex runs or records the required verification before marking this task done."];
+  if (stateValue.name === "NEEDS_IMPACT_COVERAGE") return ["Codex prepares related-surface coverage, then closes the task against that evidence."];
+  if (stateValue.name === "NEEDS_HUMAN_DECISION") return ["Request only a classified business fact, external fact, or exact real-world consent."];
+  if (stateValue.name === "READY_FOR_REVIEW") return ["Codex prepares a review summary with changed scope, verification, remaining debt, and evidence links."];
   if (signals.git.isDirty) return ["Record a limited close-out and keep commit review separate."];
   return ["Record a limited close-out if this was a documentation or planning-only task."];
 }
@@ -293,7 +282,7 @@ function conclusionFor(stateValue) {
     NO_TASK_TO_CLOSE: "I cannot close this yet.",
     NEEDS_VERIFICATION: "This should not be treated as done yet.",
     NEEDS_IMPACT_COVERAGE: "This may be incomplete across related surfaces.",
-    NEEDS_HUMAN_DECISION: "This needs a human decision before close-out continues.",
+    NEEDS_HUMAN_DECISION: "This needs a classified business fact, external fact, or exact real-world consent before close-out continues.",
     READY_FOR_REVIEW: "This can move to review summary.",
     CLOSE_WITH_LIMITATIONS: "This can be closed only with explicit limitations.",
     BLOCKED: "Close-out is blocked.",
@@ -304,8 +293,7 @@ function conclusionFor(stateValue) {
 function canAiContinue(stateValue) {
   if (stateValue.name === "BLOCKED") return "no";
   if (stateValue.name === "NO_TASK_TO_CLOSE") return "limited";
-  if (stateValue.name === "NEEDS_HUMAN_DECISION") return "limited";
-  return "limited";
+  return "yes";
 }
 
 function runJson(script, commandArgs) {
@@ -393,6 +381,7 @@ function printHuman(card) {
   console.log(`| Internal checks selected | ${card.technicalDetails.internalChecksSelected} |`);
   console.log(`| Workflow guidance status | \`${card.technicalDetails.workflowGuidanceStatus}\` |`);
   console.log(`| Execution closure status | \`${card.technicalDetails.executionClosureStatus}\` |`);
+  console.log(`| Final closure authority | \`${card.technicalDetails.finalClosureAuthority}\` |`);
   console.log("");
   console.log("## Boundaries");
   console.log("");

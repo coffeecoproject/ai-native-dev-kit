@@ -35,14 +35,14 @@ function runCoverageTest(pattern, env = {}) {
   });
 }
 
-function classify(intent, projectFiles = {}) {
+function classify(intent, projectFiles = {}, extraArgs = []) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-universe-tier-"));
   for (const [relativePath, content] of Object.entries(projectFiles)) {
     const file = path.join(root, relativePath);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, content);
   }
-  const result = run("scripts/resolve-task-governance.mjs", [root, "--intent", intent, "--json"]);
+  const result = run("scripts/resolve-task-governance.mjs", [root, "--intent", intent, "--json", ...extraArgs]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   return JSON.parse(result.stdout).structuredEvidence;
 }
@@ -57,9 +57,9 @@ test("1.108 LOW remains LIGHTWEIGHT and does not synthesize Business Universe ev
 });
 
 test("1.108 evidence-backed omission risk upgrades a provisional LOW task monotonically to MEDIUM", () => {
-  const evidence = classify("Update label: interactive, imported use same validation", {
-    "src/labels.ts": "export function validateSharedLabel(source) { return source; }\n",
-  });
+  const evidence = classify("Update label: interactive and imported entries use the same runtime path", {
+    "src/labels.ts": "// Interactive and imported entries use the same runtime path.\nexport const sharedLabel = 'Current label';\n",
+  }, ["--task-kind", "copy"]);
   assert.equal(evidence.impact_classification.task_impact, "MEDIUM");
   assert.equal(evidence.business_universe_routing.required, "Yes");
   assert.equal(evidence.business_universe_routing.routing_result, "REQUIRED_WITH_EVIDENCE");
@@ -69,7 +69,7 @@ test("1.108 evidence-backed omission risk upgrades a provisional LOW task monoto
   assert.equal(evidence.review_policy.review_level, "TARGETED");
 });
 
-test("1.108 public finish reuses the current Work Queue task and fails closed without required Universe evidence", () => {
+test("1.113 public finish fails closed when a legacy Work Queue row lacks canonical task identity", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-universe-finish-"));
   fs.mkdirSync(path.join(root, "src"), { recursive: true });
   fs.mkdirSync(path.join(root, "work-queue"), { recursive: true });
@@ -84,15 +84,15 @@ test("1.108 public finish reuses the current Work Queue task and fails closed wi
     "",
   ].join("\n"));
   const result = run("scripts/resolve-operating-loop.mjs", [root, "--intent", "这个任务完成了吗", "--json"]);
-  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  assert.notEqual(result.status, 0, "A public finish request must return a failing process status when the current task identity is invalid");
   const report = JSON.parse(result.stdout);
   assert.equal(report.operatingLoop.operation, "FINISH_TASK");
   assert.equal(
-    report.sourceSystemTrace.find((item) => item.sourceSystem === "TASK_GOVERNANCE")?.outcome,
-    "MEDIUM_TARGETED_GOVERNANCE",
+    report.sourceSystemTrace.find((item) => item.sourceSystem === "CURRENT_TASK_IDENTITY")?.outcome,
+    "INVALID",
   );
   assert.equal(
-    report.sourceSystemTrace.find((item) => item.sourceSystem === "BUSINESS_UNIVERSE_COVERAGE_CHECK")?.readStatus,
+    report.sourceSystemTrace.find((item) => item.sourceSystem === "TASK_GOVERNANCE_CHECK")?.readStatus,
     "FAILED",
   );
   assert.notEqual(report.operatingDecision.actionCode, "TASK_DONE");
@@ -119,7 +119,7 @@ test("1.108 POSSIBLE_HIGH remains read-only until Codex resolves technical impac
 
 test("1.108 HIGH preserves every scenario through the full structured consumer chain", () => {
   const result = runCoverageTest("preserves every scenario through Plan Review", {
-    INTENTOS_BUSINESS_UNIVERSE_TEST_INTENT: "Interactive forms and production scheduled jobs use the same validation; when processing fails it retries, and when cancelled it compensates before updating derived status.",
+    INTENTOS_BUSINESS_UNIVERSE_TEST_INTENT: "Interactive forms and scheduled jobs use the same validation; when processing fails it retries, and when cancelled it compensates before updating derived status.",
     INTENTOS_BUSINESS_UNIVERSE_EXPECTED_TIER: "HIGH",
   });
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
@@ -153,4 +153,35 @@ test("1.108 checker keeps trusted historical Execution Assurance evidence readab
   ]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   assert.match(result.stdout, /Execution assurance check passed\./);
+});
+
+test("1.113 historical Change Impact remains readable but cannot satisfy strict task lineage", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-historical-impact-lineage-"));
+  for (const relativePath of [
+    "business-rule-closures/109-project-entry-adoption-trust.md",
+    "change-impact-coverage-reports/109-project-entry-adoption-trust.md",
+  ]) {
+    const target = path.join(root, relativePath);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.copyFileSync(path.join(kitRoot, relativePath), target);
+  }
+
+  const compatibility = run("scripts/check-change-impact-coverage.mjs", [
+    root,
+    "--report",
+    "change-impact-coverage-reports/109-project-entry-adoption-trust.md",
+    "--require-structured-evidence",
+  ]);
+  assert.equal(compatibility.status, 0, `${compatibility.stdout}\n${compatibility.stderr}`);
+  assert.match(compatibility.stdout, /historical Business Rule task binding remains readable/);
+
+  const strict = run("scripts/check-change-impact-coverage.mjs", [
+    root,
+    "--report",
+    "change-impact-coverage-reports/109-project-entry-adoption-trust.md",
+    "--require-structured-evidence",
+    "--require-task-lineage",
+  ]);
+  assert.notEqual(strict.status, 0, `${strict.stdout}\n${strict.stderr}`);
+  assert.match(`${strict.stdout}\n${strict.stderr}`, /must exactly match Business Rule Closure/);
 });

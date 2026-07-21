@@ -22,7 +22,7 @@
     "Android app module structure, navigation, state ownership, Gradle build, emulator, or device behavior is in scope"
   ],
   "canBeRecommendedByAI": true,
-  "selectionRequiresHumanDecision": true,
+  "selectionOwnedByCodex": true,
   "canAuthorizeWrites": false,
   "canApproveImplementation": false,
   "canApproveRelease": false,

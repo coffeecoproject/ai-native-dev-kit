@@ -17,6 +17,15 @@ import {
   validateRuntimeTrustBinding,
 } from "./lib/verification-runtime-consumer.mjs";
 import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
+import {
+  classifyUnexpectedExecutionFiles,
+  isGovernedExecutionRuntimeOutput,
+  resolveCompletionRequirements,
+  validatePlanningClosureBindingForExecution,
+  validatePreWriteRevalidation,
+  validateActualDiffAuthority,
+  validateDoneCapableExecutionAssurance,
+} from "./lib/execution-assurance-consumer.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
@@ -31,8 +40,10 @@ const knownFlags = new Set([
   "require-work-queue",
   "strict-task-consumer",
   "require-plan-review",
+  "require-planning-closure",
   "require-evidence-authority",
   "require-runtime-trust",
+  "historical-audit",
   "allow-empty",
   "report",
   "mode",
@@ -42,6 +53,7 @@ const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
 const requireRuntimeTrust = Boolean(args["require-runtime-trust"]);
+const historicalAudit = Boolean(args["historical-audit"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || requireEvidenceAuthority || requireRuntimeTrust);
 const requireEvidenceRefs = Boolean(args["require-evidence-refs"]);
 const requireReview = Boolean(args["require-review"]);
@@ -51,14 +63,15 @@ const requireTaskGovernance = Boolean(args["require-task-governance"]);
 const requireWorkQueue = Boolean(args["require-work-queue"]);
 const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const requirePlanReview = Boolean(args["require-plan-review"]);
+const requirePlanningClosure = Boolean(args["require-planning-closure"]);
 const allowEmptyReports = Boolean(args["allow-empty"]);
 const strictRequested = requireStructuredEvidence || requireEvidenceRefs || requireReview
   || requireActualDiff || requirePreciseEvidence || requireTaskGovernance
-  || requireWorkQueue || strictTaskConsumer || requirePlanReview
-  || requireEvidenceAuthority || requireRuntimeTrust || Boolean(args.report);
+  || requireWorkQueue || strictTaskConsumer || requirePlanReview || requirePlanningClosure
+  || requireEvidenceAuthority || requireRuntimeTrust || historicalAudit || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
-const currentSchemaVersion = "1.110.0";
-const readableSchemaVersions = new Set(["1.74.0", "1.104.0", "1.108.0", currentSchemaVersion]);
+const currentSchemaVersion = "1.113.0";
+const readableSchemaVersions = new Set(["1.74.0", "1.104.0", "1.108.0", "1.110.0", currentSchemaVersion]);
 const schemaPath = "schemas/artifacts/execution-assurance.schema.json";
 const businessUniverseSchema = loadSchema(projectRoot, "schemas/artifacts/business-universe-coverage.schema.json");
 const testEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/test-evidence.schema.json");
@@ -240,6 +253,7 @@ function checkReports() {
     if (requireStructuredEvidence) requireSection(content, "Machine-Readable Evidence", label);
     const summary = checkSummary(content, label);
     const evidence = checkStructuredEvidence(content, label, file);
+    if (evidence?.schema_version === currentSchemaVersion) requireSection(content, "Pre-Write Revalidation", label);
     checkCrossConsistency(content, label, summary, evidence);
     checkStateRules(content, label, summary, evidence);
   }
@@ -320,11 +334,21 @@ function checkStructuredEvidence(content, label, file) {
   }
   if (readableSchemaVersions.has(parsed.schema_version)) pass(`${label} evidence schema_version is readable`);
   else fail(`${label} evidence schema_version must be one of ${[...readableSchemaVersions].join(", ")}`);
+  if (historicalAudit) {
+    if (parsed.schema_version === currentSchemaVersion) {
+      fail(`${label} --historical-audit cannot weaken current ${currentSchemaVersion} evidence`);
+    } else {
+      pass(`${label} is readable only as non-authorizing historical audit evidence`);
+    }
+  }
   if (parsed.schema_version === currentSchemaVersion) {
     requireSection(content, "Business Universe Assurance", label);
     requireSection(content, "Control Effectiveness Binding", label);
+    if (Object.prototype.hasOwnProperty.call(parsed, "planning_closure_binding")) pass(`${label} evidence includes planning_closure_binding`);
+    else fail(`${label} evidence missing planning_closure_binding`);
   }
   checkRuntimeTrust(label, file, parsed);
+  checkCurrentTaskTestEvidence(label, file, parsed);
   checkBusinessUniverseAssurance(label, file, parsed);
   checkControlEffectiveness(label, file, parsed);
   if (parsed.artifact_type === "execution_assurance_report") pass(`${label} evidence artifact_type is execution_assurance_report`);
@@ -373,11 +397,84 @@ function checkStructuredEvidence(content, label, file) {
     consumer: "execution assurance",
     consumerPlanRef: parsed.execution_plan?.plan_ref,
     consumerPlanLabel: "execution_plan",
+    requireCurrentTaskLineage: historicalAudit ? false : undefined,
     pass,
     fail,
   });
+  checkPlanningClosureBinding(file, parsed, label);
+  checkCurrentTaskAuthority(file, parsed, label);
   checkBoundary(parsed, label);
   return parsed;
+}
+
+function checkCurrentTaskTestEvidence(label, file, evidence) {
+  const source = (evidence.source_systems || []).find((item) => item.name === "test_evidence" && item.status === "RECORDED");
+  if (!source) return;
+  const sourceRef = source.source_system_ref || source.ref;
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, file, sourceRef, { markdownOnly: true });
+  if (!resolved.ok) {
+    fail(`${label} Test Evidence source is unsafe or unresolved: ${resolved.error}`);
+    return;
+  }
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  if (!extracted?.ok) {
+    fail(`${label} Test Evidence source has invalid structured evidence`);
+    return;
+  }
+  const testEvidence = extracted.value;
+  const validation = validateSchema(testEvidence, testEvidenceSchema, { label: `${label} Test Evidence` });
+  if (validation.ok) pass(`${label} Test Evidence source matches its trusted schema`);
+  else validation.errors.forEach((error) => fail(error));
+
+  if (testEvidence.task_ref === evidence.task_ref
+    && testEvidence.intent_digest === evidence.intent_digest
+    && source.source_task_ref === evidence.task_ref
+    && source.source_outcome === testEvidence.test_evidence_state) {
+    pass(`${label} Test Evidence source identity and outcome match the current task`);
+  } else {
+    fail(`${label} Test Evidence source must match the current task, intent, and actual source outcome`);
+  }
+
+  const projectChecker = path.join(projectRoot, "scripts", "check-test-evidence.mjs");
+  const strictArgs = [
+    fs.existsSync(projectChecker) ? projectChecker : path.join(scriptDir, "check-test-evidence.mjs"),
+    projectRoot,
+    "--report", resolved.relativePath,
+    "--require-structured-evidence",
+    "--require-verification-plan-ref",
+    "--strict-source-binding",
+    "--require-current-evidence",
+    "--require-test-quality-controls",
+    "--require-evidence-authority",
+  ];
+  if (testEvidence.runtime_trust_binding?.requirement === "REQUIRED") strictArgs.push("--require-runtime-trust");
+  const strictCheck = spawnSync(process.execPath, strictArgs, { cwd: projectRoot, encoding: "utf8" });
+  if (strictCheck.status === 0) pass(`${label} referenced Test Evidence passes its strict checker`);
+  else fail(`${label} referenced Test Evidence fails its strict checker`);
+
+  if (evidence.assurance_state === "VERIFIED_DONE" && testEvidence.test_evidence_state !== "TEST_EVIDENCE_COMPLETE") {
+    fail(`${label} VERIFIED_DONE requires TEST_EVIDENCE_COMPLETE from the strict current-task source`);
+  }
+}
+
+function checkPlanningClosureBinding(file, evidence, label) {
+  if (evidence.schema_version !== currentSchemaVersion) {
+    if (requirePlanningClosure) fail(`${label} --require-planning-closure requires Execution Assurance schema ${currentSchemaVersion}`);
+    return;
+  }
+  const validation = validatePlanningClosureBindingForExecution({
+    projectRoot,
+    binding: evidence.planning_closure_binding,
+    fromFile: file,
+    expectedTaskRef: evidence.task_ref,
+    expectedIntentDigest: evidence.intent_digest,
+    expectedCandidateBaseRevision: evidence.actual_diff?.base_revision,
+  });
+  if (validation.ok) pass(`${label} consumes the exact current-task PLANNING_READY closure and non-authorizing Execution Entry Contract`);
+  else validation.errors.forEach((error) => fail(`${label} ${error}`));
+  const revalidation = validatePreWriteRevalidation({ projectRoot, evidence, fromFile: file });
+  if (revalidation.ok) pass(`${label} replays the structured pre-write source snapshot against the current candidate`);
+  else revalidation.errors.forEach((error) => fail(`${label} ${error}`));
 }
 
 function checkRuntimeTrust(label, file, evidence) {
@@ -426,7 +523,7 @@ function checkRuntimeTrust(label, file, evidence) {
 }
 
 function checkBusinessUniverseAssurance(label, file, evidence) {
-  if (!["1.108.0", "1.110.0"].includes(evidence.schema_version)) return;
+  if (!["1.108.0", "1.110.0", "1.113.0"].includes(evidence.schema_version)) return;
   const binding = evidence.business_universe_binding;
   const assuranceRows = Array.isArray(evidence.scenario_assurance_map) ? evidence.scenario_assurance_map : [];
   if (!binding) {
@@ -571,7 +668,7 @@ function checkBusinessUniverseAssurance(label, file, evidence) {
 }
 
 function checkControlEffectiveness(label, file, evidence) {
-  if (evidence.schema_version !== "1.110.0") return;
+  if (!["1.110.0", "1.113.0"].includes(evidence.schema_version)) return;
   const binding = evidence.control_effectiveness_binding;
   if (!binding) {
     fail(`${label} schema 1.110.0 requires Control Effectiveness binding`);
@@ -586,9 +683,21 @@ function checkControlEffectiveness(label, file, evidence) {
   });
   if (validation.ok) pass(`${label} Control Effectiveness binding is current and valid`);
   else validation.errors.forEach((error) => fail(`${label} ${error}`));
+  const taskAuthority = resolveCompletionRequirements({
+    projectRoot,
+    executionAssurance: evidence,
+    fromFile: file,
+    expectedTaskRef: evidence.task_ref,
+    expectedIntentDigest: evidence.intent_digest,
+  });
   const source = (evidence.source_systems || []).find((item) => item.name === "test_evidence" && item.status === "RECORDED");
   if (!source || !isFileEvidenceRef(source.ref)) {
-    if (binding.status === "BLOCKED" && evidence.assurance_state !== "VERIFIED_DONE") {
+    if (taskAuthority.ok
+      && taskAuthority.requirements.test_evidence === false
+      && binding.requirement === "NOT_REQUIRED"
+      && binding.status === "NOT_REQUIRED") {
+      pass(`${label} Task Governance-backed proportional execution does not require Test Evidence or Control Effectiveness proof`);
+    } else if (binding.status === "BLOCKED" && evidence.assurance_state !== "VERIFIED_DONE") {
       pass(`${label} missing current-task Test Evidence remains an explicit blocked Control Effectiveness result`);
     } else {
       fail(`${label} Control Effectiveness requires current-task Test Evidence source`);
@@ -693,7 +802,12 @@ function checkExecutionPlan(parsed, label) {
   else fail(`${label} execution plan missing plan ref`);
   const strictPlanBinding = requirePreciseEvidence || parsed.assurance_state === "VERIFIED_DONE";
   if (strictPlanBinding) {
-    checkPlanRef(plan.plan_ref, parsed, label);
+    const governedNoPlan = plan.plan_ref === "N/A"
+      && parsed.plan_review_binding?.required === "No"
+      && parsed.plan_review_binding?.plan_review_state === "NO_PLAN_REQUIRED"
+      && parsed.plan_review_binding?.plan_ref === "N/A";
+    if (governedNoPlan) pass(`${label} execution plan uses the exact Task Governance-backed NO_PLAN_REQUIRED decision`);
+    else checkPlanRef(plan.plan_ref, parsed, label);
     const approvalRefs = Array.isArray(plan.approval_refs) ? plan.approval_refs : [];
     for (const ref of approvalRefs) checkApprovalRef(ref, parsed, label);
   }
@@ -707,6 +821,9 @@ function checkExecutionPlan(parsed, label) {
 
 function checkActualDiff(parsed, label) {
   const diff = parsed.actual_diff || {};
+  const plannedPaths = Array.isArray(parsed.execution_plan?.planned_target_paths)
+    ? parsed.execution_plan.planned_target_paths
+    : [];
   if (String(diff.diff_source || "").trim()) pass(`${label} actual diff has source`);
   else fail(`${label} actual diff missing source`);
   if (Array.isArray(diff.changed_files)) pass(`${label} actual diff lists changed files`);
@@ -714,17 +831,40 @@ function checkActualDiff(parsed, label) {
   if (Array.isArray(diff.unexpected_files)) pass(`${label} actual diff lists unexpected files`);
   else fail(`${label} actual diff must list unexpected files`);
   if (requireActualDiff && !String(diff.target_diff_status || "").trim()) fail(`${label} actual diff status required`);
+  const currentDiffAuthority = parsed.schema_version === currentSchemaVersion;
+  if (currentDiffAuthority) {
+    const authority = validateActualDiffAuthority(projectRoot, parsed, { required: requireActualDiff });
+    if (authority.ok) {
+      if (requireActualDiff || parsed.assurance_state === "VERIFIED_DONE") {
+        pass(`${label} actual diff exactly matches the current Git worktree including untracked files`);
+      }
+    } else {
+      authority.errors.forEach((error) => fail(`${label} ${error}`));
+    }
+  } else if (requireActualDiff) {
+    pass(`${label} historical actual diff remains readable but is not current Git authority`);
+  }
   if ((diff.unexpected_files || []).length > 0 && parsed.assurance_state === "VERIFIED_DONE") {
     fail(`${label} VERIFIED_DONE cannot include unexpected diff`);
   }
-  for (const file of diff.changed_files || []) {
-    if (/\.DS_Store$|\.env|secret|password|\.log$|\.tmp$/i.test(String(file))) {
-      fail(`${label} changed file is local-only, secret-like, log, or temp artifact: ${file}`);
+  const classifiedUnexpected = currentDiffAuthority
+    ? classifyUnexpectedExecutionFiles(diff.changed_files || [], plannedPaths)
+    : (diff.changed_files || []).filter((file) => /\.DS_Store$|\.env|secret|password|\.log$|\.tmp$/i.test(String(file)));
+  for (const file of classifiedUnexpected) {
+    fail(`${label} changed file is local-only, secret-like, unplanned log, or temp artifact: ${file}`);
+  }
+  if (currentDiffAuthority) {
+    const declaredUnexpected = [...new Set(diff.unexpected_files || [])].sort();
+    const expectedUnexpected = [...new Set(classifiedUnexpected)].sort();
+    if (declaredUnexpected.length !== expectedUnexpected.length
+      || declaredUnexpected.some((file, index) => file !== expectedUnexpected[index])) {
+      fail(`${label} unexpected_files must match the shared execution diff classifier`);
+    } else {
+      pass(`${label} unexpected_files matches the shared execution diff classifier`);
     }
   }
   const needsPlanCoverage = requireActualDiff || requirePreciseEvidence || parsed.assurance_state === "VERIFIED_DONE";
   if (needsPlanCoverage && Array.isArray(diff.changed_files) && diff.changed_files.length > 0) {
-    const plannedPaths = Array.isArray(parsed.execution_plan?.planned_target_paths) ? parsed.execution_plan.planned_target_paths : [];
     const uncovered = diff.changed_files.filter((file) => !isChangedFileCoveredByPlan(file, plannedPaths));
     if (uncovered.length > 0) {
       fail(`${label} actual diff changed files are outside planned target paths: ${uncovered.join(", ")}; use BLOCKED_BY_SCOPE_DRIFT or record a reviewed execution plan`);
@@ -732,6 +872,28 @@ function checkActualDiff(parsed, label) {
       pass(`${label} actual diff changed files are covered by planned target paths`);
     }
   }
+}
+
+function checkCurrentTaskAuthority(file, evidence, label) {
+  if (evidence.schema_version !== currentSchemaVersion) {
+    if (requireTaskGovernance) {
+      pass(`${label} historical task binding remains readable but is not current completion authority`);
+    }
+    return;
+  }
+  const authority = resolveCompletionRequirements({
+    projectRoot,
+    executionAssurance: evidence,
+    fromFile: file,
+    expectedTaskRef: evidence.task_ref,
+    expectedIntentDigest: evidence.intent_digest,
+  });
+  if (authority.ok) pass(`${label} consumes exact current Task Governance task and intent authority`);
+  else authority.errors.forEach((error) => fail(`${label} ${error}`));
+  if (evidence.assurance_state !== "VERIFIED_DONE") return;
+  const doneErrors = validateDoneCapableExecutionAssurance(evidence, authority.requirements);
+  if (doneErrors.length === 0) pass(`${label} VERIFIED_DONE satisfies current task completion obligations`);
+  else doneErrors.forEach((error) => fail(`${label} ${error}`));
 }
 
 function checkEvidenceBindings(parsed, label) {
@@ -1085,7 +1247,7 @@ function checkSourceSemantics(item, parsed, label, resolvedFile) {
   const expectedType = expectedTypes[item.name];
   if (!expectedType || source.artifact_type === expectedType) pass(`${label} source system ${item.name} artifact type is valid`);
   else fail(`${label} source system ${item.name} artifact_type must be ${expectedType}`);
-  const sourceTask = String(source.task_ref || source.task_governance_ref || "").trim();
+  const sourceTask = String(source.task_ref || source.user_request?.task_ref || source.task_governance_ref || "").trim();
   if (sourceTask && sourceTask === item.source_task_ref) pass(`${label} source system ${item.name} embedded task matches source binding`);
   else fail(`${label} source system ${item.name} embedded task must match source_task_ref`);
   const sourceIntent = String(source.intent_digest || source.source_request_digest || "").trim();
@@ -1115,6 +1277,7 @@ function isAllowedPlannedTargetPath(value) {
 function isChangedFileCoveredByPlan(file, plannedPaths) {
   const changed = String(file || "").trim();
   if (!changed || path.isAbsolute(changed) || changed.includes("..")) return false;
+  if (isGovernedExecutionRuntimeOutput(changed)) return true;
   for (const item of plannedPaths || []) {
     const planned = String(item || "").trim();
     if (!isAllowedPlannedTargetPath(planned) || planned === "N/A") continue;
@@ -1278,5 +1441,5 @@ function emitAndExit() {
     console.log("");
     console.log("Execution assurance check passed.");
   }
-  process.exit(failed ? 1 : 0);
+  process.exitCode = failed ? 1 : 0;
 }

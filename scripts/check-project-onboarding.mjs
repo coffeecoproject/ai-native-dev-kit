@@ -65,7 +65,7 @@ const docsByLevel = {
 };
 
 const requiredSections = {
-  "docs/project-onboarding.md": ["## Status", "## Onboarding Level", "## Source Conversation", "## Open Decisions", "## First Vertical Slice Candidate", "## Ready For First Request Card"],
+  "docs/project-onboarding.md": ["## Status", "## Source Conversation"],
   "docs/project-profile.md": ["## Status", "## Project Type", "## Selected Profiles", "## Purpose", "## High-risk Boundaries"],
   "docs/tech-stack-strategy.md": ["## Status", "## Decision Summary", "## Dependency Policy", "## Verification Strategy"],
   "docs/business-spec-index.md": ["## Status", "## Capability Map", "## Domain Entities", "## First Request Candidates"],
@@ -77,30 +77,39 @@ const requiredSections = {
 };
 
 const requiredSectionGroups = {
+  "docs/project-onboarding.md": [
+    ["## Onboarding Depth", "## Onboarding Level"],
+    ["## Open Facts And Effects", "## Open Decisions"],
+    ["## First Vertical Slice", "## First Vertical Slice Candidate"],
+    ["## Ready For First Request", "## Ready For First Request Card"],
+  ],
   "docs/permission-model.md": [["## Enforcement", "## Server-side Enforcement"]],
   "docs/architecture.md": [["## Data / State Flow", "## Data Flow"]],
 };
 
 const sectionAliases = {
+  "Onboarding Depth": ["Onboarding Depth", "Onboarding Level"],
+  "First Vertical Slice": ["First Vertical Slice", "First Vertical Slice Candidate"],
+  "Ready For First Request": ["Ready For First Request", "Ready For First Request Card"],
   Enforcement: ["Enforcement", "Server-side Enforcement"],
   "Data / State Flow": ["Data / State Flow", "Data Flow"],
 };
 
 const strictSectionsByLevel = {
   O0: {
-    "docs/project-onboarding.md": ["Onboarding Level", "First Vertical Slice Candidate", "Ready For First Request Card"],
+    "docs/project-onboarding.md": ["Onboarding Depth", "First Vertical Slice", "Ready For First Request"],
     "docs/tech-stack-strategy.md": ["Verification Strategy"],
     "docs/onboarding-decisions.md": ["Decision Log"],
   },
   O1: {
-    "docs/project-onboarding.md": ["Onboarding Level", "First Vertical Slice Candidate", "Ready For First Request Card"],
+    "docs/project-onboarding.md": ["Onboarding Depth", "First Vertical Slice", "Ready For First Request"],
     "docs/tech-stack-strategy.md": ["Verification Strategy"],
     "docs/business-spec-index.md": ["First Request Candidates"],
     "docs/sample-policy.md": ["Sample Creation Gate"],
     "docs/onboarding-decisions.md": ["Decision Log", "Risk Acceptances"],
   },
   O2: {
-    "docs/project-onboarding.md": ["Onboarding Level", "First Vertical Slice Candidate", "Ready For First Request Card"],
+    "docs/project-onboarding.md": ["Onboarding Depth", "First Vertical Slice", "Ready For First Request"],
     "docs/project-profile.md": ["High-risk Boundaries"],
     "docs/tech-stack-strategy.md": ["Verification Strategy"],
     "docs/business-spec-index.md": ["First Request Candidates"],
@@ -152,7 +161,10 @@ function detectedLevel() {
   if (requestedLevel) return requestedLevel;
   const rel = "docs/project-onboarding.md";
   if (!exists(rel)) return "O1";
-  const body = sectionBody(read(rel), "Onboarding Level") || "";
+  const content = read(rel);
+  const body = sectionBody(content, "Onboarding Depth")
+    || sectionBody(content, "Onboarding Level")
+    || "";
   const found = [...body.matchAll(/\bO[012]\b/g)].map((match) => match[0]);
   const unique = [...new Set(found)];
   return unique.length === 1 ? unique[0] : "O1";
@@ -206,7 +218,7 @@ for (const rel of [...supportPaths, ...docsByLevel[level]]) {
       if (strict) {
         fail(`${rel} still has pending placeholders`);
       } else {
-        warn(`${rel} still needs human confirmation`);
+        warn(`${rel} still contains unresolved facts or generated placeholders`);
       }
     }
   }
@@ -223,4 +235,4 @@ if (failed) {
 }
 
 console.log("");
-console.log(pending ? `Project onboarding ${level} baseline is present; decisions are still pending.` : `Project onboarding ${level} is confirmed.`);
+console.log(pending ? `Project onboarding ${level} baseline is present; unresolved facts remain.` : `Project onboarding ${level} is confirmed.`);

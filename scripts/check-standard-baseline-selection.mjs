@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "./lib/args.mjs";
+import { deriveConsumerOutcome } from "./lib/check-result.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { buildStandardBaselineRecommendation } from "./resolve-standard-baseline.mjs";
 
@@ -419,8 +420,15 @@ if (reports.length === 0) {
 }
 
 if (outputJson) {
+  const consumerOutcome = deriveConsumerOutcome({
+    hasArtifact: reports.length > 0,
+    invalid: failed,
+    blocked: !failed && pending,
+    ready: reports.length > 0 && !failed && !pending && compareResolver,
+  });
   console.log(JSON.stringify({
     status: failed ? "FAIL" : pending ? "PENDING" : "PASS",
+    consumerOutcome,
     projectRoot,
     report: reportArg,
     strict,

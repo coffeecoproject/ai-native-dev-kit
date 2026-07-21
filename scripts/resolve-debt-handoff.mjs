@@ -66,7 +66,7 @@ function buildReport(root, userIntent, taskRef) {
       whyItChanged: userIntent || "Not provided. Record the product or maintenance reason before treating this handoff as ready.",
       howToVerify: signals.hasTestScript ? "Run the project test/check script and record the result." : "Verification path is not confirmed; define a test, build, or manual check before closure.",
       whereToStartNextTime: signals.changedFiles[0] || "Start from the task card, review surface, or delivery path report.",
-      doNotTouchWithoutApproval: signals.highRisk ? "Auth, permission, data, migration, payment, production, secrets, release, and CI/hook behavior." : "Unrelated files, CI/hooks, release settings, source-of-truth docs, and high-risk surfaces.",
+      doNotTouchWithoutApproval: signals.highRisk ? "Keep auth, permission, data, migration, payment, production, secrets, release, and CI/hook work inside the reviewed task boundary; exact external effects still need concrete consent." : "Do not expand into unrelated files, CI/hooks, release settings, source-of-truth docs, or high-risk surfaces.",
     },
     verificationNotes: [
       { check: "Changed files reviewed", status: signals.changedFiles.length > 0 ? "pass" : "not verified", evidence: signals.changedFiles.length > 0 ? "git status/file signals detected" : "no changed file evidence detected" },
@@ -109,10 +109,10 @@ function collectSignals(root, paths, userIntent, git) {
 
 function classifyDebt(signals) {
   if (signals.highRisk && signals.dirty) {
-    return debt("D4_HIGH_RISK_DEBT", "High-risk surface has unfinished work.", "May affect security, privacy, data, payment, migration, release, or production.", "Yes", "human", "Stop for human decision before continuing.", "D4 high-risk debt requires human decision.", "no", "NEEDS_HUMAN_DECISION");
+    return debt("D4_HIGH_RISK_DEBT", "High-risk surface has unfinished work.", "May affect security, privacy, data, payment, migration, release, or production.", "Yes", "Codex", "Codex splits and verifies a bounded remediation task; no technical user decision is required.", "Stop expansion and complete the Codex-owned remediation evidence.", "limited", "BLOCKED");
   }
   if (signals.releaseRisk && !signals.hasTestScript) {
-    return debt("D3_RELEASE_BLOCKING_DEBT", "Release-related work lacks verified test/check path.", "Blocks release review until verification evidence exists.", "Yes", "project owner", "Add verification evidence before release review.", "D3 blocks release review.", "limited", "NEEDS_HUMAN_DECISION");
+    return debt("D3_RELEASE_BLOCKING_DEBT", "Release-related work lacks verified test/check path.", "Blocks release review until verification evidence exists.", "Yes", "Codex", "Codex adds and executes the verification path before release review.", "Keep release review blocked while Codex completes evidence.", "limited", "BLOCKED");
   }
   if (signals.dirty && signals.changedFiles.length > 5) {
     return debt("D2_MAINTENANCE_DEBT", "Several files changed and need a handoff trail.", "May affect maintainability if context is not recorded.", "No", "Codex", "Record handoff and revisit related files before expansion.", "Record handoff before expanding scope.", "limited", "HANDOFF_RECORDED");
@@ -140,9 +140,9 @@ function debt(level, description, impact, blocksReleaseReview, owner, nextHandli
 
 function decisionsFor(debtItem, signals) {
   const decisions = [];
-  if (debtItem.level === "D4_HIGH_RISK_DEBT") decisions.push("Confirm whether to stop, split, or approve a separate high-risk remediation task.");
-  if (debtItem.level === "D3_RELEASE_BLOCKING_DEBT") decisions.push("Confirm release review remains blocked until verification evidence exists.");
-  if (!signals.hasTestScript) decisions.push("Confirm the verification path for this area.");
+  if (debtItem.level === "D4_HIGH_RISK_DEBT") decisions.push("NO_USER_ACTION: Codex must split, review, and verify the high-risk remediation.");
+  if (debtItem.level === "D3_RELEASE_BLOCKING_DEBT") decisions.push("NO_USER_ACTION: Codex keeps release review blocked until verification evidence exists.");
+  if (!signals.hasTestScript) decisions.push("NO_USER_ACTION: Codex derives or adds the verification path for this area.");
   if (signals.changedFiles.length > 0) decisions.push("Confirm whether the listed files are the intended handoff scope.");
   if (decisions.length === 0) decisions.push("Confirm whether this handoff can be recorded as D0.");
   return decisions.slice(0, debtItem.level === "D4_HIGH_RISK_DEBT" ? 5 : 3);

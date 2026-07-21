@@ -1,0 +1,31 @@
+IntentOS 1.113 task-bound verification evidence
+Observed: 2026-07-21T01:41:34.046Z
+Run ID: vrun-113-cross-domain-trust-r45
+Task ref: task:17bb774d904e7e5418668f77f40440ad80a50edf32bc43c9a71860a2a8503b98
+Intent digest: sha256:ffe295876d2af0c000da0c80666b673afdbbd82ecd18dd77919641947306594d
+Source revision: sha256:9ee346c880b91a2f1f8595c7bcad7aedb1e63722328a289ed61c3788fdd88f0a
+Verification plan: artifact:verification-plans/113-cross-domain-trust-closure.md
+Verification plan digest: sha256:92f1c62c8ed6b3853df2ec2e594ca1c7d4a40d93668dc793c7fa98666994bbdc
+Result state: PASSED
+External effects: No
+Production actions: No
+Cleanup result: PASSED
+
+Current-run evidence:
+- evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-candidate-verification.log | sha256:a197838c685be11bb481cbcdf9fb6b2315db8b5fd680321241b251bd269a6c24 | 208/208 tests passed
+- evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-obligation-evidence.log | sha256:fd867ec850039dec48bc969a9f48c901bdb508880b0489fe4c5245f2267e2d5e | 126/126 tests passed
+- evidence/runtime-runs/vrun-113-cross-domain-trust-r45/outputs/self-current-runtime-behavior.log | sha256:257e20cf25778e772d417576177e48f3740bd9ad7e44195b8d726eb64ed38c76 | 2/2 tests passed
+- evidence/runtime-runs/vrun-113-cross-domain-trust-r45/evidence/cleanup-after.txt | sha256:f266a75e70d4d107e11dad5f8de710b744c29202203585d15d326b939ca6586d | run-owned resources cleaned
+
+Coverage summary:
+- Current Verification Plan obligations: 119
+- Blocking obligations: 119
+- Obligations covered by current-run evidence: 119
+- Candidate verification: 208/208 passed
+- Task-obligation verification: 126/126 passed
+- Runtime behavior verification: 2/2 passed
+- Positive and negative runtime probes: passed
+
+Limitations:
+- Proves the bounded 1.113 source candidate in an isolated local runtime owned by this run.
+- Does not prove an external production environment and does not authorize release or any external effect.

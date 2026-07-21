@@ -4,7 +4,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { CONSUMER_OUTCOMES } from "./lib/check-result.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import {
+  canonicalizeWorkQueueItems,
+  parseWorkQueueReport,
+} from "./resolve-work-queue.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "require-report"]);
@@ -80,6 +85,12 @@ const forbiddenClaims = [
 
 let failed = false;
 const checks = [];
+const queueStats = {
+  reportCount: 0,
+  currentTaskCount: 0,
+  currentTaskCandidates: [],
+  canonicalizationConflicts: [],
+};
 
 if (!outputJson) {
   console.log("# Work Queue Check");
@@ -130,13 +141,14 @@ function checkCoreContent() {
 
 function checkReports() {
   const files = markdownFiles("work-queue");
+  queueStats.reportCount = files.length;
   if (files.length === 0) {
     if (requireReport) fail("no Work Queue reports found");
     else pass("SKIPPED_NO_REPORT: no Work Queue reports found");
     return;
   }
 
-  let totalCurrent = 0;
+  const allItems = [];
   for (const file of files) {
     const content = fs.readFileSync(file, "utf8");
     const label = rel(file);
@@ -148,14 +160,22 @@ function checkReports() {
       if (pattern.test(scanContent)) fail(`${label} contains forbidden work queue claim: ${pattern.source}`);
     }
 
-    const states = extractStates(sectionBody(content, "Work Items"));
-    const invalid = states.filter((state) => !allowedStates.has(state));
-    if (states.length === 0) fail(`${label} must record at least one work item state`);
-    else if (invalid.length > 0) fail(`${label} has invalid work item state: ${invalid.join(", ")}`);
-    else pass(`${label} records valid work item states`);
+    const parsed = parseWorkQueueReport({ path: label, title: label, content });
+    const canonical = canonicalizeWorkQueueItems(parsed.items);
+    allItems.push(...parsed.items);
+    if (parsed.items.length === 0) fail(`${label} must record at least one work item state`);
+    else if (parsed.invalidRows.length > 0) {
+      fail(`${label} has invalid work item state: ${parsed.invalidRows.map((row) => row.state || "<empty>").join(", ")}`);
+    } else if (parsed.items.every((item) => allowedStates.has(item.state))) {
+      pass(`${label} records valid work item states`);
+    } else {
+      fail(`${label} has invalid work item state`);
+    }
+    for (const conflict of canonical.conflicts) {
+      fail(`${label} has conflicting ${conflict.code} representations for ${conflict.itemKey}: ${conflict.values.join(", ")}`);
+    }
 
-    const currentCount = states.filter((state) => state === "CURRENT").length;
-    totalCurrent += currentCount;
+    const currentCount = canonical.items.filter((item) => item.state === "CURRENT").length;
     if (currentCount <= 1) pass(`${label} has at most one CURRENT task`);
     else fail(`${label} has multiple CURRENT tasks`);
 
@@ -174,8 +194,16 @@ function checkReports() {
     else fail(`${label} has invalid Outcome: ${outcome || "<empty>"}`);
   }
 
-  if (totalCurrent <= 1) pass("all Work Queue reports together have at most one CURRENT task");
-  else fail(`all Work Queue reports together have ${totalCurrent} CURRENT tasks`);
+  const canonical = canonicalizeWorkQueueItems(allItems);
+  const current = canonical.items.filter((item) => item.state === "CURRENT");
+  queueStats.currentTaskCount = current.length;
+  queueStats.currentTaskCandidates = current;
+  queueStats.canonicalizationConflicts = canonical.conflicts;
+  for (const conflict of canonical.conflicts) {
+    fail(`Work Queue reports have conflicting ${conflict.code} representations for ${conflict.itemKey}: ${conflict.values.join(", ")}`);
+  }
+  if (current.length <= 1) pass("all Work Queue reports together have at most one canonical CURRENT task");
+  else fail(`all Work Queue reports together have ${current.length} canonical CURRENT tasks`);
 }
 
 function requireQueuePolicy(content, label) {
@@ -312,14 +340,29 @@ function emitAndExit() {
   if (outputJson) {
     console.log(JSON.stringify({
       status: failed ? "FAIL" : "PASS",
+      consumerOutcome: workQueueConsumerOutcome(),
       projectRoot,
       results: checks,
+      currentTaskCount: queueStats.currentTaskCount,
+      currentTaskCandidates: queueStats.currentTaskCandidates,
+      canonicalizationConflicts: queueStats.canonicalizationConflicts,
     }, null, 2));
   } else if (!failed) {
     console.log("");
     console.log("Work queue check passed.");
   }
   process.exit(failed ? 1 : 0);
+}
+
+function workQueueConsumerOutcome() {
+  if (queueStats.reportCount === 0) return CONSUMER_OUTCOMES.MISSING;
+  if (queueStats.canonicalizationConflicts.length > 0 || queueStats.currentTaskCount > 1) {
+    return CONSUMER_OUTCOMES.BLOCKED;
+  }
+  if (failed) return CONSUMER_OUTCOMES.INVALID;
+  return queueStats.currentTaskCount === 1
+    ? CONSUMER_OUTCOMES.READY
+    : CONSUMER_OUTCOMES.VALID;
 }
 
 function requireSection(content, section, label) {

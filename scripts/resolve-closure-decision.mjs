@@ -5,8 +5,13 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
+import { normalizeTaskIntent, taskIntentDigest } from "./lib/task-entry-binding.mjs";
 import { resolveRuntimeTrustBinding } from "./lib/verification-runtime-consumer.mjs";
+
+const CLOSURE_AUTHORITY_VERSION = "1.113.0";
+const CLOSURE_AUTHORITY_MARKER = "CURRENT_FINISH_AUTHORITY";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -23,12 +28,14 @@ const knownFlags = new Set([
   "guided-closure",
   "human-decision",
   "runtime-manifest",
+  "completion-evidence",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const intent = String(args.intent || args._[1] || "").trim();
-const intentDigest = String(args["intent-digest"] || "").trim();
+const intent = normalizeTaskIntent(args.intent || args._[1] || "");
+const suppliedIntentDigest = String(args["intent-digest"] || "").trim();
+const intentDigest = suppliedIntentDigest || (intent ? taskIntentDigest(intent) : "");
 const task = String(args.task || "").trim();
 const verification = String(args.verification || "").trim();
 const refs = {
@@ -37,6 +44,7 @@ const refs = {
   guidedClosure: stringArg("guided-closure"),
   humanDecision: stringArg("human-decision"),
   runtimeManifest: stringArg("runtime-manifest"),
+  completionEvidence: stringArg("completion-evidence"),
 };
 
 if (unknown.length > 0) {
@@ -46,6 +54,11 @@ if (unknown.length > 0) {
 
 if (!new Set(["human", "json"]).has(outputFormat)) {
   console.error(`FAIL unknown --format: ${outputFormat}`);
+  process.exit(1);
+}
+
+if (suppliedIntentDigest && suppliedIntentDigest !== taskIntentDigest(intent)) {
+  console.error("FAIL --intent-digest must be recomputed from normalized --intent");
   process.exit(1);
 }
 
@@ -75,11 +88,14 @@ function buildClosureDecision(root, context) {
       ifNothing: "No files are changed. No task state, apply, commit, push, release, production, CI, hook, or approval behavior is changed.",
     },
     closureDecision: {
+      authorityVersion: CLOSURE_AUTHORITY_VERSION,
+      authorityMarker: CLOSURE_AUTHORITY_MARKER,
       decision: decision.name,
       canCountAsDone: decision.name === "DONE" ? "Yes" : "No",
       plainReason: decision.reason,
       finalClosureSource: "UNIFIED_CLOSURE_DECISION",
       taskRef: context.task || "N/A",
+      intent: context.intent || "N/A",
       intentDigest: context.intentDigest || "N/A",
     },
     decisionInputs: inputs.map((item) => ({
@@ -125,14 +141,25 @@ function collectInputs(root, context, git) {
     git.changedFilesSample.join("\n"),
   ].join("\n");
   const behaviorChange = /\b(rule|validation|api|backend|frontend|contract|schema|permission|copy|error|flow|behavior)\b|规则|校验|限制|接口|前端|后端|文案|流程|权限/i.test(taskScopeText);
-  const highRisk = /\b(auth|login|permission|rbac|payment|billing|finance|tax|migration|database|schema|privacy|security|compliance|production|release|secret|token|ci|workflow|hook)\b|登录|权限|支付|财务|税务|迁移|数据库|上线|发布|生产|密钥|合规|安全/i.test(taskScopeText);
   const verificationStatus = classifyVerification(context.verification);
   const executionClosures = markdownFiles(root, "execution-closures");
+  const completionEvidenceReports = markdownFiles(root, "completion-evidence-reports");
   const guidedClosures = markdownFiles(root, "guided-closure-cards");
   const requestedExecutionRef = resolveRef(root, context.refs.executionClosure);
   const candidateExecutionRef = requestedExecutionRef || latestRef(root, executionClosures);
   const guidedRef = resolveRef(root, context.refs.guidedClosure) || latestRef(root, guidedClosures);
   const humanRef = resolveRef(root, context.refs.humanDecision);
+  const requestedCompletionRef = resolveRef(root, context.refs.completionEvidence);
+  const candidateCompletionRef = requestedCompletionRef || latestRef(root, completionEvidenceReports);
+  const inspectedCompletion = inspectCompletionEvidence(root, candidateCompletionRef, context);
+  const autoSelectedUnmatchedCompletion = !requestedCompletionRef
+    && candidateCompletionRef
+    && inspectedCompletion.taskMatches === false;
+  const completionRef = autoSelectedUnmatchedCompletion ? "" : candidateCompletionRef;
+  const completionInput = autoSelectedUnmatchedCompletion
+    ? missingCurrentTaskCompletionEvidence()
+    : inspectedCompletion;
+  const currentCompletionReady = completionInput.status === "PASS";
   const inspectedExecution = inspectExecutionClosure(root, candidateExecutionRef, context);
   const autoSelectedUnmatchedExecution = !requestedExecutionRef && candidateExecutionRef && inspectedExecution.taskMatches === false;
   const executionRef = autoSelectedUnmatchedExecution ? "" : candidateExecutionRef;
@@ -144,11 +171,11 @@ function collectInputs(root, context, git) {
   const impactSelectionConflict = Boolean(requestedImpactRef && linkedImpactRef && requestedImpactRef !== linkedImpactRef);
   const impactRef = requestedImpactRef || linkedImpactRef;
   const impactInput = inspectImpactCoverage(root, impactRef, context, executionInput, {
-    required: behaviorChange,
+    required: behaviorChange && !currentCompletionReady,
     selectionConflict: impactSelectionConflict,
   });
   const humanInput = inspectHumanDecision(root, humanRef, {
-    required: highRisk,
+    required: Boolean(humanRef),
     reservedRefs: [executionRef, impactRef, guidedRef],
   });
   const runtimeTrust = resolveRuntimeTrustBinding(root, {
@@ -162,7 +189,7 @@ function collectInputs(root, context, git) {
     runtimeTrust.binding.run_manifest_ref,
     runtimeTrust.binding.reason,
     {
-      required: "Yes",
+      required: currentCompletionReady ? "No" : "Yes",
       verified: runtimeTrust.ok ? "Yes" : "No",
       checker: runtimeTrust.binding.checker,
       intentDigest: runtimeTrust.binding.intent_digest,
@@ -172,14 +199,121 @@ function collectInputs(root, context, git) {
   return [
     input("Project path", fs.existsSync(root) ? "PASS" : "FAIL", root, fs.existsSync(root) ? "Project path is readable." : "Project path cannot be read."),
     input("Task intent", context.task && /^sha256:[a-f0-9]{64}$/i.test(context.intentDigest) ? "PASS" : "MISSING", context.task || "N/A", context.task && context.intentDigest ? "Canonical task reference and intent digest are present." : "Canonical task reference or intent digest is missing.", { required: "Yes", verified: context.task && context.intentDigest ? "Yes" : "No", checker: "work-queue-task-identity", intentDigest: context.intentDigest }),
-    input("Verification", verificationStatus === "pass" ? "PASS" : verificationStatus === "fail" ? "FAIL" : "MISSING", context.verification || "N/A", verificationFinding(verificationStatus), { required: "Yes", verified: verificationStatus === "pass" ? "Yes" : "No", checker: "explicit-verification-summary" }),
+    input("Completion Evidence", completionInput.status, completionRef || "N/A", completionInput.finding, completionInput),
+    input("Verification", verificationStatus === "pass" ? "PASS" : verificationStatus === "fail" ? "FAIL" : "MISSING", context.verification || "N/A", verificationFinding(verificationStatus), { required: currentCompletionReady ? "No" : "Yes", verified: verificationStatus === "pass" ? "Yes" : "No", checker: "explicit-verification-summary" }),
     runtimeInput,
-    input("Change Impact Coverage", impactInput.status, impactRef || "N/A", impactInput.finding, impactInput),
-    input("Execution Closure", executionInput.status, executionRef || "N/A", executionInput.finding, executionInput),
+    input("Change Impact Coverage", impactInput.status, impactRef || "N/A", impactInput.finding, {
+      ...impactInput,
+      required: currentCompletionReady ? "No" : impactInput.required,
+    }),
+    input("Execution Closure", executionInput.status, executionRef || "N/A", executionInput.finding, {
+      ...executionInput,
+      required: currentCompletionReady ? "No" : executionInput.required,
+    }),
     input("Guided Closure", guidedRef ? "PASS" : "OPTIONAL", guidedRef || "N/A", guidedRef ? "Guided user-facing close-out summary exists." : "Guided summary is optional after the unified decision.", { required: "No", verified: guidedRef ? "Yes" : "N/A", checker: guidedRef ? "project-local-ref" : "N/A" }),
     input("Human Decision", humanInput.status, humanRef || "N/A", humanInput.finding, humanInput),
     input("Git worktree", git.isGitRepository ? (git.isDirty ? "NEEDS_REVIEW" : "PASS") : "N/A", git.currentBranch || "N/A", git.isGitRepository ? `${git.changedFileCount} changed file(s) detected.` : "Not a Git worktree."),
   ];
+}
+
+function inspectCompletionEvidence(root, ref, context) {
+  if (!ref) return missingCurrentTaskCompletionEvidence();
+  const file = resolveProjectFile(root, ref);
+  if (!file) {
+    return {
+      status: "FAIL",
+      required: "Yes",
+      verified: "No",
+      checker: "check-completion-evidence --require-ready",
+      finding: "Completion Evidence reference is unsafe or cannot be read.",
+      taskMatches: false,
+      intentDigest: context.intentDigest,
+    };
+  }
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
+  if (!extracted?.ok || extracted.value?.artifact_type !== "completion_evidence_gate") {
+    return {
+      status: "FAIL",
+      required: "Yes",
+      verified: "No",
+      checker: "check-completion-evidence --require-ready",
+      finding: "Completion Evidence has missing or invalid structured evidence.",
+      taskMatches: false,
+      intentDigest: context.intentDigest,
+    };
+  }
+  const evidence = extracted.value;
+  const taskMatches = evidence.task_ref === context.task
+    && normalizeTaskIntent(evidence.intent) === context.intent
+    && evidence.intent === context.intent
+    && evidence.intent_digest === context.intentDigest
+    && evidence.intent_digest === taskIntentDigest(evidence.intent);
+  if (evidence.completion_state !== "COMPLETION_EVIDENCE_READY" || evidence.can_claim_complete !== "Yes") {
+    return {
+      status: "FAIL",
+      required: "Yes",
+      verified: "No",
+      checker: "structured non-authorizing completion state",
+      finding: `Completion Evidence is non-authorizing (${evidence.completion_state || "UNKNOWN"}) and cannot support DONE.`,
+      taskMatches,
+      intentDigest: evidence.intent_digest || context.intentDigest,
+    };
+  }
+  const flags = [
+    "--report", ref,
+    "--require-report",
+    "--require-structured-evidence",
+    "--require-source-refs",
+    "--require-ready",
+    "--require-task-governance",
+    "--require-work-queue",
+    "--strict-task-consumer",
+    "--require-evidence-authority",
+  ];
+  if (evidence.plan_review_binding?.required === "Yes") flags.push("--require-plan-review");
+  const check = runKitChecker(root, "check-completion-evidence.mjs", flags);
+  if (check.status !== 0) {
+    return {
+      status: "FAIL",
+      required: "Yes",
+      verified: "No",
+      checker: "check-completion-evidence --require-ready",
+      finding: `Completion Evidence failed strict current-authority validation: ${firstFailure(check)}.`,
+      taskMatches,
+      intentDigest: evidence.intent_digest || context.intentDigest,
+    };
+  }
+  if (!taskMatches) {
+    return {
+      status: "FAIL",
+      required: "Yes",
+      verified: "No",
+      checker: "check-completion-evidence --require-ready + task-intent-match",
+      finding: "Completion Evidence does not match the exact current task and intent.",
+      taskMatches: false,
+      intentDigest: evidence.intent_digest || context.intentDigest,
+    };
+  }
+  return {
+    status: "PASS",
+    required: "Yes",
+    verified: "Yes",
+    checker: "check-completion-evidence --require-ready",
+    finding: "Current Completion Evidence passes strict validation for the exact task and intent.",
+    taskMatches: true,
+    intentDigest: evidence.intent_digest,
+  };
+}
+
+function missingCurrentTaskCompletionEvidence() {
+  return {
+    status: "MISSING",
+    required: "Yes",
+    verified: "No",
+    checker: "check-completion-evidence --require-ready",
+    finding: "Current-task Completion Evidence is missing.",
+    taskMatches: false,
+  };
 }
 
 function inspectExecutionClosure(root, ref, context) {
@@ -355,7 +489,7 @@ function inspectHumanDecision(root, ref, options = {}) {
       required: "No",
       verified: "N/A",
       checker: "N/A",
-      finding: "No high-risk decision signal detected.",
+      finding: "No bounded business, external-fact, or exact real-world consent reference was supplied; technical risk remains Codex-owned.",
     };
   }
   if (!ref) {
@@ -364,7 +498,7 @@ function inspectHumanDecision(root, ref, options = {}) {
       required: "Yes",
       verified: "No",
       checker: "distinct-project-local-human-decision",
-      finding: "High-risk scope needs a distinct human decision record.",
+      finding: "The explicitly supplied bounded decision reference is missing.",
     };
   }
   const file = resolveProjectFile(root, ref);
@@ -374,7 +508,7 @@ function inspectHumanDecision(root, ref, options = {}) {
       required: "Yes",
       verified: "No",
       checker: "distinct-project-local-human-decision",
-      finding: "Human decision evidence must be a distinct, project-local record.",
+      finding: "The supplied bounded decision evidence must be a distinct, project-local record.",
     };
   }
   const content = fs.readFileSync(file, "utf8").trim();
@@ -384,7 +518,7 @@ function inspectHumanDecision(root, ref, options = {}) {
       required: "Yes",
       verified: "No",
       checker: "distinct-project-local-human-decision",
-      finding: "Human decision record is too weak to support a high-risk close-out.",
+      finding: "The supplied bounded decision record is too weak to prove its stated business, external-fact, or real-world scope.",
     };
   }
   return {
@@ -392,24 +526,22 @@ function inspectHumanDecision(root, ref, options = {}) {
     required: "Yes",
     verified: "Yes",
     checker: "distinct-project-local-human-decision",
-    finding: "A distinct project-local human decision record is available.",
+    finding: "A distinct project-local bounded decision record is available.",
   };
 }
 
 function chooseDecision(inputs) {
   const byName = Object.fromEntries(inputs.map((item) => [item.name, item]));
   if (byName["Project path"]?.status === "FAIL") return makeDecision("BLOCKED", "The project path cannot be read.");
+  if (byName["Task intent"]?.status !== "PASS") return makeDecision("NOT_DONE", "No canonical current task intent is available to close.");
   if (byName.Verification?.status === "FAIL") return makeDecision("BLOCKED", "Verification appears to have failed.");
-  if (byName["Runtime Trust"]?.status !== "PASS") return makeDecision("NEEDS_EVIDENCE", "Current-task runtime evidence is missing or invalid.");
-  if (byName["Human Decision"]?.status === "FAIL") return makeDecision("NEEDS_HUMAN_DECISION", "Human decision evidence is not valid for this close-out.");
-  if (byName["Human Decision"]?.status === "MISSING") return makeDecision("NEEDS_HUMAN_DECISION", "A high-risk boundary needs explicit human decision.");
+  if (["FAIL", "MISSING"].includes(byName["Human Decision"]?.status)) return makeDecision("NEEDS_EVIDENCE", "The explicitly supplied bounded decision evidence is invalid or missing.");
+  if (byName["Completion Evidence"]?.status === "FAIL") return makeDecision("NEEDS_EVIDENCE", "Current-task Completion Evidence failed strict authority validation.");
+  if (byName["Completion Evidence"]?.status !== "PASS") return makeDecision("NEEDS_EVIDENCE", "Current-task Completion Evidence is missing.");
+  if (byName["Runtime Trust"]?.status === "FAIL") return makeDecision("NEEDS_EVIDENCE", "Supplied runtime evidence conflicts with Completion Evidence.");
   if (byName["Change Impact Coverage"]?.status === "FAIL") return makeDecision("NEEDS_IMPACT_COVERAGE", "Related-surface evidence failed validation or does not match this task.");
-  if (byName["Change Impact Coverage"]?.status === "MISSING") return makeDecision("NEEDS_IMPACT_COVERAGE", "Related surfaces have not been checked.");
-  if (byName.Verification?.status !== "PASS") return makeDecision("NEEDS_EVIDENCE", "Passing verification evidence is missing.");
   if (byName["Execution Closure"]?.status === "FAIL") return makeDecision("NEEDS_EVIDENCE", "Execution closure evidence failed strict validation or does not match this task.");
-  if (byName["Execution Closure"]?.status !== "PASS") return makeDecision("NEEDS_EVIDENCE", "Execution closure evidence is missing.");
-  if (byName["Task intent"]?.status !== "PASS") return makeDecision("NOT_DONE", "No task intent is available to close.");
-  return makeDecision("DONE", "Required close-out inputs are present for the current workflow scope.");
+  return makeDecision("DONE", "Strict current-task Completion Evidence is valid and no stronger conflicting input remains.");
 }
 
 function makeDecision(name, reason) {
@@ -422,7 +554,11 @@ function dominantReasonFor(decisionValue, inputs) {
     BLOCKED: byName["Project path"]?.status === "FAIL" ? "Project path" : "Verification",
     NEEDS_HUMAN_DECISION: "Human Decision",
     NEEDS_IMPACT_COVERAGE: "Change Impact Coverage",
-    NEEDS_EVIDENCE: byName["Runtime Trust"]?.status !== "PASS" ? "Runtime Trust" : byName.Verification?.status !== "PASS" ? "Verification" : "Execution Closure",
+    NEEDS_EVIDENCE: byName["Completion Evidence"]?.status !== "PASS"
+      ? "Completion Evidence"
+      : byName["Runtime Trust"]?.status === "FAIL"
+        ? "Runtime Trust"
+        : byName.Verification?.status === "FAIL" ? "Verification" : "Execution Closure",
     NOT_DONE: "Task intent",
     DONE: "Required inputs",
   }[decisionValue.name] || "Unified Closure Decision";
@@ -449,7 +585,8 @@ function whyDominant(decisionValue, dominantInput) {
 function summarizeConflicts(decisionValue, inputs, dominantReason) {
   const passingInputs = inputs.filter((item) => item.status === "PASS").map((item) => item.name);
   const stricterInputs = inputs
-    .filter((item) => ["FAIL", "MISSING", "NEEDS_REVIEW"].includes(item.status))
+    .filter((item) => ["FAIL", "NEEDS_REVIEW"].includes(item.status)
+      || (item.status === "MISSING" && item.required === "Yes"))
     .map((item) => `${item.name}=${item.status}`);
   const hasConflict = passingInputs.length > 0 && stricterInputs.length > 0;
   const summary = hasConflict
@@ -486,9 +623,10 @@ function traceEffect(item, decisionValue, dominantReason) {
   if (item.name === dominantReason.input) {
     return `Dominant reason: this input sets final decision to ${decisionValue.name}.`;
   }
-  if (["FAIL", "MISSING", "NEEDS_REVIEW"].includes(item.status)) {
+  if (["FAIL", "NEEDS_REVIEW"].includes(item.status) || (item.status === "MISSING" && item.required === "Yes")) {
     return `Stricter than done, but lower precedence than ${dominantReason.input}.`;
   }
+  if (item.status === "MISSING" && item.required !== "Yes") return "Optional legacy input is absent and does not decide close-out.";
   if (item.status === "PASS") return "Supports close-out but cannot override stricter inputs.";
   if (item.status === "OPTIONAL") return "Optional input; does not decide close-out.";
   return "No blocking signal for this decision.";
@@ -524,7 +662,7 @@ function verificationFinding(status) {
 
 function evidenceMap(inputs) {
   return inputs
-    .filter((item) => ["Change Impact Coverage", "Execution Closure", "Verification", "Runtime Trust", "Human Decision"].includes(item.name))
+    .filter((item) => ["Completion Evidence", "Change Impact Coverage", "Execution Closure", "Verification", "Runtime Trust", "Human Decision"].includes(item.name))
     .map((item) => ({
       evidence: item.name,
       status: item.status,
@@ -536,7 +674,7 @@ function evidenceMap(inputs) {
 
 function inputVerification(inputs) {
   return inputs
-    .filter((item) => ["Change Impact Coverage", "Execution Closure", "Verification", "Runtime Trust", "Human Decision"].includes(item.name))
+    .filter((item) => ["Completion Evidence", "Change Impact Coverage", "Execution Closure", "Verification", "Runtime Trust", "Human Decision"].includes(item.name))
     .map((item) => ({
       input: item.name,
       required: item.required || "No",
@@ -548,7 +686,7 @@ function inputVerification(inputs) {
 
 function requiredActions(decisionValue, inputs) {
   if (decisionValue.name === "DONE") return ["Record the decision and keep commit, push, release, and production approval separate."];
-  const missing = inputs.filter((item) => ["FAIL", "MISSING"].includes(item.status));
+  const missing = inputs.filter((item) => item.status === "FAIL" || (item.status === "MISSING" && item.required === "Yes"));
   if (missing.length === 0) return ["Review the closure decision before changing task state."];
   return missing.slice(0, 4).map((item) => `Resolve ${item.name}: ${item.finding}`);
 }
@@ -559,7 +697,7 @@ function humanConclusion(decisionValue) {
     NOT_DONE: "This task should not be treated as done yet.",
     NEEDS_EVIDENCE: "This task needs stronger evidence before close-out.",
     NEEDS_IMPACT_COVERAGE: "This task may be incomplete across related surfaces.",
-    NEEDS_HUMAN_DECISION: "This task needs a human decision before close-out.",
+    NEEDS_HUMAN_DECISION: "This task needs a specifically classified business fact, external fact, or exact real-world consent before close-out.",
     BLOCKED: "Close-out is blocked.",
   }[decisionValue.name] || "Closure decision recorded.";
   return `${prefix} ${decisionValue.reason}`;
@@ -569,18 +707,20 @@ function nextAction(decisionValue) {
   return {
     DONE: "Prepare a review summary if needed, but do not treat this as commit, push, release, or production approval.",
     NOT_DONE: "Confirm the task intent and continue only inside that scope.",
-    NEEDS_EVIDENCE: "Record verification and execution closure evidence before marking done.",
+    NEEDS_EVIDENCE: "Codex must complete and strictly validate current-task Completion Evidence before marking done.",
     NEEDS_IMPACT_COVERAGE: "Prepare related-surface coverage and rerun close-out.",
-    NEEDS_HUMAN_DECISION: "Ask for the specific human decision and record its scope.",
+    NEEDS_HUMAN_DECISION: "Request only the specifically classified missing fact or exact real-world consent and record its scope.",
     BLOCKED: "Fix the blocker before attempting close-out again.",
   }[decisionValue.name] || "Keep the task limited to the recorded evidence.";
 }
 
 function needFromHuman(decisionValue, inputs) {
-  if (decisionValue.name === "NEEDS_HUMAN_DECISION") return "Confirm the high-risk boundary and approval scope.";
+  if (decisionValue.name === "NEEDS_HUMAN_DECISION") return "Provide only the missing business fact, external fact, or consent to the exact prepared real-world effect.";
   if (decisionValue.name === "NOT_DONE") return "Confirm which task is being closed.";
-  const missing = inputs.filter((item) => item.status === "MISSING").map((item) => item.name);
-  if (missing.includes("Runtime Trust")) return "Nothing technical. Codex must complete the bounded verification run and evidence binding.";
+  const missing = inputs
+    .filter((item) => item.status === "MISSING" && item.required === "Yes")
+    .map((item) => item.name);
+  if (missing.includes("Completion Evidence") || missing.includes("Runtime Trust")) return "Nothing technical. Codex must complete the bounded verification and evidence chain.";
   return missing.length > 0 ? `Confirm or provide: ${missing.join(", ")}.` : "No human decision is required by this read-only decision.";
 }
 
@@ -615,7 +755,7 @@ function resolveRef(root, ref) {
 }
 
 function resolveProjectFile(root, ref) {
-  const normalized = String(ref || "").trim().replaceAll("\\", "/");
+  const normalized = String(ref || "").trim().replace(/^(artifact|file):/, "").replaceAll("\\", "/");
   if (!normalized || path.isAbsolute(normalized) || normalized.includes("\0") || normalized.split("/").some((part) => !part || part === "." || part === "..")) return null;
   const candidate = path.resolve(root, normalized);
   const relative = path.relative(root, candidate);
@@ -744,11 +884,14 @@ function printHuman(report) {
   console.log("");
   console.log("| Field | Value |");
   console.log("|---|---|");
+  console.log(`| Authority version | \`${report.closureDecision.authorityVersion}\` |`);
+  console.log(`| Authority marker | \`${report.closureDecision.authorityMarker}\` |`);
   console.log(`| Decision | \`${report.closureDecision.decision}\` |`);
   console.log(`| Can count as done | ${report.closureDecision.canCountAsDone} |`);
   console.log(`| Plain reason | ${report.closureDecision.plainReason} |`);
   console.log(`| Final closure source | \`${report.closureDecision.finalClosureSource}\` |`);
   console.log(`| Task ref | \`${report.closureDecision.taskRef}\` |`);
+  console.log(`| Intent | ${report.closureDecision.intent} |`);
   console.log(`| Intent digest | \`${report.closureDecision.intentDigest}\` |`);
   console.log("");
   console.log("## Decision Inputs");

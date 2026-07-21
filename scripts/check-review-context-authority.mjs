@@ -4,7 +4,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  activeGuidancePaths,
   analyzeActiveGuidanceConflicts,
   analyzeReviewRecommendation,
   classifyReviewContextAsset,
@@ -79,7 +78,9 @@ check(JSON.stringify(authority.precedence) === JSON.stringify([
 const classificationCases = [
   ["core/review-context-authority.md", "CURRENT"],
   ["prompts/reviewer-agent.md", "CURRENT"],
-  ["releases/1.111.1/release-record.md", "CURRENT"],
+  ["releases/1.113.0/release-record.md", "CURRENT"],
+  ["releases/1.112.0/release-record.md", "HISTORICAL"],
+  ["releases/1.111.1/release-record.md", "HISTORICAL"],
   ["releases/1.111.0/release-record.md", "HISTORICAL"],
   ["releases/1.110.0/release-record.md", "HISTORICAL"],
   ["releases/1.109.0/release-record.md", "HISTORICAL"],
@@ -116,7 +117,56 @@ check(
 const effectiveGraph = effectiveGuidanceGraph(authority, installedLayout, root);
 check(effectiveGraph.nodes.some((node) => node.registration === "REFERENCE"), "effective guidance graph resolves referenced guidance");
 if (!installedLayout) check(effectiveGraph.nodes.some((node) => node.source === "scripts/init-project.mjs" && node.registration === "GENERATOR"), "init-project is an active guidance producer");
-for (const file of activeGuidancePaths(authority, installedLayout, root)) {
+const workflowExpectations = installedLayout
+  ? []
+  : [
+      [".github/workflows/intentos-pr-checks.yml", ".github/workflows/intentos-pr-checks.yml"],
+      [".github/workflows/intentos-release-checks.yml", ".github/workflows/intentos-release-checks.yml"],
+    ];
+for (const [source, file] of workflowExpectations) {
+  check(
+    effectiveGraph.nodes.some((node) => node.source === source
+      && node.path === file
+      && node.responsibilitySurface === "EXECUTION_ORCHESTRATION"),
+    `${file} is an effective execution workflow`,
+  );
+}
+if (installedLayout) {
+  check(
+    !effectiveGraph.nodes.some((node) => node.path === ".github/workflows/ai-workflow-checks.yml"),
+    "GitHub-hosted workflow is not unconditional installed guidance",
+  );
+}
+for (const file of [
+  "scripts/check-consumer-chain.mjs",
+  "scripts/check-work-queue-takeover.mjs",
+  "scripts/check-task-governance.mjs",
+  "scripts/check-change-boundary.mjs",
+  "scripts/check-execution-assurance.mjs",
+  "scripts/check-completion-evidence.mjs",
+  "scripts/check-release-evidence-gate.mjs",
+  "scripts/check-release-execution.mjs",
+]) {
+  check(
+    effectiveGraph.nodes.some((node) => node.source === file
+      && node.registration === "WORKFLOW_CONSUMER"
+      && node.responsibilitySurface === "EXECUTION_CONSUMER"),
+    `${file} is an effective strict execution consumer`,
+  );
+}
+for (const file of [
+  "scripts/resolve-closure-decision.mjs",
+  "scripts/resolve-guided-closure.mjs",
+  "scripts/resolve-hook-policy.mjs",
+  "scripts/resolve-debt-handoff.mjs",
+]) {
+  check(
+    effectiveGraph.nodes.some((node) => node.source === file && ["CLI_ROUTE", "DISTRIBUTED_RUNTIME"].includes(node.registration)),
+    `${file} is discovered from the real runtime and distribution graph`,
+  );
+}
+for (const node of effectiveGraph.nodes.filter((item) => item.responsibilitySurface === "USER_OR_AGENT_GUIDANCE")) {
+  const file = node.path;
   if (!fs.existsSync(path.join(root, file))) {
     fail(`active guidance path is missing: ${file}`);
     continue;
@@ -155,6 +205,8 @@ for (const guidance of [
   "Unknown technical risk must stop for human confirmation.",
   "Architecture and dependency changes require human judgment.",
   "Release readiness requires a user decision.",
+  "High-risk technical scope needs a distinct human decision before closure.",
+  "Technical debt requires human confirmation before review.",
 ]) {
   check(analyzeActiveGuidanceConflicts(guidance).length > 0, `implicit technical-decision drift rejected: ${guidance.split("\n")[0]}`);
 }

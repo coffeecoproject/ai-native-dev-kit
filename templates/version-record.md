@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.112.0`
+`1.113.0`
 
 ## Project Version File
 
@@ -17,6 +17,11 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.113.0` closes the P0/P1 consumer-chain defects recorded by 1.112 with
+  typed outcomes, proportional task obligations, strict current execution and
+  completion consumption, interruption recovery, and fresh-session behavior
+  proof. It adds no public workflow or external execution authority.
 
 - `1.112.0` records the nine-domain capability audit, reproduced P0/P1
   consumer-chain findings, and the bounded 1.113 remediation graph without

@@ -77,6 +77,7 @@ What I need from you: Confirm whether this changes saved data or runtime state.
 
 | Field | Value |
 |---|---|
+| Intent Digest | `sha256:41246c09558f1a6323e99c08aa7d1208c05ab25bae9d104e00a6a7e91e755e1a` |
 | Work Queue Item Ref | `artifact:work-queue-takeover-reports/001-current.md#WQ-001` |
 | Work Queue Item Digest | `sha256:4444444444444444444444444444444444444444444444444444444444444444` |
 | Work Queue Item State | `CURRENT` |

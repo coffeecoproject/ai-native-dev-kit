@@ -4,11 +4,23 @@
   "defaultTaskLevel": "L1",
   "escalationRules": [
     {
-      "when": ["data-contract", "permission", "migration", "concurrency", "external-integration"],
+      "when": [
+        "data-contract",
+        "permission",
+        "migration",
+        "concurrency",
+        "external-integration"
+      ],
       "minLevel": "L2"
     },
     {
-      "when": ["production-data", "secrets", "irreversible-operation", "value-transfer", "regulated-data"],
+      "when": [
+        "production-data",
+        "secrets",
+        "irreversible-operation",
+        "value-transfer",
+        "regulated-data"
+      ],
       "minLevel": "L3"
     }
   ],
@@ -23,11 +35,22 @@
     "docs/verification-matrix.md"
   ],
   "riskGateMappings": {
-    "auth": ["auth", "permission"],
-    "permission": ["permission"],
-    "migration": ["migration"],
-    "secrets": ["secrets"],
-    "regulated-data": ["regulated data"]
+    "auth": [
+      "auth",
+      "permission"
+    ],
+    "permission": [
+      "permission"
+    ],
+    "migration": [
+      "migration"
+    ],
+    "secrets": [
+      "secrets"
+    ],
+    "regulated-data": [
+      "regulated data"
+    ]
   },
   "requiredVerification": [
     "contract tests",
@@ -36,32 +59,51 @@
     "integration tests for success and rejection paths",
     "load/performance smoke checks when relevant"
   ],
-  "verificationKeywords": ["contract", "permission", "migration", "integration", "rejection", "performance"],
-  "verifyScriptKeywords": ["test"],
-  "highRiskKeywords": ["auth", "authorization", "migration", "destructive", "secrets", "audit"],
-  "humanApprovalRequiredFor": [
-    "auth",
+  "verificationKeywords": [
+    "contract",
     "permission",
     "migration",
-    "production-data",
+    "integration",
+    "rejection",
+    "performance"
+  ],
+  "verifyScriptKeywords": [
+    "test"
+  ],
+  "highRiskKeywords": [
+    "auth",
+    "authorization",
+    "migration",
+    "destructive",
     "secrets",
-    "destructive-operation",
-    "external-side-effect"
+    "audit"
+  ],
+  "humanApprovalRequiredFor": [
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release",
+    "real-user-communication"
   ],
   "releaseChecks": [
-    "API contract changes documented and reviewed",
-    "database migration and rollback path reviewed when schema changes",
-    "production data, secrets, and external side effects approved before release"
+    "API contract, permission, migration, rollback, and secret-boundary changes are technically reviewed by Codex",
+    "production-data and external-side-effect paths have project-bound verification and rollback evidence",
+    "exact user consent is required only for a prepared production release, external provider action, paid effect, real-user communication, or irreversible production-data effect"
   ],
   "aiBoundaries": {
     "may": [
-      "edit API handlers, service logic, validation, tests, and documentation inside approved task scope",
-      "propose schema, contract, and integration changes with explicit migration and rollback notes"
+      "edit API handlers, service logic, validation, permissions, migrations, tests, and documentation inside the current governed task scope",
+      "derive and implement schema, contract, integration, migration, rollback, and verification choices from project evidence"
     ],
     "mustNot": [
-      "access or mutate production data without explicit human approval",
-      "change secrets, production config, permissions, migrations, or external side effects without human approval"
+      "delegate auth, permission, schema, migration, secret handling, dependency, rollback, or test strategy choices to the user",
+      "access or mutate production data, call an external provider, create a paid effect, communicate with real users, or perform a production release without exact consent when that real-world effect is prepared"
     ]
   },
-  "compatibleStarters": ["generic-project"]
+  "compatibleStarters": [
+    "generic-project",
+    "codex-web-app",
+    "codex-ios-app",
+    "codex-android-app"
+  ]
 }

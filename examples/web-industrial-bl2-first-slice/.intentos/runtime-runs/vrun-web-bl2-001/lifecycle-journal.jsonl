@@ -1,0 +1,8 @@
+{"at":"2026-07-19T02:19:55.622Z","event":"PREFLIGHT_RUNNING","run_id":"vrun-web-bl2-001"}
+{"at":"2026-07-19T02:19:55.622Z","event":"EXECUTABLE_RESOLVED","action_id":"web-bl2-all","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-19T02:19:55.622Z","event":"PREFLIGHT_PASSED"}
+{"at":"2026-07-19T02:19:55.623Z","event":"ACTION_STARTING","action_id":"web-bl2-all","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-19T02:19:55.659Z","event":"ACTION_FINISHED","action_id":"web-bl2-all","exit_code":0,"timed_out":false}
+{"at":"2026-07-19T02:19:55.659Z","event":"CLEANUP_EVIDENCE_BEFORE_RECORDED"}
+{"at":"2026-07-19T02:19:55.659Z","event":"CLEANING_UP"}
+{"at":"2026-07-19T02:19:55.659Z","event":"COMPLETED"}

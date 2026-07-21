@@ -1,0 +1,25 @@
+Web BL2 current-project verification completed.
+Evidence type: accessibility; requirement verified: keyboard focus and accessible name evidence
+Evidence type: accessibility; requirement verified: status message and contrast evidence
+Evidence type: api-error-handling; requirement verified: API failure and recovery evidence
+Evidence type: api-error-handling; requirement verified: auth and validation error behavior evidence
+Evidence type: dependency-change; requirement verified: client bundle impact review
+Evidence type: form-interaction; requirement verified: form submission validation and duplicate-submit evidence
+Evidence type: performance; requirement verified: bundle asset and loading impact evidence
+Evidence type: performance; requirement verified: interaction responsiveness evidence
+Evidence type: permission-change; requirement verified: forbidden state evidence
+Evidence type: permission-change; requirement verified: resource scope evidence
+Evidence type: permission-change; requirement verified: server-side permission test evidence
+Evidence type: production-config; requirement verified: deployment configuration evidence
+Evidence type: production-config; requirement verified: environment variable review
+Evidence type: production-config; requirement verified: secret exposure review
+Evidence type: release; requirement verified: monitoring evidence
+Evidence type: release; requirement verified: release record
+Evidence type: release; requirement verified: rollback plan
+Evidence type: ui-change; requirement verified: critical flow behavior evidence
+Evidence type: ui-change; requirement verified: loading-empty-error-forbidden evidence
+Evidence type: ui-change; requirement verified: responsive behavior evidence
+Evidence type: ui-change; requirement verified: success and layout stability evidence
+The fixture binds accessibility, API recovery, permission, production configuration, release, performance, form, dependency, and UI behavior evidence to this command output.
+
+process_signal=none

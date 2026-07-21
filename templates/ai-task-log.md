@@ -2,24 +2,31 @@
 
 ## Human Decision Summary
 
+Compatibility heading: semantically this is the bounded `User Input Summary`; it grants no technical decision authority.
+
 Conclusion:
 
-Recommended choice: A / B / C / D
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
-Can AI continue now: yes / limited / no
+User input needed now: Yes / No
 
-What I need from you:
+Plain-language question or exact consent request, if needed:
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Close the task log | Record result and stop | Log only | low | Choose when the task is complete |
-| B | Open improvement candidate | Create a workflow improvement or intentos proposal | Workflow/proposal only | low/medium | Choose when the issue should improve future work |
-| C | Route human decision | Stop before risky follow-up work | Decision/log only | medium/high | Choose for scope, risk, release, architecture, or migration |
-| D | Pause | Stop and wait | No | low | Choose when the result is unclear |
-
-Recommended reason:
+Why project evidence cannot answer it:
 
 What happens if you do nothing:
+
+## Codex Task Decision And Evidence
+
+Selected disposition: CLOSE_LOG / OPEN_IMPROVEMENT / REPLAN_FOLLOW_UP / BLOCKED_BY_EVIDENCE
+
+Can Codex continue now: yes / limited / no
+
+Scope and result evidence:
+
+Risk response:
+
+Verification, review route, and technical recovery:
 
 ## Human Summary
 
@@ -27,9 +34,11 @@ One-sentence conclusion:
 
 ## Decision Needed
 
-Does this task result require human decision before follow-up work: Yes / No
+Does this task result require bounded user input before follow-up work: Yes / No
 
-Decision:
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
+
+Exact question or prepared effect, if needed:
 
 ## Next Safe Step
 
@@ -41,7 +50,7 @@ Next action:
 
 ## Agent / Tool
 
-Codex / Cursor / Claude / Other:
+Codex:
 
 ## Runs
 

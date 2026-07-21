@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.113.0",
+  "artifact_type": "bl2_execution_receipt",
+  "requirement_id": "bl2:web-app-industrial:permission-change:server-side-permission-test-evidence",
+  "pack_id": "web-app-industrial",
+  "evidence_type": "permission-change",
+  "requirement": "server-side permission test evidence",
+  "command": "node scripts/bl2-proof.mjs all",
+  "command_argv": [
+    "node",
+    "scripts/bl2-proof.mjs",
+    "all"
+  ],
+  "command_digest": "sha256:a161dea4cb1e4e1c3308392f613949d3b79572d91b9f71c33d623df655378eea",
+  "result": "PASS",
+  "exit_code": 0,
+  "source_revision": "sha256:02e68bd33899cb6b6e642dbdb7d2dc87bc34e19a1f47075f1f696c090c090538",
+  "output_ref": ".intentos/runtime-runs/vrun-web-bl2-002/outputs/web-bl2-all.log",
+  "output_digest": "sha256:1e6857529eacffea322b3b46fa77559c54893bd0e32c0919c7055b5aba824ab0",
+  "run_manifest_ref": "artifact:verification-run-manifests/bl2-web.md",
+  "run_manifest_digest": "sha256:b19c3dea20aacb117ea226f2d02e22aab90defed3d85ae2f80e498c247854d78",
+  "run_id": "vrun-web-bl2-002",
+  "execution_id": "web-bl2-all"
+}

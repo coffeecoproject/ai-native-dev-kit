@@ -25,9 +25,11 @@ const knownFlags = new Set([
   "require-platform-recipe",
   "require-ready",
   "require-release-topology",
+  "compatibility-only",
 ]);
 const unknown = unknownOptions(args, knownFlags);
-const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
 const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"]);
@@ -37,6 +39,7 @@ const strictSourceBinding = Boolean(args["strict-source-binding"] || args["requi
 const requirePlatformRecipe = Boolean(args["require-platform-recipe"]);
 const requireReady = Boolean(args["require-ready"]);
 const requireReleaseTopology = Boolean(args["require-release-topology"]);
+const compatibilityOnly = Boolean(args["compatibility-only"]);
 const strictRequested = requireReport || requireStructuredEvidence || requireCurrentCompletion
   || strictSourceBinding || requirePlatformRecipe || requireReady || requireReleaseTopology || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
@@ -50,6 +53,11 @@ const shouldRequireAssets = isSourceRepo
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
+  process.exit(1);
+}
+
+if (compatibilityOnly && (requireCurrentCompletion || strictSourceBinding || requireReady || requireReleaseTopology)) {
+  console.error("FAIL --compatibility-only cannot be combined with current release authority requirements");
   process.exit(1);
 }
 
@@ -503,7 +511,11 @@ function checkCompletionEvidenceSet(label, evidence) {
   const scopeRefs = evidence.release_scope?.included_completion_evidence_refs || [];
   const taskRefs = evidence.release_scope?.included_task_refs || [];
   const set = evidence.completion_evidence_set || [];
-  const mustStrictCheck = requireCurrentCompletion || readyStates.has(evidence.gate_state) || strictSourceBinding || requireReady;
+  const mustStrictCheck = !compatibilityOnly
+    && (requireCurrentCompletion || readyStates.has(evidence.gate_state) || strictSourceBinding || requireReady);
+  if (compatibilityOnly && readyStates.has(evidence.gate_state)) {
+    pass(`${label} historical ready release evidence remains readable but is not current release authority`);
+  }
   if (Array.isArray(set)) pass(`${label} records Completion Evidence set`);
   else {
     fail(`${label} must record Completion Evidence set`);
@@ -832,13 +844,12 @@ function sameStringSet(left, right) {
 }
 
 function resolveReportPath(value) {
-  const candidate = path.resolve(projectRoot, value);
-  const relative = path.relative(projectRoot, candidate);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
-    console.error(`FAIL --report must stay inside target project: ${value}`);
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", value, { markdownOnly: true });
+  if (!resolved.ok) {
+    console.error(`FAIL --report must be a project-contained non-symlink Markdown file: ${resolved.error}`);
     process.exit(1);
   }
-  return candidate;
+  return resolved.file;
 }
 
 function readResolved(relativePath) {

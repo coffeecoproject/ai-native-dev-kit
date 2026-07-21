@@ -12,6 +12,7 @@
     "android-app"
   ],
   "compatiblePacks": [
+    "ios-app-industrial",
     "backend-api-industrial",
     "auth-permission-industrial",
     "data-storage-industrial",
@@ -93,12 +94,11 @@
     ]
   },
   "humanApprovalRequiredFor": [
-    "app-signing",
-    "production-config",
-    "privacy-permission",
-    "regulated-data",
-    "value-transfer",
-    "irreversible-operation"
+    "external-account-or-provider-action",
+    "irreversible-production-data-effect",
+    "paid-service-or-value-transfer",
+    "production-or-external-release",
+    "real-user-communication"
   ],
   "maturity": {
     "stage": "draft",

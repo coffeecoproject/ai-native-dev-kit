@@ -11,6 +11,12 @@ import {
   validateSchema,
 } from "./lib/artifact-schema.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
+import {
+  decodeTaskGovernanceLineage,
+  normalizeTaskIntent,
+  taskIntentDigest,
+  validateEmbeddedTaskGovernanceLineage,
+} from "./lib/task-entry-binding.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 import { resolveBoundBusinessUniverse } from "./lib/business-universe.mjs";
@@ -27,6 +33,8 @@ const knownFlags = new Set([
   "require-impact-ref",
   "strict-source-binding",
   "require-evidence-authority",
+  "require-task-lineage",
+  "strict",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -38,8 +46,9 @@ const requireBusinessRuleRef = Boolean(args["require-business-rule-ref"]);
 const requireImpactRef = Boolean(args["require-impact-ref"]);
 const strictSourceBinding = Boolean(args["strict-source-binding"]);
 const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
+const requireTaskLineage = Boolean(args["require-task-lineage"] || args.strict);
 const strictRequested = requireReport || requireStructuredEvidence || requireBusinessRuleRef
-  || requireImpactRef || strictSourceBinding || requireEvidenceAuthority || Boolean(args.report);
+  || requireImpactRef || strictSourceBinding || requireEvidenceAuthority || requireTaskLineage || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/verification-plan.schema.json");
 const businessRuleSchema = loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json");
@@ -188,10 +197,10 @@ function checkReport(file) {
   requireBoundaryNo(content, label, "This plan proves real-environment behavior");
 
   const result = validateEvidenceBlock(content, structuredEvidenceSchema, label, {
-    require: requireStructuredEvidence || requireBusinessRuleRef || requireImpactRef || strictSourceBinding || requireEvidenceAuthority,
+    require: requireStructuredEvidence || requireBusinessRuleRef || requireImpactRef || strictSourceBinding || requireEvidenceAuthority || requireTaskLineage,
     digestField: "verification_plan_digest",
   });
-  if (!result.present && !(requireStructuredEvidence || requireBusinessRuleRef || requireImpactRef || strictSourceBinding || requireEvidenceAuthority)) {
+  if (!result.present && !(requireStructuredEvidence || requireBusinessRuleRef || requireImpactRef || strictSourceBinding || requireEvidenceAuthority || requireTaskLineage)) {
     pass(`${label} structured evidence optional and not present`);
     return;
   }
@@ -229,6 +238,12 @@ function checkEvidenceAuthority(label, file, evidence) {
 }
 
 function checkStructuredEvidence(label, file, evidence, markdown) {
+  const normalizedIntent = normalizeTaskIntent(evidence.intent);
+  if (evidence.intent === normalizedIntent && evidence.intent_digest === taskIntentDigest(normalizedIntent)) {
+    pass(`${label} intent text and digest are canonical`);
+  } else {
+    fail(`${label} intent_digest must be recomputed from normalized intent`);
+  }
   const planRefs = verificationPlanRefCandidates(file);
   if (planRefs.includes(evidence.verification_plan_ref)) {
     pass(`${label} verification_plan_ref points to this report`);
@@ -258,10 +273,11 @@ function checkStructuredEvidence(label, file, evidence, markdown) {
 
   const businessRule = checkBusinessRuleBinding(label, file, evidence);
   const impact = checkImpactBinding(label, file, evidence);
+  checkImpactSurfaceCoverage(label, evidence, impact);
   checkBusinessUniverseBinding(label, file, evidence, businessRule, impact);
   checkControlEffectivenessBinding(label, file, evidence);
   checkSourceChainConsistency(label, evidence, impact);
-  checkTaskBinding(label, evidence, businessRule, impact);
+  checkTaskBinding(label, file, evidence, businessRule, impact);
   checkObligations(label, evidence);
   checkManualVerification(label, evidence);
   checkBoundaries(label, evidence);
@@ -532,6 +548,38 @@ function checkImpactBinding(label, file, evidence) {
   return impact;
 }
 
+function checkImpactSurfaceCoverage(label, evidence, impact) {
+  if (!impact) return;
+  const activeStatuses = new Set(["REQUIRED", "NEEDS_HUMAN_DECISION"]);
+  const impactBySurface = new Map((impact.affected_surface_map || []).map((item) => [item.surface, item]));
+  const planBySurface = new Map((evidence.affected_surfaces || []).map((item) => [item.surface, item]));
+  const requiredImpactSurfaces = [...impactBySurface.values()]
+    .filter((item) => activeStatuses.has(item.status))
+    .map((item) => item.surface)
+    .sort();
+  const requiredPlanSurfaces = [...planBySurface.values()]
+    .filter((item) => activeStatuses.has(item.status))
+    .map((item) => item.surface)
+    .sort();
+
+  if (JSON.stringify(requiredPlanSurfaces) === JSON.stringify(requiredImpactSurfaces)) {
+    pass(`${label} preserves the exact required Change Impact surface set`);
+  } else {
+    fail(`${label} required Verification Plan surfaces ${requiredPlanSurfaces.join(", ") || "<none>"} must exactly match Change Impact ${requiredImpactSurfaces.join(", ") || "<none>"}`);
+  }
+
+  for (const surface of requiredImpactSurfaces) {
+    const impactRow = impactBySurface.get(surface);
+    const planRow = planBySurface.get(surface);
+    if (!planRow) continue;
+    if (planRow.status === impactRow.status) {
+      pass(`${label} surface ${surface} preserves Change Impact status ${impactRow.status}`);
+    } else {
+      fail(`${label} surface ${surface} status ${planRow.status || "<missing>"} must preserve Change Impact ${impactRow.status}`);
+    }
+  }
+}
+
 function checkSourceChainConsistency(label, evidence, impact) {
   if (!impact) return;
   const shouldRequireBusinessRuleChain = requireBusinessRuleRef
@@ -556,7 +604,7 @@ function checkSourceChainConsistency(label, evidence, impact) {
   }
 }
 
-function checkTaskBinding(label, evidence, businessRule, impact) {
+function checkTaskBinding(label, file, evidence, businessRule, impact) {
   if (!strictSourceBinding && evidence.verification_state !== "VERIFICATION_PLAN_READY") return;
   if (businessRule?.task_ref && evidence.task_ref !== businessRule.task_ref) {
     fail(`${label} task_ref ${evidence.task_ref} must match Business Rule Closure task_ref ${businessRule.task_ref}`);
@@ -571,6 +619,27 @@ function checkTaskBinding(label, evidence, businessRule, impact) {
   const impactTask = impact?.user_request?.task_ref;
   if (impactTask && !/^not provided$/i.test(impactTask) && evidence.task_ref !== impactTask) {
     fail(`${label} task_ref ${evidence.task_ref} must match Change Impact Coverage task_ref ${impactTask}`);
+  }
+  if (businessRule?.user_request && businessRule.user_request !== evidence.intent) {
+    fail(`${label} intent text must match Business Rule Closure exactly`);
+  } else if (businessRule?.user_request) {
+    pass(`${label} intent text matches Business Rule Closure`);
+  }
+  if (impact?.user_request?.intent && impact.user_request.intent !== evidence.intent) {
+    fail(`${label} intent text must match Change Impact Coverage exactly`);
+  } else if (impact?.user_request?.intent) {
+    pass(`${label} intent text matches Change Impact Coverage`);
+  }
+  if (businessRule) {
+    const hasLineage = (businessRule.source_rule_refs || []).some((item) => decodeTaskGovernanceLineage(item));
+    const lineage = validateEmbeddedTaskGovernanceLineage(projectRoot, businessRule.source_rule_refs, {
+      taskRef: evidence.task_ref,
+      intent: evidence.intent,
+      intentDigest: evidence.intent_digest,
+    }, { fromFile: file, requireCurrent: requireTaskLineage });
+    if (lineage.ok) pass(`${label} Business Rule preserves exact current Task Governance lineage`);
+    else if (requireTaskLineage || hasLineage) lineage.errors.forEach((error) => fail(`${label} ${error}`));
+    else pass(`${label} historical Business Rule lineage remains readable without current authority`);
   }
 }
 
@@ -828,6 +897,14 @@ function compareManualVerificationRows(label, structuredRows, markdownRows) {
 }
 
 function compareNotApplicableRows(label, structuredRows, markdownRows) {
+  if (structuredRows.length === 0) {
+    const none = markdownRows.length === 1
+      && /^none$/i.test(markdownRows[0].surface)
+      && /no not-applicable obligations recorded/i.test(markdownRows[0].reason);
+    if (none) pass(`${label} Markdown Not Applicable Obligations records none`);
+    else fail(`${label} Markdown Not Applicable Obligations must record none when structured evidence has no not-applicable obligations`);
+    return;
+  }
   const markdownBySurface = new Map(markdownRows.map((row) => [row.surface, row]));
   const structuredSurfaces = new Set(structuredRows.map((row) => row.source_surface || row.surface));
   for (const row of structuredRows) {
