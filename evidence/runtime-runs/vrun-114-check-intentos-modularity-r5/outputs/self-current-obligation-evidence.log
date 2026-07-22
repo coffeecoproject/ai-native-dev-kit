@@ -1,0 +1,36 @@
+✔ [verify:universe-77a8f448-expected] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.631083ms)
+✔ [verify:universe-77a8f448-negative] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.064959ms)
+✔ [verify:universe-e4141c50-expected] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.048375ms)
+✔ [verify:universe-e4141c50-negative] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.04075ms)
+✔ [verify:universe-081a836f-expected] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.108458ms)
+✔ [verify:universe-081a836f-negative] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.035875ms)
+✔ [verify:universe-1abf3bf4-expected] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.0945ms)
+✔ [verify:universe-1abf3bf4-negative] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.034625ms)
+✔ [verify:universe-d630cfd9-expected] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.286458ms)
+✔ [verify:universe-d630cfd9-negative] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.282292ms)
+✔ [verify:universe-08850f5d-expected] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.116916ms)
+✔ [verify:universe-08850f5d-negative] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.033125ms)
+✔ [verify:universe-d0e72ece-expected] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.039917ms)
+✔ [verify:universe-d0e72ece-negative] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.023125ms)
+✔ [verify:universe-d896a585-expected] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.035917ms)
+✔ [verify:universe-d896a585-negative] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.024167ms)
+✔ [verify:universe-f9542c4e-expected] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.022417ms)
+✔ [verify:universe-f9542c4e-negative] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.031625ms)
+✔ [verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.057334ms)
+✔ [verify:user-flow-regression-smoke-existing-critical-flow-still-works-af] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.025625ms)
+✔ [verify:backend-rule-backend-rule-test-server-domain-logic-enforces-the-] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.01875ms)
+✔ [verify:data-model-data-model-check-data-model-historical-records-migrat] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.018ms)
+✔ [verify:background-work-integration-contract-check-scheduled-queued-retr] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.01975ms)
+✔ [verify:rollback-recovery-release-smoke-check-failure-interruption-rollb] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.016375ms)
+✔ [verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.016375ms)
+✔ [verify:test-coverage-regression-smoke-task-specific-verification-exists] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass (0.015834ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 786.083292
+
+process_signal=none

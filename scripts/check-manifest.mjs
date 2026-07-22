@@ -569,7 +569,7 @@ function checkScriptConsumption() {
   const consumers = [
     ["scripts/check-ai-workflow.mjs", "targetRequiredPaths(projectRoot, workflowMode"],
     ["scripts/workflow-next.mjs", "manifestWorkflowRequiredPaths(projectRoot"],
-    ["scripts/check-intentos.mjs", "sourceRequiredPaths(kitRoot"],
+    ["scripts/self-check/foundation.mjs", "sourceRequiredPaths(kitRoot"],
     ["scripts/init-project.mjs", "manifestCopyRules(kitRoot"],
     ["scripts/init-project.mjs", "workflowVersionAssets(kitRoot"],
     ["scripts/init-project.mjs", "manifestGroup(kitRoot, \"workflowDirs\""],

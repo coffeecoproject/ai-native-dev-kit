@@ -596,6 +596,7 @@ function isTaskGovernedFile(file) {
 function isReleaseFile(file) {
   const normalized = normalize(file);
   const name = path.posix.basename(normalized);
+  if (/^scripts\/self-check\/[^/]+\.mjs$/.test(normalized)) return false;
   if (/^(?:launch-review-views|release-adapters|release-approval-records|release-candidates|release-channel-policies|release-evidence-gate-reports|release-execution-plans|release-execution-topologies|release-guides|release-handoff-packs|release-plans|release-recipes|release-topology-migrations|releases|runtime-hygiene-reports)\//.test(normalized)) return true;
   if (/^(?:VERSION\.md|CHANGELOG\.md)$/i.test(normalized)) return true;
   if (/\.(?:tf|tfvars|hcl)$/i.test(normalized)) return true;

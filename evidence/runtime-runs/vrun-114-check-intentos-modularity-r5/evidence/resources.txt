@@ -1,0 +1,7 @@
+run_id=vrun-114-check-intentos-modularity-r5
+owner_marker_digest=sha256:c0bf865b47a26be6f9e15e8b1c481d57030f91e1c4d2a81df4b05233bf51a005
+cache:CACHE_NAMESPACE:cleaned=Yes
+context:SESSION_NAMESPACE:cleaned=Yes
+data:FILE_NAMESPACE:cleaned=Yes
+files:FILE_NAMESPACE:cleaned=Yes
+process:self-runtime-service:pid=48656:cleaned=Yes

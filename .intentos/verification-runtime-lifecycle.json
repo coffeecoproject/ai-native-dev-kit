@@ -70,12 +70,54 @@
       "cwd": ".",
       "timeout_ms": 1800000,
       "environment": [],
-      "obligation_ids": ["$CURRENT_NON_RUNTIME_OBLIGATIONS"],
+      "obligation_ids": [
+        "verify:background-work-integration-contract-check-scheduled-queued-retr",
+        "verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders",
+        "verify:rollback-recovery-release-smoke-check-failure-interruption-rollb",
+        "verify:test-coverage-regression-smoke-task-specific-verification-exists",
+        "verify:user-flow-regression-smoke-existing-critical-flow-still-works-af",
+        "verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-"
+      ],
       "positive_path": "Yes",
       "negative_path": "Yes",
       "resource_ids": ["data", "cache", "context", "files"],
       "external_effect": "No",
       "depends_on": ["self-current-candidate-verification"]
+    },
+    {
+      "id": "self-current-modularity-evidence",
+      "phase": "VERIFY",
+      "kind": "COMMAND",
+      "argv": ["node", "--test", "--test-concurrency=1", "evidence/114-check-intentos-obligation-evidence.test.mjs"],
+      "cwd": ".",
+      "timeout_ms": 1800000,
+      "environment": [],
+      "obligation_ids": [
+        "verify:release-impact-release-smoke-check-release-rollback-monitoring-o",
+        "verify:universe-06f53a6d-expected",
+        "verify:universe-06f53a6d-negative",
+        "verify:universe-267360df-expected",
+        "verify:universe-267360df-negative",
+        "verify:universe-33f79b03-expected",
+        "verify:universe-33f79b03-negative",
+        "verify:universe-4c6a26a6-expected",
+        "verify:universe-4c6a26a6-negative",
+        "verify:universe-6bce3aca-expected",
+        "verify:universe-6bce3aca-negative",
+        "verify:universe-7e157cbe-expected",
+        "verify:universe-7e157cbe-negative",
+        "verify:universe-a8dfc71b-expected",
+        "verify:universe-a8dfc71b-negative",
+        "verify:universe-ad616f84-expected",
+        "verify:universe-ad616f84-negative",
+        "verify:universe-f256ee46-expected",
+        "verify:universe-f256ee46-negative"
+      ],
+      "positive_path": "Yes",
+      "negative_path": "Yes",
+      "resource_ids": ["data", "cache", "context", "files"],
+      "external_effect": "No",
+      "depends_on": ["self-current-obligation-evidence"]
     },
     {
       "id": "self-current-runtime-behavior",
@@ -90,7 +132,7 @@
       "negative_path": "Yes",
       "resource_ids": ["data", "cache", "context", "files"],
       "external_effect": "No",
-      "depends_on": ["self-current-obligation-evidence"]
+      "depends_on": ["self-current-modularity-evidence"]
     }
   ],
   "resources": [

@@ -1,0 +1,43 @@
+id: evidence:114-check-intentos-obligation-tests
+evidence_type: COMMAND_OUTPUT
+result_state: PASSED
+command: node --test --test-concurrency=1 evidence/114-check-intentos-obligation-evidence.test.mjs
+owner: Codex local verification
+environment: LOCAL_CONTROLLED
+ran_at: 2026-07-22T15:09:19.955Z
+exit_code: 0
+ran_after_change: Yes
+current_task_match: Yes
+covers_obligations: verify:universe-33f79b03-expected,verify:universe-33f79b03-negative,verify:universe-06f53a6d-expected,verify:universe-06f53a6d-negative,verify:universe-6bce3aca-expected,verify:universe-6bce3aca-negative,verify:universe-267360df-expected,verify:universe-267360df-negative,verify:universe-7e157cbe-expected,verify:universe-7e157cbe-negative,verify:universe-4c6a26a6-expected,verify:universe-4c6a26a6-negative,verify:universe-f256ee46-expected,verify:universe-f256ee46-negative,verify:universe-ad616f84-expected,verify:universe-ad616f84-negative,verify:universe-a8dfc71b-expected,verify:universe-a8dfc71b-negative,verify:release-impact-release-smoke-check-release-rollback-monitoring-o
+failure_reason: N/A
+limitations: Local structural and fail-closed behavior proof only; no production or external release action was performed.
+--- stdout ---
+✔ [verify:universe-33f79b03-expected] evidence/114-check-intentos-obligation-evidence.test.mjs :: foundation.mjs remains present at its exact unified-entry position (3.298208ms)
+✔ [verify:universe-33f79b03-negative] evidence/114-check-intentos-obligation-evidence.test.mjs :: omitting runFoundationChecks is rejected by the exact-order contract (1.200333ms)
+✔ [verify:universe-06f53a6d-expected] evidence/114-check-intentos-obligation-evidence.test.mjs :: adoption.mjs remains present at its exact unified-entry position (1.955042ms)
+✔ [verify:universe-06f53a6d-negative] evidence/114-check-intentos-obligation-evidence.test.mjs :: omitting runAdoptionChecks is rejected by the exact-order contract (0.263208ms)
+✔ [verify:universe-6bce3aca-expected] evidence/114-check-intentos-obligation-evidence.test.mjs :: evidence.mjs remains present at its exact unified-entry position (2.725125ms)
+✔ [verify:universe-6bce3aca-negative] evidence/114-check-intentos-obligation-evidence.test.mjs :: omitting runEvidenceChecks is rejected by the exact-order contract (0.279541ms)
+✔ [verify:universe-267360df-expected] evidence/114-check-intentos-obligation-evidence.test.mjs :: architecture.mjs remains present at its exact unified-entry position (1.197375ms)
+✔ [verify:universe-267360df-negative] evidence/114-check-intentos-obligation-evidence.test.mjs :: omitting runArchitectureChecks is rejected by the exact-order contract (0.11125ms)
+✔ [verify:universe-7e157cbe-expected] evidence/114-check-intentos-obligation-evidence.test.mjs :: release.mjs remains present at its exact unified-entry position (1.2075ms)
+✔ [verify:universe-7e157cbe-negative] evidence/114-check-intentos-obligation-evidence.test.mjs :: omitting runReleaseChecks is rejected by the exact-order contract (0.660875ms)
+✔ [verify:universe-4c6a26a6-expected] evidence/114-check-intentos-obligation-evidence.test.mjs :: distribution.mjs remains present at its exact unified-entry position (0.514583ms)
+✔ [verify:universe-4c6a26a6-negative] evidence/114-check-intentos-obligation-evidence.test.mjs :: omitting runDistributionChecks is rejected by the exact-order contract (0.130833ms)
+✔ [verify:universe-f256ee46-expected] evidence/114-check-intentos-obligation-evidence.test.mjs :: generated-project-e2e.mjs remains present at its exact unified-entry position (1.127834ms)
+✔ [verify:universe-f256ee46-negative] evidence/114-check-intentos-obligation-evidence.test.mjs :: omitting runGeneratedProjectE2ECheck is rejected by the exact-order contract (0.183041ms)
+✔ [verify:universe-ad616f84-expected] evidence/114-check-intentos-obligation-evidence.test.mjs :: shared runtime exposes the one fail-closed state consumed by the entry (0.422208ms)
+✔ [verify:universe-ad616f84-negative] evidence/114-check-intentos-obligation-evidence.test.mjs :: a recorded suite failure produces a non-zero shared exit decision (56.323292ms)
+✔ [verify:universe-a8dfc71b-expected] evidence/114-check-intentos-obligation-evidence.test.mjs :: the complete unified candidate verification passed through all ordered suites (1.837958ms)
+✔ [verify:universe-a8dfc71b-negative] evidence/114-check-intentos-obligation-evidence.test.mjs :: omission duplication and reordering all fail the unified order contract (0.659875ms)
+✔ [verify:release-impact-release-smoke-check-release-rollback-monitoring-o] evidence/114-check-intentos-obligation-evidence.test.mjs :: candidate remains local and does not modify hosted release automation (9.622792ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 148.122042
+
+--- stderr ---

@@ -1,0 +1,44 @@
+{"at":"2026-07-22T16:41:52.975Z","event":"PREFLIGHT_RUNNING","run_id":"vrun-114-check-intentos-modularity-r5"}
+{"at":"2026-07-22T16:41:52.979Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"EXECUTABLE_AVAILABILITY","result":"PASS","reason":"all 7 declared executables resolved in the bounded executor PATH"}
+{"at":"2026-07-22T16:41:52.979Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SOURCE_IDENTITY","result":"PASS","reason":"current project identity matches sha256:816381d68be80abd210ab1cc364c3c0317a666ad197e6061bce1bfe176307175"}
+{"at":"2026-07-22T16:41:52.979Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"WORKTREE_STATE","result":"PASS","reason":"the exact pre-run worktree identity was captured for post-run comparison"}
+{"at":"2026-07-22T16:41:52.979Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"OLD_PROCESS","result":"PASS","reason":"process inventory probe is unavailable on this executor; the run workspace is new, every service is spawned with a fresh owner token, and reusable network endpoints are independently bind-probed"}
+{"at":"2026-07-22T16:41:52.979Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"PORT_CONFLICT","result":"PASS","reason":"no network port is declared or reused by this lifecycle"}
+{"at":"2026-07-22T16:41:52.980Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SENSITIVE_ENVIRONMENT","result":"PASS","reason":"child environment is rebuilt from the non-sensitive allowlist: PATH, LANG, LC_ALL, CI, TERM"}
+{"at":"2026-07-22T16:41:52.980Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"DATA_IDENTITY","result":"PASS","reason":"all 4 declared resources are new run-scoped, non-production, and non-shared paths"}
+{"at":"2026-07-22T16:41:52.980Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SESSION_RESIDUE","result":"PASS","reason":"no run-scoped session namespace existed before execution (1 declared)"}
+{"at":"2026-07-22T16:41:52.980Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"PRODUCTION_RESOURCE_GUARD","result":"PASS","reason":"all actions and resources are explicitly non-production and contain no external-effect command marker"}
+{"at":"2026-07-22T16:41:52.980Z","event":"EXECUTABLE_RESOLVED","action_id":"self-runtime-service","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-22T16:41:52.980Z","event":"EXECUTABLE_RESOLVED","action_id":"self-runtime-negative","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-22T16:41:52.980Z","event":"EXECUTABLE_RESOLVED","action_id":"self-runtime-positive","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-22T16:41:52.980Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-candidate-verification","executable":"/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js"}
+{"at":"2026-07-22T16:41:52.980Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-obligation-evidence","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-22T16:41:52.980Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-modularity-evidence","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-22T16:41:52.980Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-runtime-behavior","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-22T16:41:52.980Z","event":"PREFLIGHT_PASSED"}
+{"at":"2026-07-22T16:41:52.981Z","event":"RESOURCE_CREATED","resource_id":"cache","resource_type":"CACHE_NAMESPACE"}
+{"at":"2026-07-22T16:41:52.981Z","event":"RESOURCE_CREATED","resource_id":"context","resource_type":"SESSION_NAMESPACE"}
+{"at":"2026-07-22T16:41:52.981Z","event":"RESOURCE_CREATED","resource_id":"data","resource_type":"FILE_NAMESPACE"}
+{"at":"2026-07-22T16:41:52.981Z","event":"RESOURCE_CREATED","resource_id":"files","resource_type":"FILE_NAMESPACE"}
+{"at":"2026-07-22T16:41:52.981Z","event":"ACTION_STARTING","action_id":"self-runtime-service","phase":"START_SERVICE","kind":"SERVICE"}
+{"at":"2026-07-22T16:41:53.989Z","event":"SERVICE_OBSERVED","action_id":"self-runtime-service","pid":48656}
+{"at":"2026-07-22T16:41:53.990Z","event":"ACTION_STARTING","action_id":"self-runtime-negative","phase":"VERIFY","kind":"PROBE"}
+{"at":"2026-07-22T16:41:54.036Z","event":"ACTION_FINISHED","action_id":"self-runtime-negative","exit_code":0,"timed_out":false}
+{"at":"2026-07-22T16:41:54.037Z","event":"ACTION_STARTING","action_id":"self-runtime-positive","phase":"VERIFY","kind":"PROBE"}
+{"at":"2026-07-22T16:41:54.077Z","event":"ACTION_FINISHED","action_id":"self-runtime-positive","exit_code":0,"timed_out":false}
+{"at":"2026-07-22T16:41:54.077Z","event":"ACTION_STARTING","action_id":"self-current-candidate-verification","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-22T16:50:13.473Z","event":"ACTION_FINISHED","action_id":"self-current-candidate-verification","exit_code":0,"timed_out":false}
+{"at":"2026-07-22T16:50:13.473Z","event":"ACTION_STARTING","action_id":"self-current-obligation-evidence","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-22T16:50:14.298Z","event":"ACTION_FINISHED","action_id":"self-current-obligation-evidence","exit_code":0,"timed_out":false}
+{"at":"2026-07-22T16:50:14.298Z","event":"ACTION_STARTING","action_id":"self-current-modularity-evidence","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-22T16:50:14.460Z","event":"ACTION_FINISHED","action_id":"self-current-modularity-evidence","exit_code":0,"timed_out":false}
+{"at":"2026-07-22T16:50:14.460Z","event":"ACTION_STARTING","action_id":"self-current-runtime-behavior","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-22T16:50:14.543Z","event":"ACTION_FINISHED","action_id":"self-current-runtime-behavior","exit_code":0,"timed_out":false}
+{"at":"2026-07-22T16:50:14.543Z","event":"CLEANUP_EVIDENCE_BEFORE_RECORDED"}
+{"at":"2026-07-22T16:50:14.543Z","event":"CLEANING_UP"}
+{"at":"2026-07-22T16:50:14.545Z","event":"PROCESS_CLEANED","action_id":"self-runtime-service","pid":48656}
+{"at":"2026-07-22T16:50:14.546Z","event":"RESOURCE_CLEANED","resource_id":"files"}
+{"at":"2026-07-22T16:50:14.546Z","event":"RESOURCE_CLEANED","resource_id":"data"}
+{"at":"2026-07-22T16:50:14.546Z","event":"RESOURCE_CLEANED","resource_id":"context"}
+{"at":"2026-07-22T16:50:14.547Z","event":"RESOURCE_CLEANED","resource_id":"cache"}
+{"at":"2026-07-22T16:50:15.968Z","event":"COMPLETED"}

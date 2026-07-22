@@ -1892,7 +1892,7 @@ test("environment renderer confirms a backend API only from its project-local ve
 });
 
 test("IntentOS BL2 self-check fixture uses requirement-scoped command output receipts", () => {
-  const source = fs.readFileSync(path.join(kitRoot, "scripts/check-intentos.mjs"), "utf8");
+  const source = fs.readFileSync(path.join(kitRoot, "scripts/self-check/generated-project-e2e.mjs"), "utf8");
   assert.doesNotMatch(source, /intentos-generated-bl2-self-check/);
   assert.match(source, /requirement_id: binding\.requirementId/);
   assert.match(source, /command_digest:/);
@@ -2075,6 +2075,25 @@ test("consumer chain classifies scripts, package metadata, deployment files, and
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
+  }
+});
+
+test("consumer chain does not treat extracted self-check suites as release preparation", () => {
+  const root = tempRoot("intentos-114-self-check-consumer-classification-");
+  try {
+    fs.writeFileSync(path.join(root, "README.md"), "# Fixture\n");
+    initializeGit(root);
+    const target = path.join(root, "scripts/self-check/release.mjs");
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, "export function runReleaseChecks() {}\n");
+    git(root, ["add", "-A"]);
+    const result = run("scripts/check-consumer-chain.mjs", [root, "--base", "HEAD"]);
+    assert.notEqual(result.status, 0, "task governance must still apply to a self-check source change");
+    assert.match(combined(result), /task-governed project change detected/i);
+    assert.match(combined(result), /no release preparation change requires the release consumer chain/i);
+    assert.doesNotMatch(combined(result), /Runtime Hygiene requires exactly one changed current report/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
   }
 });
 

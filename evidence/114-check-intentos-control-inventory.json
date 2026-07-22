@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.114.0",
+  "task_ref": "task:12c82c109c92bf447d2fef6ab90654f6bed9f8d6a657e8a632d267297cf6c3a2",
+  "intent_digest": "sha256:336b6588463f13f6d0e2a4c87e19884bfc24623655942589f1f6caf0d7753ae9",
+  "purpose": "Bounded inventory of the eight controls automatically routed by current Task Governance.",
+  "controls": [
+    {
+      "claim_id": "claim:package-script-verify-candidate",
+      "control_id": "package-script:verify:candidate",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:candidate",
+      "category": "RELEASE_ROLLBACK_OR_OPERATIONAL_READINESS"
+    },
+    {
+      "claim_id": "claim:package-script-verify-consumer-chain-candidate",
+      "control_id": "package-script:verify:consumer-chain:candidate",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:consumer-chain:candidate",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-adoption-assurance-mjs",
+      "control_id": "file:scripts/check-adoption-assurance.mjs",
+      "implementation_ref": "file:scripts/check-adoption-assurance.mjs",
+      "consumer": "scripts/check-adoption-assurance.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-ai-workflow-mjs",
+      "control_id": "file:scripts/check-ai-workflow.mjs",
+      "implementation_ref": "file:scripts/check-ai-workflow.mjs",
+      "consumer": "scripts/check-ai-workflow.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-apply-execution-receipt-mjs",
+      "control_id": "file:scripts/check-apply-execution-receipt.mjs",
+      "implementation_ref": "file:scripts/check-apply-execution-receipt.mjs",
+      "consumer": "scripts/check-apply-execution-receipt.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-apply-plan-mjs",
+      "control_id": "file:scripts/check-apply-plan.mjs",
+      "implementation_ref": "file:scripts/check-apply-plan.mjs",
+      "consumer": "scripts/check-apply-plan.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-approval-record-mjs",
+      "control_id": "file:scripts/check-approval-record.mjs",
+      "implementation_ref": "file:scripts/check-approval-record.mjs",
+      "consumer": "scripts/check-approval-record.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-baseline-enforcement-mjs",
+      "control_id": "file:scripts/check-baseline-enforcement.mjs",
+      "implementation_ref": "file:scripts/check-baseline-enforcement.mjs",
+      "consumer": "scripts/check-baseline-enforcement.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    }
+  ],
+  "focused_proof": {
+    "ref": "file:evidence/114-check-intentos-focused-tests.log",
+    "digest": "sha256:094d71df0ee28d5eb57ba736215c148f7aa952fb17086725b26440f628b0d38e",
+    "command": "node --test tests/check-intentos-modularity.test.mjs tests/execution-distribution-trust.test.mjs",
+    "exit_code": 0,
+    "tests": 72
+  }
+}
