@@ -16,6 +16,10 @@ import {
   taskIntentDigest,
   validateTaskGovernanceLineage,
 } from "./lib/task-entry-binding.mjs";
+import {
+  applyWorkQueueTransitions,
+  loadWorkQueueTransitions,
+} from "./lib/work-queue-transition.mjs";
 
 const isMain = process.argv[1] && sameFile(process.argv[1], fileURLToPath(import.meta.url));
 
@@ -64,7 +68,18 @@ export function buildWorkQueueRecommendation(root) {
   const parkingArtifacts = exists ? collectMarkdown(root, paths, /^(follow-up-proposals|status-reports|decision-briefs|scope-change-reports)\//i) : [];
   const gitState = exists ? gitWorktreeState(root) : null;
   const inference = inferWorkItems(queueReports, taskCards, activeThreads, parkingArtifacts);
-  const items = inference.items;
+  const transitionEvidence = exists ? loadWorkQueueTransitions(root) : { transitions: [], errors: [] };
+  const transitionProjection = applyWorkQueueTransitions(inference.items, transitionEvidence);
+  const items = transitionProjection.items;
+  const conflicts = [
+    ...inference.conflicts,
+    ...transitionProjection.errors.map((error) => ({
+      code: "INVALID_STATE_TRANSITION",
+      itemKey: "work-queue-transition-chain",
+      values: [error],
+      representations: [],
+    })),
+  ];
   const current = items.filter((item) => item.state === "CURRENT");
   const paused = items.filter((item) => item.state === "PAUSED");
   const backlog = items.filter((item) => item.state === "BACKLOG");
@@ -92,7 +107,7 @@ export function buildWorkQueueRecommendation(root) {
     backlog,
     blocked,
     gitState,
-    conflicts: inference.conflicts,
+    conflicts,
   });
 
   return {
@@ -114,8 +129,10 @@ export function buildWorkQueueRecommendation(root) {
       typedTaskGovernanceReportCount: typedEvidence.governance.length,
       typedCompletionEvidenceReportCount: typedEvidence.completions.length,
       invalidTypedTaskReportCount: typedEvidence.invalid.length,
+      transitionReportCount: transitionEvidence.transitions.length,
+      appliedTransitionCount: transitionProjection.applied.length,
     },
-    canonicalizationConflicts: inference.conflicts,
+    canonicalizationConflicts: conflicts,
     currentTaskCount: current.length,
     currentTaskCandidates: current,
     canonicalCurrentTaskIdentity,
@@ -130,8 +147,8 @@ export function buildWorkQueueRecommendation(root) {
       changedFileCount: 0,
       changedFilesSample: [],
     },
-    recommendedQueueActions: actionsFor({ exists, current, paused, backlog, blocked, queueReports, taskCards, gitState, conflicts: inference.conflicts }),
-    humanDecisionsNeeded: decisionsFor({ exists, current, paused, backlog, blocked, conflicts: inference.conflicts }),
+    recommendedQueueActions: actionsFor({ exists, current, paused, backlog, blocked, queueReports, taskCards, gitState, conflicts }),
+    humanDecisionsNeeded: decisionsFor({ exists, current, paused, backlog, blocked, conflicts }),
     boundary: {
       changesTaskState: "No",
       approvesImplementation: "No",
@@ -141,7 +158,7 @@ export function buildWorkQueueRecommendation(root) {
       overridesTaskSpecOrReviewLoop: "No",
       resumesStaleWorkWithoutReview: "No",
     },
-    outcome: outcomeFor({ exists, current, paused, queueReports, conflicts: inference.conflicts }),
+    outcome: outcomeFor({ exists, current, paused, queueReports, conflicts }),
   };
 }
 

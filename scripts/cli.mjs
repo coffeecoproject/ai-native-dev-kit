@@ -769,6 +769,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "work-queue-transition": {
+    description: "Record an append-only task succession without rewriting Work Queue history.",
+    script: "scripts/resolve-work-queue-transition.mjs",
+    writes: true,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "work-queue-transition-check": {
+    description: "Check immutable source bindings and linear Work Queue task succession.",
+    script: "scripts/check-work-queue-transition.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "queue-takeover": {
     description: "Review whether an old project's task records should be mapped or taken over by IntentOS Work Queue.",
     script: "scripts/resolve-work-queue-takeover.mjs",

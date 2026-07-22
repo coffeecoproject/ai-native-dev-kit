@@ -40,6 +40,7 @@
     "self-check": "node scripts/check-intentos.mjs",
     "fixtures": "node scripts/check-fixtures.mjs",
     "smoke:init": "node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-cli-smoke --goal \"create an IntentOS CLI smoke project\"",
+    "verify:work-queue-transition": "node --check scripts/lib/work-queue-transition.mjs && node --check scripts/resolve-work-queue-transition.mjs && node --check scripts/check-work-queue-transition.mjs && node --test tests/work-queue-transition.test.mjs && node scripts/check-work-queue-transition.mjs .",
     "verify:release-topology": "node --check scripts/lib/release-execution-topology.mjs && node --check scripts/resolve-release-execution-topology.mjs && node --check scripts/check-release-execution-topology.mjs && node --test tests/release-execution-topology.test.mjs && node scripts/check-release-execution-topology.mjs . --allow-empty",
     "verify:release-topology-consumers": "node --check scripts/lib/release-topology-consumer.mjs && node --test tests/release-topology-consumer.test.mjs",
     "verify:release-topology-migration": "node --check scripts/lib/release-topology-migration.mjs && node --check scripts/resolve-release-topology-migration.mjs && node --check scripts/check-release-topology-migration.mjs && node --test tests/release-topology-migration.test.mjs && node scripts/check-release-topology-migration.mjs . --allow-empty",

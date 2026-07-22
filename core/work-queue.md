@@ -56,6 +56,13 @@ The Work Queue does not:
 
 The Work Queue is a routing and state ledger. It is not execution permission.
 
+Published Work Queue snapshots are immutable evidence. When a completed
+`CURRENT` task must yield to a successor, record an append-only Work Queue
+State Transition instead of editing the old snapshot. The transition binds the
+exact predecessor and successor source digests, projects the predecessor to
+`DONE`, and projects the successor as the only effective `CURRENT` task.
+Invalid, stale, forked, duplicated, or non-linear transitions fail closed.
+
 ## State Definitions
 
 `CURRENT`
@@ -104,6 +111,17 @@ When the user changes topic while a task is active:
 3. If switching tasks, record the current task as `PAUSED` or `BLOCKED`.
 4. Promote only one task to `CURRENT`.
 5. Do not treat "next-step suggestions" or backlog notes as permission to execute them.
+
+## Immutable Completion Transition
+
+Use `resolve-work-queue-transition.mjs` only after an explicit current user
+decision identifies the exact successor. A transition:
+
+- never rewrites either Work Queue snapshot;
+- never authorizes implementation, commit, push, release, or production;
+- must bind one `CURRENT` predecessor and one `CURRENT` successor snapshot;
+- must form one linear sequence with earlier transitions;
+- becomes invalid if either bound snapshot changes later.
 
 ## Long-Running Task Rules
 

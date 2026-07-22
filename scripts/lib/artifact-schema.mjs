@@ -58,6 +58,7 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/verification-runtime-lifecycle-plan.schema.json": "sha256:5728eeebb3dd7d35d794c36b7cce5fe0377a34b1cc7d32fcc19276a11c1b8aff",
   "schemas/artifacts/verification-runtime-plan.schema.json": "sha256:8e20158e122c2eaa632f8e24221d65594bebaf0dbe5c9350e8e7ade9c01ac6cd",
   "schemas/artifacts/work-queue-takeover.schema.json": "sha256:0d6c56331085c61c308b9e24cef243ff50febd74f436787d409d867707a9a538",
+  "schemas/artifacts/work-queue-state-transition.schema.json": "sha256:d28e1341409bb5f8e9a10c4d670c86b279853600d41d0d8c0ddcef99b3a55c19",
   "schemas/artifacts/behavioral-adoption-activation.schema.json": "sha256:c4cdbce4d20961eabe550ebdf5b1e33d1b4ef400916398b811eaadd0b3572972",
 };
 

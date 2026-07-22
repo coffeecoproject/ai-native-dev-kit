@@ -54,6 +54,13 @@ Codex should not:
 ```bash
 node scripts/resolve-work-queue.mjs .
 node scripts/check-work-queue.mjs .
+node scripts/resolve-work-queue-transition.mjs . \
+  --predecessor work-queue/previous.md#WQ-001 \
+  --successor work-queue/current.md#WQ-002 \
+  --sequence 1 \
+  --decision-ref user-confirmation:<date> \
+  --out work-queue-transitions/001-previous-to-current.md
+node scripts/check-work-queue-transition.mjs . --require-report
 node scripts/new-workflow-item.mjs --type work-queue-report --name current-work
 ```
 
@@ -62,6 +69,7 @@ CLI aliases:
 ```bash
 node scripts/cli.mjs work-queue .
 node scripts/cli.mjs work-queue-check .
+node scripts/cli.mjs work-queue-transition-check . --require-report
 ```
 
 ## Recommended Flow
@@ -72,6 +80,11 @@ node scripts/cli.mjs work-queue-check .
 4. Keep only one task as `CURRENT`.
 5. Before resuming a paused task, run resume review.
 6. Close finished work as `DONE` with evidence.
+
+For a published Work Queue snapshot, step 6 is represented by an append-only
+state transition. Do not edit the historical snapshot merely to replace
+`CURRENT` with `DONE`; the transition projection supplies the effective state
+while preserving the old evidence digest.
 
 ## Relationship To Other Layers
 

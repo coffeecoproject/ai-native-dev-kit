@@ -66,7 +66,7 @@
       "id": "self-current-obligation-evidence",
       "phase": "VERIFY",
       "kind": "COMMAND",
-      "argv": ["node", "--test", "--test-concurrency=1", "tests/113-task-obligation-evidence.test.mjs"],
+      "argv": ["node", "--test", "--test-concurrency=1", "tests/114-work-queue-transition-obligation-evidence.test.mjs"],
       "cwd": ".",
       "timeout_ms": 1800000,
       "environment": [],

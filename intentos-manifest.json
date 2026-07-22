@@ -150,6 +150,7 @@
       "checklists/verification-runtime-adapter-review.md",
       "checklists/verification-runtime-lifecycle-review.md",
       "checklists/verification-runtime-trust-review.md",
+      "checklists/work-queue-state-transition-review.md",
       "checklists/work-queue-takeover-review.md",
       "checklists/workflow-adoption-map-review.md",
       "checklists/workflow-guidance-review.md",
@@ -2047,6 +2048,7 @@
       "schemas/artifacts/verification-run-manifest.schema.json",
       "schemas/artifacts/verification-runtime-lifecycle-plan.schema.json",
       "schemas/artifacts/verification-runtime-plan.schema.json",
+      "schemas/artifacts/work-queue-state-transition.schema.json",
       "schemas/artifacts/work-queue-takeover.schema.json",
       "schemas/intentos-manifest.schema.json",
       "scope-change-reports/.gitkeep",
@@ -2146,6 +2148,7 @@
       "scripts/check-verification-runtime-lifecycle.mjs",
       "scripts/check-verification-runtime-plan.mjs",
       "scripts/check-work-queue-takeover.mjs",
+      "scripts/check-work-queue-transition.mjs",
       "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-guidance.mjs",
@@ -2192,6 +2195,7 @@
       "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/task-obligations.mjs",
+      "scripts/lib/work-queue-transition.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
       "scripts/lib/verification-runtime-lifecycle.mjs",
@@ -2253,6 +2257,7 @@
       "scripts/resolve-verification-runtime-lifecycle.mjs",
       "scripts/resolve-verification-runtime-plan.mjs",
       "scripts/resolve-work-queue-takeover.mjs",
+      "scripts/resolve-work-queue-transition.mjs",
       "scripts/resolve-workflow-guidance.mjs",
       "scripts/run-verification-runtime.mjs",
       "scripts/score-output-quality.mjs",
@@ -2567,6 +2572,7 @@
       "templates/verification-runtime-lifecycle-plan.md",
       "templates/verification-runtime-plan.md",
       "templates/version-record.md",
+      "templates/work-queue-state-transition.md",
       "templates/work-queue-takeover-report.md",
       "templates/workflow-adoption-map.md",
       "templates/workflow-daily-summary.md",
@@ -3166,6 +3172,7 @@
       "test-fixtures/output-quality/README.md",
       "tests/113-runtime-behavior-evidence.test.mjs",
       "tests/113-task-obligation-evidence.test.mjs",
+      "tests/114-work-queue-transition-obligation-evidence.test.mjs",
       "tests/active-guidance-distribution-closeout.test.mjs",
       "tests/active-guidance-semantic-hardcut.test.mjs",
       "tests/business-universe-consumer-chain.test.mjs",
@@ -3194,6 +3201,7 @@
       "tests/request-bound-apply-authority.test.mjs",
       "tests/review-context-authority.test.mjs",
       "tests/task-obligation-hardcut.test.mjs",
+      "tests/work-queue-transition.test.mjs",
       "tests/test-evidence-obligation-proof.test.mjs",
       "tests/typed-consumer-contract.test.mjs",
       "tests/understanding-planning-closure.test.mjs",
@@ -3207,6 +3215,7 @@
       "verification-runtime-lifecycle-plans/.gitkeep",
       "verification-runtime-plans/.gitkeep",
       "work-queue-takeover-reports/.gitkeep",
+      "work-queue-transitions/.gitkeep",
       "workflow-adoption-maps/.gitkeep",
       "workflow-guidance-cards/.gitkeep"
     ],
@@ -3862,6 +3871,7 @@
       "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/task-obligations.mjs",
+      "scripts/lib/work-queue-transition.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
       "scripts/lib/verification-runtime-lifecycle.mjs",
@@ -4721,6 +4731,7 @@
       "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/task-obligations.mjs",
+      "scripts/lib/work-queue-transition.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
       "scripts/lib/verification-runtime-lifecycle.mjs",
@@ -5110,6 +5121,7 @@
       "templates/subagent-run-plan.md",
       "templates/task-card.md",
       "templates/task-governance-report.md",
+      "templates/work-queue-state-transition.md",
       "templates/tech-stack-strategy.md",
       "templates/unified-apply-plan.md",
       "templates/user-decision-card.md",
@@ -5306,6 +5318,7 @@
       "checklists/verification-runtime-lifecycle-review.md",
       "checklists/verification-runtime-trust-review.md",
       "checklists/work-queue-review.md",
+      "checklists/work-queue-state-transition-review.md",
       "checklists/workflow-adoption-map-review.md",
       "checklists/workflow-guidance-review.md"
     ],
@@ -5529,6 +5542,7 @@
       "scripts/check-verification-runtime-lifecycle.mjs",
       "scripts/check-verification-runtime-plan.mjs",
       "scripts/check-work-queue-takeover.mjs",
+      "scripts/check-work-queue-transition.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
@@ -5571,6 +5585,7 @@
       "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/task-obligations.mjs",
+      "scripts/lib/work-queue-transition.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
       "scripts/lib/verification-runtime-lifecycle.mjs",
@@ -5628,6 +5643,7 @@
       "scripts/resolve-verification-runtime-lifecycle.mjs",
       "scripts/resolve-verification-runtime-plan.mjs",
       "scripts/resolve-work-queue-takeover.mjs",
+      "scripts/resolve-work-queue-transition.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
       "scripts/run-verification-runtime.mjs",
@@ -7101,6 +7117,7 @@
       "scripts/check-verification-runtime-lifecycle.mjs",
       "scripts/check-verification-runtime-plan.mjs",
       "scripts/check-work-queue-takeover.mjs",
+      "scripts/check-work-queue-transition.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
@@ -7147,6 +7164,7 @@
       "scripts/lib/target-topology.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/lib/task-obligations.mjs",
+      "scripts/lib/work-queue-transition.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
       "scripts/lib/verification-runtime-lifecycle.mjs",
@@ -7204,6 +7222,7 @@
       "scripts/resolve-verification-runtime-lifecycle.mjs",
       "scripts/resolve-verification-runtime-plan.mjs",
       "scripts/resolve-work-queue-takeover.mjs",
+      "scripts/resolve-work-queue-transition.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
       "scripts/run-verification-runtime.mjs",
@@ -8492,6 +8511,10 @@
         "target": ".intentos/schemas/artifacts/work-queue-takeover.schema.json"
       },
       {
+        "source": "schemas/artifacts/work-queue-state-transition.schema.json",
+        "target": ".intentos/schemas/artifacts/work-queue-state-transition.schema.json"
+      },
+      {
         "source": "scripts/baseline-project.mjs",
         "target": "scripts/baseline-project.mjs"
       },
@@ -8844,6 +8867,10 @@
         "target": "scripts/check-work-queue-takeover.mjs"
       },
       {
+        "source": "scripts/check-work-queue-transition.mjs",
+        "target": "scripts/check-work-queue-transition.mjs"
+      },
+      {
         "source": "scripts/check-work-queue.mjs",
         "target": "scripts/check-work-queue.mjs"
       },
@@ -9022,6 +9049,10 @@
       {
         "source": "scripts/lib/task-entry-binding.mjs",
         "target": "scripts/lib/task-entry-binding.mjs"
+      },
+      {
+        "source": "scripts/lib/work-queue-transition.mjs",
+        "target": "scripts/lib/work-queue-transition.mjs"
       },
       {
         "source": "scripts/lib/task-obligations.mjs",
@@ -9270,6 +9301,10 @@
       {
         "source": "scripts/resolve-work-queue-takeover.mjs",
         "target": "scripts/resolve-work-queue-takeover.mjs"
+      },
+      {
+        "source": "scripts/resolve-work-queue-transition.mjs",
+        "target": "scripts/resolve-work-queue-transition.mjs"
       },
       {
         "source": "scripts/resolve-work-queue.mjs",

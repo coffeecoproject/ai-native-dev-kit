@@ -22,6 +22,10 @@ import {
   defaultIgnoredDirs,
   walkRelativePaths,
 } from "./lib/project-signals.mjs";
+import {
+  effectiveSourceStates,
+  loadWorkQueueTransitions,
+} from "./lib/work-queue-transition.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["intent", "json", "format", "out", "task-governance-ref", "current-item-id"]);
@@ -219,6 +223,11 @@ function bindCurrentTaskGovernance(queueItems, takeoverRef) {
 function discoverTaskSources(root, paths) {
   const candidates = [];
   const rejected = [];
+  const transitionProjection = effectiveSourceStates(loadWorkQueueTransitions(root));
+  rejected.push(...transitionProjection.errors.map((error) => ({
+    ref: "work-queue-transitions",
+    error,
+  })));
   for (const relativePath of paths) {
     if (!/\.(md|txt)$/i.test(relativePath)) continue;
     if (!isTaskSourcePath(relativePath)) continue;
@@ -275,6 +284,15 @@ function discoverTaskSources(root, paths) {
       evidence: "",
       structured_row: false,
     });
+  }
+  for (const candidate of candidates) {
+    const effectiveState = transitionProjection.states.get(candidate.source_ref);
+    if (!effectiveState) continue;
+    candidate.queue_state = effectiveState;
+    candidate.status = sourceStatusForQueueState(effectiveState);
+    candidate.evidence = candidate.evidence
+      ? `${candidate.evidence}; effective state from Work Queue transition`
+      : "effective state from Work Queue transition";
   }
   const structuredQueueRows = candidates.filter((source) => source.structured_row && source.source_type === "work_queue");
   const currentAuthority = structuredQueueRows.length > 0

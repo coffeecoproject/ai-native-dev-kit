@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/work-queue-state-transition.schema.json",
+  "title": "Work Queue State Transition Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_type", "transition_ref", "transition_digest",
+    "sequence", "predecessor", "successor", "decision", "boundaries", "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.114.0" },
+    "artifact_type": { "const": "work_queue_state_transition" },
+    "transition_ref": { "type": "string", "pattern": "^work-queue-transitions/.+\\.md$" },
+    "transition_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "sequence": { "type": "integer" },
+    "predecessor": { "$ref": "#/$defs/predecessor" },
+    "successor": { "$ref": "#/$defs/successor" },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "decided_by", "decision_ref"],
+      "properties": {
+        "authority": { "const": "EXPLICIT_CURRENT_USER_DECISION" },
+        "decided_by": { "const": "Human" },
+        "decision_ref": { "type": "string", "minLength": 1 }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rewrites_history", "authorizes_implementation", "approves_commit_or_push", "approves_release_or_production"],
+      "properties": {
+        "rewrites_history": { "const": "No" },
+        "authorizes_implementation": { "const": "No" },
+        "approves_commit_or_push": { "const": "No" },
+        "approves_release_or_production": { "const": "No" }
+      }
+    },
+    "outcome": { "const": "TASK_STATE_TRANSITION_RECORDED" }
+  },
+  "$defs": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_ref", "source_digest", "task_id", "intent_digest", "state"],
+      "properties": {
+        "source_ref": { "type": "string", "pattern": "^work-queue/.+\\.md#[A-Za-z0-9._:-]+$" },
+        "source_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "task_id": { "type": "string", "minLength": 1 },
+        "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "state": { "type": "string" }
+      }
+    },
+    "predecessor": {
+      "allOf": [
+        { "$ref": "#/$defs/binding" },
+        { "properties": { "state": { "const": "CURRENT" } } }
+      ]
+    },
+    "successor": {
+      "allOf": [
+        { "$ref": "#/$defs/binding" },
+        { "properties": { "state": { "const": "CURRENT" } } }
+      ]
+    }
+  }
+}

@@ -10,6 +10,10 @@ import {
   canonicalizeWorkQueueItems,
   parseWorkQueueReport,
 } from "./resolve-work-queue.mjs";
+import {
+  applyWorkQueueTransitions,
+  loadWorkQueueTransitions,
+} from "./lib/work-queue-transition.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "require-report"]);
@@ -195,7 +199,12 @@ function checkReports() {
   }
 
   const canonical = canonicalizeWorkQueueItems(allItems);
-  const current = canonical.items.filter((item) => item.state === "CURRENT");
+  const transitionProjection = applyWorkQueueTransitions(
+    canonical.items,
+    loadWorkQueueTransitions(projectRoot),
+  );
+  for (const error of transitionProjection.errors) fail(`Work Queue transition invalid: ${error}`);
+  const current = transitionProjection.items.filter((item) => item.state === "CURRENT");
   queueStats.currentTaskCount = current.length;
   queueStats.currentTaskCandidates = current;
   queueStats.canonicalizationConflicts = canonical.conflicts;
