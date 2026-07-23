@@ -308,6 +308,13 @@ test("[verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders] 
   const internalCliPath = path.join(repoRoot, "scripts/new-workflow-item/cli.mjs");
   assert.equal(fs.statSync(internalCliPath).mode & 0o111, 0, "the internal CLI module must not become a second executable entry");
   assert.doesNotMatch(fs.readFileSync(internalCliPath, "utf8"), /^#!\//, "the internal CLI module must not declare a second shebang entry");
+  const fillerEntryPath = path.join(repoRoot, "scripts/new-workflow-item/fillers.mjs");
+  assert.ok(fs.readFileSync(fillerEntryPath, "utf8").split("\n").length < 120, "the filler entry must remain a thin dispatcher");
+  for (const name of ["baseline", "frontmatter", "governance", "reporting", "review", "routing", "workflow"]) {
+    const modulePath = path.join(repoRoot, `scripts/new-workflow-item/fillers/${name}.mjs`);
+    assert.equal(fs.statSync(modulePath).mode & 0o111, 0, `${name} filler module must remain non-executable`);
+    assert.doesNotMatch(fs.readFileSync(modulePath, "utf8"), /^#!\//, `${name} filler module must not declare a shebang`);
+  }
 });
 
 test("[verify:test-coverage-regression-smoke-task-specific-verification-exists] tests/new-workflow-item-characterization.test.mjs :: task-specific characterization remains executable", () => {

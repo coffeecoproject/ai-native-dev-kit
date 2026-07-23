@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.117.0",
+  "task_ref": "task:eb30b49e331932c47887de0c020071cf667e9d4fafdb2a10eff7b024852d8303",
+  "intent_digest": "sha256:d1c5f4cf8d8a1c2889d130f221adebfbae39944a5a7e67292002d58b322f3522",
+  "purpose": "Bounded inventory of the eight controls routed by current Task Governance for the filler structural refactor.",
+  "controls": [
+    { "claim_id": "claim:package-script-verify-candidate", "control_id": "package-script:verify:candidate", "implementation_ref": "file:package.json", "consumer": "package-script:verify:candidate", "category": "RELEASE_ROLLBACK_OR_OPERATIONAL_READINESS" },
+    { "claim_id": "claim:package-script-verify-consumer-chain-candidate", "control_id": "package-script:verify:consumer-chain:candidate", "implementation_ref": "file:package.json", "consumer": "package-script:verify:consumer-chain:candidate", "category": "POLICY_OR_SCHEMA_CONFORMANCE" },
+    { "claim_id": "claim:file-scripts-check-adoption-assurance-mjs", "control_id": "file:scripts/check-adoption-assurance.mjs", "implementation_ref": "file:scripts/check-adoption-assurance.mjs", "consumer": "scripts/check-adoption-assurance.mjs", "category": "POLICY_OR_SCHEMA_CONFORMANCE" },
+    { "claim_id": "claim:file-scripts-check-ai-workflow-mjs", "control_id": "file:scripts/check-ai-workflow.mjs", "implementation_ref": "file:scripts/check-ai-workflow.mjs", "consumer": "scripts/check-ai-workflow.mjs", "category": "POLICY_OR_SCHEMA_CONFORMANCE" },
+    { "claim_id": "claim:file-scripts-check-apply-execution-receipt-mjs", "control_id": "file:scripts/check-apply-execution-receipt.mjs", "implementation_ref": "file:scripts/check-apply-execution-receipt.mjs", "consumer": "scripts/check-apply-execution-receipt.mjs", "category": "POLICY_OR_SCHEMA_CONFORMANCE" },
+    { "claim_id": "claim:file-scripts-check-apply-plan-mjs", "control_id": "file:scripts/check-apply-plan.mjs", "implementation_ref": "file:scripts/check-apply-plan.mjs", "consumer": "scripts/check-apply-plan.mjs", "category": "POLICY_OR_SCHEMA_CONFORMANCE" },
+    { "claim_id": "claim:file-scripts-check-approval-record-mjs", "control_id": "file:scripts/check-approval-record.mjs", "implementation_ref": "file:scripts/check-approval-record.mjs", "consumer": "scripts/check-approval-record.mjs", "category": "POLICY_OR_SCHEMA_CONFORMANCE" },
+    { "claim_id": "claim:file-scripts-check-baseline-enforcement-mjs", "control_id": "file:scripts/check-baseline-enforcement.mjs", "implementation_ref": "file:scripts/check-baseline-enforcement.mjs", "consumer": "scripts/check-baseline-enforcement.mjs", "category": "STATIC_CORRECTNESS" }
+  ],
+  "focused_proof": {
+    "ref": "file:evidence/117-fillers-modularity-baseline-tests.log",
+    "command": "node --test tests/new-workflow-item-characterization.test.mjs tests/117-fillers-modularity-governance-obligations.test.mjs",
+    "exit_code": 0,
+    "tests": 26
+  }
+}

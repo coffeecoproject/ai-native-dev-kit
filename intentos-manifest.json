@@ -2208,6 +2208,13 @@
       "scripts/new-workflow-item.mjs",
       "scripts/new-workflow-item/cli.mjs",
       "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/fillers/baseline.mjs",
+      "scripts/new-workflow-item/fillers/frontmatter.mjs",
+      "scripts/new-workflow-item/fillers/governance.mjs",
+      "scripts/new-workflow-item/fillers/reporting.mjs",
+      "scripts/new-workflow-item/fillers/review.mjs",
+      "scripts/new-workflow-item/fillers/routing.mjs",
+      "scripts/new-workflow-item/fillers/workflow.mjs",
       "scripts/new-workflow-item/references.mjs",
       "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-adoption-assurance.mjs",
@@ -3191,6 +3198,7 @@
       "tests/114-work-queue-transition-obligation-evidence.test.mjs",
       "tests/115-init-project-obligation-evidence.test.mjs",
       "tests/116-new-workflow-item-governance-obligations.test.mjs",
+      "tests/117-fillers-modularity-governance-obligations.test.mjs",
       "tests/new-workflow-item-characterization.test.mjs",
       "tests/active-guidance-distribution-closeout.test.mjs",
       "tests/active-guidance-semantic-hardcut.test.mjs",
@@ -3900,6 +3908,13 @@
       "scripts/new-workflow-item.mjs",
       "scripts/new-workflow-item/cli.mjs",
       "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/fillers/baseline.mjs",
+      "scripts/new-workflow-item/fillers/frontmatter.mjs",
+      "scripts/new-workflow-item/fillers/governance.mjs",
+      "scripts/new-workflow-item/fillers/reporting.mjs",
+      "scripts/new-workflow-item/fillers/review.mjs",
+      "scripts/new-workflow-item/fillers/routing.mjs",
+      "scripts/new-workflow-item/fillers/workflow.mjs",
       "scripts/new-workflow-item/references.mjs",
       "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-apply-plan.mjs",
@@ -4764,6 +4779,13 @@
       "scripts/new-workflow-item.mjs",
       "scripts/new-workflow-item/cli.mjs",
       "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/fillers/baseline.mjs",
+      "scripts/new-workflow-item/fillers/frontmatter.mjs",
+      "scripts/new-workflow-item/fillers/governance.mjs",
+      "scripts/new-workflow-item/fillers/reporting.mjs",
+      "scripts/new-workflow-item/fillers/review.mjs",
+      "scripts/new-workflow-item/fillers/routing.mjs",
+      "scripts/new-workflow-item/fillers/workflow.mjs",
       "scripts/new-workflow-item/references.mjs",
       "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-adoption-assurance.mjs",
@@ -5627,6 +5649,13 @@
       "scripts/new-workflow-item.mjs",
       "scripts/new-workflow-item/cli.mjs",
       "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/fillers/baseline.mjs",
+      "scripts/new-workflow-item/fillers/frontmatter.mjs",
+      "scripts/new-workflow-item/fillers/governance.mjs",
+      "scripts/new-workflow-item/fillers/reporting.mjs",
+      "scripts/new-workflow-item/fillers/review.mjs",
+      "scripts/new-workflow-item/fillers/routing.mjs",
+      "scripts/new-workflow-item/fillers/workflow.mjs",
       "scripts/new-workflow-item/references.mjs",
       "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-adoption-assurance.mjs",
@@ -7217,6 +7246,13 @@
       "scripts/new-workflow-item.mjs",
       "scripts/new-workflow-item/cli.mjs",
       "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/fillers/baseline.mjs",
+      "scripts/new-workflow-item/fillers/frontmatter.mjs",
+      "scripts/new-workflow-item/fillers/governance.mjs",
+      "scripts/new-workflow-item/fillers/reporting.mjs",
+      "scripts/new-workflow-item/fillers/review.mjs",
+      "scripts/new-workflow-item/fillers/routing.mjs",
+      "scripts/new-workflow-item/fillers/workflow.mjs",
       "scripts/new-workflow-item/references.mjs",
       "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-adoption-assurance.mjs",
@@ -7892,6 +7928,13 @@
       "scripts/new-workflow-item.mjs",
       "scripts/new-workflow-item/cli.mjs",
       "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/fillers/baseline.mjs",
+      "scripts/new-workflow-item/fillers/frontmatter.mjs",
+      "scripts/new-workflow-item/fillers/governance.mjs",
+      "scripts/new-workflow-item/fillers/reporting.mjs",
+      "scripts/new-workflow-item/fillers/review.mjs",
+      "scripts/new-workflow-item/fillers/routing.mjs",
+      "scripts/new-workflow-item/fillers/workflow.mjs",
       "scripts/new-workflow-item/references.mjs",
       "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-apply-plan.mjs",
@@ -9138,6 +9181,34 @@
       {
         "source": "scripts/new-workflow-item/fillers.mjs",
         "target": "scripts/new-workflow-item/fillers.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/fillers/baseline.mjs",
+        "target": "scripts/new-workflow-item/fillers/baseline.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/fillers/frontmatter.mjs",
+        "target": "scripts/new-workflow-item/fillers/frontmatter.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/fillers/governance.mjs",
+        "target": "scripts/new-workflow-item/fillers/governance.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/fillers/reporting.mjs",
+        "target": "scripts/new-workflow-item/fillers/reporting.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/fillers/review.mjs",
+        "target": "scripts/new-workflow-item/fillers/review.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/fillers/routing.mjs",
+        "target": "scripts/new-workflow-item/fillers/routing.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/fillers/workflow.mjs",
+        "target": "scripts/new-workflow-item/fillers/workflow.mjs"
       },
       {
         "source": "scripts/new-workflow-item/references.mjs",

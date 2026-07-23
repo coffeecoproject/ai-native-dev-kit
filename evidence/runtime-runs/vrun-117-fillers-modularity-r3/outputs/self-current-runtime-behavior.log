@@ -1,0 +1,12 @@
+✔ [verify:runtime-behavior-regression-smoke-the-current-code-runs-through-] tests/113-runtime-behavior-evidence.test.mjs :: current run-owned service and data path complete a positive state transition (1.940458ms)
+✔ [verify:runtime-behavior-regression-smoke-the-current-code-runs-through-] tests/113-runtime-behavior-evidence.test.mjs :: stale and cross-run identities are rejected by the negative path (0.215792ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48.836459
+
+process_signal=none

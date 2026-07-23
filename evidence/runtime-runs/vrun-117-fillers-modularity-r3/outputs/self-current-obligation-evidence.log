@@ -1,0 +1,34 @@
+✔ [verify:background-work-integration-contract-check-scheduled-queued-retr] tests/117-fillers-modularity-governance-obligations.test.mjs :: filler modules start no background work (1.060375ms)
+✔ [verify:rollback-recovery-release-smoke-check-failure-interruption-rollb] tests/117-fillers-modularity-governance-obligations.test.mjs :: filler split remains a reversible internal boundary (0.811333ms)
+✔ new-workflow-item keeps the complete ordered type and alias registries (2.956125ms)
+✔ all registered artifact types preserve generated paths, content, and terminal output (6379.344125ms)
+✔ [verify:universe-b8dd1d9c-expected] tests/new-workflow-item-characterization.test.mjs :: canonical registry remains complete and ordered (0.932333ms)
+✔ [verify:universe-b8dd1d9c-negative] tests/new-workflow-item-characterization.test.mjs :: canonical registry drift remains rejected (0.811583ms)
+✔ [verify:universe-56d2048a-expected] tests/new-workflow-item-characterization.test.mjs :: aliases retain canonical behavior (210.586125ms)
+✔ [verify:universe-56d2048a-negative] tests/new-workflow-item-characterization.test.mjs :: unknown types remain rejected (74.456792ms)
+✔ [verify:universe-f7a09c69-expected] tests/new-workflow-item-characterization.test.mjs :: generated reference-bearing artifacts retain normalized content (0.210875ms)
+✔ [verify:universe-f7a09c69-negative] tests/new-workflow-item-characterization.test.mjs :: missing required invocation context remains fail-closed (72.241375ms)
+✔ [verify:universe-3dba46f4-expected] tests/new-workflow-item-characterization.test.mjs :: normalized generated content remains byte-equivalent (0.462ms)
+✔ [verify:universe-3dba46f4-negative] tests/new-workflow-item-characterization.test.mjs :: cross-type content drift remains detectable (0.350125ms)
+✔ [verify:universe-540374ea-expected] tests/new-workflow-item-characterization.test.mjs :: successful invocation creates exactly one safe artifact (0.144625ms)
+✔ [verify:universe-540374ea-negative] tests/new-workflow-item-characterization.test.mjs :: existing targets remain fail-closed (101.292334ms)
+✔ [verify:universe-6819b2ed-expected] tests/new-workflow-item-characterization.test.mjs :: success output and exit behavior remain locked (0.087542ms)
+✔ [verify:universe-6819b2ed-negative] tests/new-workflow-item-characterization.test.mjs :: failed invocation cannot report success (75.048125ms)
+✔ [verify:universe-73185d04-expected] tests/new-workflow-item-characterization.test.mjs :: public entry replays every canonical type (0.168667ms)
+✔ [verify:universe-73185d04-negative] tests/new-workflow-item-characterization.test.mjs :: executable parity remains mandatory (0.0455ms)
+✔ [verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-] tests/new-workflow-item-characterization.test.mjs :: CLI user flow remains executable without a rendered UI (0.043167ms)
+✔ [verify:user-flow-regression-smoke-existing-critical-flow-still-works-af] tests/new-workflow-item-characterization.test.mjs :: critical generator flow remains behavior-equivalent (0.072458ms)
+✔ [verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders] tests/new-workflow-item-characterization.test.mjs :: structural handoff boundary remains explicit (0.481375ms)
+✔ [verify:test-coverage-regression-smoke-task-specific-verification-exists] tests/new-workflow-item-characterization.test.mjs :: task-specific characterization remains executable (0.031834ms)
+✔ representative aliases behave exactly like their canonical types (836.758542ms)
+✔ invalid input and overwrite protection retain non-zero exits (203.260958ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8011.855375
+
+process_signal=none
