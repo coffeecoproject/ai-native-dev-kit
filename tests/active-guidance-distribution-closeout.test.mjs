@@ -22,9 +22,9 @@ function output(result) {
 }
 
 test("1.107.1 generated Codex project passes the effective guidance authority scan", () => {
-  const initSource = fs.readFileSync(path.join(kitRoot, "scripts/init-project.mjs"), "utf8");
-  assert.doesNotMatch(initSource, /Stop and ask before changing auth, tenant boundaries, data schema, release automation, or production defaults/);
-  assert.match(initSource, /Codex must perform the required evidence-backed technical review and continue only when the bounded plan is safe/);
+  const initAssetSource = fs.readFileSync(path.join(kitRoot, "scripts/init-project/assets.mjs"), "utf8");
+  assert.doesNotMatch(initAssetSource, /Stop and ask before changing auth, tenant boundaries, data schema, release automation, or production defaults/);
+  assert.match(initAssetSource, /Codex must perform the required evidence-backed technical review and continue only when the bounded plan is safe/);
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-guidance-new-"));
   try {
     const initialized = run("scripts/init-project.mjs", [

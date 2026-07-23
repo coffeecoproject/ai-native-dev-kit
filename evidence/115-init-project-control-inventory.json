@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.115.0",
+  "task_ref": "task:f82675870e9e2341f98b93432ad6faa433aea028d5228a2634502c9ef202c27e",
+  "intent_digest": "sha256:7af7cae362f877411080859f0949df74dce0f47274ca75ef39e33bf2611ec435",
+  "purpose": "Bounded inventory of the eight controls automatically routed by current Task Governance for the init-project structural refactor.",
+  "controls": [
+    {
+      "claim_id": "claim:package-script-verify-candidate",
+      "control_id": "package-script:verify:candidate",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:candidate",
+      "category": "RELEASE_ROLLBACK_OR_OPERATIONAL_READINESS"
+    },
+    {
+      "claim_id": "claim:package-script-verify-consumer-chain-candidate",
+      "control_id": "package-script:verify:consumer-chain:candidate",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:consumer-chain:candidate",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:package-script-verify-planning-closure",
+      "control_id": "package-script:verify:planning-closure",
+      "implementation_ref": "file:package.json",
+      "consumer": "package-script:verify:planning-closure",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-adoption-assurance-mjs",
+      "control_id": "file:scripts/check-adoption-assurance.mjs",
+      "implementation_ref": "file:scripts/check-adoption-assurance.mjs",
+      "consumer": "scripts/check-adoption-assurance.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-ai-workflow-mjs",
+      "control_id": "file:scripts/check-ai-workflow.mjs",
+      "implementation_ref": "file:scripts/check-ai-workflow.mjs",
+      "consumer": "scripts/check-ai-workflow.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-apply-execution-receipt-mjs",
+      "control_id": "file:scripts/check-apply-execution-receipt.mjs",
+      "implementation_ref": "file:scripts/check-apply-execution-receipt.mjs",
+      "consumer": "scripts/check-apply-execution-receipt.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-apply-plan-mjs",
+      "control_id": "file:scripts/check-apply-plan.mjs",
+      "implementation_ref": "file:scripts/check-apply-plan.mjs",
+      "consumer": "scripts/check-apply-plan.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    },
+    {
+      "claim_id": "claim:file-scripts-check-approval-record-mjs",
+      "control_id": "file:scripts/check-approval-record.mjs",
+      "implementation_ref": "file:scripts/check-approval-record.mjs",
+      "consumer": "scripts/check-approval-record.mjs",
+      "category": "POLICY_OR_SCHEMA_CONFORMANCE"
+    }
+  ],
+  "focused_proof": {
+    "ref": "file:evidence/115-init-project-baseline-tests.log",
+    "command": "node --test --test-concurrency=1 tests/init-project-modularity.test.mjs tests/project-entry-new-project-transaction.test.mjs tests/project-entry-generated-parity.test.mjs tests/controlled-apply-transaction.test.mjs tests/execution-distribution-trust.test.mjs",
+    "exit_code": 0,
+    "tests": 124
+  }
+}

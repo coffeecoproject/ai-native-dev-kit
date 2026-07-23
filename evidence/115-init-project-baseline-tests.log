@@ -1,0 +1,37 @@
+IntentOS 1.115 init-project modularity final-candidate focused verification
+
+command: node --test --test-concurrency=1 tests/init-project-modularity.test.mjs tests/project-entry-new-project-transaction.test.mjs tests/project-entry-generated-parity.test.mjs tests/controlled-apply-transaction.test.mjs tests/execution-distribution-trust.test.mjs
+working_directory: /Users/liushan/Developer/CodingFlow/ai-native-dev-kit
+observed_at: 2026-07-23 Asia/Shanghai
+exit_code: 0
+duration_ms: 335679.956166
+tests: 124
+pass: 124
+fail: 0
+cancelled: 0
+skipped: 0
+todo: 0
+
+Covered behavior groups:
+- CLI and plan generation parity for absent and existing projects.
+- Generated-project cold start, starter activation, and strict operating route.
+- Request-bound controlled apply authority and stale-plan rejection.
+- Atomic bootstrap for absent, empty, reviewed non-empty, and conflicting targets.
+- Mutation ordering, receipt verification, and exact topology preservation.
+- Failure rollback after staged writes, activation failure, and atomic commit.
+- Hard interruption, orphan journal, PREPARED/STAGED recovery, and cleanup ownership.
+- Symlink race rejection for bootstrap writes and rollback paths.
+- Installed/source distribution trust, baseline selection, and governed adoption.
+- Thin public entry, acyclic module dependencies, Manifest authority, and package
+  verification wiring.
+
+Retention note: this compact result record deliberately avoids duplicating the full
+124-test stdout. The project test files remain the authoritative case inventory.
+
+Formal project-entry replay:
+- command: npm run verify:project-entry
+- exit_code: 0
+- duration_ms: 244266.043833
+- tests: 95
+- pass: 95
+- fail: 0

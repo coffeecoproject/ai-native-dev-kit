@@ -1,0 +1,34 @@
+✔ [verify:universe-a6e545d4-expected] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.898417ms)
+✔ [verify:universe-a6e545d4-negative] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.108042ms)
+✔ [verify:universe-33f16b20-expected] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.106042ms)
+✔ [verify:universe-33f16b20-negative] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.083042ms)
+✔ [verify:universe-fb5f6fb1-expected] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.1535ms)
+✔ [verify:universe-fb5f6fb1-negative] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.071125ms)
+✔ [verify:universe-61e14285-expected] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.144583ms)
+✔ [verify:universe-61e14285-negative] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.067959ms)
+✔ [verify:universe-e1e69a79-expected] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.379375ms)
+✔ [verify:universe-e1e69a79-negative] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.380625ms)
+✔ [verify:universe-a11c3ecc-expected] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.169208ms)
+✔ [verify:universe-a11c3ecc-negative] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.067375ms)
+✔ [verify:universe-f3a2b88d-expected] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.056542ms)
+✔ [verify:universe-f3a2b88d-negative] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.06425ms)
+✔ [verify:universe-d653660b-expected] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.085042ms)
+✔ [verify:universe-d653660b-negative] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.05025ms)
+✔ [verify:universe-7b2145c0-expected] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.521791ms)
+✔ [verify:universe-7b2145c0-negative] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.081625ms)
+✔ [verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.069541ms)
+✔ [verify:user-flow-regression-smoke-existing-critical-flow-still-works-af] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.053459ms)
+✔ [verify:release-impact-release-smoke-check-release-rollback-monitoring-o] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.046541ms)
+✔ [verify:rollback-recovery-release-smoke-check-failure-interruption-rollb] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.050125ms)
+✔ [verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.044584ms)
+✔ [verify:test-coverage-regression-smoke-task-specific-verification-exists] tests/115-init-project-obligation-evidence.test.mjs :: final init-project public-entry and transaction suite passes (0.043917ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 298853.0185
+
+process_signal=none

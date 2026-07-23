@@ -1,0 +1,5 @@
+runtime service ready vrun-115-init-project-modularity-r2
+
+process_state=exited
+process_exit_code=none
+process_signal=SIGTERM

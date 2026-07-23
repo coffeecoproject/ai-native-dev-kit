@@ -1,0 +1,7 @@
+run_id=vrun-115-init-project-modularity-r2
+owner_marker_digest=sha256:97c487b631f7332bcd162dd6f419b9ece1b26ba76b1c7babdf592692eaed8ae9
+cache:CACHE_NAMESPACE:cleaned=Yes
+context:SESSION_NAMESPACE:cleaned=Yes
+data:FILE_NAMESPACE:cleaned=Yes
+files:FILE_NAMESPACE:cleaned=Yes
+process:self-runtime-service:pid=68366:cleaned=Yes

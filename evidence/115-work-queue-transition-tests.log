@@ -1,0 +1,18 @@
+id: evidence:115-work-queue-transition
+evidence_type: COMMAND_OUTPUT
+result_state: PASSED
+command: node --test --test-concurrency=1 tests/114-work-queue-transition-obligation-evidence.test.mjs
+owner: IntentOS local verification
+environment: local isolated Node process
+ran_at: 2026-07-23T02:34:38+08:00
+exit_code: 0
+ran_after_change: Yes
+current_task_match: Yes
+covers_obligations: verify:background-work-integration-contract-check-scheduled-queued-retr
+failure_reason: N/A
+limitations: Bounded to the current staged Work Queue transition candidate; no external or production effect.
+
+✔ [verify:background-work-integration-contract-check-scheduled-queued-retr] tests/114-work-queue-transition-obligation-evidence.test.mjs :: focused Work Queue transition behavior and tamper paths pass
+ℹ tests 26
+ℹ pass 26
+ℹ fail 0

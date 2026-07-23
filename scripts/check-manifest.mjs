@@ -570,9 +570,9 @@ function checkScriptConsumption() {
     ["scripts/check-ai-workflow.mjs", "targetRequiredPaths(projectRoot, workflowMode"],
     ["scripts/workflow-next.mjs", "manifestWorkflowRequiredPaths(projectRoot"],
     ["scripts/self-check/foundation.mjs", "sourceRequiredPaths(kitRoot"],
-    ["scripts/init-project.mjs", "manifestCopyRules(kitRoot"],
-    ["scripts/init-project.mjs", "workflowVersionAssets(kitRoot"],
-    ["scripts/init-project.mjs", "manifestGroup(kitRoot, \"workflowDirs\""],
+    ["scripts/init-project/assets.mjs", "manifestCopyRules(kitRoot"],
+    ["scripts/init-project/assets.mjs", "workflowVersionAssets(kitRoot"],
+    ["scripts/init-project/assets.mjs", "manifestGroup(kitRoot, \"workflowDirs\""],
   ];
   for (const [file, marker] of consumers) {
     const content = readText(projectRoot, file);

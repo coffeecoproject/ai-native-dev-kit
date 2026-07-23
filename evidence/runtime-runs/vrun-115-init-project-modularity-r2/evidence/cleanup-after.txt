@@ -1,0 +1,4 @@
+run_id=vrun-115-init-project-modularity-r2
+owned_resources_remaining=0
+unrelated_resources_touched=0
+cleanup_blocked=0
