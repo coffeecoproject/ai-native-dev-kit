@@ -646,7 +646,7 @@ ${rows(evidence.queue_items, (item) => queueItemRow(evidence, item), "| None | B
 ## Machine-Readable Evidence
 
 \`\`\`json
-${JSON.stringify(evidence, null, 2)}
+${JSON.stringify(evidence)}
 \`\`\`
 
 ## Outcome

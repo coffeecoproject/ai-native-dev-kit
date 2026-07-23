@@ -723,7 +723,7 @@ ${sourceRows}
 ## Machine-Readable Evidence
 
 \`\`\`json
-${JSON.stringify(evidence, null, 2)}
+${JSON.stringify(evidence)}
 \`\`\`
 
 ## Outcome

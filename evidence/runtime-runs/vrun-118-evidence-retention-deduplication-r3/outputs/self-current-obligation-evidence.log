@@ -1,0 +1,35 @@
+✔ [verify:universe-93e4686c-expected] tests/118-evidence-retention-governance-obligations.test.mjs :: generated projects receive every retention surface (2.912ms)
+✔ [verify:universe-93e4686c-negative] tests/118-evidence-retention-governance-obligations.test.mjs :: missing distribution declarations fail closed (0.183041ms)
+✔ [verify:universe-2118bb89-expected] tests/118-evidence-retention-governance-obligations.test.mjs :: pre-runtime invokes the strict checker (0.083583ms)
+✔ [verify:universe-2118bb89-negative] tests/118-evidence-retention-governance-obligations.test.mjs :: checker violations propagate a non-zero exit (0.04925ms)
+✔ [verify:universe-2020517d-expected] tests/118-evidence-retention-governance-obligations.test.mjs :: policy enforces final-run, duplicate, and budget limits (0.078459ms)
+✔ [verify:universe-2020517d-negative] tests/118-evidence-retention-governance-obligations.test.mjs :: historical evidence is immutable and evaluation is read-only (0.867458ms)
+✔ [verify:universe-8140bff0-expected] tests/118-evidence-retention-governance-obligations.test.mjs :: workflow template declares retention assets (0.163083ms)
+✔ [verify:universe-8140bff0-negative] tests/118-evidence-retention-governance-obligations.test.mjs :: manifest and generated-project tests detect template drift (0.135834ms)
+✔ [verify:universe-4193ff31-expected] tests/118-evidence-retention-governance-obligations.test.mjs :: valid source and generated fixtures are characterized (0.297708ms)
+✔ [verify:universe-4193ff31-negative] tests/118-evidence-retention-governance-obligations.test.mjs :: every governed rejection mode is characterized (0.406042ms)
+✔ [verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-] tests/118-evidence-retention-governance-obligations.test.mjs :: local maintainer receives explicit PASS or FAIL output (0.127333ms)
+✔ [verify:user-flow-regression-smoke-existing-critical-flow-still-works-af] tests/118-evidence-retention-governance-obligations.test.mjs :: standard verification retains its existing prefix and adds one gate (0.066625ms)
+✔ [verify:background-work-integration-contract-check-scheduled-queued-retr] tests/118-evidence-retention-governance-obligations.test.mjs :: checker starts no background work (0.106958ms)
+✔ [verify:runtime-behavior-regression-smoke-the-current-code-runs-through-] tests/118-evidence-retention-governance-obligations.test.mjs :: runtime entry imports the current evaluator (0.043083ms)
+✔ [verify:rollback-recovery-release-smoke-check-failure-interruption-rollb] tests/118-evidence-retention-governance-obligations.test.mjs :: failure preserves the bounded repository state (0.05525ms)
+✔ [verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders] tests/118-evidence-retention-governance-obligations.test.mjs :: documentation records budgets and cleanup order (0.188542ms)
+✔ [verify:test-coverage-regression-smoke-task-specific-verification-exists] tests/118-evidence-retention-governance-obligations.test.mjs :: task-specific evidence covers positive and negative paths (0.071667ms)
+✔ 1.118 keeps historical oversized evidence outside forward-only budgets (3.90525ms)
+✔ 1.118 bounds Business Universe retention to observed task sources (0.78775ms)
+✔ 1.118 rejects more than one durable runtime archive for a task (4.009291ms)
+✔ 1.118 rejects standalone full verification logs (2.551333ms)
+✔ 1.118 rejects duplicate raw content (2.40175ms)
+✔ 1.118 rejects raw evidence and report budget overflow without truncating (3.542208ms)
+✔ 1.118 rejects a durable runtime without complete manifest binding (1.805125ms)
+✔ 1.118 installs and executes the same retention policy in a generated project (10966.553625ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11043.764958
+
+process_signal=none

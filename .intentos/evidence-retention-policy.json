@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.118.0",
+  "policy_id": "intentos-forward-evidence-retention",
+  "applies_from_task_number": 118,
+  "historical_evidence": {
+    "before_task_number": 118,
+    "mutation": "FORBIDDEN",
+    "reason": "Released evidence remains immutable audit history."
+  },
+  "retention": {
+    "durable_runtime_archives_per_task": 1,
+    "standalone_full_verification_logs": "FORBIDDEN",
+    "duplicate_raw_content": "FORBIDDEN",
+    "require_complete_manifest_for_durable_runtime": true
+  },
+  "budgets": {
+    "standalone_raw_evidence_bytes": 262144,
+    "durable_runtime_output_bytes": 524288,
+    "raw_evidence_per_task_bytes": 1048576,
+    "structured_report_bytes": 262144,
+    "duplicate_comparison_min_bytes": 64
+  },
+  "structured_report_directories": [
+    "business-rule-closures",
+    "business-universe-coverage-reports",
+    "change-boundary-reports",
+    "change-impact-coverage-reports",
+    "closure-decisions",
+    "completion-evidence-reports",
+    "control-effectiveness-reports",
+    "execution-assurance-reports",
+    "implementation-plans",
+    "plan-review-reports",
+    "planning-closure-reports",
+    "review-summaries",
+    "review-surface-cards",
+    "task-governance-reports",
+    "test-evidence-reports",
+    "verification-plans",
+    "verification-run-manifests",
+    "verification-runtime-lifecycle-plans",
+    "verification-runtime-plans",
+    "work-queue-takeover-reports",
+    "work-queue-transitions",
+    "work-queue"
+  ],
+  "boundaries": {
+    "automatically_deletes_evidence": false,
+    "silently_truncates_output": false,
+    "uses_external_evidence_storage": false,
+    "rewrites_released_evidence": false
+  }
+}

@@ -14,6 +14,7 @@
       ".github/pull_request_template.md",
       ".github/workflows/intentos-pr-checks.yml",
       ".github/workflows/intentos-release-checks.yml",
+      ".intentos/evidence-retention-policy.json",
       "CONTRIBUTING.md",
       "LICENSE-COMMERCIAL.md",
       "LICENSE-FAQ.md",
@@ -316,6 +317,7 @@
       "docs/document-lifecycle.md",
       "docs/document-ownership.md",
       "docs/evidence-authority-core.md",
+      "docs/evidence-retention.md",
       "docs/execution-assurance-chain.md",
       "docs/execution-release-runtime-hygiene.md",
       "docs/execution-review-closure.md",
@@ -382,6 +384,7 @@
       "docs/plans/engineering-environment-baseline-1.2-plan.md",
       "docs/plans/evidence-authority-core-1.91-plan.md",
       "docs/plans/evidence-authority-coverage-closeout-1.91.1-plan.md",
+      "docs/plans/evidence-retention-deduplication-1.118-plan.md",
       "docs/plans/evidence-linked-closure-1.33-plan.md",
       "docs/plans/evidence-reference-resolution-1.50-plan.md",
       "docs/plans/evidence-reliability-risk-calibration-1.47-plan.md",
@@ -2083,6 +2086,7 @@
       "scripts/check-delivery-path.mjs",
       "scripts/check-document-archive-apply.mjs",
       "scripts/check-document-lifecycle.mjs",
+      "scripts/check-evidence-retention.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
       "scripts/check-execution-assurance.mjs",
@@ -2173,6 +2177,7 @@
       "scripts/lib/current-trust-fixture.mjs",
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
+      "scripts/lib/evidence-retention.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -3199,6 +3204,7 @@
       "tests/115-init-project-obligation-evidence.test.mjs",
       "tests/116-new-workflow-item-governance-obligations.test.mjs",
       "tests/117-fillers-modularity-governance-obligations.test.mjs",
+      "tests/118-evidence-retention-governance-obligations.test.mjs",
       "tests/new-workflow-item-characterization.test.mjs",
       "tests/active-guidance-distribution-closeout.test.mjs",
       "tests/active-guidance-semantic-hardcut.test.mjs",
@@ -3211,6 +3217,7 @@
       "tests/control-effectiveness.test.mjs",
       "tests/controlled-apply-transaction.test.mjs",
       "tests/current-trust-fixture.test.mjs",
+      "tests/evidence-retention.test.mjs",
       "tests/execution-distribution-trust.test.mjs",
       "tests/existing-adoption-activation-hardening.test.mjs",
       "tests/init-project-modularity.test.mjs",
@@ -3428,6 +3435,7 @@
       ".intentos/docs/delivery-path-governance.md",
       ".intentos/docs/document-archive-apply.md",
       ".intentos/docs/document-lifecycle.md",
+      ".intentos/docs/evidence-retention.md",
       ".intentos/docs/execution-assurance-chain.md",
       ".intentos/docs/execution-review-closure.md",
       ".intentos/docs/existing-project-safe-adoption-autopilot.md",
@@ -3478,6 +3486,7 @@
       ".intentos/docs/verification-runtime-trust.md",
       ".intentos/docs/verification-test-governance.md",
       ".intentos/docs/work-queue.md",
+      ".intentos/evidence-retention-policy.json",
       ".intentos/intentos-manifest.json",
       ".intentos/prompts/apply-plan-agent.md",
       ".intentos/prompts/architect-agent.md",
@@ -3814,6 +3823,7 @@
       "scripts/check-delivery-path.mjs",
       "scripts/check-document-archive-apply.mjs",
       "scripts/check-document-lifecycle.mjs",
+      "scripts/check-evidence-retention.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
       "scripts/check-execution-assurance.mjs",
@@ -3878,6 +3888,7 @@
       "scripts/lib/controlled-apply-transaction.mjs",
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
+      "scripts/lib/evidence-retention.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -4200,6 +4211,7 @@
       ".intentos/docs/delivery-path-governance.md",
       ".intentos/docs/document-archive-apply.md",
       ".intentos/docs/document-lifecycle.md",
+      ".intentos/docs/evidence-retention.md",
       ".intentos/docs/execution-assurance-chain.md",
       ".intentos/docs/execution-release-runtime-hygiene.md",
       ".intentos/docs/execution-review-closure.md",
@@ -4266,6 +4278,7 @@
       ".intentos/industrial-packs/schema/bl2-evidence-disposition.schema.json",
       ".intentos/industrial-packs/schema/pack.schema.json",
       ".intentos/industrial-packs/selection-guide.md",
+      ".intentos/evidence-retention-policy.json",
       ".intentos/intentos-manifest.json",
       ".intentos/profiles/android-app/baseline.json",
       ".intentos/profiles/android-app/environment-topics.md",
@@ -4668,6 +4681,7 @@
       "scripts/check-delivery-path.mjs",
       "scripts/check-document-archive-apply.mjs",
       "scripts/check-document-lifecycle.mjs",
+      "scripts/check-evidence-retention.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
       "scripts/check-execution-assurance.mjs",
@@ -4744,6 +4758,7 @@
       "scripts/lib/controlled-apply-transaction.mjs",
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
+      "scripts/lib/evidence-retention.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -5534,6 +5549,7 @@
       "scripts/check-delivery-path.mjs",
       "scripts/check-document-archive-apply.mjs",
       "scripts/check-document-lifecycle.mjs",
+      "scripts/check-evidence-retention.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
       "scripts/check-execution-assurance.mjs",
@@ -5618,6 +5634,7 @@
       "scripts/lib/controlled-apply-transaction.mjs",
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
+      "scripts/lib/evidence-retention.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -6760,6 +6777,7 @@
       ".intentos/docs/delivery-path-governance.md",
       ".intentos/docs/document-archive-apply.md",
       ".intentos/docs/document-lifecycle.md",
+      ".intentos/docs/evidence-retention.md",
       ".intentos/docs/execution-assurance-chain.md",
       ".intentos/docs/execution-release-runtime-hygiene.md",
       ".intentos/docs/execution-review-closure.md",
@@ -6824,6 +6842,7 @@
       ".intentos/docs/work-queue.md",
       ".intentos/industrial-packs",
       ".intentos/intentos-manifest.json",
+      ".intentos/evidence-retention-policy.json",
       ".intentos/profiles",
       ".intentos/prompts",
       ".intentos/prompts/adoption-assurance-agent.md",
@@ -7136,6 +7155,7 @@
       "scripts/check-delivery-path.mjs",
       "scripts/check-document-archive-apply.mjs",
       "scripts/check-document-lifecycle.mjs",
+      "scripts/check-evidence-retention.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
       "scripts/check-execution-assurance.mjs",
@@ -7211,6 +7231,7 @@
       "scripts/lib/controlled-apply-transaction.mjs",
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
+      "scripts/lib/evidence-retention.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -7494,6 +7515,7 @@
       ".intentos/docs/delivery-path-governance.md",
       ".intentos/docs/document-archive-apply.md",
       ".intentos/docs/document-lifecycle.md",
+      ".intentos/docs/evidence-retention.md",
       ".intentos/docs/execution-release-runtime-hygiene.md",
       ".intentos/docs/execution-review-closure.md",
       ".intentos/docs/existing-project-safe-adoption-autopilot.md",
@@ -7853,6 +7875,7 @@
       "scripts/check-delivery-path.mjs",
       "scripts/check-document-archive-apply.mjs",
       "scripts/check-document-lifecycle.mjs",
+      "scripts/check-evidence-retention.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
       "scripts/check-execution-closure.mjs",
@@ -8143,6 +8166,10 @@
         "target": ".intentos/docs/document-lifecycle.md"
       },
       {
+        "source": "docs/evidence-retention.md",
+        "target": ".intentos/docs/evidence-retention.md"
+      },
+      {
         "source": "docs/execution-assurance-chain.md",
         "target": ".intentos/docs/execution-assurance-chain.md"
       },
@@ -8405,6 +8432,10 @@
       {
         "source": "intentos-manifest.json",
         "target": ".intentos/intentos-manifest.json"
+      },
+      {
+        "source": ".intentos/evidence-retention-policy.json",
+        "target": ".intentos/evidence-retention-policy.json"
       },
       {
         "source": "schemas/artifacts/adoption-assurance.schema.json",
@@ -8727,6 +8758,10 @@
         "target": "scripts/check-document-lifecycle.mjs"
       },
       {
+        "source": "scripts/check-evidence-retention.mjs",
+        "target": "scripts/check-evidence-retention.mjs"
+      },
+      {
         "source": "scripts/check-engineering-baseline.mjs",
         "target": "scripts/check-engineering-baseline.mjs"
       },
@@ -9041,6 +9076,10 @@
       {
         "source": "scripts/lib/evidence-authority.mjs",
         "target": "scripts/lib/evidence-authority.mjs"
+      },
+      {
+        "source": "scripts/lib/evidence-retention.mjs",
+        "target": "scripts/lib/evidence-retention.mjs"
       },
       {
         "source": "scripts/lib/execution-assurance-consumer.mjs",

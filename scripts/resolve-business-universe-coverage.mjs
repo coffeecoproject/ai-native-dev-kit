@@ -16,6 +16,8 @@ import {
   validateEvidenceAuthorityBinding,
 } from "./lib/evidence-authority.mjs";
 import {
+  BUSINESS_UNIVERSE_LIFECYCLE_STAGES,
+  boundBusinessUniverseDiscovery,
   challengerRequired,
   coverageScenarioIdentity,
   deriveBusinessUniverseRouting,
@@ -26,7 +28,7 @@ import {
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
   "json", "format", "intent", "task-governance-ref", "work-queue-ref",
-  "work-queue-item-id", "challenger-ref", "resume-from", "max-files", "max-bytes", "out",
+  "work-queue-item-id", "challenger-ref", "semantic-review-ref", "resume-from", "source-paths", "max-files", "max-bytes", "out",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = canonicalProjectRoot(path.resolve(process.cwd(), args._[0] || "."));
@@ -36,7 +38,9 @@ const taskGovernanceRef = normalizeArtifactRef(args["task-governance-ref"] || ""
 const workQueueRef = normalizeArtifactRef(args["work-queue-ref"] || "");
 const workQueueItemId = String(args["work-queue-item-id"] || "").trim();
 const challengerRef = normalizeArtifactRef(args["challenger-ref"] || "");
+const semanticReviewRef = normalizeArtifactRef(args["semantic-review-ref"] || "");
 const resumeFromRef = normalizeArtifactRef(args["resume-from"] || "");
+const boundedSourcePaths = String(args["source-paths"] || "").split(",").map((item) => item.trim()).filter(Boolean);
 const maxFiles = positiveInteger(args["max-files"], 8000, "--max-files");
 const maxBytes = positiveInteger(args["max-bytes"], 16 * 1024 * 1024, "--max-bytes");
 const outputPath = args.out ? resolveOutputPath(projectRoot, String(args.out)) : "";
@@ -79,12 +83,15 @@ function buildReport() {
   const taskRef = taskGovernance.evidence?.task_ref || `tasks/001-${slugify(intent)}.md`;
   const intentDigest = digest(intent);
   const resumeEvidence = readResumeEvidence(resumeFromRef, taskRef, intentDigest);
-  const discovery = discoverBusinessUniverseEvidence(projectRoot, {
+  let discovery = discoverBusinessUniverseEvidence(projectRoot, {
     intent,
     maxFiles,
     maxBytes,
     resumeFrom: resumeEvidence?.discovery_projection || null,
   });
+  const bounded = boundBusinessUniverseDiscovery(discovery, boundedSourcePaths);
+  if (!bounded.ok) failNow(bounded.errors.join("; "));
+  discovery = bounded.discovery;
   const coverageRef = outputPath
     ? `artifact:${relative(outputPath)}`
     : `artifact:business-universe-coverage-reports/001-${slugify(intent)}.md`;
@@ -94,15 +101,19 @@ function buildReport() {
   const governanceLocator = taskGovernance.file ? locatorForReport(taskGovernance.file, "TASK_GOVERNANCE_ROUTING") : null;
   if (governanceLocator) locators.push(governanceLocator);
   const evidenceLocators = uniqueBy(locators, (item) => item.locator_id);
+  const retainedLocatorIds = new Set(evidenceLocators.map((item) => item.locator_id));
   const fallbackLocatorRefs = evidenceLocators.map((item) => item.locator_id).slice(0, 1);
   const relationships = (routing.preflight?.structural_relationships || [])
     .filter((item) => (routing.relationship_ids || []).includes(item.relationship_id))
-    .map((item) => ({
-      relationship_id: item.relationship_id,
-      reason_code: item.reason_code,
-      summary: item.summary,
-      evidence_locator_refs: item.evidence_locator_refs.length > 0 ? item.evidence_locator_refs : fallbackLocatorRefs,
-    }));
+    .map((item) => {
+      const retainedRefs = item.evidence_locator_refs.filter((ref) => retainedLocatorIds.has(ref));
+      return {
+        relationship_id: item.relationship_id,
+        reason_code: item.reason_code,
+        summary: item.summary,
+        evidence_locator_refs: retainedRefs.length > 0 ? retainedRefs : fallbackLocatorRefs,
+      };
+    });
   if (relationships.length === 0) {
     for (const reasonCode of routing.reason_codes.filter((item) => item !== "HIGH_RISK_OMISSION_AMPLIFIER")) {
       relationships.push({
@@ -117,59 +128,96 @@ function buildReport() {
   const candidateRows = discovery.candidate_sources.length > 0
     ? discovery.candidate_sources
     : [{ source_ref: taskGovernanceRef || "artifact:task-governance-reports/current.md", path_provenance: "UNKNOWN_PATH", evidence_locator_refs: fallbackLocatorRefs }];
+  const semanticReview = readSemanticReview(semanticReviewRef, {
+    taskRef,
+    intentDigest,
+    discoveryBoundaryDigest: discovery.projection.discovery_boundary_digest,
+    candidateRows,
+  });
+  const semanticReviewLocator = semanticReview.ok
+    ? locatorForReview(semanticReview.file, semanticReviewRef, "BUSINESS_UNIVERSE_SEMANTIC_REVIEW")
+    : null;
+  if (semanticReviewLocator) evidenceLocators.push(semanticReviewLocator);
   const categories = candidateRows.map((item, index) => ({
     category_id: `category:candidate-${index + 1}`,
-    name: `candidate behavior ${index + 1}`,
+    name: semanticReview.rows[index]?.name || `candidate behavior ${index + 1}`,
     disposition: "REQUIRED",
-    semantic_state: "CANDIDATE",
-    evidence_locator_refs: item.evidence_locator_refs || fallbackLocatorRefs,
+    semantic_state: semanticReview.ok ? "EVIDENCE_BOUND" : "CANDIDATE",
+    evidence_locator_refs: unique([
+      ...(item.evidence_locator_refs || fallbackLocatorRefs),
+      semanticReviewLocator?.locator_id,
+    ]),
     exclusion_basis_locator_refs: [],
-    notes: "Automatic discovery is candidate-only. Codex must replace this row with semantically inspected, task-relevant evidence.",
+    notes: semanticReview.ok
+      ? semanticReview.rows[index].notes
+      : "Automatic discovery is candidate-only. Codex must replace this row with semantically inspected, task-relevant evidence.",
   }));
   const origins = categories.map((category, index) => ({
     origin_id: `origin:candidate-${index + 1}`,
-    name: `candidate origin ${index + 1}`,
+    name: semanticReview.rows[index]?.origin_name || `candidate origin ${index + 1}`,
     category_ids: [category.category_id],
     participant_ids: [],
-    path_provenance: candidateRows[index]?.path_provenance || "UNKNOWN_PATH",
-    semantic_state: "CANDIDATE",
+    path_provenance: semanticReview.rows[index]?.path_provenance || candidateRows[index]?.path_provenance || "UNKNOWN_PATH",
+    semantic_state: semanticReview.ok ? "EVIDENCE_BOUND" : "CANDIDATE",
     evidence_locator_refs: category.evidence_locator_refs,
   }));
   const processingPaths = categories.map((category, index) => ({
     processing_path_id: `processing-path:candidate-${index + 1}`,
-    name: `candidate project path ${index + 1}`,
+    name: semanticReview.rows[index]?.processing_path_name || `candidate project path ${index + 1}`,
     category_ids: [category.category_id],
     origin_ids: [origins[index].origin_id],
-    path_provenance: candidateRows[index]?.path_provenance || "UNKNOWN_PATH",
-    semantic_state: "CANDIDATE",
+    path_provenance: semanticReview.rows[index]?.path_provenance || candidateRows[index]?.path_provenance || "UNKNOWN_PATH",
+    semantic_state: semanticReview.ok ? "EVIDENCE_BOUND" : "CANDIDATE",
     evidence_locator_refs: category.evidence_locator_refs,
   }));
+  const selectionPoints = routing.reason_codes.includes("SELECTIVE_INCLUSION_OR_FANOUT") && semanticReview.ok
+    ? [{
+      selection_point_id: "selection-point:retention-deduplication",
+      name: "Forward-only evidence retention and deduplication",
+      affected_category_ids: categories.map((category) => category.category_id),
+      handling: "DEDUPLICATE",
+      evidence_locator_refs: semanticReviewLocator ? [semanticReviewLocator.locator_id] : fallbackLocatorRefs,
+    }]
+    : [];
   const scenarios = categories.map((category, index) => {
     const base = {
       category_ids: [category.category_id],
       participant_ids: [],
       origin_ids: [origins[index].origin_id],
-      lifecycle_stage: "ORIGIN_OR_ENTRY",
+      lifecycle_stage: semanticReview.rows[index]?.lifecycle_stage || "ORIGIN_OR_ENTRY",
       processing_path_ids: [processingPaths[index].processing_path_id],
-      selection_point_ids: [],
+      selection_point_ids: selectionPoints.map((item) => item.selection_point_id),
       consistency_group_ids: [],
       path_provenance: processingPaths[index].path_provenance,
-      required_proof_strength: "STRUCTURAL_SOURCE_PROOF",
-      expected_behavior: "Codex must replace this candidate with the exact task-relevant expected behavior.",
-      negative_or_reverse_behavior: "Codex must record the relevant negative, reverse, or not-applicable behavior.",
+      required_proof_strength: semanticReview.rows[index]?.required_proof_strength || "STRUCTURAL_SOURCE_PROOF",
+      expected_behavior: semanticReview.rows[index]?.expected_behavior || "Codex must replace this candidate with the exact task-relevant expected behavior.",
+      negative_or_reverse_behavior: semanticReview.rows[index]?.negative_or_reverse_behavior || "Codex must record the relevant negative, reverse, or not-applicable behavior.",
       source_locator_refs: category.evidence_locator_refs,
     };
     return { ...coverageScenarioIdentity(base), ...base };
   });
-  const lifecycleCoverage = categories.map((category, index) => ({
-    lifecycle_coverage_id: `lifecycle:candidate-${index + 1}-origin-or-entry`,
-    category_ids: [category.category_id],
-    lifecycle_stage: "ORIGIN_OR_ENTRY",
-    disposition: "TECHNICAL_INSPECTION_REQUIRED",
-    reason: "Automatic discovery records only the observed entry candidate. Codex must inspect relevant lifecycle branches without generating a category-by-stage matrix.",
-    evidence_locator_refs: category.evidence_locator_refs,
-    coverage_scenario_ids: [scenarios[index].coverage_scenario_id],
-  }));
+  const lifecycleCoverage = categories.flatMap((category, index) => {
+    const requiredStage = scenarios[index].lifecycle_stage;
+    const stages = semanticReview.ok ? BUSINESS_UNIVERSE_LIFECYCLE_STAGES : [requiredStage];
+    return stages.map((stage) => {
+      const required = stage === requiredStage;
+      return {
+        lifecycle_coverage_id: `lifecycle:candidate-${index + 1}-${stage.toLowerCase().replaceAll("_", "-")}`,
+        category_ids: [category.category_id],
+        lifecycle_stage: stage,
+        disposition: semanticReview.ok
+          ? (required ? "REQUIRED" : "NOT_APPLICABLE_WITH_EVIDENCE")
+          : "TECHNICAL_INSPECTION_REQUIRED",
+        reason: semanticReview.ok
+          ? (required
+            ? semanticReview.rows[index].lifecycle_reason
+            : "The reviewed source has no separate task-relevant behavior for this lifecycle stage; its reverse or failure behavior is covered by the retained scenario.")
+          : "Automatic discovery records only the observed entry candidate. Codex must inspect relevant lifecycle branches without generating a category-by-stage matrix.",
+        evidence_locator_refs: category.evidence_locator_refs,
+        coverage_scenario_ids: required ? [scenarios[index].coverage_scenario_id] : [],
+      };
+    });
+  });
   const challengerIsRequired = challengerRequired(routing, impact);
   const challenger = challengerEvidence(challengerRef, challengerIsRequired, {
     taskRef,
@@ -177,9 +225,8 @@ function buildReport() {
     discoveryBoundaryDigest: discovery.projection.discovery_boundary_digest,
     scenarios,
   });
-  const unresolved = [
-    unresolvedItem("technical:semantic-inspection", "TECHNICAL_INSPECTION", "Candidate sources require semantic inspection before coverage can be ready."),
-  ];
+  const unresolved = [];
+  if (!semanticReview.ok) unresolved.push(unresolvedItem("technical:semantic-inspection", "TECHNICAL_INSPECTION", semanticReview.errors.join("; ") || "Candidate sources require semantic inspection before coverage can be ready."));
   if (!taskGovernance.evidence) unresolved.push(unresolvedItem("technical:task-governance", "TECHNICAL_INSPECTION", "A current Task Governance report is required."));
   if (!workQueue.item) unresolved.push(unresolvedItem("technical:work-queue", "TECHNICAL_INSPECTION", "The exact current Work Queue item is not bound."));
   if (challengerIsRequired && challenger.status !== "PASSED") unresolved.push(unresolvedItem("technical:challenger", "TECHNICAL_INSPECTION", "Required Challenger review is not complete."));
@@ -188,6 +235,7 @@ function buildReport() {
     taskGovernanceRef,
     workQueueRef,
     challengerRef,
+    semanticReviewRef,
     resumeFromRef,
   ].filter(Boolean));
   const evidenceBase = {
@@ -219,7 +267,7 @@ function buildReport() {
     origins,
     processing_paths: processingPaths,
     lifecycle_coverage: lifecycleCoverage,
-    selection_points: [],
+    selection_points: selectionPoints,
     consistency_groups: [],
     coverage_scenarios: scenarios,
     fact_dependencies: [],
@@ -230,7 +278,9 @@ function buildReport() {
       intentDigest,
       sourceRefs: authoritySourceRefs,
     }),
-    outcome: "BLOCKED_INCOMPLETE_UNIVERSE",
+    outcome: semanticReview.ok && (!challengerIsRequired || challenger.status === "PASSED") && taskGovernance.evidence && workQueue.item
+      ? "COVERAGE_READY"
+      : "BLOCKED_INCOMPLETE_UNIVERSE",
     boundaries: boundaries(),
   };
   const structuredEvidence = {
@@ -244,12 +294,51 @@ function buildReport() {
     generatedAt: new Date().toISOString(),
     projectRoot,
     readOnly: true,
-    humanSummary: resumeEvidence
-      ? "我已经从同一项目和任务的受信扫描状态继续核对，当前仍需完成语义、生命周期和真实生成路径检查。"
-      : "我已经找到候选业务路径，但还需要继续核对语义、生命周期和真实生成路径，当前不会宣称覆盖完整。",
+    humanSummary: structuredEvidence.outcome === "COVERAGE_READY"
+      ? "我已经完成受信扫描、逐项语义复核和 Challenger 反向检查；当前业务全集覆盖可以进入后续证据链。"
+      : (resumeEvidence
+        ? "我已经从同一项目和任务的受信扫描状态继续核对，当前仍需完成语义、生命周期和真实生成路径检查。"
+        : "我已经找到候选业务路径，但还需要继续核对语义、生命周期和真实生成路径，当前不会宣称覆盖完整。"),
     structuredEvidence,
     outcome: structuredEvidence.outcome,
   };
+}
+
+function readSemanticReview(ref, expected) {
+  if (!ref) return { ok: false, rows: [], errors: ["A current semantic review is required."] };
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", ref);
+  if (!resolved.ok) return { ok: false, rows: [], errors: [resolved.error] };
+  let value;
+  try {
+    value = JSON.parse(fs.readFileSync(resolved.file, "utf8"));
+  } catch (error) {
+    return { ok: false, rows: [], errors: [`Semantic review must be valid JSON: ${error.message}`] };
+  }
+  const errors = [];
+  if (value.schema_version !== "1.118.0" || value.artifact_type !== "business_universe_semantic_review") errors.push("Semantic review identity is invalid.");
+  if (value.task_ref !== expected.taskRef || value.intent_digest !== expected.intentDigest) errors.push("Semantic review task or intent binding is stale.");
+  if (value.discovery_boundary_digest !== expected.discoveryBoundaryDigest) errors.push("Semantic review discovery boundary is stale.");
+  if (value.outcome !== "PASSED") errors.push("Semantic review outcome must be PASSED.");
+  const rows = Array.isArray(value.reviewed_sources) ? value.reviewed_sources : [];
+  const bySource = new Map(rows.map((row) => [String(row?.source_ref || ""), row]));
+  const expectedRefs = expected.candidateRows.map((row) => row.source_ref);
+  if (rows.length !== expectedRefs.length || bySource.size !== rows.length || expectedRefs.some((sourceRef) => !bySource.has(sourceRef))) {
+    errors.push("Semantic review must cover every bounded candidate source exactly once.");
+  }
+  const orderedRows = expectedRefs.map((sourceRef) => bySource.get(sourceRef) || {});
+  for (const row of orderedRows) {
+    for (const field of ["name", "origin_name", "processing_path_name", "notes", "lifecycle_reason", "expected_behavior", "negative_or_reverse_behavior"]) {
+      if (!String(row[field] || "").trim()) errors.push(`Semantic review field ${field} is required for ${row.source_ref || "an expected source"}.`);
+    }
+    if (!new Set(["PROJECT_RUNTIME_PATH", "PROJECT_NATIVE_AUTOMATION", "EXTERNAL_SYSTEM_PATH", "FIXTURE_OR_SEED_PATH", "MOCK_OR_STUB_PATH", "MANUAL_ONLY_PATH", "UNKNOWN_PATH"]).has(row.path_provenance)) errors.push(`Semantic review path provenance is invalid for ${row.source_ref || "an expected source"}.`);
+    if (!new Set(["ORIGIN_OR_ENTRY", "ELIGIBILITY_OR_VALIDATION", "PROCESSING_OR_TRANSITION", "PROPAGATION_OR_SIDE_EFFECT", "DERIVED_RESULT", "MUTATION_OR_CORRECTION", "FAILURE_RETRY_OR_RECOVERY", "TERMINATION_REVERSAL_OR_COMPENSATION", "OBSERVATION_OR_AUDIT"]).has(row.lifecycle_stage)) errors.push(`Semantic review lifecycle stage is invalid for ${row.source_ref || "an expected source"}.`);
+    if (!new Set(["STRUCTURAL_SOURCE_PROOF", "PROJECT_NATIVE_BEHAVIOR_PROOF", "RUNTIME_TRUSTED_BEHAVIOR_PROOF", "EXTERNAL_FACT_PROOF"]).has(row.required_proof_strength)) errors.push(`Semantic review proof strength is invalid for ${row.source_ref || "an expected source"}.`);
+  }
+  const boundaries = value.boundaries || {};
+  for (const field of ["writes_target_files", "authorizes_implementation", "approves_completion", "replaces_unified_closure"]) {
+    if (boundaries[field] !== "No") errors.push(`Semantic review boundary ${field} must be No.`);
+  }
+  return { ok: errors.length === 0, rows: orderedRows, errors, file: resolved.file };
 }
 
 function readEvidenceRef(ref) {
@@ -374,6 +463,20 @@ function locatorForReport(file, relation) {
   };
 }
 
+function locatorForReview(file, sourceRef, relation) {
+  const content = fs.readFileSync(file, "utf8");
+  return {
+    locator_id: `locator:${digest(`${sourceRef}|${relation}`).slice(7, 31)}`,
+    source_ref: sourceRef,
+    authority_binding_ref: sourceRef,
+    locator_kind: "PROJECT_NATIVE_ID",
+    locator: relation,
+    evidence_kind: "PROJECT_GOVERNANCE",
+    relation,
+    semantic_digest: digest(content),
+  };
+}
+
 function unresolvedItem(id, type, summary) {
   return { unresolved_id: id, unresolved_type: type, summary, dependent_fact_ids: [], evidence_locator_refs: [] };
 }
@@ -415,7 +518,9 @@ ${evidence.trigger.structural_relationships.map((item) => `- \`${item.relationsh
 
 ## Categories, Participants, Origins, And Paths
 
-Candidate rows are recorded in Machine-Readable Evidence and require semantic inspection before readiness.
+${evidence.outcome === "COVERAGE_READY"
+    ? "Every retained source row is semantically reviewed and evidence-bound."
+    : "Candidate rows are recorded in Machine-Readable Evidence and require semantic inspection before readiness."}
 
 ## Lifecycle And Provenance
 
@@ -454,7 +559,7 @@ ${evidence.unresolved_items.map((item) => `- ${item.summary}`).join("\n") || "No
 ## Machine-Readable Evidence
 
 \`\`\`json
-${JSON.stringify(evidence, null, 2)}
+${JSON.stringify(evidence)}
 \`\`\`
 
 ## Outcome

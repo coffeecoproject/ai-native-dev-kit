@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.118.0",
+  "artifact_type": "business_universe_semantic_review",
+  "task_ref": "task:ba2fb4d662dc4a2c890495bf116dd903bd5e8511647a242df265469d870ca66f",
+  "intent_digest": "sha256:30c2cb70ca3f62e98bc994b5377496d67acb3cc444f14899dae62863cd9f5652",
+  "discovery_boundary_digest": "sha256:245fe1d72f3a4125ca056f73e6a8e073fef5e3505aacc719a2454ddd1819362f",
+  "reviewed_sources": [
+    {
+      "source_ref": "file:intentos-manifest.json",
+      "name": "Distribution manifest policy surface",
+      "origin_name": "IntentOS source and target manifest",
+      "processing_path_name": "Manifest declaration and copy projection",
+      "path_provenance": "PROJECT_NATIVE_AUTOMATION",
+      "lifecycle_stage": "PROPAGATION_OR_SIDE_EFFECT",
+      "required_proof_strength": "PROJECT_NATIVE_BEHAVIOR_PROOF",
+      "notes": "The policy, checker, documentation, and shared library must remain declared in source, target, readiness, script, and copy-rule projections.",
+      "lifecycle_reason": "Generation is the propagation boundary where repository-owned governance becomes available in initialized projects.",
+      "expected_behavior": "Every newly generated project receives the retention policy, checker, documentation, and shared retention library through declared manifest projections.",
+      "negative_or_reverse_behavior": "A missing or stale declaration must fail manifest or generated-project verification instead of silently omitting governance files."
+    },
+    {
+      "source_ref": "file:package.json",
+      "name": "Verification command integration",
+      "origin_name": "Project verification scripts",
+      "processing_path_name": "Pre-runtime retention gate",
+      "path_provenance": "PROJECT_NATIVE_AUTOMATION",
+      "lifecycle_stage": "ELIGIBILITY_OR_VALIDATION",
+      "required_proof_strength": "PROJECT_NATIVE_BEHAVIOR_PROOF",
+      "notes": "The retention checker is a named command and a mandatory pre-runtime verification step.",
+      "lifecycle_reason": "Pre-runtime validation is the earliest bounded point that can reject duplicate or oversized future evidence before closure.",
+      "expected_behavior": "The standard pre-runtime command invokes strict evidence-retention validation and propagates its non-zero exit status.",
+      "negative_or_reverse_behavior": "An invalid retention state must stop pre-runtime verification; no alternate standard command may bypass the gate."
+    },
+    {
+      "source_ref": "file:scripts/lib/evidence-retention.mjs",
+      "name": "Retention policy evaluation",
+      "origin_name": "Repository evidence inventory",
+      "processing_path_name": "Forward-only retention classification and budget evaluation",
+      "path_provenance": "PROJECT_NATIVE_AUTOMATION",
+      "lifecycle_stage": "FAILURE_RETRY_OR_RECOVERY",
+      "required_proof_strength": "PROJECT_NATIVE_BEHAVIOR_PROOF",
+      "notes": "The library classifies current-task raw evidence and runtime archives, detects duplicates, and enforces configured budgets without mutating files.",
+      "lifecycle_reason": "Classification and evaluation implement the central governance transition from observed files to pass-or-fail findings.",
+      "expected_behavior": "Evidence for tasks at or after 1.118 is checked for one final durable runtime, forbidden aggregate logs, exact raw duplicates, per-file limits, and task-total limits.",
+      "negative_or_reverse_behavior": "Released evidence before 1.118 remains immutable and out of the new budget; the evaluator never deletes, truncates, uploads, or rewrites evidence."
+    },
+    {
+      "source_ref": "file:templates/workflow-version.json",
+      "name": "Generated workflow contract",
+      "origin_name": "Workflow version template",
+      "processing_path_name": "Template-level governance declaration",
+      "path_provenance": "PROJECT_NATIVE_AUTOMATION",
+      "lifecycle_stage": "ORIGIN_OR_ENTRY",
+      "required_proof_strength": "STRUCTURAL_SOURCE_PROOF",
+      "notes": "The workflow template records the new governance surfaces so initialized projects expose the same contract as the source repository.",
+      "lifecycle_reason": "The workflow template is the declared entry contract consumed by project initialization.",
+      "expected_behavior": "The generated workflow contract names the retention policy, checker, documentation, and shared library as required project surfaces.",
+      "negative_or_reverse_behavior": "Template drift or omission must be detected by manifest validation and generated-project characterization tests."
+    },
+    {
+      "source_ref": "file:tests/evidence-retention.test.mjs",
+      "name": "Retention behavior characterization",
+      "origin_name": "Node test runner fixtures",
+      "processing_path_name": "Positive, negative, historical, and generation-path verification",
+      "path_provenance": "FIXTURE_OR_SEED_PATH",
+      "lifecycle_stage": "OBSERVATION_OR_AUDIT",
+      "required_proof_strength": "STRUCTURAL_SOURCE_PROOF",
+      "notes": "Tests exercise accepted history, every governed rejection mode, read-only failure behavior, bounded Business Universe projection, and a real initialized project.",
+      "lifecycle_reason": "The test suite is the audit surface that observes both intended behavior and fail-closed reverse paths.",
+      "expected_behavior": "Valid forward-only retention state and generated-project state pass deterministic tests and strict checking.",
+      "negative_or_reverse_behavior": "Multiple final runs, aggregate logs, duplicate raw evidence, exceeded budgets, and unbound runtime directories each fail with a specific finding while preserving inputs."
+    }
+  ],
+  "boundaries": {
+    "writes_target_files": "No",
+    "authorizes_implementation": "No",
+    "approves_completion": "No",
+    "replaces_unified_closure": "No"
+  },
+  "outcome": "PASSED"
+}

@@ -311,6 +311,27 @@ export function discoverBusinessUniverseEvidence(projectRoot, options = {}) {
   return { projection, candidate_sources: uniqueCandidateSources };
 }
 
+export function boundBusinessUniverseDiscovery(discovery, sourcePaths = []) {
+  const selectedPaths = unique((sourcePaths || []).map((item) => portable(String(item))).filter(Boolean)).sort();
+  if (selectedPaths.length === 0) return { ok: true, discovery, errors: [] };
+  const candidates = discovery?.candidate_sources || [];
+  const byPath = new Map(candidates.map((item) => [portable(String(item.relative_path || String(item.source_ref || "").replace(/^file:/, ""))), item]));
+  const missing = selectedPaths.filter((item) => !byPath.has(item));
+  if (missing.length > 0) return { ok: false, discovery, errors: [`bounded Business Universe source path is not an observed candidate: ${missing.join(", ")}`] };
+  const selected = selectedPaths.map((item) => byPath.get(item));
+  const projection = { ...(discovery?.projection || {}) };
+  projection.candidate_sources = selected.map((item) => item.source_ref).sort();
+  projection.resume_state_digest = resumeStateDigestFor({
+    inventoryDigest: projection.inventory_digest,
+    nextFileIndex: projection.next_file_index,
+    candidateSources: projection.candidate_sources,
+    unsupportedConstructs: projection.unsupported_constructs || [],
+  });
+  delete projection.discovery_boundary_digest;
+  projection.discovery_boundary_digest = digest(projection);
+  return { ok: true, errors: [], discovery: { projection, candidate_sources: selected } };
+}
+
 export function challengerRequired(routing, taskImpact = "") {
   const reasons = new Set(routing?.reason_codes || []);
   return taskImpact === "HIGH"
