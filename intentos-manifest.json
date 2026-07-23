@@ -2206,6 +2206,10 @@
       "scripts/lib/verification-runtime-trust.mjs",
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/new-workflow-item/cli.mjs",
+      "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/references.mjs",
+      "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-adoption-assurance.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
@@ -3186,6 +3190,8 @@
       "tests/113-task-obligation-evidence.test.mjs",
       "tests/114-work-queue-transition-obligation-evidence.test.mjs",
       "tests/115-init-project-obligation-evidence.test.mjs",
+      "tests/116-new-workflow-item-governance-obligations.test.mjs",
+      "tests/new-workflow-item-characterization.test.mjs",
       "tests/active-guidance-distribution-closeout.test.mjs",
       "tests/active-guidance-semantic-hardcut.test.mjs",
       "tests/business-universe-consumer-chain.test.mjs",
@@ -3892,6 +3898,10 @@
       "scripts/lib/verification-runtime-lifecycle.mjs",
       "scripts/lib/verification-runtime-trust.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/new-workflow-item/cli.mjs",
+      "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/references.mjs",
+      "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
@@ -4752,6 +4762,10 @@
       "scripts/lib/verification-runtime-lifecycle.mjs",
       "scripts/lib/verification-runtime-trust.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/new-workflow-item/cli.mjs",
+      "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/references.mjs",
+      "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-adoption-assurance.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
@@ -5611,6 +5625,10 @@
       "scripts/lib/verification-runtime-trust.mjs",
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/new-workflow-item/cli.mjs",
+      "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/references.mjs",
+      "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-adoption-assurance.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
@@ -7197,6 +7215,10 @@
       "scripts/lib/verification-runtime-lifecycle.mjs",
       "scripts/lib/verification-runtime-trust.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/new-workflow-item/cli.mjs",
+      "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/references.mjs",
+      "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-adoption-assurance.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
@@ -7868,6 +7890,10 @@
       "scripts/lib/verification-runtime-lifecycle.mjs",
       "scripts/lib/verification-runtime-trust.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/new-workflow-item/cli.mjs",
+      "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/references.mjs",
+      "scripts/new-workflow-item/registry.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
@@ -9104,6 +9130,22 @@
       {
         "source": "scripts/new-workflow-item.mjs",
         "target": "scripts/new-workflow-item.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/cli.mjs",
+        "target": "scripts/new-workflow-item/cli.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/fillers.mjs",
+        "target": "scripts/new-workflow-item/fillers.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/references.mjs",
+        "target": "scripts/new-workflow-item/references.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item/registry.mjs",
+        "target": "scripts/new-workflow-item/registry.mjs"
       },
       {
         "source": "scripts/resolve-adoption-assurance.mjs",
