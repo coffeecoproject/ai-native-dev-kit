@@ -695,9 +695,9 @@ test("candidate diff sources exclude unrelated unstaged drafts", () => {
     assert.equal(cached.ok, true);
     assert.deepEqual(cached.files, ["README.md", "candidate.txt"]);
 
-    const base = collectGitChangedFiles(root, "git:HEAD");
-    assert.equal(base.ok, true);
-    assert.deepEqual(base.files, ["README.md", "candidate.txt"]);
+    const mutableRef = collectGitChangedFiles(root, "git:HEAD");
+    assert.equal(mutableRef.ok, false);
+    assert.match(mutableRef.reason, /unsupported diff source/);
 
     const workingTree = collectGitChangedFiles(root, "git:working-tree");
     assert.equal(workingTree.ok, true);
@@ -736,10 +736,31 @@ test("cached candidate diff replays the exact committed candidate in a clean che
     assert.equal(workingTreeReplay.ok, true);
     assert.deepEqual(workingTreeReplay.files, ["README.md", "candidate.txt"]);
 
+    const committedReplay = collectGitChangedFiles(root, `git:${base}`);
+    assert.equal(committedReplay.ok, true);
+    assert.deepEqual(committedReplay.files, ["README.md", "candidate.txt"]);
+
+    const head = spawnSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
+    const empty = collectGitChangedFiles(root, `git:${head}`);
+    assert.equal(empty.ok, false);
+    assert.match(empty.reason, /no committed candidate/);
+
+    const tree = spawnSync("git", ["-C", root, "rev-parse", "HEAD^{tree}"], { encoding: "utf8" }).stdout.trim();
+    const unrelated = spawnSync("git", ["-C", root, "commit-tree", tree], {
+      encoding: "utf8",
+      input: "unrelated history\n",
+    }).stdout.trim();
+    const nonAncestor = collectGitChangedFiles(root, `git:${unrelated}`);
+    assert.equal(nonAncestor.ok, false);
+    assert.match(nonAncestor.reason, /not an ancestor of HEAD/);
+
     fs.writeFileSync(path.join(root, "unrelated-draft.txt"), "dirty\n");
     const dirty = collectGitChangedFiles(root, "git:cached", { baseRevision: base });
     assert.equal(dirty.ok, false);
     assert.match(dirty.reason, /completely clean worktree/);
+    const dirtyCommittedReplay = collectGitChangedFiles(root, `git:${base}`);
+    assert.equal(dirtyCommittedReplay.ok, false);
+    assert.match(dirtyCommittedReplay.reason, /completely clean worktree/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

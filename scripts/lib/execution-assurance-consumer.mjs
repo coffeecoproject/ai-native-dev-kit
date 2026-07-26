@@ -528,11 +528,17 @@ export function collectGitChangedFiles(projectRoot, diffSource = "git:working-tr
   const gitRoot = spawnSync("git", ["rev-parse", "--show-toplevel"], { cwd: root, encoding: "utf8" });
   if (gitRoot.status !== 0) return { ok: false, files: [], reason: "project is not a readable Git worktree" };
   let trackedArgs;
+  let tracked;
   if (source === "git:working-tree") trackedArgs = ["diff", "--name-only", "HEAD"];
   else if (source === "git:cached") trackedArgs = ["diff", "--cached", "--name-only"];
-  else if (source.startsWith("git:") && source.slice(4).trim()) trackedArgs = ["diff", "--name-only", source.slice(4).trim()];
+  else if (/^git:[a-f0-9]{40,64}$/.test(source)) {
+    const replay = replayCommittedCandidate(root, source.slice(4), { allowGovernedOutputs: true });
+    if (!replay.ok) return replay;
+    trackedArgs = null;
+    tracked = { status: 0, stdout: replay.stdout, stderr: "" };
+  }
   else return { ok: false, files: [], reason: `unsupported diff source ${source || "<missing>"}` };
-  let tracked = spawnSync("git", trackedArgs, { cwd: root, encoding: "utf8" });
+  if (trackedArgs) tracked = spawnSync("git", trackedArgs, { cwd: root, encoding: "utf8" });
   const untracked = source === "git:working-tree"
     ? spawnSync("git", ["ls-files", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" })
     : { status: 0, stdout: "", stderr: "" };
@@ -562,13 +568,19 @@ export function implementationCoverageOmissions(plannedChangedFiles = [], closur
   return planned.filter((file) => !closure.has(file));
 }
 
-function replayCommittedCandidate(root, baseRevision) {
+function replayCommittedCandidate(root, baseRevision, { allowGovernedOutputs = false } = {}) {
   const base = String(baseRevision || "").trim();
   if (!/^[a-f0-9]{40,64}$/.test(base)) {
     return { ok: false, files: [], reason: "clean-checkout candidate replay requires an exact base revision" };
   }
-  const status = spawnSync("git", ["status", "--porcelain=v1", "--untracked-files=all"], { cwd: root, encoding: "utf8" });
-  if (status.status !== 0 || status.stdout.trim()) {
+  const status = spawnSync("git", ["status", "--porcelain=v1", "-z", "--untracked-files=all"], { cwd: root, encoding: "utf8" });
+  const dirtyFiles = status.status === 0
+    ? status.stdout.split("\0").filter(Boolean).flatMap((entry) => entry.slice(3).split(" -> ")).map(normalizeProjectPath)
+    : [];
+  const relevantDirtyFiles = allowGovernedOutputs
+    ? dirtyFiles.filter((file) => !isGovernedWorkflowOutputPath(file))
+    : dirtyFiles;
+  if (status.status !== 0 || relevantDirtyFiles.length > 0) {
     return { ok: false, files: [], reason: "clean-checkout candidate replay requires a completely clean worktree" };
   }
   const resolvedBase = spawnSync("git", ["rev-parse", "--verify", `${base}^{commit}`], { cwd: root, encoding: "utf8" });
@@ -586,6 +598,10 @@ function replayCommittedCandidate(root, baseRevision) {
   const diff = spawnSync("git", ["diff", "--name-only", `${base}..HEAD`], { cwd: root, encoding: "utf8" });
   if (diff.status !== 0) {
     return { ok: false, files: [], reason: firstLine(diff.stderr || "committed candidate diff read failed") };
+  }
+  const committedFiles = diff.stdout.split(/\r?\n/).map(normalizeProjectPath).filter(Boolean);
+  if (!committedFiles.some((file) => !isGovernedWorkflowOutputPath(file))) {
+    return { ok: false, files: [], reason: "clean-checkout candidate replay has no non-governance changes after the recorded base revision" };
   }
   return { ok: true, files: [], stdout: diff.stdout, reason: "" };
 }
