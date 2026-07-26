@@ -14,9 +14,10 @@ import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { assertNoSymlinkInPath, isSafeRelativePath, resolveUnderRoot } from "./lib/path-safety.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { planSemanticErrors } from "./lib/verification-runtime-trust.mjs";
+import { hasCurrentReportAuthority, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence"]);
+const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "historical-audit"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
@@ -24,6 +25,7 @@ const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"] || args.report);
 const requireStructured = Boolean(args["require-structured-evidence"] || args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit: Boolean(args["historical-audit"]) });
 const schema = loadSchema(projectRoot, "schemas/artifacts/verification-runtime-plan.schema.json");
 const isManaged = fs.existsSync(path.join(projectRoot, "intentos-manifest.json")) || fs.existsSync(path.join(projectRoot, ".intentos/version.json"));
 let failed = false;
@@ -74,10 +76,10 @@ function checkReports() {
     else pass("SKIPPED_NO_REPORT: no Verification Runtime Plan found");
     return;
   }
-  for (const file of files) checkReport(file);
+  for (const file of files) checkReport(file, hasCurrentReportAuthority(reportAuthorityMode));
 }
 
-function checkReport(file) {
+function checkReport(file, requireCurrentAuthority) {
   if (!fs.existsSync(file)) return fail(`missing report ${rel(file)}`);
   if (fs.lstatSync(file).isSymbolicLink()) return fail(`report must not be a symlink: ${rel(file)}`);
   const content = fs.readFileSync(file, "utf8");
@@ -114,20 +116,24 @@ function checkReport(file) {
   for (const error of semanticErrors) fail(`${label} ${error}`);
   if (semanticErrors.length === 0) pass(`${label} tier, controls, preflight, adapter, and outcome are coherent`);
 
-  checkAdapterSources(plan, file, label);
-  const sourceRefs = [
-    plan.task_governance_source?.ref,
-    plan.verification_plan_source?.ref,
-    ...(plan.adapter_selection?.discovery_sources || []).map((item) => item.ref),
-  ].filter(isFileEvidenceRef);
-  const authority = validateEvidenceAuthorityBinding(projectRoot, plan.authority_binding, {
-    taskRef: plan.task_ref,
-    intentDigest: plan.intent_digest,
-    sourceRefs,
-    fromFile: file,
-  });
-  if (authority.ok) pass(`${label} Evidence Authority matches current project, task, intent, and sources`);
-  else authority.errors.forEach((error) => fail(`${label} ${error}`));
+  if (requireCurrentAuthority) {
+    checkAdapterSources(plan, file, label);
+    const sourceRefs = [
+      plan.task_governance_source?.ref,
+      plan.verification_plan_source?.ref,
+      ...(plan.adapter_selection?.discovery_sources || []).map((item) => item.ref),
+    ].filter(isFileEvidenceRef);
+    const authority = validateEvidenceAuthorityBinding(projectRoot, plan.authority_binding, {
+      taskRef: plan.task_ref,
+      intentDigest: plan.intent_digest,
+      sourceRefs,
+      fromFile: file,
+    });
+    if (authority.ok) pass(`${label} Evidence Authority matches current project, task, intent, and sources`);
+    else authority.errors.forEach((error) => fail(`${label} ${error}`));
+  } else {
+    pass(`${label} is historical; current source identity is enforced only for the latest or explicitly selected Runtime Plan`);
+  }
 
   checkTaskGovernanceSource(plan, file, label);
   checkVerificationPlanSource(plan, file, label);

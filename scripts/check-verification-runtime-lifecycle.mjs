@@ -10,30 +10,33 @@ import { assertNoSymlinkInPath, isSafeRelativePath, resolveUnderRoot } from "./l
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { planSemanticErrors } from "./lib/verification-runtime-trust.mjs";
 import { lifecyclePlanSemanticErrors, readLifecycleDeclaration } from "./lib/verification-runtime-lifecycle.mjs";
+import { hasCurrentReportAuthority, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["json", "allow-empty", "report", "require-report", "require-ready"]));
+const unknown = unknownOptions(args, new Set(["json", "allow-empty", "report", "require-report", "require-ready", "historical-audit"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"] || args.report);
 const requireReady = Boolean(args["require-ready"]);
+const explicitReport = args.report ? reportPath(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit: Boolean(args["historical-audit"]) });
 const checks = [];
 let failed = false;
 if (unknown.length) fatal(`unknown option: --${unknown.join(", --")}`);
 if (!outputJson) console.log("# Verification Runtime Lifecycle Plan Check\n");
 
-const files = args.report ? [reportPath(String(args.report))] : markdownFiles();
+const files = explicitReport ? [explicitReport] : markdownFiles();
 if (!files.length) {
   if (allowEmpty) pass("no lifecycle plan; skipped by explicit --allow-empty");
   else if (requireReport) fail("no Verification Runtime Lifecycle Plan found");
   else pass("SKIPPED_NO_REPORT: no Verification Runtime Lifecycle Plan found");
 } else {
-  files.forEach(checkReport);
+  files.forEach((file) => checkReport(file, hasCurrentReportAuthority(reportAuthorityMode)));
 }
 emit();
 
-function checkReport(file) {
+function checkReport(file, requireCurrentAuthority) {
   if (!fs.existsSync(file)) return fail(`missing report ${rel(file)}`);
   if (fs.lstatSync(file).isSymbolicLink()) return fail(`report must not be a symlink: ${rel(file)}`);
   const content = fs.readFileSync(file, "utf8");
@@ -51,16 +54,20 @@ function checkReport(file) {
   else fail(`${label} lifecycle_plan_ref must point to this report`);
 
   const runtime = loadRuntimePlan(plan, file, label);
-  const declaration = readLifecycleDeclaration(projectRoot);
-  if (runtime) {
+  if (runtime && requireCurrentAuthority) {
+    const declaration = readLifecycleDeclaration(projectRoot);
     const semantic = lifecyclePlanSemanticErrors(plan, runtime, declaration.status === "RECORDED" ? declaration : null, projectIdentity(projectRoot), projectRoot);
     if (semantic.length) semantic.forEach((error) => fail(`${label} ${error}`));
     else pass(`${label} runtime, declaration, actions, ownership, and boundaries are coherent`);
+  } else if (runtime) {
+    pass(`${label} is historical; current declaration and source identity are enforced only for the latest or explicitly selected Lifecycle Plan`);
   }
-  const sourceRefs = [plan.runtime_plan_ref, plan.declaration_source.ref].filter((ref) => /^(artifact|file):/.test(ref));
-  const authority = validateEvidenceAuthorityBinding(projectRoot, plan.authority_binding, { taskRef: plan.task_ref, intentDigest: plan.intent_digest, sourceRefs, fromFile: file });
-  if (authority.ok) pass(`${label} Evidence Authority is current`);
-  else authority.errors.forEach((error) => fail(`${label} ${error}`));
+  if (requireCurrentAuthority) {
+    const sourceRefs = [plan.runtime_plan_ref, plan.declaration_source.ref].filter((ref) => /^(artifact|file):/.test(ref));
+    const authority = validateEvidenceAuthorityBinding(projectRoot, plan.authority_binding, { taskRef: plan.task_ref, intentDigest: plan.intent_digest, sourceRefs, fromFile: file });
+    if (authority.ok) pass(`${label} Evidence Authority is current`);
+    else authority.errors.forEach((error) => fail(`${label} ${error}`));
+  }
   if (requireReady && plan.outcome !== "LIFECYCLE_PLAN_READY") fail(`${label} --require-ready requires LIFECYCLE_PLAN_READY`);
   const markdownOutcome = stripMarkdown(sectionBody(content, "Outcome") || "");
   if (markdownOutcome === plan.outcome) pass(`${label} Markdown outcome matches structured evidence`);

@@ -1,0 +1,78 @@
+
+> intentos@1.113.0 verify:runtime-trust:core
+> node --check scripts/lib/verification-runtime-adapters.mjs && node --check scripts/lib/verification-runtime-trust.mjs && node --check scripts/lib/verification-runtime-lifecycle.mjs && node --check scripts/lib/verification-runtime-consumer.mjs && node --check scripts/resolve-verification-runtime-plan.mjs && node --check scripts/resolve-verification-runtime-lifecycle.mjs && node --check scripts/check-verification-runtime-plan.mjs && node --check scripts/check-verification-runtime-lifecycle.mjs && node --check scripts/run-verification-runtime.mjs && node --check scripts/check-verification-run-manifest.mjs && node --check scripts/verification-runtime-self-service.mjs && node --test tests/verification-runtime-trust.test.mjs && node --test tests/verification-runtime-lifecycle.test.mjs && node --test tests/verification-runtime-consumer.test.mjs
+
+✔ LOW runtime plan is automatic, lightweight, and strict (141.5375ms)
+✔ LOW runtime plan ignores another task's Verification Plan (94.127042ms)
+✔ explicit task tier cannot downgrade classifier risk (0.116834ms)
+✔ runtime adapters derive typed project contracts without user selection (6.302958ms)
+✔ Kubernetes orchestration evidence outranks a generic Docker build file (8.417083ms)
+✔ conflicting project-owned adapter declarations fail closed (0.580334ms)
+✔ adapter contract tampering fails semantic validation (0.671ms)
+✔ POSSIBLE_HIGH runtime planning fails closed (96.335041ms)
+✔ valid HIGH runtime manifest binds isolated run and cleanup evidence (250.413042ms)
+✔ HIGH runtime manifest rejects missing service identity (249.061791ms)
+✔ HIGH runtime manifest rejects incomplete adapter-specific identity (246.562834ms)
+✔ runtime plan invalidates changed adapter discovery evidence (221.4985ms)
+✔ batch runtime plan checks preserve historical records while keeping the latest plan current (412.455875ms)
+✔ HIGH runtime manifest rejects production data and unsafe cleanup (243.226375ms)
+✔ runtime manifest rejects raw connection credentials (243.213541ms)
+✔ runtime trust report arguments cannot escape the project (69.857167ms)
+✔ runtime trust report arguments reject symbolic links (71.398ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2406.281334
+✔ 1.103 executes a bounded command and emits current cleanup-bound evidence (396.897791ms)
+✔ 1.113 archives exact run evidence for clean-checkout consumers without reusing an archive (453.8105ms)
+✔ batch lifecycle and manifest checks audit history while explicit historical checks stay current-strict (742.570166ms)
+▶ 1.113 rejects lifecycle manifest field tampering and offline journal synthesis
+  ✔ execution argv digest tampering (332.724333ms)
+  ✔ execution obligation tampering (332.371292ms)
+  ✔ journal action order tampering (334.576375ms)
+  ✔ offline journal missing observed action events (331.843042ms)
+✔ 1.113 rejects lifecycle manifest field tampering and offline journal synthesis (1331.986083ms)
+✔ 1.103 runs a local service with positive and negative probes, then cleans owned resources (1097.018375ms)
+✔ 1.113 checker replays exact service, probe, resource, and cleanup sets (1432.387625ms)
+✔ 1.103 blocks execution when the technical declaration is missing (200.961792ms)
+✔ 1.103 JSON output preserves the Markdown evidence artifact (152.919417ms)
+✔ 1.113 expands the current required Verification Plan obligations and rejects stale sources (224.12075ms)
+✔ 1.113 rejects a copied current Verification Plan authority before lifecycle execution (12.948208ms)
+✔ 1.103 rejects shell, provider, broad cleanup, and production-shaped commands (1.603417ms)
+✔ 1.113 permits bounded 30-minute verification actions but rejects longer execution (0.06275ms)
+✔ 1.103 preserves dependency order within the same lifecycle phase (158.24075ms)
+✔ 1.113 runtime execution binds exact staged bytes and rejects a split index/worktree candidate (818.113083ms)
+✔ 1.103 rejects project-external paths and shared or production resources (0.99075ms)
+✔ 1.113 records a failed executable preflight instead of projecting later cleanup as PASS (2.433166ms)
+✔ 1.113 failed runtime preflight is projected as BLOCKED in the emitted manifest (224.643458ms)
+✔ 1.103 interruption stops exact child processes and cleans only run-owned resources (1714.164792ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9014.6435
+✔ 1.113 binds one authoritative runtime but missing Task Governance still blocks Completion and finish (16398.220458ms)
+✔ 1.104 rejects wrong-task, copied-project, and stale-source runtime evidence (11363.16975ms)
+✔ 1.113 rejects ambiguous implicit Runtime Trust selection and requires an exact manifest reference (11390.085417ms)
+✔ 1.113 Runtime Trust cannot turn a broad declaration into per-obligation BL2 proof (11148.41075ms)
+✔ 1.113 accepts exact observed BL2 obligation proof from the bound Runtime Trust command (11285.744333ms)
+✔ 1.104 strict Runtime Trust cannot be bypassed with allow-empty or historical evidence (166.711083ms)
+✔ 1.108 records an exact NOT_REQUIRED binding when no scenario needs runtime proof (0.495958ms)
+✔ 1.108 rejects NOT_REQUIRED when a consumer requires runtime-trusted proof (0.244708ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61804.996333
+
+process_signal=none

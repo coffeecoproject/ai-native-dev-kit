@@ -1,0 +1,31 @@
+✔ release workflow is consent-first and resolves its consumer base from acceptance (0.80025ms)
+✔ source workflow and optional GitHub adapter keep top-level contents read permission parity (1.750042ms)
+✔ PR and release workflows verify their exact committed candidate ranges (0.457208ms)
+✔ workflow_dispatch provider actions and hosted runners share one discovery authority (151.323125ms)
+✔ inline workflow_dispatch maps are discovered without treating release notes as deploy actions (41.620166ms)
+✔ unknown release-like remote actions and unresolved build targets fail closed (133.005667ms)
+✔ workflow package scripts recursively expose provider deploys and explicit source_only stays blocked (123.423709ms)
+✔ workflow npm scripts expose provider deploys hidden in project shell, Node, and Python scripts (124.633042ms)
+✔ mixed project script chains remain recursive through the provider command (41.835416ms)
+✔ local reusable workflows and composite actions remain in the deploy authority graph (43.074834ms)
+✔ dynamic project process calls and remote reusable workflows fail closed (81.747583ms)
+✔ manual validation workflows do not become release workflows because checkers spawn processes (41.075708ms)
+✔ package script recursion distinguishes proven-safe chains from unresolved cycles (121.161917ms)
+✔ strict topology source accepts current evidence and rejects copied evidence (217.925416ms)
+✔ topology source rejects file-digest tampering and legacy-only absence (127.851875ms)
+✔ candidate, package, source, and action bindings must agree (0.245375ms)
+✔ execution requests normalize argv and provider requests and reject shell expansion (0.33975ms)
+✔ multiple active publishing workflows fail closed (63.902833ms)
+✔ strict consumer flags cannot pass an empty project (143.0415ms)
+✔ release topology is mandatory by mode, without relying on an optional flag (170.745417ms)
+✔ PLAN_ONLY assigns Codex technical preparation while external release remains human-owned (346.040791ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2026.824041
+
+process_signal=none

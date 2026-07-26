@@ -15,6 +15,7 @@ import {
   taskIntentDigest,
   validateEmbeddedTaskGovernanceLineage,
 } from "./lib/task-entry-binding.mjs";
+import { isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -26,6 +27,7 @@ const knownFlags = new Set([
   "require-business-rule-closure",
   "require-task-lineage",
   "strict",
+  "historical-audit",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = canonicalProjectRoot(path.resolve(process.cwd(), args._[0] || "."));
@@ -34,8 +36,10 @@ const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"] || args["require-business-rule-closure"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const requireTaskLineage = Boolean(args["require-task-lineage"] || args.strict);
+const historicalAudit = Boolean(args["historical-audit"]);
 const strictRequested = requireReport || requireStructuredEvidence || requireTaskLineage || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit });
 const schemaPath = "schemas/artifacts/business-rule-closure.schema.json";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -253,11 +257,11 @@ function checkReports() {
       fail(`missing explicit business rule closure report ${file}`);
       continue;
     }
-    checkReport(file);
+    checkReport(file, { historicalMode: isHistoricalReportAudit(reportAuthorityMode) });
   }
 }
 
-function checkReport(file) {
+function checkReport(file, { historicalMode = false } = {}) {
   const content = fs.readFileSync(file, "utf8");
   const label = rel(file);
   if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
@@ -278,10 +282,10 @@ function checkReport(file) {
   requireBoundaryNo(content, label, "This closure proves real-environment behavior");
   checkQuestionLimit(content, label);
   const summary = checkSummary(content, label);
-  const evidence = checkStructuredEvidence(content, label);
+  const evidence = checkStructuredEvidence(content, label, { historicalMode });
   checkMarkdownJsonConsistency(content, label, summary, evidence);
   checkSelfReference(file, label, evidence);
-  checkStateRules(content, label, summary, evidence);
+  checkStateRules(content, label, summary, evidence, { historicalMode });
 }
 
 function checkSummary(content, label) {
@@ -301,7 +305,7 @@ function checkSummary(content, label) {
   return { state, ruleType, canEnter, canWrite };
 }
 
-function checkStructuredEvidence(content, label) {
+function checkStructuredEvidence(content, label, { historicalMode = false } = {}) {
   const body = sectionBody(content, "Machine-Readable Evidence", { fallback: "" }) || "";
   if (!body.trim()) {
     if (requireStructuredEvidence || requireTaskLineage) fail(`${label} must include Machine-Readable Evidence in strict mode`);
@@ -345,13 +349,13 @@ function checkStructuredEvidence(content, label) {
   const closureDigest = evidenceDigest(parsed, ["closure_digest"]);
   if (parsed.closure_digest === closureDigest) pass(`${label} closure_digest matches structured evidence`);
   else fail(`${label} closure_digest does not match structured evidence`);
-  checkTaskLineage(label, parsed);
+  checkTaskLineage(label, parsed, { historicalMode });
   return parsed;
 }
 
-function checkTaskLineage(label, evidence) {
+function checkTaskLineage(label, evidence, { historicalMode = false } = {}) {
   const hasLineage = (evidence.source_rule_refs || []).some((item) => decodeTaskGovernanceLineage(item));
-  if (!hasLineage && !requireTaskLineage) {
+  if (!hasLineage && (!requireTaskLineage || historicalMode)) {
     pass(`${label} historical Business Rule Closure has no current task lineage authority`);
     return;
   }
@@ -359,7 +363,7 @@ function checkTaskLineage(label, evidence) {
     taskRef: evidence.task_ref,
     intent: evidence.user_request,
     intentDigest: evidence.source_request_digest,
-  }, { requireCurrent: requireTaskLineage });
+  }, { requireCurrent: requireTaskLineage && !historicalMode });
   if (validation.ok) pass(`${label} Task Governance ref, digest, task_ref, and intent lineage are exact`);
   else validation.errors.forEach((error) => fail(`${label} ${error}`));
 }
@@ -401,7 +405,7 @@ function checkSelfReference(file, label, evidence) {
   }
 }
 
-function checkStateRules(content, label, summary, evidence) {
+function checkStateRules(content, label, summary, evidence, { historicalMode = false } = {}) {
   if (!evidence) return;
   if (evidence.can_codex_write_now !== "No") fail(`${label} can_codex_write_now must be No`);
   if (evidence.state === "READY_FOR_IMPACT_COVERAGE" && evidence.can_enter_impact_coverage !== "Yes") {
@@ -413,7 +417,9 @@ function checkStateRules(content, label, summary, evidence) {
   const dimensions = Array.isArray(evidence.dimensions) ? evidence.dimensions : [];
   const dimensionMap = new Map(dimensions.map((item) => [item.dimension, item]));
   const types = Array.isArray(evidence.business_rule_types) ? evidence.business_rule_types : [];
-  if (evidence.schema_version === "1.108.0") checkBusinessUniverseBinding(label, evidence, dimensionMap);
+  if (evidence.schema_version === "1.108.0") {
+    checkBusinessUniverseBinding(label, evidence, dimensionMap, { historicalMode });
+  }
   if (evidence.state === "READY_FOR_IMPACT_COVERAGE") {
     for (const type of types) {
       for (const dimension of requiredByType[type] || []) {
@@ -459,7 +465,7 @@ function checkStateRules(content, label, summary, evidence) {
   if (questionCount > 3) fail(`${label} asks more than three user-facing questions`);
 }
 
-function checkBusinessUniverseBinding(label, evidence, dimensionMap) {
+function checkBusinessUniverseBinding(label, evidence, dimensionMap, { historicalMode = false } = {}) {
   const binding = evidence.business_universe_binding;
   if (!binding) {
     fail(`${label} 1.108.0 requires business_universe_binding`);
@@ -502,14 +508,18 @@ function checkBusinessUniverseBinding(label, evidence, dimensionMap) {
     fail(`${label} required Business Universe ref is unsafe or unresolved: ${binding.business_universe_ref}`);
     return;
   }
-  const checker = path.join(path.dirname(fileURLToPath(import.meta.url)), "check-business-universe-coverage.mjs");
-  const universeReportRef = path.relative(projectRoot, universeFile).replaceAll(path.sep, "/");
-  const result = spawnSync(process.execPath, [checker, projectRoot, "--report", universeReportRef, "--require-structured-evidence", "--require-ready"], {
-    cwd: projectRoot,
-    encoding: "utf8",
-  });
-  if (result.status === 0) pass(`${label} referenced Business Universe Coverage passes strict ready check`);
-  else fail(`${label} referenced Business Universe Coverage failed strict ready check: ${(result.stderr || result.stdout).trim()}`);
+  if (historicalMode) {
+    pass(`${label} historical Business Universe binding preserves recorded structured evidence without claiming current source authority`);
+  } else {
+    const checker = path.join(path.dirname(fileURLToPath(import.meta.url)), "check-business-universe-coverage.mjs");
+    const universeReportRef = path.relative(projectRoot, universeFile).replaceAll(path.sep, "/");
+    const result = spawnSync(process.execPath, [checker, projectRoot, "--report", universeReportRef, "--require-structured-evidence", "--require-ready"], {
+      cwd: projectRoot,
+      encoding: "utf8",
+    });
+    if (result.status === 0) pass(`${label} referenced Business Universe Coverage passes strict ready check`);
+    else fail(`${label} referenced Business Universe Coverage failed strict ready check: ${(result.stderr || result.stdout).trim()}`);
+  }
   const extracted = extractMachineReadableEvidence(fs.readFileSync(universeFile, "utf8"));
   if (!extracted?.ok) {
     fail(`${label} referenced Business Universe Coverage lacks valid structured evidence`);

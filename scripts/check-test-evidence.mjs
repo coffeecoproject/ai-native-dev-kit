@@ -21,6 +21,7 @@ import {
   verificationPlanRequiresRuntimeTrust,
 } from "./lib/verification-runtime-consumer.mjs";
 import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
+import { isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -35,6 +36,7 @@ const knownFlags = new Set([
   "require-test-quality-controls",
   "require-evidence-authority",
   "require-runtime-trust",
+  "historical-audit",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -48,10 +50,12 @@ const requireCurrentEvidence = Boolean(args["require-current-evidence"]);
 const requireTestQualityControls = Boolean(args["require-test-quality-controls"]);
 const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
 const requireRuntimeTrust = Boolean(args["require-runtime-trust"]);
+const historicalAudit = Boolean(args["historical-audit"]);
 const strictRequested = requireReport || requireStructuredEvidence || requireVerificationPlanRef
   || strictSourceBinding || requireCurrentEvidence || requireTestQualityControls
   || requireEvidenceAuthority || requireRuntimeTrust || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit });
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/test-evidence.schema.json");
 const verificationPlanSchema = loadSchema(projectRoot, "schemas/artifacts/verification-plan.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -185,11 +189,11 @@ function checkReports() {
       fail(`missing explicit Test Evidence report ${file}`);
       continue;
     }
-    checkReport(file);
+    checkReport(file, { historicalMode: isHistoricalReportAudit(reportAuthorityMode) });
   }
 }
 
-function checkReport(file) {
+function checkReport(file, { historicalMode = false } = {}) {
   const content = fs.readFileSync(file, "utf8");
   const label = rel(file);
   if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
@@ -226,10 +230,25 @@ function checkReport(file) {
   }
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
-  checkRuntimeTrust(label, file, evidence);
   const markdown = parseMarkdownEvidence(content);
+  if (historicalMode) {
+    checkHistoricalEvidence(label, file, evidence, markdown);
+    return;
+  }
+  checkRuntimeTrust(label, file, evidence);
   checkEvidenceAuthority(label, file, evidence);
   checkStructuredEvidence(label, file, evidence, markdown);
+}
+
+function checkHistoricalEvidence(label, file, evidence, markdown) {
+  const refs = testEvidenceRefCandidates(file);
+  if (refs.includes(evidence.test_evidence_ref)) pass(`${label} historical test_evidence_ref points to this report`);
+  else fail(`${label} historical test_evidence_ref ${evidence.test_evidence_ref || "<missing>"} must point to ${refs.join(" or ")}`);
+
+  checkVerificationPlanBinding(label, file, evidence);
+  checkBoundaries(label, evidence);
+  checkMarkdownJsonConsistency(label, evidence, markdown);
+  pass(`${label} preserves valid historical Test Evidence structure and internal bindings without claiming current runtime, source, or project authority`);
 }
 
 function checkRuntimeTrust(label, file, evidence) {

@@ -859,6 +859,10 @@ test("Git authority identity excludes governed evidence output while binding evi
   });
   fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
   fs.writeFileSync(path.join(root, "evidence", "runtime-smoke.txt"), "PASS runtime smoke\n");
+  fs.mkdirSync(path.join(root, "release-review-provenance"), { recursive: true });
+  fs.writeFileSync(path.join(root, "release-review-provenance", "review-001.md"), "# Independent review provenance\n");
+  fs.mkdirSync(path.join(root, "releases", "1.119.0"), { recursive: true });
+  fs.writeFileSync(path.join(root, "releases", "1.119.0", "independent-review-report.md"), "# Independent review\n");
   const after = createEvidenceAuthorityBinding(root, {
     taskRef: "tasks/001.md",
     intentDigest: "sha256:test",

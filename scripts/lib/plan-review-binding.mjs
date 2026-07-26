@@ -208,9 +208,10 @@ export function checkPlanReviewBinding({
 export function validatePlanReviewSourceEvidence(projectRoot, reportFile, evidence, options = {}) {
   const errors = [];
   const checkerCache = new Map();
-  const currentAuthority = Boolean(options.requireCurrentTaskLineage)
+  const historicalAudit = Boolean(options.historicalAudit);
+  const currentAuthority = !historicalAudit && (Boolean(options.requireCurrentTaskLineage)
     || (evidence?.schema_version === currentPlanReviewSchemaVersion
-      && readyStates.has(evidence?.plan_review_state));
+      && readyStates.has(evidence?.plan_review_state)));
   const normalizedIntent = normalizeTaskIntent(evidence?.intent);
   if (currentAuthority
     && (!normalizedIntent
@@ -382,6 +383,7 @@ export function validatePlanReviewSourceEvidence(projectRoot, reportFile, eviden
       intent: evidence.intent,
       intentDigest: evidence.intent_digest,
       currentTaskMatch: evidence.task_governance?.current_task_match,
+      runChecker: !historicalAudit,
     });
   } else {
     checkHistorical("task_governance.ref", evidence.task_governance?.ref, evidence.task_governance?.digest, {
@@ -408,6 +410,7 @@ export function validatePlanReviewSourceEvidence(projectRoot, reportFile, eviden
         intentDigest: evidence.intent_digest,
         currentTaskMatch: source.current_task_match,
         expectedOutcome: evidence.plan_review_state === "PLAN_REVIEW_PASSED" ? readyOutcomes[source.source_kind] : "",
+        runChecker: !historicalAudit,
       });
     } else {
       checkHistorical(`source_chain.${source.source_kind}`, source.source_ref, source.source_digest, {

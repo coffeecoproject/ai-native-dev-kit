@@ -1,0 +1,39 @@
+Command: node --test tests/resolve-operating-loop-modularity.test.mjs tests/self-check-modular-source-marker.test.mjs
+Exit code: 0
+
+✔ resolve-operating-loop keeps a bounded composition entry and cohesive internal modules
+✔ operating-loop modules remain Manifest-authoritative distributed assets
+✔ operating-loop dependency direction stays acyclic
+✔ legacy source-marker checks follow modular implementation graphs
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+Command: node --test --test-name-pattern='repository Plan Review batch' tests/understanding-planning-closure.test.mjs
+Exit code: 0
+
+✔ repository Plan Review batch audits history without promoting it to current authority
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+Command: node --test tests/control-effectiveness.test.mjs
+Exit code: 0
+
+ℹ tests 8
+ℹ pass 8
+ℹ fail 0
+Command: node --test tests/test-evidence-batch-authority.test.mjs
+Exit code: 0
+
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+Command: node --test tests/unified-closure-batch-authority.test.mjs
+Exit code: 0
+
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0

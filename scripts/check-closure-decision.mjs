@@ -10,6 +10,7 @@ import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding, normalizeTaskIntent, taskIntentDigest } from "./lib/task-entry-binding.mjs";
 import { resolveRuntimeTrustBinding } from "./lib/verification-runtime-consumer.mjs";
+import { isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -41,6 +42,7 @@ const requireCurrentAuthority = Boolean(args["require-current-authority"] || arg
 const requireDone = Boolean(args["require-done"]);
 const strictRequested = Boolean(args["require-report"] || args.report || args.strict || requireCurrentAuthority || requireDone);
 const explicitReport = args.report ? resolveSelectedReport(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit });
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -173,6 +175,7 @@ function checkClosureDecisions() {
   }
 
   for (const file of files) {
+    const historicalMode = isHistoricalReportAudit(reportAuthorityMode);
     const content = fs.readFileSync(file, "utf8");
     const label = rel(file);
     for (const section of sections) requireSection(content, section, label);
@@ -187,9 +190,10 @@ function checkClosureDecisions() {
     const intentDigest = tableValue(content, "Intent digest");
     const authorityVersion = tableValue(content, "Authority version");
     const authorityMarker = tableValue(content, "Authority marker");
-    const currentAuthority = authorityVersion === "1.113.0" && authorityMarker === "CURRENT_FINISH_AUTHORITY";
+    const recordedCurrentAuthority = authorityVersion === "1.113.0" && authorityMarker === "CURRENT_FINISH_AUTHORITY";
+    const currentAuthority = recordedCurrentAuthority && !historicalMode;
     if (currentAuthority) pass(`${label} declares current 1.113 finish authority`);
-    else if (historicalAudit) pass(`${label} is readable only as non-authorizing historical audit evidence`);
+    else if (historicalAudit || historicalMode) pass(`${label} is readable only as non-authorizing historical audit evidence`);
     else fail(`${label} lacks current finish authority; use --historical-audit only for non-authorizing legacy inspection`);
     if (requireCurrentAuthority && !currentAuthority) fail(`${label} is not current finish authority`);
     if (allowedDecisions.has(decision)) pass(`${label} has valid closure decision`);
@@ -234,7 +238,7 @@ function checkClosureDecisions() {
     if (/stricter result:\s*Yes|stricter result.*Yes/i.test(singleSource)) pass(`${label} confirms stricter result wins`);
     else fail(`${label} must confirm stricter result wins`);
 
-    if (decision === "DONE") requireDoneEvidence(content, label, { currentAuthority });
+    if (decision === "DONE") requireDoneEvidence(content, label, { currentAuthority, historicalMode });
 
     for (const boundary of [
       "This decision writes target files",
@@ -290,17 +294,25 @@ function resolveSelectedReport(reference) {
   return file;
 }
 
-function requireDoneEvidence(content, label, { currentAuthority }) {
+function requireDoneEvidence(content, label, { currentAuthority, historicalMode }) {
   const evidence = sectionBody(content, "Evidence Map") || "";
   const verification = parseInputVerification(content, label);
   const completionEvidence = evidenceRow(evidence, "Completion Evidence");
+  if (historicalMode && completionEvidence) {
+    pass(`${label} historical DONE preserves recorded evidence maps without claiming current completion or runtime authority`);
+    return;
+  }
+  if (historicalMode) {
+    requireLegacyDoneEvidence(content, label, evidence, verification);
+    return;
+  }
   if (completionEvidence) {
     requireCurrentDoneEvidence(content, label, evidence, verification, completionEvidence);
     return;
   }
   if (currentAuthority) {
     fail(`${label} current DONE requires typed Completion Evidence and cannot use legacy close-out inputs`);
-  } else if (historicalAudit) {
+  } else if (historicalAudit || historicalMode) {
     requireLegacyDoneEvidence(content, label, evidence, verification);
   } else {
     fail(`${label} legacy DONE is not current finish authority`);

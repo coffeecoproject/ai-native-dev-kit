@@ -350,6 +350,38 @@ test("runtime plan invalidates changed adapter discovery evidence", () => {
   assert.match(`${checked.stdout}\n${checked.stderr}`, /adapter discovery source.*digest/i);
 });
 
+test("batch runtime plan checks preserve historical records while keeping the latest plan current", () => {
+  const root = tempProject("intentos-runtime-history-");
+  createHighPlan(root);
+
+  const packageFile = path.join(root, "package.json");
+  const value = JSON.parse(fs.readFileSync(packageFile, "utf8"));
+  value.scripts.dev = "node current-server.mjs";
+  fs.writeFileSync(packageFile, JSON.stringify(value, null, 2));
+
+  const current = run("scripts/resolve-verification-runtime-plan.mjs", [
+    root,
+    "--intent", "appointment requests must include a service time",
+    "--task-ref", "tasks/001-appointment-requests-must-include-a-service-time.md",
+    "--task-tier", "HIGH",
+    "--verification-plan-ref", "artifact:verification-plans/001-service-time.md",
+    "--out", "verification-runtime-plans/002-current.md",
+  ]);
+  assert.equal(current.status, 0, `${current.stdout}\n${current.stderr}`);
+
+  const batch = run("scripts/check-verification-runtime-plan.mjs", [root, "--require-structured-evidence"]);
+  assert.equal(batch.status, 0, `${batch.stdout}\n${batch.stderr}`);
+  assert.match(batch.stdout, /001-service-time\.md is historical/);
+
+  const explicitHistorical = run("scripts/check-verification-runtime-plan.mjs", [
+    root,
+    "--report", "verification-runtime-plans/001-service-time.md",
+    "--require-structured-evidence",
+  ]);
+  assert.notEqual(explicitHistorical.status, 0);
+  assert.match(`${explicitHistorical.stdout}\n${explicitHistorical.stderr}`, /adapter discovery source.*digest/i);
+});
+
 test("HIGH runtime manifest rejects production data and unsafe cleanup", () => {
   const root = tempProject();
   createHighPlan(root);

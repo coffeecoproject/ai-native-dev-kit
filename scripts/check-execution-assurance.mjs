@@ -11,7 +11,7 @@ import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
-import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
+import { canonicalFileDigest, isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 import {
   runtimeTrustBindingsAgree,
   validateRuntimeTrustBinding,
@@ -26,6 +26,7 @@ import {
   validateActualDiffAuthority,
   validateDoneCapableExecutionAssurance,
 } from "./lib/execution-assurance-consumer.mjs";
+import { historicalEvidenceSourceErrors, isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
@@ -70,6 +71,7 @@ const strictRequested = requireStructuredEvidence || requireEvidenceRefs || requ
   || requireWorkQueue || strictTaskConsumer || requirePlanReview || requirePlanningClosure
   || requireEvidenceAuthority || requireRuntimeTrust || historicalAudit || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit });
 const currentSchemaVersion = "1.113.0";
 const readableSchemaVersions = new Set(["1.74.0", "1.104.0", "1.108.0", "1.110.0", currentSchemaVersion]);
 const schemaPath = "schemas/artifacts/execution-assurance.schema.json";
@@ -252,7 +254,9 @@ function checkReports() {
     if (requireRuntimeTrust) requireSection(content, "Runtime Trust Binding", label);
     if (requireStructuredEvidence) requireSection(content, "Machine-Readable Evidence", label);
     const summary = checkSummary(content, label);
-    const evidence = checkStructuredEvidence(content, label, file);
+    const evidence = checkStructuredEvidence(content, label, file, {
+      historicalMode: isHistoricalReportAudit(reportAuthorityMode),
+    });
     if (evidence?.schema_version === currentSchemaVersion) requireSection(content, "Pre-Write Revalidation", label);
     checkCrossConsistency(content, label, summary, evidence);
     checkStateRules(content, label, summary, evidence);
@@ -276,7 +280,7 @@ function checkSummary(content, label) {
   return { kind, state, canClaimDone, canWrite };
 }
 
-function checkStructuredEvidence(content, label, file) {
+function checkStructuredEvidence(content, label, file, { historicalMode = false } = {}) {
   const body = sectionBody(content, "Machine-Readable Evidence", { fallback: "" }) || "";
   if (!body.trim()) {
     if (requireStructuredEvidence) fail(`${label} must include Machine-Readable Evidence in strict mode`);
@@ -347,6 +351,10 @@ function checkStructuredEvidence(content, label, file) {
     if (Object.prototype.hasOwnProperty.call(parsed, "planning_closure_binding")) pass(`${label} evidence includes planning_closure_binding`);
     else fail(`${label} evidence missing planning_closure_binding`);
   }
+  if (historicalMode) {
+    checkHistoricalEvidence(label, file, parsed);
+    return parsed;
+  }
   checkRuntimeTrust(label, file, parsed);
   checkCurrentTaskTestEvidence(label, file, parsed);
   checkBusinessUniverseAssurance(label, file, parsed);
@@ -405,6 +413,45 @@ function checkStructuredEvidence(content, label, file) {
   checkCurrentTaskAuthority(file, parsed, label);
   checkBoundary(parsed, label);
   return parsed;
+}
+
+function checkHistoricalEvidence(label, file, evidence) {
+  if (evidence.artifact_type === "execution_assurance_report") pass(`${label} historical artifact_type is execution_assurance_report`);
+  else fail(`${label} historical artifact_type must be execution_assurance_report`);
+
+  if (isShaDigest(evidence.intent_digest) && evidence.intent_digest === digest(evidence.intent_lock?.user_intent || "")) {
+    pass(`${label} historical intent digest remains internally consistent`);
+  } else {
+    fail(`${label} historical intent digest must remain a sha256 of intent_lock.user_intent`);
+  }
+
+  for (const source of (evidence.source_systems || []).filter((item) => item.status === "RECORDED")) {
+    const sourceRef = source.source_system_ref || source.ref;
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, file, sourceRef, { markdownOnly: true });
+    if (!resolved.ok) {
+      fail(`${label} historical source ${source.name} is unsafe or unresolved: ${resolved.error}`);
+      continue;
+    }
+    const descriptor = historicalExecutionSourceDescriptor(source.name);
+    const errors = historicalEvidenceSourceErrors(fs.readFileSync(resolved.file, "utf8"), source, {
+      ...descriptor,
+      fileDigest: descriptor.digestField ? "" : canonicalFileDigest(resolved.file),
+    });
+    if (errors.length === 0) pass(`${label} historical source ${source.name} digest, task, and outcome match the referenced artifact`);
+    else errors.forEach((error) => fail(`${label} historical source ${source.name}: ${error}`));
+  }
+  pass(`${label} preserves valid historical Execution Assurance structure and recorded source refs without claiming current runtime, source, diff, or project authority`);
+}
+
+function historicalExecutionSourceDescriptor(name) {
+  return {
+    change_impact_coverage: { digestField: "", outcomeField: "outcome" },
+    test_evidence: { digestField: "", outcomeField: "test_evidence_state" },
+    verification_run_manifest: { digestField: "", outcomeField: "outcome" },
+    task_governance: { digestField: "", outcomeField: "" },
+    plan_review: { digestField: "", outcomeField: "plan_review_state" },
+    planning_closure: { digestField: "", outcomeField: "outcome" },
+  }[name] || {};
 }
 
 function checkCurrentTaskTestEvidence(label, file, evidence) {

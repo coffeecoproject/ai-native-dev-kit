@@ -76,6 +76,27 @@ test("changed implementation and copied-project evidence fail closed", () => {
   assert.match(result.stdout, /project identity or revision|raw file digest/);
 });
 
+test("filenames cannot grant current authority; only explicit report selection can", () => {
+  const root = fixtureRoot();
+  writeReport(root, null, "zzz-history.md");
+  fs.appendFileSync(path.join(root, "scripts", "gate.mjs"), "\n// current revision\n");
+  writeReport(root, null, "aaa-current.md");
+
+  const batch = spawnSync(process.execPath, [checker, root], { encoding: "utf8" });
+  assert.equal(batch.status, 0, batch.stdout + batch.stderr);
+  assert.match(batch.stdout, /zzz-history\.md preserves valid historical structure/);
+  assert.match(batch.stdout, /aaa-current\.md preserves valid historical structure/);
+  assert.doesNotMatch(batch.stdout, /binds current implementation/);
+
+  const explicitOld = spawnSync(process.execPath, [checker, root, "--report", "control-effectiveness-reports/zzz-history.md", "--require-effective"], { encoding: "utf8" });
+  assert.notEqual(explicitOld.status, 0);
+  assert.match(explicitOld.stdout, /implementation digest is stale|project identity or revision|raw file digest/);
+
+  const explicitCurrent = spawnSync(process.execPath, [checker, root, "--report", "control-effectiveness-reports/aaa-current.md", "--require-effective"], { encoding: "utf8" });
+  assert.equal(explicitCurrent.status, 0, explicitCurrent.stdout + explicitCurrent.stderr);
+  assert.match(explicitCurrent.stdout, /aaa-current\.md binds current implementation/);
+});
+
 test("bounded adapters reject shell, network, secrets, and unsafe cleanup", () => {
   const safe = adapter();
   assert.equal(validateBoundedControlAdapter(safe).ok, true);

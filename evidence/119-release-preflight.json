@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.113.0",
+  "artifact_type": "release_preflight_receipt",
+  "operation": "release_preflight",
+  "task_ref": "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
+  "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
+  "release_candidate_ref": "artifact:release-candidates/119-source-candidate.md",
+  "release_candidate_digest": "sha256:89090abfbcbc357a57f5bf3b54e49b05aceaf2aed16ad8f5ffb2d2db521da568",
+  "source_revision": "sha256:7094b242ab450c9916bd008d6ae0e2df66503edd1893815abf5391d4135456b4",
+  "lane_state": "PREFLIGHT_ONLY",
+  "command": "git diff --cached --check",
+  "result": "PASS",
+  "exit_code": 0,
+  "external_effects_executed": "No",
+  "production_touched": "No",
+  "receipt_digest": "sha256:4e5e7962819f15c0b45a7dec63221fe0cfa259fc8eab47d3cff462e013c25228"
+}

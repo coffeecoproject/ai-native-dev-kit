@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.118.0",
+  "artifact_type": "business_universe_semantic_review",
+  "task_ref": "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
+  "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
+  "discovery_boundary_digest": "sha256:70c0cad17f1df00136cf7cf5b754116bab31a4188548ffe0ac71e9615408da69",
+  "reviewed_sources": [
+    {
+      "source_ref": "file:intentos-manifest.json",
+      "name": "Generated-project distribution contract",
+      "origin_name": "IntentOS manifest",
+      "processing_path_name": "Source-required and copy-rule projection",
+      "path_provenance": "PROJECT_NATIVE_AUTOMATION",
+      "lifecycle_stage": "PROPAGATION_OR_SIDE_EFFECT",
+      "required_proof_strength": "PROJECT_NATIVE_BEHAVIOR_PROOF",
+      "notes": "Every extracted operating-loop module must be distributed with the public entry.",
+      "lifecycle_reason": "Initialization is where the source module graph becomes a generated-project runtime graph.",
+      "expected_behavior": "Manifest validation and generated-project parity prove all eight internal modules are installed.",
+      "negative_or_reverse_behavior": "Omitting any module or copy rule must fail manifest closure or generated-project verification."
+    },
+    {
+      "source_ref": "file:scripts/operating-loop/source-orchestration.mjs",
+      "name": "Source command orchestration",
+      "origin_name": "Extracted operating-loop internals",
+      "processing_path_name": "Ordered resolver subprocess execution",
+      "path_provenance": "PROJECT_RUNTIME_PATH",
+      "lifecycle_stage": "FAILURE_RETRY_OR_RECOVERY",
+      "required_proof_strength": "PROJECT_NATIVE_BEHAVIOR_PROOF",
+      "notes": "This module owns the extracted subprocess sequence without changing its public contract.",
+      "lifecycle_reason": "Subprocess ordering determines which workflow facts are available to later decision and presentation stages.",
+      "expected_behavior": "The same source commands run in the same order and preserve their stdout, stderr, and exit-code interpretation.",
+      "negative_or_reverse_behavior": "A source failure remains fail-closed and cannot be hidden by the module boundary."
+    },
+    {
+      "source_ref": "file:scripts/resolve-operating-loop.mjs",
+      "name": "Public operating-loop entry",
+      "origin_name": "Existing CLI contract",
+      "processing_path_name": "Argument parsing, orchestration, decision, and rendering",
+      "path_provenance": "PROJECT_RUNTIME_PATH",
+      "lifecycle_stage": "ORIGIN_OR_ENTRY",
+      "required_proof_strength": "PROJECT_NATIVE_BEHAVIOR_PROOF",
+      "notes": "The original public path remains the only supported entry.",
+      "lifecycle_reason": "All public modes and arguments enter the workflow through this file.",
+      "expected_behavior": "Existing arguments, output section order, decision state, and exit codes remain unchanged.",
+      "negative_or_reverse_behavior": "Unknown modes and downstream failures retain the prior non-zero behavior and diagnostic ordering."
+    },
+    {
+      "source_ref": "file:scripts/self-check/architecture.mjs",
+      "name": "Modular-source self-check consumption",
+      "origin_name": "IntentOS self-check architecture domain",
+      "processing_path_name": "Entry plus extracted-module marker inspection",
+      "path_provenance": "PROJECT_NATIVE_AUTOMATION",
+      "lifecycle_stage": "ELIGIBILITY_OR_VALIDATION",
+      "required_proof_strength": "PROJECT_NATIVE_BEHAVIOR_PROOF",
+      "notes": "Self-checks must inspect the complete source graph after a thin-entry refactor.",
+      "lifecycle_reason": "Architecture validation is the fail-closed eligibility boundary before completion.",
+      "expected_behavior": "Legacy-marker and modularity checks inspect the public entry and every internal module.",
+      "negative_or_reverse_behavior": "Moving a forbidden marker into an extracted module must still fail the self-check."
+    },
+    {
+      "source_ref": "file:tests/resolve-operating-loop-modularity.test.mjs",
+      "name": "Structural modularity characterization",
+      "origin_name": "Node test runner",
+      "processing_path_name": "Size, import, dependency, manifest, and distribution assertions",
+      "path_provenance": "FIXTURE_OR_SEED_PATH",
+      "lifecycle_stage": "OBSERVATION_OR_AUDIT",
+      "required_proof_strength": "STRUCTURAL_SOURCE_PROOF",
+      "notes": "This is test evidence, not a production-runtime claim.",
+      "lifecycle_reason": "The test observes the structural contract and prevents the monolith from silently returning.",
+      "expected_behavior": "The entry stays at or below 380 lines, modules stay at or below 500 lines, and the dependency graph remains explicit and distributed.",
+      "negative_or_reverse_behavior": "Oversized modules, missing exports, dependency cycles, or missing distribution entries fail deterministically."
+    }
+  ],
+  "boundaries": {
+    "writes_target_files": "No",
+    "authorizes_implementation": "No",
+    "approves_completion": "No",
+    "replaces_unified_closure": "No"
+  },
+  "outcome": "PASSED"
+}

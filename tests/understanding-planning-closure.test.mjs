@@ -14,6 +14,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const resolver = path.join(root, "scripts/resolve-planning-closure.mjs");
 const checker = path.join(root, "scripts/check-planning-closure.mjs");
 const contractChecker = path.join(root, "scripts/check-execution-entry-contract.mjs");
+const planReviewChecker = path.join(root, "scripts/check-plan-review.mjs");
 const cli = path.join(root, "scripts/cli.mjs");
 const lowSource = path.join(root, "examples/1.83-task-governance/low-copy-change/task-governance-reports/001-task-governance.md");
 const possibleHighIntent = "possibly change list filter rule may touch data state";
@@ -139,6 +140,26 @@ test("source drift invalidates an existing ready report", () => {
   const check = run(checker, [fixture.root, "--report", "planning-closure-reports/current.md", "--require-ready"]);
   assert.notEqual(check.status, 0);
   assert.match(combined(check), /authority_binding|digest does not match/i);
+});
+
+test("repository batch preserves historical planning closures while explicit old selection stays strict", () => {
+  const batch = run(checker, [root]);
+  assert.equal(batch.status, 0, combined(batch));
+  assert.match(combined(batch), /preserves valid historical source-chain/);
+
+  const explicitOld = run(checker, [root, "--report", "planning-closure-reports/113-cross-domain-trust-closure.md", "--require-ready"]);
+  assert.notEqual(explicitOld.status, 0);
+  assert.match(combined(explicitOld), /authority_binding\.project does not match/);
+});
+
+test("repository Plan Review batch audits history without promoting it to current authority", () => {
+  const batch = run(planReviewChecker, [root, "--allow-empty", "--historical-audit"]);
+  assert.equal(batch.status, 0, combined(batch));
+  assert.match(combined(batch), /historical verification command review remains recorded without claiming current authority/);
+
+  const explicitOld = run(planReviewChecker, [root, "--report", "plan-review-reports/118-evidence-retention-deduplication.md", "--require-report"]);
+  assert.notEqual(explicitOld.status, 0);
+  assert.match(combined(explicitOld), /current project identity or revision|raw_file_digest does not match|implementation digest is stale/);
 });
 
 function createFixture(source) {

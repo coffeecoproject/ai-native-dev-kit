@@ -44,6 +44,23 @@ const {
   writeInitProjectReadinessRecord,
 } = runtime;
 
+function readNewWorkflowItemImplementation() {
+  return [
+    "scripts/new-workflow-item.mjs",
+    "scripts/new-workflow-item/cli.mjs",
+    "scripts/new-workflow-item/registry.mjs",
+    "scripts/new-workflow-item/references.mjs",
+    "scripts/new-workflow-item/fillers.mjs",
+    "scripts/new-workflow-item/fillers/baseline.mjs",
+    "scripts/new-workflow-item/fillers/frontmatter.mjs",
+    "scripts/new-workflow-item/fillers/governance.mjs",
+    "scripts/new-workflow-item/fillers/reporting.mjs",
+    "scripts/new-workflow-item/fillers/review.mjs",
+    "scripts/new-workflow-item/fillers/routing.mjs",
+    "scripts/new-workflow-item/fillers/workflow.mjs",
+  ].map(read).join("\n");
+}
+
 function checkExistingProjectWorkflowAdapterProtocol() {
   const required = [
     "core/existing-project-workflow-adapter.md",
@@ -2751,7 +2768,7 @@ function checkControlledApplyReadinessProtocol() {
     else fail(`CLI missing controlled apply readiness marker ${marker}`);
   }
 
-  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  const newWorkflowItem = readNewWorkflowItemImplementation();
   for (const marker of [
     "controlled-apply-readiness-report",
     "apply-readiness-reports",
@@ -2932,7 +2949,7 @@ function checkApprovalRecordGovernanceProtocol() {
     else fail(`CLI missing approval record marker ${marker}`);
   }
 
-  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  const newWorkflowItem = readNewWorkflowItemImplementation();
   for (const marker of [
     "approval-record",
     "approval-records",
@@ -3065,7 +3082,7 @@ function checkBeginnerEntryProtocol() {
     else fail(`CLI missing beginner entry marker ${marker}`);
   }
 
-  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  const newWorkflowItem = readNewWorkflowItemImplementation();
   for (const marker of [
     "beginner-entry-card",
     "beginner-entry-cards",
@@ -3198,7 +3215,7 @@ function checkConversationNativeAskProtocol() {
     else fail(`CLI missing conversation-native ask marker ${marker}`);
   }
 
-  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  const newWorkflowItem = readNewWorkflowItemImplementation();
   for (const marker of [
     "conversation-ask-card",
     "conversation-ask-cards",

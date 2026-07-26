@@ -126,6 +126,45 @@ test("1.113 archives exact run evidence for clean-checkout consumers without reu
   assert.match(`${escaped.stdout}\n${escaped.stderr}`, /must be evidence\/runtime-runs\/vrun-durable-001/);
 });
 
+test("batch lifecycle and manifest checks audit history while explicit historical checks stay current-strict", () => {
+  const root = fs.realpathSync(project());
+  for (const [ordinal, runId] of [["001", "vrun-history-001"], ["002", "vrun-current-002"]]) {
+    if (ordinal === "002") {
+      const packageFile = path.join(root, "package.json");
+      const value = JSON.parse(fs.readFileSync(packageFile, "utf8"));
+      value.description = "current source identity";
+      fs.writeFileSync(packageFile, JSON.stringify(value, null, 2));
+    }
+    const runtime = run("scripts/resolve-verification-runtime-plan.mjs", [
+      root, "--intent", "change home page copy wording", "--task-ref", "tasks/local.md", "--task-tier", "LOW",
+      "--out", `verification-runtime-plans/${ordinal}.md`,
+    ]);
+    assert.equal(runtime.status, 0, `${runtime.stdout}\n${runtime.stderr}`);
+    const lifecycle = run("scripts/resolve-verification-runtime-lifecycle.mjs", [
+      root, "--runtime-plan-ref", `artifact:verification-runtime-plans/${ordinal}.md`, "--run-id", runId,
+      "--out", `verification-runtime-lifecycle-plans/${ordinal}.md`,
+    ]);
+    assert.equal(lifecycle.status, 0, `${lifecycle.stdout}\n${lifecycle.stderr}`);
+    const executed = run("scripts/run-verification-runtime.mjs", [
+      root, "--plan", `artifact:verification-runtime-lifecycle-plans/${ordinal}.md`,
+      "--out", `verification-run-manifests/${ordinal}.md`,
+    ]);
+    assert.equal(executed.status, 0, `${executed.stdout}\n${executed.stderr}`);
+  }
+
+  const lifecycleBatch = run("scripts/check-verification-runtime-lifecycle.mjs", [root]);
+  assert.equal(lifecycleBatch.status, 0, `${lifecycleBatch.stdout}\n${lifecycleBatch.stderr}`);
+  assert.match(lifecycleBatch.stdout, /001\.md is historical/);
+  const manifestBatch = run("scripts/check-verification-run-manifest.mjs", [root, "--require-structured-evidence"]);
+  assert.equal(manifestBatch.status, 0, `${manifestBatch.stdout}\n${manifestBatch.stderr}`);
+  assert.match(manifestBatch.stdout, /001\.md is historical/);
+
+  const lifecycleHistorical = run("scripts/check-verification-runtime-lifecycle.mjs", [root, "--report", "verification-runtime-lifecycle-plans/001.md"]);
+  assert.notEqual(lifecycleHistorical.status, 0);
+  const manifestHistorical = run("scripts/check-verification-run-manifest.mjs", [root, "--report", "verification-run-manifests/001.md"]);
+  assert.notEqual(manifestHistorical.status, 0);
+});
+
 test("1.113 rejects lifecycle manifest field tampering and offline journal synthesis", async (t) => {
   await t.test("execution argv digest tampering", () => {
     const fixture = completedCommandRun("vrun-replay-digest");

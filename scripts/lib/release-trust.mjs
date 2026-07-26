@@ -177,7 +177,7 @@ export function validateReleasePreflightReceipt(projectRoot, reference, expected
   if (receipt?.result !== "PASS" || receipt?.exit_code !== 0) errors.push("release preflight receipt must record result PASS and exit_code 0");
   if (receipt?.command !== STAGED_RELEASE_CANDIDATE_CHECK) {
     errors.push(`release preflight receipt command must be the supported exact candidate check: ${STAGED_RELEASE_CANDIDATE_CHECK}`);
-  } else {
+  } else if (!expected.historical) {
     errors.push(...validateStagedReleaseCandidateCheck(projectRoot));
   }
   if (!new Set(["PREFLIGHT_ONLY", "BUNDLE_CREATED"]).has(receipt?.lane_state)) errors.push("release preflight receipt must remain in a pre-production lane");
@@ -207,8 +207,10 @@ export function validateReleasePreflightReceipt(projectRoot, reference, expected
   ]) {
     if (expectedValue && receipt?.[field] !== expectedValue) errors.push(`release preflight receipt ${field} does not match the current request`);
   }
-  const currentRevision = projectIdentity(projectRoot).revision;
-  if (receipt?.source_revision !== currentRevision) errors.push("release preflight receipt source_revision does not match the current project revision");
+  if (!expected.historical) {
+    const currentRevision = projectIdentity(projectRoot).revision;
+    if (receipt?.source_revision !== currentRevision) errors.push("release preflight receipt source_revision does not match the current project revision");
+  }
   return {
     ok: errors.length === 0,
     errors,

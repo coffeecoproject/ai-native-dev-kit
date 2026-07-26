@@ -295,16 +295,18 @@ export function validatePlanningClosureEvidence(projectRoot, reportFile, evidenc
   if (!PLANNING_CLOSURE_STATES.includes(evidence.outcome)) errors.push(`unknown Planning Closure outcome ${evidence.outcome}`);
   const sourceRefs = evidence.source_requirements.filter((item) => item.required === "Yes" && item.report_ref.startsWith("file:")).map((item) => item.report_ref);
   if (evidence.task_governance.ref.startsWith("file:")) sourceRefs.push(evidence.task_governance.ref);
-  const authority = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
-    taskRef: evidence.task_ref,
-    intentDigest: evidence.intent_digest,
-    sourceRefs: [...new Set(sourceRefs)],
-    fromFile: reportFile,
-    allowRevisionAdvance: options.allowRevisionAdvance === true,
-    sourceRevisionDigest: evidence.execution_entry_contract?.source_revision_digest,
-    sourceGitCommit: evidence.execution_entry_contract?.source_git_commit,
-  });
-  errors.push(...authority.errors);
+  if (options.currentAuthority !== false) {
+    const authority = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
+      taskRef: evidence.task_ref,
+      intentDigest: evidence.intent_digest,
+      sourceRefs: [...new Set(sourceRefs)],
+      fromFile: reportFile,
+      allowRevisionAdvance: options.allowRevisionAdvance === true,
+      sourceRevisionDigest: evidence.execution_entry_contract?.source_revision_digest,
+      sourceGitCommit: evidence.execution_entry_contract?.source_git_commit,
+    });
+    errors.push(...authority.errors);
+  }
   for (const source of evidence.source_requirements.filter((item) => item.required === "Yes")) {
     if (source.validation_state !== "VALID") continue;
     const resolved = resolveAuthoritativeEvidenceReference(projectRoot, reportFile, source.report_ref, { markdownOnly: true });

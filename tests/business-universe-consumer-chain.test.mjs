@@ -185,3 +185,99 @@ test("1.113 historical Change Impact remains readable but cannot satisfy strict 
   assert.notEqual(strict.status, 0, `${strict.stdout}\n${strict.stderr}`);
   assert.match(`${strict.stdout}\n${strict.stderr}`, /must exactly match Business Rule Closure/);
 });
+
+test("1.119 Business Rule Closure batch preserves history without granting stale source authority", () => {
+  const batch = run("scripts/check-business-rule-closure.mjs", [
+    kitRoot,
+    "--require-business-rule-closure",
+    "--require-structured-evidence",
+    "--require-task-lineage",
+  ]);
+  assert.equal(batch.status, 0, `${batch.stdout}\n${batch.stderr}`);
+  assert.match(
+    batch.stdout,
+    /historical Business Universe binding preserves recorded structured evidence without claiming current source authority/,
+  );
+
+  const explicitCurrent = run("scripts/check-business-rule-closure.mjs", [
+    kitRoot,
+    "--report",
+    "business-rule-closures/119-resolve-operating-loop-modularity.md",
+    "--require-business-rule-closure",
+    "--require-structured-evidence",
+    "--require-task-lineage",
+  ]);
+  assert.equal(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
+  assert.match(
+    explicitCurrent.stdout,
+    /119-resolve-operating-loop-modularity\.md referenced Business Universe Coverage passes strict ready check/,
+  );
+
+  const explicitHistorical = run("scripts/check-business-rule-closure.mjs", [
+    kitRoot,
+    "--report",
+    "business-rule-closures/113-cross-domain-trust-closure.md",
+    "--require-business-rule-closure",
+    "--require-structured-evidence",
+    "--require-task-lineage",
+  ]);
+  assert.notEqual(explicitHistorical.status, 0, `${explicitHistorical.stdout}\n${explicitHistorical.stderr}`);
+  assert.match(
+    `${explicitHistorical.stdout}\n${explicitHistorical.stderr}`,
+    /authority_binding\.project does not match|raw_file_digest does not match/,
+  );
+});
+
+test("1.119 Verification Plan batch preserves history without granting stale source authority", () => {
+  const batch = run("scripts/check-verification-plan.mjs", [
+    kitRoot,
+    "--require-report",
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+    "--require-evidence-authority",
+    "--require-task-lineage",
+  ]);
+  assert.equal(batch.status, 0, `${batch.stdout}\n${batch.stderr}`);
+  assert.match(
+    batch.stdout,
+    /historical Control Effectiveness binding preserves recorded evidence without claiming current source authority/,
+  );
+
+  const explicitCurrent = run("scripts/check-verification-plan.mjs", [
+    kitRoot,
+    "--report",
+    "verification-plans/119-resolve-operating-loop-modularity.md",
+    "--require-report",
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+    "--require-evidence-authority",
+    "--require-task-lineage",
+  ]);
+  assert.equal(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
+  assert.match(
+    explicitCurrent.stdout,
+    /119-resolve-operating-loop-modularity\.md Control Effectiveness binding is exact and current/,
+  );
+
+  const explicitHistorical = run("scripts/check-verification-plan.mjs", [
+    kitRoot,
+    "--report",
+    "verification-plans/113-cross-domain-trust-closure.md",
+    "--require-report",
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+    "--require-evidence-authority",
+    "--require-task-lineage",
+  ]);
+  assert.notEqual(explicitHistorical.status, 0, `${explicitHistorical.stdout}\n${explicitHistorical.stderr}`);
+  assert.match(
+    `${explicitHistorical.stdout}\n${explicitHistorical.stderr}`,
+    /implementation digest is stale|project identity or revision|raw_file_digest does not match/,
+  );
+});

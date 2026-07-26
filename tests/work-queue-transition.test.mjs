@@ -118,6 +118,24 @@ function generateGovernedTakeover(root, intent, slug) {
   return { takeover, governance };
 }
 
+function initializeSourceRepository(root, reportContent) {
+  fs.mkdirSync(path.join(root, "core"), { recursive: true });
+  fs.mkdirSync(path.join(root, "work-queue"), { recursive: true });
+  fs.writeFileSync(path.join(root, "intentos-manifest.json"), "{}\n");
+  fs.writeFileSync(path.join(root, "core", "workflow.md"), "# Workflow\n");
+  fs.writeFileSync(path.join(root, "work-queue", "historical.md"), reportContent);
+  for (const args of [
+    ["init"],
+    ["config", "user.email", "tests@example.invalid"],
+    ["config", "user.name", "IntentOS Tests"],
+    ["add", "."],
+    ["commit", "-m", "historical snapshot"],
+  ]) {
+    const result = spawnSync("git", args, { cwd: root, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+  }
+}
+
 test("append-only transition closes an immutable predecessor and selects one successor", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-wq-transition-"));
   const oldIntent = "Complete the prior governed task.";
@@ -193,4 +211,20 @@ test("transition validation rejects a non-positive sequence even with a valid di
 
   const result = run(root, "check-work-queue-transition.mjs", ["--require-report"], 1);
   assert.match(result.stdout, /sequence must be a positive integer/);
+});
+
+test("unchanged source snapshots keep historical schema compatibility but modified reports do not", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-wq-history-"));
+  const historical = `# Historical Work Queue\n\n## Current Task\n\n| Task ID | Title | State | Intent Digest |\n| --- | --- | --- | --- |\n| WQ-HISTORY | Historical task | CURRENT | ${sha256("Historical task")} |\n\n## Outcome\n\nWORK_QUEUE_RECORDED\n`;
+  initializeSourceRepository(root, historical);
+
+  const unchanged = run(root, "check-work-queue.mjs", [], 1);
+  assert.match(unchanged.stdout, /unchanged historical snapshot; current-template checks are not retroactive/);
+  assert.doesNotMatch(unchanged.stdout, /historical\.md missing Queue Policy/);
+
+  fs.appendFileSync(path.join(root, "work-queue", "historical.md"), "\nmodified\n");
+  const modified = run(root, "check-work-queue.mjs", [], 1);
+  const modifiedOutput = `${modified.stdout}\n${modified.stderr}`;
+  assert.match(modifiedOutput, /historical\.md missing Queue Policy/);
+  assert.doesNotMatch(modifiedOutput, /unchanged historical snapshot; current-template checks are not retroactive/);
 });

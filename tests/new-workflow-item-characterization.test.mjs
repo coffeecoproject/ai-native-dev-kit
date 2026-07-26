@@ -78,7 +78,7 @@ const expectedTypes = [
 
 const expectedTypeRegistryDigest = "sha256:214f3078d9b22a94c464a8e091f90ee14209f611ce91a363844451cec5aaadd2";
 const expectedAliasRegistryDigest = "sha256:fb6b19079180fcfe3631f9aaef398e7b485d08d23398532418c11ed72f580315";
-const expectedBehaviorDigest = "sha256:0f32920eab7daa6551318ace7a7f591d662ce03f806c827070b0685a7f6f544d";
+const expectedBehaviorDigest = "sha256:633cc599c97310d2ef506bc5ff1b0ab935eb311d8b84e268e958e67943077e15";
 
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");

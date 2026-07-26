@@ -22,9 +22,10 @@ import {
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
+import { isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-ready"]);
+const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-ready", "historical-audit"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = canonicalProjectRoot(path.resolve(process.cwd(), args._[0] || "."));
 const outputJson = Boolean(args.json);
@@ -33,6 +34,10 @@ const requireReport = Boolean(args["require-report"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const requireReady = Boolean(args["require-ready"]);
 const explicitReport = args.report ? safeReportPath(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({
+  explicitReport,
+  historicalAudit: Boolean(args["historical-audit"]),
+});
 const schema = loadSchema(projectRoot, "schemas/artifacts/business-universe-coverage.schema.json");
 const taskGovernanceSchema = loadSchema(projectRoot, "schemas/artifacts/task-governance.schema.json");
 const shouldRequireAssets = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -76,10 +81,12 @@ function checkReports() {
     else pass("SKIPPED_NO_REPORT: no Business Universe Coverage reports found");
     return;
   }
-  files.forEach(checkReport);
+  files.forEach((file) => checkReport(file, {
+    historicalMode: isHistoricalReportAudit(reportAuthorityMode),
+  }));
 }
 
-function checkReport(file) {
+function checkReport(file, { historicalMode = false } = {}) {
   const label = relative(file);
   if (!fs.existsSync(file)) {
     fail(`missing Business Universe Coverage report ${label}`);
@@ -112,10 +119,10 @@ function checkReport(file) {
     return;
   }
   pass(`${label} has valid final 1.108 structured evidence`);
-  checkEvidence(file, content, label, validation.value);
+  checkEvidence(file, content, label, validation.value, { historicalMode });
 }
 
-function checkEvidence(file, content, label, evidence) {
+function checkEvidence(file, content, label, evidence, { historicalMode = false } = {}) {
   if ([`artifact:${relative(file)}`, `file:${relative(file)}`, relative(file)].includes(evidence.coverage_ref)) pass(`${label} coverage_ref points to this report`);
   else fail(`${label} coverage_ref must point to this report`);
 
@@ -141,15 +148,28 @@ function checkEvidence(file, content, label, evidence) {
     evidence.task_entry_binding.task_governance_ref,
     ...evidence.challenger_review.evidence_refs,
   ].filter((item) => /^(artifact|file):/.test(item)));
-  const authority = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
-    taskRef: evidence.task_ref,
-    intentDigest: evidence.intent_digest,
-    sourceRefs: authoritySourceRefs,
-    fromFile: file,
-  });
-  if (authority.ok) pass(`${label} Evidence Authority binding matches current project, task, revision, and sources`);
-  else authority.errors.forEach((error) => fail(`${label} ${error}`));
-  checkLocators(file, label, evidence, locators);
+  if (historicalMode) {
+    const recordedSourceRefs = (evidence.authority_binding?.sources || []).map((item) => item.ref);
+    compareSets(label, "historical Evidence Authority source refs", recordedSourceRefs, authoritySourceRefs);
+    if (!evidence.authority_binding?.task
+      || (evidence.authority_binding.task.task_ref === evidence.task_ref
+        && evidence.authority_binding.task.intent_digest === evidence.intent_digest)) {
+      pass(`${label} historical Evidence Authority task binding is internally consistent`);
+    } else {
+      fail(`${label} historical Evidence Authority task binding does not match the recorded task and intent`);
+    }
+    pass(`${label} preserves recorded historical Evidence Authority without claiming current project, revision, or source authority`);
+  } else {
+    const authority = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
+      taskRef: evidence.task_ref,
+      intentDigest: evidence.intent_digest,
+      sourceRefs: authoritySourceRefs,
+      fromFile: file,
+    });
+    if (authority.ok) pass(`${label} Evidence Authority binding matches current project, task, revision, and sources`);
+    else authority.errors.forEach((error) => fail(`${label} ${error}`));
+  }
+  checkLocators(file, label, evidence, locators, { historicalMode });
   checkDiscovery(label, evidence.discovery_projection);
   checkRelationships(label, evidence, locators);
   checkUniverseGraph(label, evidence, locators);
@@ -190,7 +210,7 @@ function checkRoutingBinding(label, evidence, governance) {
   else fail(`${label} task and intent must match Task Governance`);
 }
 
-function checkLocators(fromFile, label, evidence, locators) {
+function checkLocators(fromFile, label, evidence, locators, { historicalMode = false } = {}) {
   const bindingRefs = new Set((evidence.authority_binding.sources || []).map((item) => item.ref));
   const inspectedRoots = new Set(evidence.discovery_projection.inspected_roots || []);
   const completeSegments = new Set((evidence.discovery_projection.scan_segments || [])
@@ -216,9 +236,13 @@ function checkLocators(fromFile, label, evidence, locators) {
       fail(`${label} ${locator.locator_id} source is unsafe or unresolved: ${resolved.error}`);
       continue;
     }
-    const semantic = semanticDigestFor(resolved.file, locator);
-    if (semantic.ok && semantic.digest === locator.semantic_digest) pass(`${label} ${locator.locator_id} semantic digest matches exact locator`);
-    else fail(`${label} ${locator.locator_id} semantic locator is stale or unsupported: ${semantic.error || "digest mismatch"}`);
+    if (historicalMode) {
+      pass(`${label} ${locator.locator_id} preserves a safe historical semantic locator without claiming current source identity`);
+    } else {
+      const semantic = semanticDigestFor(resolved.file, locator);
+      if (semantic.ok && semantic.digest === locator.semantic_digest) pass(`${label} ${locator.locator_id} semantic digest matches exact locator`);
+      else fail(`${label} ${locator.locator_id} semantic locator is stale or unsupported: ${semantic.error || "digest mismatch"}`);
+    }
     const roles = rolesBySource.get(locator.source_ref) || [];
     roles.push(`${locator.locator_kind}:${locator.locator}:${locator.relation}`);
     rolesBySource.set(locator.source_ref, roles);

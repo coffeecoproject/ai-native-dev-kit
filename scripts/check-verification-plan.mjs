@@ -21,6 +21,7 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 import { resolveBoundBusinessUniverse } from "./lib/business-universe.mjs";
 import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
+import { isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -35,6 +36,7 @@ const knownFlags = new Set([
   "require-evidence-authority",
   "require-task-lineage",
   "strict",
+  "historical-audit",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -50,6 +52,10 @@ const requireTaskLineage = Boolean(args["require-task-lineage"] || args.strict);
 const strictRequested = requireReport || requireStructuredEvidence || requireBusinessRuleRef
   || requireImpactRef || strictSourceBinding || requireEvidenceAuthority || requireTaskLineage || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({
+  explicitReport,
+  historicalAudit: Boolean(args["historical-audit"]),
+});
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/verification-plan.schema.json");
 const businessRuleSchema = loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json");
 const impactSchema = loadSchema(projectRoot, "schemas/artifacts/change-impact-coverage.schema.json");
@@ -174,11 +180,11 @@ function checkReports() {
       fail(`missing explicit verification plan report ${file}`);
       continue;
     }
-    checkReport(file);
+    checkReport(file, { historicalMode: isHistoricalReportAudit(reportAuthorityMode) });
   }
 }
 
-function checkReport(file) {
+function checkReport(file, { historicalMode = false } = {}) {
   const content = fs.readFileSync(file, "utf8");
   const label = rel(file);
   if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
@@ -211,12 +217,16 @@ function checkReport(file) {
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
   const markdown = parseMarkdownEvidence(content);
-  checkEvidenceAuthority(label, file, evidence);
-  checkStructuredEvidence(label, file, evidence, markdown);
+  checkEvidenceAuthority(label, file, evidence, { historicalMode });
+  checkStructuredEvidence(label, file, evidence, markdown, { historicalMode });
 }
 
-function checkEvidenceAuthority(label, file, evidence) {
+function checkEvidenceAuthority(label, file, evidence, { historicalMode = false } = {}) {
   if (!requireEvidenceAuthority) return;
+  if (historicalMode) {
+    pass(`${label} historical Evidence Authority remains recorded without claiming current project authority`);
+    return;
+  }
   const report = resolveAuthoritativeEvidenceReference(projectRoot, "", `artifact:${path.relative(projectRoot, file).split(path.sep).join("/")}`, { markdownOnly: true });
   if (!report.ok) {
     fail(`${label} strict authority requires a project-local non-symlink report: ${report.error}`);
@@ -237,7 +247,7 @@ function checkEvidenceAuthority(label, file, evidence) {
   else binding.errors.forEach((error) => fail(`${label} ${error}`));
 }
 
-function checkStructuredEvidence(label, file, evidence, markdown) {
+function checkStructuredEvidence(label, file, evidence, markdown, { historicalMode = false } = {}) {
   const normalizedIntent = normalizeTaskIntent(evidence.intent);
   if (evidence.intent === normalizedIntent && evidence.intent_digest === taskIntentDigest(normalizedIntent)) {
     pass(`${label} intent text and digest are canonical`);
@@ -275,9 +285,9 @@ function checkStructuredEvidence(label, file, evidence, markdown) {
   const impact = checkImpactBinding(label, file, evidence);
   checkImpactSurfaceCoverage(label, evidence, impact);
   checkBusinessUniverseBinding(label, file, evidence, businessRule, impact);
-  checkControlEffectivenessBinding(label, file, evidence);
+  checkControlEffectivenessBinding(label, file, evidence, { historicalMode });
   checkSourceChainConsistency(label, evidence, impact);
-  checkTaskBinding(label, file, evidence, businessRule, impact);
+  checkTaskBinding(label, file, evidence, businessRule, impact, { historicalMode });
   checkObligations(label, evidence);
   checkManualVerification(label, evidence);
   checkBoundaries(label, evidence);
@@ -440,7 +450,7 @@ function checkBusinessUniverseBinding(label, verificationFile, evidence, busines
   }
 }
 
-function checkControlEffectivenessBinding(label, file, evidence) {
+function checkControlEffectivenessBinding(label, file, evidence, { historicalMode = false } = {}) {
   if (evidence.schema_version !== "1.110.0") return;
   const binding = evidence.control_effectiveness_binding;
   const validation = validateControlEffectivenessBinding(projectRoot, binding, {
@@ -448,8 +458,13 @@ function checkControlEffectivenessBinding(label, file, evidence) {
     fromFile: file,
     taskRef: evidence.task_ref,
     intentDigest: evidence.intent_digest,
+    currentAuthority: !historicalMode,
   });
-  if (validation.ok) pass(`${label} Control Effectiveness binding is exact and current`);
+  if (validation.ok) {
+    pass(historicalMode
+      ? `${label} historical Control Effectiveness binding preserves recorded evidence without claiming current source authority`
+      : `${label} Control Effectiveness binding is exact and current`);
+  }
   else validation.errors.forEach((error) => fail(`${label} ${error}`));
   const source = (evidence.source_systems || []).find((item) => item.name === "control_effectiveness");
   if (source
@@ -604,7 +619,7 @@ function checkSourceChainConsistency(label, evidence, impact) {
   }
 }
 
-function checkTaskBinding(label, file, evidence, businessRule, impact) {
+function checkTaskBinding(label, file, evidence, businessRule, impact, { historicalMode = false } = {}) {
   if (!strictSourceBinding && evidence.verification_state !== "VERIFICATION_PLAN_READY") return;
   if (businessRule?.task_ref && evidence.task_ref !== businessRule.task_ref) {
     fail(`${label} task_ref ${evidence.task_ref} must match Business Rule Closure task_ref ${businessRule.task_ref}`);
@@ -636,9 +651,9 @@ function checkTaskBinding(label, file, evidence, businessRule, impact) {
       taskRef: evidence.task_ref,
       intent: evidence.intent,
       intentDigest: evidence.intent_digest,
-    }, { fromFile: file, requireCurrent: requireTaskLineage });
+    }, { fromFile: file, requireCurrent: requireTaskLineage && !historicalMode });
     if (lineage.ok) pass(`${label} Business Rule preserves exact current Task Governance lineage`);
-    else if (requireTaskLineage || hasLineage) lineage.errors.forEach((error) => fail(`${label} ${error}`));
+    else if ((requireTaskLineage && !historicalMode) || hasLineage) lineage.errors.forEach((error) => fail(`${label} ${error}`));
     else pass(`${label} historical Business Rule lineage remains readable without current authority`);
   }
 }
