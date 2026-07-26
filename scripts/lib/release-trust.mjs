@@ -177,8 +177,6 @@ export function validateReleasePreflightReceipt(projectRoot, reference, expected
   if (receipt?.result !== "PASS" || receipt?.exit_code !== 0) errors.push("release preflight receipt must record result PASS and exit_code 0");
   if (receipt?.command !== STAGED_RELEASE_CANDIDATE_CHECK) {
     errors.push(`release preflight receipt command must be the supported exact candidate check: ${STAGED_RELEASE_CANDIDATE_CHECK}`);
-  } else if (!expected.historical) {
-    errors.push(...validateStagedReleaseCandidateCheck(projectRoot));
   }
   if (!new Set(["PREFLIGHT_ONLY", "BUNDLE_CREATED"]).has(receipt?.lane_state)) errors.push("release preflight receipt must remain in a pre-production lane");
   if (receipt?.external_effects_executed !== "No") errors.push("release preflight receipt must prove that no external effect was executed");
@@ -191,6 +189,9 @@ export function validateReleasePreflightReceipt(projectRoot, reference, expected
     errors.push(`release preflight receipt release candidate is unsafe or unresolved: ${candidate.error}`);
   } else if (canonicalFileDigest(candidate.file) !== receipt?.release_candidate_digest) {
     errors.push("release preflight receipt release_candidate_digest does not match the current candidate file");
+  }
+  if (receipt?.command === STAGED_RELEASE_CANDIDATE_CHECK && !expected.historical && candidate.ok) {
+    errors.push(...validateReleaseCandidateCheck(projectRoot, candidate.file));
   }
   if (!/^sha256:[a-f0-9]{64}$/.test(String(receipt?.receipt_digest || ""))) {
     errors.push("release preflight receipt requires receipt_digest");
@@ -221,7 +222,7 @@ export function validateReleasePreflightReceipt(projectRoot, reference, expected
   };
 }
 
-function validateStagedReleaseCandidateCheck(projectRoot) {
+function validateReleaseCandidateCheck(projectRoot, candidateFile) {
   const errors = [];
   const changed = runReadOnlyGit(projectRoot, [
     "diff", "--cached", "--name-only", "--diff-filter=ACDMRTUXB",
@@ -230,15 +231,51 @@ function validateStagedReleaseCandidateCheck(projectRoot) {
     errors.push(`release preflight receipt cannot inspect the staged candidate: ${firstUsefulLine(changed.stderr || changed.stdout)}`);
     return errors;
   }
-  if (!String(changed.stdout || "").split(/\r?\n/).some((line) => line.trim())) {
-    errors.push("release preflight receipt exact candidate check requires a non-empty staged diff");
+  if (String(changed.stdout || "").split(/\r?\n/).some((line) => line.trim())) {
+    const checked = runReadOnlyGit(projectRoot, ["diff", "--cached", "--check"]);
+    if (checked.status !== 0) {
+      errors.push(`release preflight receipt exact candidate check failed: ${firstUsefulLine(checked.stderr || checked.stdout)}`);
+    }
+    errors.push(...releaseCandidateContaminationErrors(projectRoot));
     return errors;
   }
-  const checked = runReadOnlyGit(projectRoot, ["diff", "--cached", "--check"]);
+
+  const status = runReadOnlyGit(projectRoot, ["status", "--porcelain=v1", "--untracked-files=all"]);
+  if (status.status !== 0 || String(status.stdout || "").trim()) {
+    errors.push("release preflight receipt clean-checkout replay requires a completely clean worktree");
+    return errors;
+  }
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(candidateFile, "utf8"));
+  const baseRevision = String(extracted?.value?.base_revision || "").trim().toLowerCase();
+  if (!extracted?.ok || extracted.value?.artifact_type !== "release_candidate" || !/^[a-f0-9]{40,64}$/.test(baseRevision)) {
+    errors.push("release preflight receipt clean-checkout replay requires an exact base_revision from structured release candidate evidence");
+    return errors;
+  }
+  const resolvedBase = runReadOnlyGit(projectRoot, ["rev-parse", "--verify", `${baseRevision}^{commit}`]);
+  const head = runReadOnlyGit(projectRoot, ["rev-parse", "--verify", "HEAD^{commit}"]);
+  if (resolvedBase.status !== 0 || head.status !== 0 || String(resolvedBase.stdout || "").trim().toLowerCase() !== baseRevision) {
+    errors.push("release preflight receipt clean-checkout replay base revision is unavailable or ambiguous");
+    return errors;
+  }
+  const headRevision = String(head.stdout || "").trim().toLowerCase();
+  if (headRevision === baseRevision) {
+    errors.push("release preflight receipt clean-checkout replay has no committed candidate after the recorded base revision");
+    return errors;
+  }
+  const ancestor = runReadOnlyGit(projectRoot, ["merge-base", "--is-ancestor", baseRevision, "HEAD"]);
+  if (ancestor.status !== 0) {
+    errors.push("release preflight receipt clean-checkout replay base revision is not an ancestor of HEAD");
+    return errors;
+  }
+  const committed = runReadOnlyGit(projectRoot, ["diff", "--name-only", `${baseRevision}..HEAD`]);
+  if (committed.status !== 0 || !String(committed.stdout || "").split(/\r?\n/).some((line) => line.trim())) {
+    errors.push("release preflight receipt clean-checkout replay requires a non-empty committed candidate diff");
+    return errors;
+  }
+  const checked = runReadOnlyGit(projectRoot, ["diff", "--check", `${baseRevision}..HEAD`]);
   if (checked.status !== 0) {
     errors.push(`release preflight receipt exact candidate check failed: ${firstUsefulLine(checked.stderr || checked.stdout)}`);
   }
-  errors.push(...releaseCandidateContaminationErrors(projectRoot));
   return errors;
 }
 
