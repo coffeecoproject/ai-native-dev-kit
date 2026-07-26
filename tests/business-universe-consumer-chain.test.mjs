@@ -153,6 +153,57 @@ test("1.108 checker keeps trusted historical Execution Assurance evidence readab
   ]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   assert.match(result.stdout, /Execution assurance check passed\./);
+  assert.match(result.stdout, /exact legacy file digest matches without granting current source authority/);
+
+  const tamperedRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-historical-execution-assurance-"));
+  fs.cpSync(root, tamperedRoot, { recursive: true });
+  fs.appendFileSync(
+    path.join(tamperedRoot, "change-impact-coverage-reports", "001-contract.md"),
+    "\nTampered after the recorded digest.\n",
+  );
+  const tampered = run("scripts/check-execution-assurance.mjs", [
+    tamperedRoot,
+    "--require-structured-evidence",
+    "--require-evidence-refs",
+    "--require-review",
+    "--require-actual-diff",
+  ]);
+  assert.notEqual(tampered.status, 0, `${tampered.stdout}\n${tampered.stderr}`);
+  assert.match(`${tampered.stdout}\n${tampered.stderr}`, /report_digest does not match source file|recorded source digest does not match/);
+});
+
+test("historical Execution Assurance preserves known checker evidence without bypassing invariants", () => {
+  for (const relativeRoot of [
+    "examples/1.72-execution-assurance-chain/safe-copy-patch",
+    "examples/1.72-execution-assurance-chain/patch-smell-backend-only",
+    "examples/1.85-task-governance-consumer-integration/high-workflow-rule",
+    "examples/1.88-plan-review-consumer-integration/high-execution-assurance",
+  ]) {
+    const result = run("scripts/check-execution-assurance.mjs", [
+      path.join(kitRoot, relativeRoot),
+      "--require-structured-evidence",
+    ]);
+    assert.equal(result.status, 0, `${relativeRoot}\n${result.stdout}\n${result.stderr}`);
+    assert.match(result.stdout, /preserves known checker evidence with a recorded digest without granting current source authority/);
+  }
+
+  const cases = [
+    ["bad-execution-assurance-source-task-mismatch", /source_task_ref must match current report task_ref/],
+    ["bad-execution-assurance-planned-path-mismatch", /outside planned target paths/],
+    ["bad-execution-assurance-declarative-precise-evidence", /precise evidence must resolve/],
+    ["bad-execution-assurance-unresolved-plan-ref", /unresolved evidence/],
+    ["bad-execution-assurance-missing-plan-review-binding", /requires plan_review_binding/, ["--require-plan-review", "--require-actual-diff", "--require-precise-evidence"]],
+    ["bad-execution-assurance-plan-review-digest-drift", /plan_review_digest does not match canonical evidence digest/, ["--require-plan-review", "--require-actual-diff", "--require-precise-evidence"]],
+  ];
+  for (const [fixture, expected, extraFlags = []] of cases) {
+    const result = run("scripts/check-execution-assurance.mjs", [
+      path.join(kitRoot, "test-fixtures", "bad", fixture),
+      "--require-structured-evidence",
+      ...extraFlags,
+    ]);
+    assert.notEqual(result.status, 0, `${fixture}\n${result.stdout}\n${result.stderr}`);
+    assert.match(`${result.stdout}\n${result.stderr}`, expected);
+  }
 });
 
 test("1.113 historical Change Impact remains readable but cannot satisfy strict task lineage", () => {
@@ -184,4 +235,100 @@ test("1.113 historical Change Impact remains readable but cannot satisfy strict 
   ]);
   assert.notEqual(strict.status, 0, `${strict.stdout}\n${strict.stderr}`);
   assert.match(`${strict.stdout}\n${strict.stderr}`, /must exactly match Business Rule Closure/);
+});
+
+test("1.119 Business Rule Closure batch preserves history without granting stale source authority", () => {
+  const batch = run("scripts/check-business-rule-closure.mjs", [
+    kitRoot,
+    "--require-business-rule-closure",
+    "--require-structured-evidence",
+    "--require-task-lineage",
+  ]);
+  assert.equal(batch.status, 0, `${batch.stdout}\n${batch.stderr}`);
+  assert.match(
+    batch.stdout,
+    /historical Business Universe binding preserves recorded structured evidence without claiming current source authority/,
+  );
+
+  const explicitCurrent = run("scripts/check-business-rule-closure.mjs", [
+    kitRoot,
+    "--report",
+    "business-rule-closures/119-resolve-operating-loop-modularity.md",
+    "--require-business-rule-closure",
+    "--require-structured-evidence",
+    "--require-task-lineage",
+  ]);
+  assert.equal(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
+  assert.match(
+    explicitCurrent.stdout,
+    /119-resolve-operating-loop-modularity\.md referenced Business Universe Coverage passes strict ready check/,
+  );
+
+  const explicitHistorical = run("scripts/check-business-rule-closure.mjs", [
+    kitRoot,
+    "--report",
+    "business-rule-closures/113-cross-domain-trust-closure.md",
+    "--require-business-rule-closure",
+    "--require-structured-evidence",
+    "--require-task-lineage",
+  ]);
+  assert.notEqual(explicitHistorical.status, 0, `${explicitHistorical.stdout}\n${explicitHistorical.stderr}`);
+  assert.match(
+    `${explicitHistorical.stdout}\n${explicitHistorical.stderr}`,
+    /authority_binding\.project does not match|raw_file_digest does not match/,
+  );
+});
+
+test("1.119 Verification Plan batch preserves history without granting stale source authority", () => {
+  const batch = run("scripts/check-verification-plan.mjs", [
+    kitRoot,
+    "--require-report",
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+    "--require-evidence-authority",
+    "--require-task-lineage",
+  ]);
+  assert.equal(batch.status, 0, `${batch.stdout}\n${batch.stderr}`);
+  assert.match(
+    batch.stdout,
+    /historical Control Effectiveness binding preserves recorded evidence without claiming current source authority/,
+  );
+
+  const explicitCurrent = run("scripts/check-verification-plan.mjs", [
+    kitRoot,
+    "--report",
+    "verification-plans/119-resolve-operating-loop-modularity.md",
+    "--require-report",
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+    "--require-evidence-authority",
+    "--require-task-lineage",
+  ]);
+  assert.equal(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
+  assert.match(
+    explicitCurrent.stdout,
+    /119-resolve-operating-loop-modularity\.md Control Effectiveness binding is exact and current/,
+  );
+
+  const explicitHistorical = run("scripts/check-verification-plan.mjs", [
+    kitRoot,
+    "--report",
+    "verification-plans/113-cross-domain-trust-closure.md",
+    "--require-report",
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+    "--require-evidence-authority",
+    "--require-task-lineage",
+  ]);
+  assert.notEqual(explicitHistorical.status, 0, `${explicitHistorical.stdout}\n${explicitHistorical.stderr}`);
+  assert.match(
+    `${explicitHistorical.stdout}\n${explicitHistorical.stderr}`,
+    /implementation digest is stale|project identity or revision|raw_file_digest does not match/,
+  );
 });

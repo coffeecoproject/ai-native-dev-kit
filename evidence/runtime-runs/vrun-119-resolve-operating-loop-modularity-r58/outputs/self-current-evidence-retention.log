@@ -1,0 +1,25 @@
+
+> intentos@1.113.0 verify:evidence-retention
+> node --check scripts/lib/evidence-retention.mjs && node --check scripts/check-evidence-retention.mjs && node --test tests/evidence-retention.test.mjs && node scripts/check-evidence-retention.mjs . --strict
+
+✔ 1.118 keeps historical oversized evidence outside forward-only budgets (3.302834ms)
+✔ 1.118 bounds Business Universe retention to observed task sources (0.5995ms)
+✔ 1.118 rejects more than one durable runtime archive for a task (2.4005ms)
+✔ 1.118 rejects standalone full verification logs (2.252417ms)
+✔ 1.118 rejects duplicate raw content (1.959375ms)
+✔ 1.118 rejects raw evidence and report budget overflow without truncating (2.919584ms)
+✔ 1.118 rejects a durable runtime without complete manifest binding (1.557916ms)
+✔ 1.118 installs and executes the same retention policy in a generated project (13479.099625ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13548.376667
+PASS task 118 retains 12 raw evidence files totaling 55215 bytes
+PASS task 119 retains 4 raw evidence files totaling 8483 bytes
+PASS evidence retention policy intentos-forward-evidence-retention is satisfied
+
+process_signal=none

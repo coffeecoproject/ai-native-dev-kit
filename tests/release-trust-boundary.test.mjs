@@ -58,13 +58,33 @@ test("release preflight receipt replays one non-empty staged exact candidate che
   }
 });
 
-test("release preflight receipt rejects an empty staged diff and candidate digest drift", () => {
+test("release preflight receipt replays a clean committed candidate from its structured base revision", () => {
   const root = gitFixture("intentos-release-preflight-empty-");
+  const baseRevision = git(root, ["rev-parse", "HEAD"]).stdout.trim().toLowerCase();
+  writeStructuredMarkdown(path.join(root, "release-candidates/source.md"), "Exact source candidate", {
+    schema_version: "1.113.0",
+    artifact_type: "release_candidate",
+    base_revision: baseRevision,
+  });
+  fs.writeFileSync(path.join(root, "src/index.mjs"), "export const current = 2;\n");
+  git(root, ["add", "release-candidates/source.md", "src/index.mjs"]);
   const receiptRef = "evidence/release-preflight.json";
   const expected = writeReceipt(root, receiptRef);
-  const empty = validateReleasePreflightReceipt(root, `artifact:${receiptRef}`, expected);
-  assert.equal(empty.ok, false);
-  assert.match(empty.errors.join("\n"), /non-empty staged diff/);
+  git(root, ["add", receiptRef]);
+  git(root, ["commit", "-qm", "record committed release candidate"]);
+
+  const committed = validateReleasePreflightReceipt(root, `artifact:${receiptRef}`, expected);
+  assert.equal(committed.ok, true, committed.errors.join("\n"));
+
+  fs.writeFileSync(path.join(root, "src/index.mjs"), "export const contaminated = true;\n");
+  const dirty = validateReleasePreflightReceipt(root, `artifact:${receiptRef}`, expected);
+  assert.equal(dirty.ok, false);
+  assert.match(dirty.errors.join("\n"), /completely clean worktree/);
+});
+
+test("release preflight receipt rejects candidate digest drift", () => {
+  const root = gitFixture("intentos-release-preflight-digest-");
+  const receiptRef = "evidence/release-preflight.json";
 
   fs.writeFileSync(path.join(root, "src/index.mjs"), "export const current = 2;\n");
   git(root, ["add", "src/index.mjs"]);

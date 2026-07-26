@@ -156,7 +156,12 @@ function checkReports() {
   for (const file of files) {
     const content = fs.readFileSync(file, "utf8");
     const label = rel(file);
-    for (const section of reportSections) requireSection(content, section, label);
+    const immutableHistoricalReport = isImmutableHistoricalReport(label, content);
+    if (immutableHistoricalReport) {
+      pass(`${label} is an unchanged historical snapshot; current-template checks are not retroactive`);
+    } else {
+      for (const section of reportSections) requireSection(content, section, label);
+    }
 
     if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
     const scanContent = contentForForbiddenScan(content);
@@ -183,15 +188,17 @@ function checkReports() {
     if (currentCount <= 1) pass(`${label} has at most one CURRENT task`);
     else fail(`${label} has multiple CURRENT tasks`);
 
-    requireQueuePolicy(content, label);
-    requireResumeReview(content, label);
-    requireBoundaryNo(content, label, "This report changes task state");
-    requireBoundaryNo(content, label, "This report approves implementation");
-    requireBoundaryNo(content, label, "This report approves target-project writes");
-    requireBoundaryNo(content, label, "This report approves scope expansion");
-    requireBoundaryNo(content, label, "This report approves release or production");
-    requireBoundaryNo(content, label, "This report overrides task/spec/review loop");
-    requireBoundaryNo(content, label, "This report resumes stale work without review");
+    if (!immutableHistoricalReport) {
+      requireQueuePolicy(content, label);
+      requireResumeReview(content, label);
+      requireBoundaryNo(content, label, "This report changes task state");
+      requireBoundaryNo(content, label, "This report approves implementation");
+      requireBoundaryNo(content, label, "This report approves target-project writes");
+      requireBoundaryNo(content, label, "This report approves scope expansion");
+      requireBoundaryNo(content, label, "This report approves release or production");
+      requireBoundaryNo(content, label, "This report overrides task/spec/review loop");
+      requireBoundaryNo(content, label, "This report resumes stale work without review");
+    }
 
     const outcome = codeOrTextValue(sectionBody(content, "Outcome"));
     if (allowedOutcomes.has(outcome)) pass(`${label} has valid Outcome`);
@@ -213,6 +220,16 @@ function checkReports() {
   }
   if (current.length <= 1) pass("all Work Queue reports together have at most one canonical CURRENT task");
   else fail(`all Work Queue reports together have ${current.length} canonical CURRENT tasks`);
+}
+
+function isImmutableHistoricalReport(label, content) {
+  if (!isSourceRepo) return false;
+  const historical = spawnSync("git", ["show", `HEAD:${label}`], {
+    cwd: projectRoot,
+    encoding: "utf8",
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  return historical.status === 0 && historical.stdout === content;
 }
 
 function requireQueuePolicy(content, label) {

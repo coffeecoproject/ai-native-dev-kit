@@ -9,6 +9,14 @@ const entryPath = path.join(kitRoot, "scripts/init-project.mjs");
 const moduleRoot = path.join(kitRoot, "scripts/init-project");
 const moduleFiles = ["assets.mjs", "plan.mjs", "apply.mjs", "cli.mjs"];
 
+test("init-project modules resolve the repository version from their nested directory", async () => {
+  const assets = await import(`${pathToFileURL(path.join(moduleRoot, "assets.mjs")).href}?version-root=${Date.now()}`);
+  const versionText = fs.readFileSync(path.join(kitRoot, "VERSION.md"), "utf8");
+  const expected = versionText.match(/Current version:\s*`([^`]+)`/)?.[1];
+  assert.equal(assets.currentIntentOSVersion, expected);
+  assert.notEqual(assets.currentIntentOSVersion, "0.0.0");
+});
+
 test("init-project keeps one thin executable and an acyclic domain module graph", async () => {
   const entry = fs.readFileSync(entryPath, "utf8");
   assert.ok(entry.split("\n").length <= 6, "public executable entry must remain thin");
@@ -48,4 +56,13 @@ test("project verification scripts syntax-check and exercise init-project module
     assert.match(scripts["verify:syntax"], new RegExp(`node --check scripts/init-project/${file.replace(".", "\\.")}`));
   }
   assert.match(scripts["verify:project-entry"], /tests\/init-project-modularity\.test\.mjs/);
+});
+
+test("legacy source-marker checks scan the complete init-project module graph", () => {
+  const foundation = fs.readFileSync(path.join(kitRoot, "scripts/self-check/foundation.mjs"), "utf8");
+  const evidence = fs.readFileSync(path.join(kitRoot, "scripts/self-check/evidence.mjs"), "utf8");
+  for (const file of moduleFiles) {
+    assert.match(foundation, new RegExp(`scripts/init-project/${file.replace(".", "\\.")}`));
+    assert.match(evidence, new RegExp(`scripts/init-project/${file.replace(".", "\\.")}`));
+  }
 });

@@ -26,7 +26,7 @@ import {
 } from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-current-task-lineage", "strict"]);
+const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-current-task-lineage", "historical-audit", "strict"]);
 const unknown = unknownOptions(args, knownFlags);
 const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
@@ -35,6 +35,7 @@ const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const requireCurrentTaskLineage = Boolean(args["require-current-task-lineage"] || args.strict);
+const historicalAudit = Boolean(args["historical-audit"]);
 const strictRequested = requireReport || requireStructuredEvidence || requireCurrentTaskLineage || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/plan-review.schema.json");
@@ -235,6 +236,7 @@ function checkStructuredEvidence(content, label, file, evidence) {
   checkSourceChain(label, evidence);
   const sourceValidation = validatePlanReviewSourceEvidence(projectRoot, file, evidence, {
     requireCurrentTaskLineage,
+    historicalAudit,
   });
   sourceValidation.errors.forEach((error) => fail(`${label} ${error}`));
   if (sourceValidation.ok) pass(`${label} source refs resolve and digests match project files`);
@@ -313,12 +315,16 @@ function checkBusinessUniverseBinding(label, reportFile, evidence) {
   else validation.errors.forEach(fail);
   const checker = path.join(path.dirname(fileURLToPath(import.meta.url)), "check-business-universe-coverage.mjs");
   const universeReportRef = resolved.relativePath;
-  const checkResult = spawnSync(process.execPath, [checker, projectRoot, "--report", universeReportRef, "--require-structured-evidence", "--require-ready"], {
-    cwd: projectRoot,
-    encoding: "utf8",
-  });
-  if (checkResult.status === 0) pass(`${label} Business Universe passes strict ready validation`);
-  else fail(`${label} Business Universe failed strict ready validation: ${(checkResult.stderr || checkResult.stdout).trim()}`);
+  if (historicalAudit) {
+    pass(`${label} historical Business Universe binding preserves its recorded schema, digest, state, and scenario set`);
+  } else {
+    const checkResult = spawnSync(process.execPath, [checker, projectRoot, "--report", universeReportRef, "--require-structured-evidence", "--require-ready"], {
+      cwd: projectRoot,
+      encoding: "utf8",
+    });
+    if (checkResult.status === 0) pass(`${label} Business Universe passes strict ready validation`);
+    else fail(`${label} Business Universe failed strict ready validation: ${(checkResult.stderr || checkResult.stdout).trim()}`);
+  }
   if (binding.business_universe_digest === universe.coverage_digest && binding.business_universe_state === universe.outcome) {
     pass(`${label} Business Universe ref, digest, and state are exact`);
   } else {
@@ -386,6 +392,7 @@ function checkControlEffectivenessBinding(label, reportFile, evidence) {
     required,
     fromFile: reportFile,
     taskRef: evidence.task_ref,
+    currentAuthority: !historicalAudit,
   });
   if (validation.ok) pass(`${label} Control Effectiveness binding is exact, current, and strict`);
   else validation.errors.forEach((error) => fail(`${label} ${error}`));
@@ -791,6 +798,10 @@ function checkVerificationReview(label, evidence) {
     fail(`${label} PLAN_REVIEW_PASSED cannot contain fake or unstable verification command`);
   }
   if (evidence.schema_version !== "1.113.0" || evidence.plan_review_state === "NO_PLAN_REQUIRED") return;
+  if (historicalAudit) {
+    pass(`${label} historical verification command review remains recorded without claiming current authority`);
+    return;
+  }
   const planPath = resolveRelativeFile(evidence.plan_ref);
   if (!planPath) return;
   const observed = deriveVerificationCommandReview(fs.readFileSync(planPath, "utf8"));

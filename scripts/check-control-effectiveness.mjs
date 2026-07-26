@@ -7,11 +7,12 @@ import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { validateControlEffectivenessEvidence } from "./lib/control-effectiveness.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { hasCurrentReportAuthority, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
   "json", "allow-empty", "report", "require-report", "require-structured-evidence",
-  "require-effective", "task-ref", "intent-digest", "required-claims",
+  "require-effective", "task-ref", "intent-digest", "required-claims", "historical-audit",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = canonicalRoot(path.resolve(process.cwd(), args._[0] || "."));
@@ -20,6 +21,7 @@ const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"] || args["require-effective"] || args["require-structured-evidence"]);
 const requireEffective = Boolean(args["require-effective"]);
 const explicitReport = args.report ? safeReport(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit: Boolean(args["historical-audit"]) });
 const requiredClaimIds = String(args["required-claims"] || "").split(",").map((item) => item.trim()).filter(Boolean);
 const schema = loadSchema(projectRoot, "schemas/artifacts/control-effectiveness.schema.json");
 const checks = [];
@@ -59,10 +61,12 @@ function checkReports() {
     else pass("SKIPPED_NO_REPORT: no Control Effectiveness reports found");
     return;
   }
-  reports.forEach(checkReport);
+  reports.forEach((file) => checkReport(file, {
+    currentAuthority: hasCurrentReportAuthority(reportAuthorityMode),
+  }));
 }
 
-function checkReport(file) {
+function checkReport(file, { currentAuthority }) {
   const label = path.relative(projectRoot, file).split(path.sep).join("/");
   if (!safeRegularFile(file)) {
     fail(`${label} must be a regular non-symlink file`);
@@ -90,8 +94,10 @@ function checkReport(file) {
     taskRef: args["task-ref"] ? String(args["task-ref"]) : "",
     intentDigest: args["intent-digest"] ? String(args["intent-digest"]) : "",
     requiredClaimIds: requiredClaimIds.length > 0 ? requiredClaimIds : checked.value.required_claim_ids,
+    currentAuthority,
   });
-  if (semantic.ok) pass(`${label} binds current implementation, scope, semantics, evidence identity, failure capability, result integrity, and safety`);
+  if (semantic.ok && currentAuthority) pass(`${label} binds current implementation, scope, semantics, evidence identity, failure capability, result integrity, and safety`);
+  else if (semantic.ok) pass(`${label} preserves valid historical structure, canonical proof, and internal semantics without claiming current source authority`);
   else semantic.errors.forEach((error) => fail(`${label}: ${error}`));
   if (requireEffective && checked.value.outcome !== "CONTROL_PROVEN_EFFECTIVE") fail(`${label} strict reliance requires CONTROL_PROVEN_EFFECTIVE`);
   else if (checked.value.outcome === "CONTROL_PROVEN_EFFECTIVE") pass(`${label} required claims are proven effective`);

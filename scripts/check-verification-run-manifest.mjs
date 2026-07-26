@@ -20,9 +20,10 @@ import {
   runManifestSemanticErrors,
 } from "./lib/verification-runtime-trust.mjs";
 import { lifecyclePlanSemanticErrors, readLifecycleDeclaration } from "./lib/verification-runtime-lifecycle.mjs";
+import { hasCurrentReportAuthority, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-complete"]);
+const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-complete", "historical-audit"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
@@ -31,6 +32,7 @@ const requireReport = Boolean(args["require-report"] || args.report);
 const requireStructured = Boolean(args["require-structured-evidence"] || args.report);
 const requireComplete = Boolean(args["require-complete"]);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit: Boolean(args["historical-audit"]) });
 const schema = loadSchema(projectRoot, "schemas/artifacts/verification-run-manifest.schema.json");
 let failed = false;
 const checks = [];
@@ -51,10 +53,10 @@ function checkReports() {
     else pass("SKIPPED_NO_REPORT: no Verification Run Manifest found");
     return;
   }
-  for (const file of files) checkReport(file);
+  for (const file of files) checkReport(file, hasCurrentReportAuthority(reportAuthorityMode));
 }
 
-function checkReport(file) {
+function checkReport(file, requireCurrentAuthority) {
   if (!fs.existsSync(file)) return fail(`missing report ${rel(file)}`);
   if (fs.lstatSync(file).isSymbolicLink()) return fail(`report must not be a symlink: ${rel(file)}`);
   const content = fs.readFileSync(file, "utf8");
@@ -92,21 +94,25 @@ function checkReport(file) {
 
   const plan = loadRuntimePlan(manifest, file, label);
   if (plan) {
-    const semanticErrors = runManifestSemanticErrors(manifest, plan, projectIdentity(projectRoot));
+    const semanticErrors = runManifestSemanticErrors(manifest, plan, requireCurrentAuthority ? projectIdentity(projectRoot) : manifest.source_identity);
     if (semanticErrors.length === 0) pass(`${label} runtime tier, identity, isolation, execution, and cleanup are coherent`);
     else semanticErrors.forEach((error) => fail(`${label} ${error}`));
-    if (manifest.schema_version === "1.103.0") checkLifecyclePlan(manifest, plan, file, label);
+    if (manifest.schema_version === "1.103.0") checkLifecyclePlan(manifest, plan, file, label, requireCurrentAuthority);
   }
   checkEvidenceRefs(manifest, file, label);
-  const sourceRefs = collectedSourceRefs(manifest);
-  const authority = validateEvidenceAuthorityBinding(projectRoot, manifest.authority_binding, {
-    taskRef: manifest.task_ref,
-    intentDigest: manifest.intent_digest,
-    sourceRefs,
-    fromFile: file,
-  });
-  if (authority.ok) pass(`${label} Evidence Authority matches current project, task, intent, plan, and run evidence`);
-  else authority.errors.forEach((error) => fail(`${label} ${error}`));
+  if (requireCurrentAuthority) {
+    const sourceRefs = collectedSourceRefs(manifest);
+    const authority = validateEvidenceAuthorityBinding(projectRoot, manifest.authority_binding, {
+      taskRef: manifest.task_ref,
+      intentDigest: manifest.intent_digest,
+      sourceRefs,
+      fromFile: file,
+    });
+    if (authority.ok) pass(`${label} Evidence Authority matches current project, task, intent, plan, and run evidence`);
+    else authority.errors.forEach((error) => fail(`${label} ${error}`));
+  } else {
+    pass(`${label} is historical; current source authority is enforced only for the latest or explicitly selected Run Manifest`);
+  }
 
   if (manifest.outcome === "RUNTIME_TRUST_COMPLETE" && manifest.run_window.state !== "COMPLETED") fail(`${label} complete runtime trust requires a completed run`);
   if (requireComplete && manifest.outcome !== "RUNTIME_TRUST_COMPLETE") fail(`${label} --require-complete requires RUNTIME_TRUST_COMPLETE`);
@@ -115,17 +121,21 @@ function checkReport(file) {
   else fail(`${label} Markdown outcome must match ${manifest.outcome}`);
 }
 
-function checkLifecyclePlan(manifest, runtimePlan, fromFile, label) {
+function checkLifecyclePlan(manifest, runtimePlan, fromFile, label, requireCurrentAuthority) {
   const resolved = resolveAuthoritativeEvidenceReference(projectRoot, fromFile, manifest.lifecycle_plan_ref, { markdownOnly: true });
   if (!resolved.ok) return fail(`${label} lifecycle plan ref is unsafe or unresolved: ${resolved.error}`);
   const lifecycleSchema = loadSchema(projectRoot, "schemas/artifacts/verification-runtime-lifecycle-plan.schema.json");
   const checked = validateEvidenceBlock(fs.readFileSync(resolved.file, "utf8"), lifecycleSchema, `${label} Lifecycle Plan`, { require: true, digestField: "lifecycle_plan_digest" });
   if (!checked.ok) return checked.errors.forEach(fail);
   if (checked.value.lifecycle_plan_digest !== manifest.lifecycle_plan_digest || checked.value.run_id !== manifest.run_id) return fail(`${label} lifecycle plan digest or run ID mismatch`);
-  const declaration = readLifecycleDeclaration(projectRoot);
-  const semantic = lifecyclePlanSemanticErrors(checked.value, runtimePlan, declaration.status === "RECORDED" ? declaration : null, projectIdentity(projectRoot), projectRoot);
-  if (semantic.length) semantic.forEach((error) => fail(`${label} Lifecycle Plan ${error}`));
-  else pass(`${label} referenced Lifecycle Plan is valid and current`);
+  if (requireCurrentAuthority) {
+    const declaration = readLifecycleDeclaration(projectRoot);
+    const semantic = lifecyclePlanSemanticErrors(checked.value, runtimePlan, declaration.status === "RECORDED" ? declaration : null, projectIdentity(projectRoot), projectRoot);
+    if (semantic.length) semantic.forEach((error) => fail(`${label} Lifecycle Plan ${error}`));
+    else pass(`${label} referenced Lifecycle Plan is valid and current`);
+  } else {
+    pass(`${label} referenced historical Lifecycle Plan has a valid digest and run binding`);
+  }
   const journalRows = loadLifecycleJournal(manifest, fromFile, label);
   if (!journalRows) return;
   const replayErrors = lifecycleManifestReplayErrors(manifest, checked.value, journalRows);

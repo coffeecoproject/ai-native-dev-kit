@@ -1,0 +1,28 @@
+✔ [verify:universe-bf60f92e-expected] tests/119-operating-loop-governance-obligations.test.mjs :: generated projects receive every operating-loop module (5.351791ms)
+✔ [verify:universe-bf60f92e-negative] tests/119-operating-loop-governance-obligations.test.mjs :: missing distribution declarations remain fail-closed (0.225208ms)
+✔ [verify:universe-7ec23da9-expected] tests/119-operating-loop-governance-obligations.test.mjs :: source orchestration preserves ordered consumers (0.059875ms)
+✔ [verify:universe-7ec23da9-negative] tests/119-operating-loop-governance-obligations.test.mjs :: source failures remain visible and non-zero (0.139125ms)
+✔ [verify:universe-a3a9cbeb-expected] tests/119-operating-loop-governance-obligations.test.mjs :: public entry retains every internal contract (0.137166ms)
+✔ [verify:universe-a3a9cbeb-negative] tests/119-operating-loop-governance-obligations.test.mjs :: public failure and unknown-mode paths remain characterized (0.105458ms)
+✔ [verify:universe-5517624a-expected] tests/119-operating-loop-governance-obligations.test.mjs :: self-check consumes modular source graphs (0.988084ms)
+✔ [verify:universe-5517624a-negative] tests/119-operating-loop-governance-obligations.test.mjs :: extracted modules cannot hide legacy markers (0.082ms)
+✔ [verify:universe-aa06199b-expected] tests/119-operating-loop-governance-obligations.test.mjs :: structural budgets and exports are enforced (0.259667ms)
+✔ [verify:universe-aa06199b-negative] tests/119-operating-loop-governance-obligations.test.mjs :: dependency and distribution regressions are rejected (0.255542ms)
+✔ [verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-] tests/119-operating-loop-governance-obligations.test.mjs :: CLI flow remains executable without a rendered UI (0.142917ms)
+✔ [verify:user-flow-regression-smoke-existing-critical-flow-still-works-af] tests/119-operating-loop-governance-obligations.test.mjs :: characteristic coverage retains existing critical modes (0.060791ms)
+✔ [verify:data-model-data-model-check-data-model-historical-records-migrat] tests/119-operating-loop-governance-obligations.test.mjs :: exact candidate adds no product persistence model or migration path (27.364ms)
+✔ [verify:background-work-integration-contract-check-scheduled-queued-retr] tests/119-operating-loop-governance-obligations.test.mjs :: split modules start no background work (0.852625ms)
+✔ [verify:rollback-recovery-release-smoke-check-failure-interruption-rollb] tests/119-operating-loop-governance-obligations.test.mjs :: split is a reversible internal boundary (0.136791ms)
+✔ [verify:release-impact-release-smoke-check-release-rollback-monitoring-o] tests/119-operating-loop-governance-obligations.test.mjs :: structural batch remains source-only and performs no external release (0.367208ms)
+✔ [verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders] tests/119-operating-loop-governance-obligations.test.mjs :: plan records structural and non-authorizing boundaries (0.2005ms)
+✔ [verify:test-coverage-regression-smoke-task-specific-verification-exists] tests/119-operating-loop-governance-obligations.test.mjs :: task-specific positive and reverse proofs are mapped (0.077375ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85.051208
+
+process_signal=none

@@ -501,7 +501,9 @@
         "properties": {
           "actual_diff": {
             "properties": {
-              "diff_source": { "const": "git:working-tree" },
+              "diff_source": {
+                "pattern": "^git:(?:working-tree|[a-f0-9]{40}|[a-f0-9]{64})$"
+              },
               "changed_files": { "minItems": 1 }
             }
           }

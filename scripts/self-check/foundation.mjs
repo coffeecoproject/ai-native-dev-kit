@@ -45,6 +45,33 @@ const {
   writeInitProjectReadinessRecord,
 } = runtime;
 
+function readInitProjectImplementation() {
+  return [
+    "scripts/init-project.mjs",
+    "scripts/init-project/assets.mjs",
+    "scripts/init-project/plan.mjs",
+    "scripts/init-project/apply.mjs",
+    "scripts/init-project/cli.mjs",
+  ].map(read).join("\n");
+}
+
+function readNewWorkflowItemImplementation() {
+  return [
+    "scripts/new-workflow-item.mjs",
+    "scripts/new-workflow-item/cli.mjs",
+    "scripts/new-workflow-item/registry.mjs",
+    "scripts/new-workflow-item/references.mjs",
+    "scripts/new-workflow-item/fillers.mjs",
+    "scripts/new-workflow-item/fillers/baseline.mjs",
+    "scripts/new-workflow-item/fillers/frontmatter.mjs",
+    "scripts/new-workflow-item/fillers/governance.mjs",
+    "scripts/new-workflow-item/fillers/reporting.mjs",
+    "scripts/new-workflow-item/fillers/review.mjs",
+    "scripts/new-workflow-item/fillers/routing.mjs",
+    "scripts/new-workflow-item/fillers/workflow.mjs",
+  ].map(read).join("\n");
+}
+
 function checkRequiredFiles() {
   const required = sourceRequiredPaths(kitRoot, { fallback: [
     "README.md",
@@ -400,7 +427,7 @@ function checkRequiredFiles() {
   }
 }
 function checkDefaultStarter() {
-  const content = read("scripts/init-project.mjs");
+  const content = readInitProjectImplementation();
   if (content.includes('readExistingStarter(targetPath) || "generic-project"')) {
     pass("default starter falls back to generic-project");
   } else {
@@ -2958,7 +2985,7 @@ function checkGuidedDecisionDeliveryLoopProtocol() {
     }
   }
 
-  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  const newWorkflowItem = readNewWorkflowItemImplementation();
   for (const marker of [
     "active-work-thread",
     "guided-decision-summary",
@@ -3011,7 +3038,7 @@ function checkGovernanceHardeningDriftGuardProtocol() {
     }
   }
 
-  const initProject = read("scripts/init-project.mjs");
+  const initProject = readInitProjectImplementation();
   for (const marker of [
     "requireTrustedProjectEntry",
     "executeBootstrapTransaction",
@@ -3129,7 +3156,7 @@ function checkChangeBoundaryBaselineStateProtocol() {
     else fail(`CLI missing 1.12 marker ${marker}`);
   }
 
-  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  const newWorkflowItem = readNewWorkflowItemImplementation();
   for (const marker of [
     "change-boundary-report",
     "baseline-state-report",
@@ -3140,7 +3167,7 @@ function checkChangeBoundaryBaselineStateProtocol() {
     else fail(`new-workflow-item missing 1.12 marker ${marker}`);
   }
 
-  const initProject = read("scripts/init-project.mjs");
+  const initProject = readInitProjectImplementation();
   for (const marker of [
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
@@ -3264,7 +3291,7 @@ function checkBaselinePackSystemProtocol() {
     else fail(`CLI missing baseline pack marker ${marker}`);
   }
 
-  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  const newWorkflowItem = readNewWorkflowItemImplementation();
   for (const marker of [
     "baseline-pack-selection-report",
     "baseline-pack-selections",
@@ -3274,7 +3301,7 @@ function checkBaselinePackSystemProtocol() {
     else fail(`new-workflow-item missing baseline pack marker ${marker}`);
   }
 
-  const initProject = read("scripts/init-project.mjs");
+  const initProject = readInitProjectImplementation();
   for (const marker of [
     "Baseline Pack System",
     "scripts/resolve-baseline-packs.mjs",
@@ -3571,7 +3598,7 @@ function checkStandardBaselinePackRegistryProtocol() {
     else fail(`CLI missing standard baseline marker ${marker}`);
   }
 
-  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  const newWorkflowItem = readNewWorkflowItemImplementation();
   for (const marker of [
     "standard-baseline-selection-report",
     "standard-baseline-selections",
@@ -3581,7 +3608,7 @@ function checkStandardBaselinePackRegistryProtocol() {
     else fail(`new-workflow-item missing standard baseline marker ${marker}`);
   }
 
-  const initProject = read("scripts/init-project.mjs");
+  const initProject = readInitProjectImplementation();
   for (const marker of [
     "Standard Baseline Packs",
     ".intentos/standard-baseline-packs",
@@ -3786,7 +3813,7 @@ function checkGuidedBaselineSelectionEntryProtocol() {
     else fail(`CLI missing guided baseline marker ${marker}`);
   }
 
-  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  const newWorkflowItem = readNewWorkflowItemImplementation();
   for (const marker of [
     "baseline-decision-card",
     "baseline-decision-cards",
@@ -3796,7 +3823,7 @@ function checkGuidedBaselineSelectionEntryProtocol() {
     else fail(`new-workflow-item missing guided baseline marker ${marker}`);
   }
 
-  const initProject = read("scripts/init-project.mjs");
+  const initProject = readInitProjectImplementation();
   for (const marker of [
     "guided-baseline-selection",
     "baseline-decision-card",

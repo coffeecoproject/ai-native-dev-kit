@@ -76,6 +76,34 @@ test("resolver output passes strict checker and copied identity fails current-pr
   assert.match(`${bad.stdout}\n${bad.stderr}`, /stale or copied/);
 });
 
+test("batch audit preserves historical topology while explicit reports remain current-strict", () => {
+  const project = fixture({
+    workflow: "runs-on: ubuntu-latest\nenvironment: production\nconcurrency: release\n- uses: actions/upload-artifact@v4",
+    docs: "production staging rollback smoke cleanup retention",
+  });
+  run(["scripts/resolve-release-execution-topology.mjs", project, "--out", "release-execution-topologies/001-historical.md"]);
+  runGit(project, ["config", "user.name", "Updated IntentOS Test"]);
+  run(["scripts/resolve-release-execution-topology.mjs", project, "--out", "release-execution-topologies/002-current.md"]);
+
+  run(["scripts/check-release-execution-topology.mjs", project, "--require-structured-evidence"]);
+
+  const historical = spawnSync(process.execPath, [
+    path.join(root, "scripts/check-release-execution-topology.mjs"),
+    project,
+    "--report", "release-execution-topologies/001-historical.md",
+    "--require-structured-evidence",
+  ], { encoding: "utf8" });
+  assert.notEqual(historical.status, 0, `${historical.stdout}\n${historical.stderr}`);
+  assert.match(`${historical.stdout}\n${historical.stderr}`, /digest mismatch|does not replay/);
+
+  run([
+    "scripts/check-release-execution-topology.mjs",
+    project,
+    "--report", "release-execution-topologies/002-current.md",
+    "--require-structured-evidence",
+  ]);
+});
+
 function fixture({ workflow, docs }) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-topology-"));
   runGit(dir, ["init"]);

@@ -16,7 +16,7 @@ import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
-import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
+import { canonicalFileDigest, isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 import {
   runtimeTrustBindingsAgree,
   validateRuntimeTrustBinding,
@@ -24,6 +24,7 @@ import {
 import { resolveBoundBusinessUniverse } from "./lib/business-universe.mjs";
 import { validateControlEffectivenessBinding } from "./lib/control-effectiveness.mjs";
 import { validateExecutionAssuranceForCompletion } from "./lib/execution-assurance-consumer.mjs";
+import { historicalEvidenceSourceErrors, isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
@@ -63,6 +64,7 @@ const strictRequested = requireReport || requireStructuredEvidence || requireSou
   || requireTaskGovernance || requireWorkQueue || strictTaskConsumer || requirePlanReview
   || requireEvidenceAuthority || requireRuntimeTrust || historicalAudit || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit });
 const schema = loadSchema(projectRoot, "schemas/artifacts/completion-evidence.schema.json");
 const sourceSchemas = {
   business_rule_closure: loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json"),
@@ -195,11 +197,11 @@ function checkReports() {
       fail(`missing explicit Completion Evidence Gate report ${file}`);
       continue;
     }
-    checkReport(file);
+    checkReport(file, { historicalMode: isHistoricalReportAudit(reportAuthorityMode) });
   }
 }
 
-function checkReport(file) {
+function checkReport(file, { historicalMode = false } = {}) {
   const content = fs.readFileSync(file, "utf8");
   const label = rel(file);
   if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
@@ -263,9 +265,50 @@ function checkReport(file) {
     completionState: evidence.completion_state,
     canClaimComplete: evidence.can_claim_complete,
   });
-  checkEvidenceAuthority(label, file, evidence);
   checkSummary(content, label, evidence);
+  if (historicalMode) {
+    checkHistoricalEvidence(label, file, evidence);
+    return;
+  }
+  checkEvidenceAuthority(label, file, evidence);
   checkStructuredEvidence(label, file, evidence);
+}
+
+function checkHistoricalEvidence(label, file, evidence) {
+  const refs = reportRefCandidates(file);
+  if (refs.includes(evidence.completion_evidence_ref)) pass(`${label} historical completion_evidence_ref points to this report`);
+  else fail(`${label} historical completion_evidence_ref ${evidence.completion_evidence_ref || "<missing>"} must point to ${refs.join(" or ")}`);
+
+  const sources = Array.isArray(evidence.source_chain) ? evidence.source_chain : [];
+  const sourceNames = new Set(sources.map((item) => item.name));
+  for (const name of requiredSourceNames) {
+    if (sourceNames.has(name)) pass(`${label} historical source chain includes ${name}`);
+    else fail(`${label} historical source chain missing ${name}`);
+  }
+  for (const source of sources.filter((item) => item.status === "RECORDED")) {
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, file, source.ref, { markdownOnly: true });
+    if (!resolved.ok) {
+      fail(`${label} historical source ${source.name} is unsafe or unresolved: ${resolved.error}`);
+      continue;
+    }
+    const descriptor = historicalCompletionSourceDescriptor(source.name);
+    const errors = historicalEvidenceSourceErrors(fs.readFileSync(resolved.file, "utf8"), source, {
+      ...descriptor,
+      fileDigest: descriptor.digestField ? "" : canonicalFileDigest(resolved.file),
+    });
+    if (errors.length === 0) pass(`${label} historical source ${source.name} digest, task, and outcome match the referenced artifact`);
+    else errors.forEach((error) => fail(`${label} historical source ${source.name}: ${error}`));
+  }
+  pass(`${label} preserves valid historical Completion Evidence structure and recorded source refs without claiming current runtime, source, or project authority`);
+}
+
+function historicalCompletionSourceDescriptor(name) {
+  return {
+    business_rule_closure: { digestField: "closure_digest", outcomeField: "state" },
+    verification_plan: { digestField: "verification_plan_digest", outcomeField: "verification_state" },
+    test_evidence: { digestField: "test_evidence_digest", outcomeField: "test_evidence_state" },
+    execution_assurance: { digestField: "", outcomeField: "assurance_state" },
+  }[name] || {};
 }
 
 function checkEvidenceAuthority(label, file, evidence) {

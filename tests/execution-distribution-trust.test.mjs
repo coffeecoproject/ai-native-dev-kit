@@ -5,7 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
-import test from "node:test";
+import test, { afterEach } from "node:test";
 import {
   buildLowTrustFixture,
   buildCurrentTrustFixture,
@@ -26,6 +26,21 @@ import {
 } from "../scripts/lib/release-trust.mjs";
 
 const kitRoot = path.resolve(import.meta.dirname, "..");
+const testTempRoots = new Set();
+
+afterEach(() => {
+  const cleanupErrors = [];
+  for (const root of testTempRoots) {
+    try {
+      assertSafeTestTempRoot(root);
+      fs.rmSync(root, { recursive: true, force: true, maxRetries: 3, retryDelay: 50 });
+      testTempRoots.delete(root);
+    } catch (error) {
+      cleanupErrors.push(new Error(`failed to remove test temp root ${root}: ${error.message}`, { cause: error }));
+    }
+  }
+  if (cleanupErrors.length > 0) throw new AggregateError(cleanupErrors, "test temp root cleanup failed");
+});
 
 test("source-only review has bounded release evidence obligations", () => {
   assert.deepEqual(releaseEvidenceRequirementsFor("source_review").required_evidence_ids, ["completion-evidence"]);
@@ -60,7 +75,15 @@ test("source-only review has bounded release evidence obligations", () => {
 });
 
 function tempRoot(prefix) {
-  return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  assertSafeTestTempRoot(root);
+  testTempRoots.add(root);
+  return root;
+}
+
+function assertSafeTestTempRoot(root) {
+  assert.equal(path.dirname(root), os.tmpdir(), `test temp root must stay directly under ${os.tmpdir()}`);
+  assert.match(path.basename(root), /^intentos-[A-Za-z0-9._-]+$/, "test temp root must use an intentos-* name");
 }
 
 function run(script, args = [], options = {}) {
@@ -859,6 +882,10 @@ test("Git authority identity excludes governed evidence output while binding evi
   });
   fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
   fs.writeFileSync(path.join(root, "evidence", "runtime-smoke.txt"), "PASS runtime smoke\n");
+  fs.mkdirSync(path.join(root, "release-review-provenance"), { recursive: true });
+  fs.writeFileSync(path.join(root, "release-review-provenance", "review-001.md"), "# Independent review provenance\n");
+  fs.mkdirSync(path.join(root, "releases", "1.119.0"), { recursive: true });
+  fs.writeFileSync(path.join(root, "releases", "1.119.0", "independent-review-report.md"), "# Independent review\n");
   const after = createEvidenceAuthorityBinding(root, {
     taskRef: "tasks/001.md",
     intentDigest: "sha256:test",

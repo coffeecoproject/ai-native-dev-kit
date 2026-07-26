@@ -11,7 +11,7 @@ import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
-import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
+import { canonicalFileDigest, isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 import {
   runtimeTrustBindingsAgree,
   validateRuntimeTrustBinding,
@@ -26,6 +26,7 @@ import {
   validateActualDiffAuthority,
   validateDoneCapableExecutionAssurance,
 } from "./lib/execution-assurance-consumer.mjs";
+import { historicalEvidenceSourceErrors, isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
@@ -70,6 +71,7 @@ const strictRequested = requireStructuredEvidence || requireEvidenceRefs || requ
   || requireWorkQueue || strictTaskConsumer || requirePlanReview || requirePlanningClosure
   || requireEvidenceAuthority || requireRuntimeTrust || historicalAudit || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit });
 const currentSchemaVersion = "1.113.0";
 const readableSchemaVersions = new Set(["1.74.0", "1.104.0", "1.108.0", "1.110.0", currentSchemaVersion]);
 const schemaPath = "schemas/artifacts/execution-assurance.schema.json";
@@ -252,7 +254,9 @@ function checkReports() {
     if (requireRuntimeTrust) requireSection(content, "Runtime Trust Binding", label);
     if (requireStructuredEvidence) requireSection(content, "Machine-Readable Evidence", label);
     const summary = checkSummary(content, label);
-    const evidence = checkStructuredEvidence(content, label, file);
+    const evidence = checkStructuredEvidence(content, label, file, {
+      historicalMode: isHistoricalReportAudit(reportAuthorityMode),
+    });
     if (evidence?.schema_version === currentSchemaVersion) requireSection(content, "Pre-Write Revalidation", label);
     checkCrossConsistency(content, label, summary, evidence);
     checkStateRules(content, label, summary, evidence);
@@ -276,7 +280,7 @@ function checkSummary(content, label) {
   return { kind, state, canClaimDone, canWrite };
 }
 
-function checkStructuredEvidence(content, label, file) {
+function checkStructuredEvidence(content, label, file, { historicalMode = false } = {}) {
   const body = sectionBody(content, "Machine-Readable Evidence", { fallback: "" }) || "";
   if (!body.trim()) {
     if (requireStructuredEvidence) fail(`${label} must include Machine-Readable Evidence in strict mode`);
@@ -347,35 +351,32 @@ function checkStructuredEvidence(content, label, file) {
     if (Object.prototype.hasOwnProperty.call(parsed, "planning_closure_binding")) pass(`${label} evidence includes planning_closure_binding`);
     else fail(`${label} evidence missing planning_closure_binding`);
   }
+  if (historicalMode) {
+    checkExecutionEvidenceInvariants(parsed, label, { historicalMode: true });
+    checkHistoricalEvidence(label, file, parsed);
+    checkPlanReviewBinding({
+      projectRoot,
+      currentFile: file,
+      evidence: parsed,
+      label,
+      requirePlanReview,
+      consumer: "execution assurance",
+      consumerPlanRef: parsed.execution_plan?.plan_ref,
+      consumerPlanLabel: "execution_plan",
+      requireCurrentTaskLineage: false,
+      historicalAudit: true,
+      pass,
+      fail,
+    });
+    checkBoundary(parsed, label);
+    return parsed;
+  }
   checkRuntimeTrust(label, file, parsed);
   checkCurrentTaskTestEvidence(label, file, parsed);
   checkBusinessUniverseAssurance(label, file, parsed);
   checkControlEffectiveness(label, file, parsed);
-  if (parsed.artifact_type === "execution_assurance_report") pass(`${label} evidence artifact_type is execution_assurance_report`);
-  else fail(`${label} evidence artifact_type invalid`);
   checkEvidenceAuthority(label, file, parsed);
-  if (isShaDigest(parsed.intent_digest)) pass(`${label} evidence intent_digest is sha256`);
-  else fail(`${label} evidence intent_digest must be sha256`);
-  const expectedIntentDigest = digest(parsed.intent_lock?.user_intent || "");
-  if (parsed.intent_digest === expectedIntentDigest) pass(`${label} evidence intent_digest matches user intent`);
-  else fail(`${label} evidence intent_digest must match intent_lock.user_intent`);
-  if (allowedKinds.has(parsed.execution_kind)) pass(`${label} evidence execution_kind is allowed`);
-  else fail(`${label} evidence execution_kind invalid`);
-  if (allowedStates.has(parsed.assurance_state)) pass(`${label} evidence assurance_state is allowed`);
-  else fail(`${label} evidence assurance_state invalid: ${parsed.assurance_state || "<empty>"}`);
-  if (parsed.outcome === parsed.assurance_state) pass(`${label} evidence outcome matches assurance_state`);
-  else fail(`${label} evidence outcome must match assurance_state`);
-  if (parsed.can_codex_write_now === "No") pass(`${label} evidence can_codex_write_now is No`);
-  else fail(`${label} evidence can_codex_write_now must be No`);
-  checkIntentLock(parsed, label);
-  checkCompletionContract(parsed, label);
-  checkPlannedImpact(parsed, label);
-  checkExecutionPlan(parsed, label);
-  checkActualDiff(parsed, label);
-  checkEvidenceBindings(parsed, label);
-  checkReview(parsed, label);
-  checkPatchAssessment(parsed, label);
-  checkSourceSystems(parsed, label);
+  checkExecutionEvidenceInvariants(parsed, label);
   checkTaskEntryBinding({
     content: "",
     evidence: parsed,
@@ -405,6 +406,93 @@ function checkStructuredEvidence(content, label, file) {
   checkCurrentTaskAuthority(file, parsed, label);
   checkBoundary(parsed, label);
   return parsed;
+}
+
+function checkExecutionEvidenceInvariants(parsed, label, { historicalMode = false } = {}) {
+  if (parsed.artifact_type === "execution_assurance_report") pass(`${label} evidence artifact_type is execution_assurance_report`);
+  else fail(`${label} evidence artifact_type invalid`);
+  if (isShaDigest(parsed.intent_digest)) pass(`${label} evidence intent_digest is sha256`);
+  else fail(`${label} evidence intent_digest must be sha256`);
+  const expectedIntentDigest = digest(parsed.intent_lock?.user_intent || "");
+  if (parsed.intent_digest === expectedIntentDigest) pass(`${label} evidence intent_digest matches user intent`);
+  else fail(`${label} evidence intent_digest must match intent_lock.user_intent`);
+  if (allowedKinds.has(parsed.execution_kind)) pass(`${label} evidence execution_kind is allowed`);
+  else fail(`${label} evidence execution_kind invalid`);
+  if (allowedStates.has(parsed.assurance_state)) pass(`${label} evidence assurance_state is allowed`);
+  else fail(`${label} evidence assurance_state invalid: ${parsed.assurance_state || "<empty>"}`);
+  if (parsed.outcome === parsed.assurance_state) pass(`${label} evidence outcome matches assurance_state`);
+  else fail(`${label} evidence outcome must match assurance_state`);
+  if (parsed.can_codex_write_now === "No") pass(`${label} evidence can_codex_write_now is No`);
+  else fail(`${label} evidence can_codex_write_now must be No`);
+  checkIntentLock(parsed, label);
+  checkCompletionContract(parsed, label);
+  checkPlannedImpact(parsed, label);
+  checkExecutionPlan(parsed, label);
+  checkActualDiff(parsed, label, { historicalMode });
+  checkEvidenceBindings(parsed, label);
+  checkReview(parsed, label);
+  checkPatchAssessment(parsed, label);
+  checkSourceSystems(parsed, label, { historicalMode });
+}
+
+function checkHistoricalEvidence(label, file, evidence) {
+  if (evidence.artifact_type === "execution_assurance_report") pass(`${label} historical artifact_type is execution_assurance_report`);
+  else fail(`${label} historical artifact_type must be execution_assurance_report`);
+
+  if (isShaDigest(evidence.intent_digest) && evidence.intent_digest === digest(evidence.intent_lock?.user_intent || "")) {
+    pass(`${label} historical intent digest remains internally consistent`);
+  } else {
+    fail(`${label} historical intent digest must remain a sha256 of intent_lock.user_intent`);
+  }
+
+  for (const source of (evidence.source_systems || []).filter((item) => item.status === "RECORDED")) {
+    const sourceRef = source.source_system_ref || source.ref;
+    if (String(sourceRef || "").startsWith("checker:")) {
+      if (!knownCheckerRefs.has(sourceRef)) {
+        fail(`${label} historical source ${source.name} uses unknown checker evidence ${sourceRef}`);
+      } else if (!isShaDigest(source.evidence_digest)) {
+        fail(`${label} historical source ${source.name} checker evidence digest must be sha256`);
+      } else {
+        pass(`${label} historical source ${source.name} preserves known checker evidence with a recorded digest without granting current source authority`);
+      }
+      continue;
+    }
+    if (!isFileEvidenceRef(sourceRef)) {
+      fail(`${label} historical source ${source.name} must use artifact:, file:, or known checker: evidence`);
+      continue;
+    }
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, file, sourceRef, { markdownOnly: true });
+    if (!resolved.ok) {
+      fail(`${label} historical source ${source.name} is unsafe or unresolved: ${resolved.error}`);
+      continue;
+    }
+    const descriptor = historicalExecutionSourceDescriptor(source.name);
+    const sourceContent = fs.readFileSync(resolved.file, "utf8");
+    const hasStructuredEvidence = Boolean(extractMachineReadableEvidence(sourceContent)?.ok);
+    const errors = historicalEvidenceSourceErrors(sourceContent, source, {
+      ...descriptor,
+      allowLegacyFileDigest: evidence.schema_version !== currentSchemaVersion,
+      fileDigest: descriptor.digestField ? "" : canonicalFileDigest(resolved.file),
+    });
+    if (errors.length === 0 && hasStructuredEvidence) {
+      pass(`${label} historical source ${source.name} digest, task, and outcome match the referenced artifact`);
+    } else if (errors.length === 0) {
+      pass(`${label} historical source ${source.name} exact legacy file digest matches without granting current source authority`);
+    }
+    else errors.forEach((error) => fail(`${label} historical source ${source.name}: ${error}`));
+  }
+  pass(`${label} preserves valid historical Execution Assurance structure and recorded source refs without claiming current runtime, source, diff, or project authority`);
+}
+
+function historicalExecutionSourceDescriptor(name) {
+  return {
+    change_impact_coverage: { digestField: "", outcomeField: "outcome" },
+    test_evidence: { digestField: "", outcomeField: "test_evidence_state" },
+    verification_run_manifest: { digestField: "", outcomeField: "outcome" },
+    task_governance: { digestField: "", outcomeField: "" },
+    plan_review: { digestField: "", outcomeField: "plan_review_state" },
+    planning_closure: { digestField: "", outcomeField: "outcome" },
+  }[name] || {};
 }
 
 function checkCurrentTaskTestEvidence(label, file, evidence) {
@@ -819,7 +907,7 @@ function checkExecutionPlan(parsed, label) {
   else pass(`${label} execution plan uses explicit planned target paths`);
 }
 
-function checkActualDiff(parsed, label) {
+function checkActualDiff(parsed, label, { historicalMode = false } = {}) {
   const diff = parsed.actual_diff || {};
   const plannedPaths = Array.isArray(parsed.execution_plan?.planned_target_paths)
     ? parsed.execution_plan.planned_target_paths
@@ -831,7 +919,7 @@ function checkActualDiff(parsed, label) {
   if (Array.isArray(diff.unexpected_files)) pass(`${label} actual diff lists unexpected files`);
   else fail(`${label} actual diff must list unexpected files`);
   if (requireActualDiff && !String(diff.target_diff_status || "").trim()) fail(`${label} actual diff status required`);
-  const currentDiffAuthority = parsed.schema_version === currentSchemaVersion;
+  const currentDiffAuthority = parsed.schema_version === currentSchemaVersion && !historicalMode;
   if (currentDiffAuthority) {
     const authority = validateActualDiffAuthority(projectRoot, parsed, { required: requireActualDiff });
     if (authority.ok) {
@@ -847,7 +935,9 @@ function checkActualDiff(parsed, label) {
   if ((diff.unexpected_files || []).length > 0 && parsed.assurance_state === "VERIFIED_DONE") {
     fail(`${label} VERIFIED_DONE cannot include unexpected diff`);
   }
-  const classifiedUnexpected = currentDiffAuthority
+  const classifiedUnexpected = historicalMode
+    ? []
+    : currentDiffAuthority
     ? classifyUnexpectedExecutionFiles(diff.changed_files || [], plannedPaths)
     : (diff.changed_files || []).filter((file) => /\.DS_Store$|\.env|secret|password|\.log$|\.tmp$/i.test(String(file)));
   for (const file of classifiedUnexpected) {
@@ -953,7 +1043,7 @@ function checkPatchAssessment(parsed, label) {
   }
 }
 
-function checkSourceSystems(parsed, label) {
+function checkSourceSystems(parsed, label, { historicalMode = false } = {}) {
   const sources = Array.isArray(parsed.source_systems) ? parsed.source_systems : [];
   if (sources.length > 0) pass(`${label} source systems are present`);
   else fail(`${label} source systems must not be empty`);
@@ -979,7 +1069,7 @@ function checkSourceSystems(parsed, label) {
       if (item.ref) checkEvidenceRef(item.ref, parsed, label);
       if (item.source_system_ref && item.source_system_ref !== item.ref) checkEvidenceRef(item.source_system_ref, parsed, label);
     }
-    checkSourceDigest(item, parsed, label, strictSourceBinding);
+    checkSourceDigest(item, parsed, label, strictSourceBinding, { validateSourceSemantics: !historicalMode });
     if (strictSourceBinding && item.status === "RECORDED") {
       if (item.current_task_match === "Yes") pass(`${label} source system ${item.name} matches current task`);
       else fail(`${label} source system ${item.name} must match current task in precise mode`);
@@ -1192,7 +1282,7 @@ function checkApprovalRef(ref, parsed, label) {
   fail(`${label} approval ref has unsupported prefix ${value}`);
 }
 
-function checkSourceDigest(item, parsed, label, strictSourceBinding) {
+function checkSourceDigest(item, parsed, label, strictSourceBinding, { validateSourceSemantics = true } = {}) {
   const reportDigest = String(item.report_digest || "").trim();
   const evidenceDigest = String(item.evidence_digest || "").trim();
   const sourceRef = String(item.source_system_ref || item.ref || "").trim();
@@ -1207,7 +1297,7 @@ function checkSourceDigest(item, parsed, label, strictSourceBinding) {
         const actual = fileDigest(resolved);
         if (actual === reportDigest) pass(`${label} source system ${item.name} report_digest matches source file`);
         else fail(`${label} source system ${item.name} report_digest does not match source file`);
-        if (strictSourceBinding) checkSourceSemantics(item, parsed, label, resolved);
+        if (strictSourceBinding && validateSourceSemantics) checkSourceSemantics(item, parsed, label, resolved);
       }
     }
   }

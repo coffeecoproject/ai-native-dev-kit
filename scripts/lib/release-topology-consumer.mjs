@@ -30,8 +30,10 @@ export function validateReleaseTopologySource(projectRoot, fromFile, source, opt
   const evidence = checked.value || null;
   if (evidence) {
     if (topologyDigest(evidence) !== evidence.topology_digest) errors.push("Release Execution Topology canonical digest mismatch");
-    const current = projectIdentity(projectRoot);
-    if (JSON.stringify(evidence.project_identity) !== JSON.stringify(current)) errors.push("Release Execution Topology is stale, copied, or belongs to another project");
+    if (options.requireCurrentProject !== false) {
+      const current = projectIdentity(projectRoot);
+      if (JSON.stringify(evidence.project_identity) !== JSON.stringify(current)) errors.push("Release Execution Topology is stale, copied, or belongs to another project");
+    }
     if (options.expectedSourceRevision && evidence.project_identity?.revision !== options.expectedSourceRevision) errors.push("Release Execution Topology source revision does not match the consumer");
     if (options.requireReady && !readyStates.has(evidence.recommendation?.state)) errors.push("Release Execution Topology is not ready for strict release consumption");
     if (evidence.boundaries?.approves_release_or_production !== "No" || evidence.boundaries?.executes_release_or_cutover !== "No") {

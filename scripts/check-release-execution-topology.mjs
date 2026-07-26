@@ -8,6 +8,7 @@ import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceRefer
 import { assertNoSymlinkInPath, isSafeRelativePath } from "./lib/path-safety.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { discoverReleaseTopology, PLANE_NAMES, topologyDigest } from "./lib/release-execution-topology.mjs";
+import { isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const known = new Set(["allow-empty", "report", "require-report", "require-structured-evidence", "require-current-project", "require-ready", "json"]);
@@ -19,6 +20,8 @@ if (reportRef && (!isSafeRelativePath(reportRef) || !reportRef.startsWith("relea
   failNow("--report must be a safe path under release-execution-topologies/*.md");
 }
 const report = reportRef ? path.resolve(projectRoot, reportRef) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport: reportRef });
+const historicalBatch = isHistoricalReportAudit(reportAuthorityMode);
 const schema = loadSchema(projectRoot, "schemas/artifacts/release-execution-topology.schema.json");
 const requireStructured = Boolean(args["require-structured-evidence"] || args["require-ready"]);
 const files = report ? [report] : markdownFiles(path.join(projectRoot, "release-execution-topologies"));
@@ -71,11 +74,12 @@ function checkFile(file) {
     if (["missing", "not_available", "not_applicable"].includes(source.ref)) continue;
     const resolved = resolveAuthoritativeEvidenceReference(projectRoot, file, source.ref);
     if (!resolved.ok) fail(`${label} source ${source.ref} is unsafe or unresolved`);
+    else if (historicalBatch) pass(`${label} historical source ${source.ref} remains safe and project-local without claiming current content authority`);
     else if (canonicalFileDigest(resolved.file) === source.digest) pass(`${label} source ${source.ref} digest matches`);
     else fail(`${label} source ${source.ref} digest mismatch`);
   }
   if (value.legacy_compatibility?.can_establish_readiness !== "No") fail(`${label} legacy policy must not establish topology readiness`);
-  if (requireStructured) {
+  if (requireStructured && !historicalBatch) {
     const replayed = discoverReleaseTopology(projectRoot, {
       intent: value.intent,
       topologyRef: value.topology_ref,
@@ -84,6 +88,8 @@ function checkFile(file) {
       if (JSON.stringify(value[field]) === JSON.stringify(replayed[field])) pass(`${label} ${field} exactly replays the current release execution graph`);
       else fail(`${label} ${field} does not replay the current release execution graph`);
     }
+  } else if (requireStructured) {
+    pass(`${label} historical batch preserves canonical topology evidence without replaying it as current authority`);
   }
   const text = value.recommendation?.plain_summary || "";
   if (/choose|select|confirm.*(runner|orchestrator|backend|transport|store|protocol)/i.test(text)) fail(`${label} asks the user to choose technical topology`);

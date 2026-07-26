@@ -148,6 +148,7 @@ export function discoverReliedControls(projectRoot, intent = "") {
 export function validateControlEffectivenessEvidence(projectRoot, fromFile, evidence, options = {}) {
   const errors = [];
   const root = path.resolve(projectRoot || ".");
+  const currentAuthority = options.currentAuthority !== false;
   if (!evidence || evidence.artifact_type !== "control_effectiveness") return { ok: false, errors: ["artifact is not Control Effectiveness evidence"] };
   if (options.taskRef && evidence.task_ref !== options.taskRef) errors.push("Control Effectiveness task_ref does not match the current task");
   if (options.intentDigest && evidence.intent_digest !== options.intentDigest) errors.push("Control Effectiveness intent_digest does not match the current intent");
@@ -160,7 +161,7 @@ export function validateControlEffectivenessEvidence(projectRoot, fromFile, evid
   for (const claim of evidence.control_claims || []) {
     if (claims.has(claim.claim_id)) errors.push(`duplicate control claim ${claim.claim_id}`);
     claims.set(claim.claim_id, claim);
-    errors.push(...validateClaim(root, fromFile, claim));
+    errors.push(...validateClaim(root, fromFile, claim, { currentAuthority }));
   }
   for (const claimId of requiredClaimIds) {
     const claim = claims.get(claimId);
@@ -170,13 +171,15 @@ export function validateControlEffectivenessEvidence(projectRoot, fromFile, evid
   const strictest = deriveControlEffectivenessOutcome(evidence.control_claims || [], evidence.required_claim_ids || []);
   if (evidence.outcome !== strictest) errors.push(`Control Effectiveness outcome must be derived as ${strictest}`);
   const sourceRefs = collectControlSourceRefs(evidence);
-  const authority = validateEvidenceAuthorityBinding(root, evidence.authority_binding, {
-    taskRef: evidence.task_ref,
-    intentDigest: evidence.intent_digest,
-    sourceRefs,
-    fromFile,
-  });
-  if (!authority.ok) errors.push(...authority.errors.map((error) => `Evidence Authority: ${error}`));
+  if (currentAuthority) {
+    const authority = validateEvidenceAuthorityBinding(root, evidence.authority_binding, {
+      taskRef: evidence.task_ref,
+      intentDigest: evidence.intent_digest,
+      sourceRefs,
+      fromFile,
+    });
+    if (!authority.ok) errors.push(...authority.errors.map((error) => `Evidence Authority: ${error}`));
+  }
   if (evidence.boundaries?.authorizes_implementation !== "No"
     || evidence.boundaries?.authorizes_writes !== "No"
     || evidence.boundaries?.authorizes_release !== "No"
@@ -321,6 +324,7 @@ export function validateControlEffectivenessBinding(projectRoot, binding, option
         taskRef: options.taskRef,
         intentDigest: options.intentDigest,
         requiredClaimIds: binding.required_claim_ids,
+        currentAuthority: options.currentAuthority,
       });
       if (!report.ok) errors.push(...report.errors);
       else {
@@ -335,6 +339,7 @@ export function validateControlEffectivenessBinding(projectRoot, binding, option
     taskRef: options.taskRef,
     intentDigest: options.intentDigest,
     requiredClaimIds: binding.required_claim_ids,
+    currentAuthority: options.currentAuthority,
   });
   if (!report.ok) errors.push(...report.errors);
   else {
@@ -370,7 +375,7 @@ export function controlEffectivenessBindingSchema() {
   };
 }
 
-function validateClaim(root, fromFile, claim) {
+function validateClaim(root, fromFile, claim, { currentAuthority = true } = {}) {
   const errors = [];
   const expectedDigest = evidenceDigest(claim, ["claim_digest"]);
   if (claim.claim_digest !== expectedDigest) errors.push(`${claim.claim_id} claim_digest is not canonical`);
@@ -380,7 +385,7 @@ function validateClaim(root, fromFile, claim) {
       errors.push(`${claim.claim_id} implementation ref is unsafe or unresolved: ${binding.ref}`);
       continue;
     }
-    if (binding.digest !== canonicalFileDigest(resolved.file)) errors.push(`${claim.claim_id} implementation digest is stale: ${binding.ref}`);
+    if (currentAuthority && binding.digest !== canonicalFileDigest(resolved.file)) errors.push(`${claim.claim_id} implementation digest is stale: ${binding.ref}`);
   }
   for (const ref of claimEvidenceRefs(claim)) {
     const resolved = resolveAuthoritativeEvidenceReference(root, fromFile, ref);

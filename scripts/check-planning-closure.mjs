@@ -8,15 +8,17 @@ import { deriveConsumerOutcome } from "./lib/check-result.mjs";
 import { validatePlanningClosureEvidence } from "./lib/planning-closure.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { hasCurrentReportAuthority, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-ready", "task-ref", "intent-digest", "post-write-consumer"]);
+const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-ready", "task-ref", "intent-digest", "post-write-consumer", "historical-audit"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = canonicalRoot(path.resolve(process.cwd(), args._[0] || "."));
 const outputJson = Boolean(args.json);
 const strict = Boolean(args["require-report"] || args["require-structured-evidence"] || args["require-ready"] || args.report);
 const allowEmpty = Boolean(args["allow-empty"]);
 const explicitReport = args.report ? safeReport(String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit: Boolean(args["historical-audit"]) });
 const schema = loadSchema(projectRoot, "schemas/artifacts/planning-closure.schema.json");
 const checks = [];
 let failed = false;
@@ -60,10 +62,12 @@ function checkReports() {
     else pass("SKIPPED_NO_REPORT: no Planning Closure reports found");
     return;
   }
-  reports.forEach(checkReport);
+  reports.forEach((file) => checkReport(file, {
+    currentAuthority: hasCurrentReportAuthority(reportAuthorityMode),
+  }));
 }
 
-function checkReport(file) {
+function checkReport(file, { currentAuthority }) {
   const label = rel(file);
   if (!safeRegularFile(file)) return fail(`${label} must be a regular non-symlink file`);
   const content = fs.readFileSync(file, "utf8");
@@ -78,8 +82,10 @@ function checkReport(file) {
   pass(`${label} has valid strict 1.111 structured evidence`);
   const semantic = validatePlanningClosureEvidence(projectRoot, file, checked.value, {
     allowRevisionAdvance: Boolean(args["post-write-consumer"]),
+    currentAuthority,
   });
-  if (semantic.ok) pass(`${label} binds current project, task, intent, source reports, and non-authorizing contract semantics`);
+  if (semantic.ok && currentAuthority) pass(`${label} binds current project, task, intent, source reports, and non-authorizing contract semantics`);
+  else if (semantic.ok) pass(`${label} preserves valid historical source-chain and non-authorizing contract semantics without claiming current source authority`);
   else semantic.errors.forEach((error) => fail(`${label}: ${error}`));
   if (args["task-ref"] && checked.value.task_ref !== String(args["task-ref"])) fail(`${label} does not match --task-ref`);
   else if (args["task-ref"]) pass(`${label} matches --task-ref`);

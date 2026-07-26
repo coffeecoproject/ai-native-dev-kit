@@ -44,6 +44,22 @@ const {
   writeInitProjectReadinessRecord,
 } = runtime;
 
+function readOperatingLoopImplementation() {
+  return [
+    read("scripts/resolve-operating-loop.mjs"),
+    ...[
+      "classification.mjs",
+      "decision.mjs",
+      "identity.mjs",
+      "presentation.mjs",
+      "shared.mjs",
+      "source-execution.mjs",
+      "source-orchestration.mjs",
+      "state.mjs",
+    ].map((file) => read(`scripts/operating-loop/${file}`)),
+  ].join("\n");
+}
+
 function checkApplyAdoptionClosureProtocol() {
   const required = [
     "docs/plans/apply-adoption-closure-1.92-plan.md",
@@ -696,7 +712,7 @@ function checkOperatingModelConsolidationProtocol() {
   const plan = read("docs/plans/operating-model-consolidation-1.95-plan.md");
   const core = read("core/operating-model.md");
   const usage = read("docs/operating-model.md");
-  const resolver = read("scripts/resolve-operating-loop.mjs");
+  const resolver = readOperatingLoopImplementation();
   const prWorkflow = read(".github/workflows/intentos-pr-checks.yml");
   const releaseWorkflow = read(".github/workflows/intentos-release-checks.yml");
 
@@ -763,7 +779,7 @@ function checkOperatingDecisionContractProtocol() {
   const plan = read("docs/plans/operating-decision-contract-1.96-plan.md");
   const core = read("core/operating-model.md");
   const usage = read("docs/operating-model.md");
-  const resolver = read("scripts/resolve-operating-loop.mjs");
+  const resolver = readOperatingLoopImplementation();
   const manifest = read("intentos-manifest.json");
   const workflows = `${read(".github/workflows/intentos-pr-checks.yml")}\n${read(".github/workflows/intentos-release-checks.yml")}`;
 
@@ -830,7 +846,7 @@ function checkProjectIdentityProjectionProtocol() {
   const plan = read("docs/plans/project-identity-projection-1.97-plan.md");
   const core = read("core/operating-model.md");
   const usage = read("docs/operating-model.md");
-  const resolver = read("scripts/resolve-operating-loop.mjs");
+  const resolver = readOperatingLoopImplementation();
   const workflowNext = read("scripts/workflow-next.mjs");
   const manifest = read("intentos-manifest.json");
   const workflows = `${read(".github/workflows/intentos-pr-checks.yml")}\n${read(".github/workflows/intentos-release-checks.yml")}`;
@@ -1390,7 +1406,7 @@ function checkZeroExperienceSoloOperatingModelProtocol() {
     read("core/zero-experience-solo-operating-model.md"),
     read("docs/plans/zero-experience-solo-operating-model-1.99-plan.md"),
     read("scripts/lib/solo-operating-model.mjs"),
-    read("scripts/resolve-operating-loop.mjs"),
+    readOperatingLoopImplementation(),
     read("scripts/resolve-beginner-entry.mjs"),
     read("platforms/codex/AGENTS.template.md"),
     read("templates/approval-record.md"),

@@ -155,7 +155,7 @@ const requiredAgentGovernanceMarkers = [
 ];
 
 function readCurrentVersion() {
-  const versionPath = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."), "VERSION.md");
+  const versionPath = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".."), "VERSION.md");
   if (!fs.existsSync(versionPath)) return "0.0.0";
   const content = fs.readFileSync(versionPath, "utf8");
   const match = content.match(/Current version:\s*`([^`]+)`/);

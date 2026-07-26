@@ -29,7 +29,7 @@ const workflowOutputDirectories = new Set([
   "release-adapters", "release-approval-records", "release-candidates", "release-channel-policies",
   "release-evidence-gate-reports", "release-execution-plans", "release-guides",
   "release-execution-topologies", "release-handoff-packs", "release-plans", "release-recipes",
-  "release-topology-migrations", "releases",
+  "release-review-provenance", "release-topology-migrations", "releases",
   "review-loop-reports", "review-packets", "review-summaries", "review-surface-cards",
   "runtime-hygiene-reports", "scope-change-reports", "skill-candidates",
   "standard-baseline-selections", "status-reports", "subagent-run-plans",

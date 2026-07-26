@@ -2064,7 +2064,7 @@ function checkPlanReviewGateProtocol() {
 
   const consumerExamples = [
     ["execution assurance consumer", ["scripts/check-execution-assurance.mjs", "examples/1.88-plan-review-consumer-integration/high-execution-assurance", "--require-structured-evidence", "--require-plan-review", "--require-actual-diff", "--require-precise-evidence", "--historical-audit"], "Execution assurance check passed"],
-    ["historical completion evidence plan-review consumer", ["scripts/check-completion-evidence.mjs", "examples/1.88-plan-review-consumer-integration/completion-evidence-plan-reviewed", "--report", "completion-evidence-reports/001-service-time.md", "--require-structured-evidence", "--require-source-refs", "--require-plan-review", "--historical-audit"], "historical ready evidence remains readable but is not current completion authority"],
+    ["historical completion evidence plan-review consumer", ["scripts/check-completion-evidence.mjs", "examples/1.88-plan-review-consumer-integration/completion-evidence-plan-reviewed", "--report", "completion-evidence-reports/001-service-time.md", "--require-structured-evidence", "--require-source-refs", "--require-plan-review", "--historical-audit"], "preserves valid historical Completion Evidence structure and recorded source refs without claiming current runtime, source, or project authority"],
     ["controlled apply readiness consumer", ["scripts/check-controlled-apply-readiness.mjs", "examples/1.88-plan-review-consumer-integration/apply-readiness-plan-reviewed", "--require-structured-evidence", "--require-plan-review", "--historical-audit"], "Controlled Apply Readiness check passed"],
   ];
   for (const [name, command, expected] of consumerExamples) {
@@ -2179,9 +2179,28 @@ function checkSafetyEvidenceHardeningProtocol() {
     read("scripts/lib/path-safety.mjs"),
     read("scripts/lib/approval-record-validation.mjs"),
     read("scripts/lib/adoption-apply-chain.mjs"),
-    read("scripts/init-project.mjs"),
+    ...[
+      "scripts/init-project.mjs",
+      "scripts/init-project/assets.mjs",
+      "scripts/init-project/plan.mjs",
+      "scripts/init-project/apply.mjs",
+      "scripts/init-project/cli.mjs",
+    ].map(read),
     read("scripts/check-manifest.mjs"),
-    read("scripts/new-workflow-item.mjs"),
+    ...[
+      "scripts/new-workflow-item.mjs",
+      "scripts/new-workflow-item/cli.mjs",
+      "scripts/new-workflow-item/registry.mjs",
+      "scripts/new-workflow-item/references.mjs",
+      "scripts/new-workflow-item/fillers.mjs",
+      "scripts/new-workflow-item/fillers/baseline.mjs",
+      "scripts/new-workflow-item/fillers/frontmatter.mjs",
+      "scripts/new-workflow-item/fillers/governance.mjs",
+      "scripts/new-workflow-item/fillers/reporting.mjs",
+      "scripts/new-workflow-item/fillers/review.mjs",
+      "scripts/new-workflow-item/fillers/routing.mjs",
+      "scripts/new-workflow-item/fillers/workflow.mjs",
+    ].map(read),
     read("scripts/lib/artifact-schema.mjs"),
     read("scripts/check-adoption-assurance.mjs"),
     read("scripts/resolve-adoption-assurance.mjs"),

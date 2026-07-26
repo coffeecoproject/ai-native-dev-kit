@@ -10,6 +10,7 @@ import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 import { validateReleasePreflightReceipt } from "./lib/release-trust.mjs";
 import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { validateReleaseTopologySource } from "./lib/release-topology-consumer.mjs";
+import { isHistoricalReportAudit, resolveReportAuthorityMode } from "./lib/report-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -22,6 +23,7 @@ const knownFlags = new Set([
   "strict-task-entry",
   "require-runtime-sources",
   "require-release-topology",
+  "historical-audit",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -33,8 +35,10 @@ const requireTaskEntry = Boolean(args["require-task-entry"] || args["strict-task
 const strictTaskEntry = Boolean(args["strict-task-entry"]);
 const requireRuntimeSources = Boolean(args["require-runtime-sources"]);
 const requireReleaseTopology = Boolean(args["require-release-topology"]);
+const historicalAudit = Boolean(args["historical-audit"]);
 const strictRequested = requireReport || requireStructuredEvidence || requireTaskEntry || requireRuntimeSources || requireReleaseTopology || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
+const reportAuthorityMode = resolveReportAuthorityMode({ explicitReport, historicalAudit });
 const schema = loadSchema(projectRoot, "schemas/artifacts/runtime-hygiene.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -158,11 +162,13 @@ function checkReports() {
       fail(`missing explicit Runtime Hygiene report ${file}`);
       continue;
     }
-    checkReport(file);
+    checkReport(file, {
+      historicalMode: isHistoricalReportAudit(reportAuthorityMode),
+    });
   }
 }
 
-function checkReport(file) {
+function checkReport(file, options = {}) {
   const content = fs.readFileSync(file, "utf8");
   const label = rel(file);
   if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
@@ -189,10 +195,11 @@ function checkReport(file) {
     return;
   }
   pass(`${label} has valid structured evidence`);
-  checkStructuredEvidence(content, label, file, result.value);
+  checkStructuredEvidence(content, label, file, result.value, options);
 }
 
-function checkStructuredEvidence(content, label, file, evidence) {
+function checkStructuredEvidence(content, label, file, evidence, options = {}) {
+  const historicalMode = Boolean(options.historicalMode);
   if (reportRefCandidates(file).includes(evidence.runtime_hygiene_ref)) pass(`${label} runtime_hygiene_ref points to this report`);
   else fail(`${label} runtime_hygiene_ref ${evidence.runtime_hygiene_ref || "<missing>"} must point to this report`);
 
@@ -225,7 +232,7 @@ function checkStructuredEvidence(content, label, file, evidence) {
   if (evidence.task_continuation?.task_remains_open === "Yes") pass(`${label} task remains open`);
   else fail(`${label} runtime hygiene must keep the task open`);
 
-  checkRuntimeConsistency(label, evidence);
+  checkRuntimeConsistency(label, evidence, { historicalMode });
   if (requireReleaseTopology && evidence.operation === "release") {
     const binding = evidence.release_trust_binding || {};
     const topology = validateReleaseTopologySource(projectRoot, file, {
@@ -234,6 +241,7 @@ function checkStructuredEvidence(content, label, file, evidence) {
     }, {
       expectedSourceRevision: binding.source_revision,
       requireReady: true,
+      requireCurrentProject: !historicalMode,
     });
     if (topology.ok) pass(`${label} consumes the exact current Release Execution Topology`);
     else topology.errors.forEach((error) => fail(`${label} ${error}`));
@@ -251,9 +259,13 @@ function checkStructuredEvidence(content, label, file, evidence) {
     pass,
     fail,
   });
+  if (historicalMode) {
+    pass(`${label} preserves valid historical Runtime Hygiene structure and internal bindings without claiming current source, runtime, or project authority`);
+  }
 }
 
-function checkRuntimeConsistency(label, evidence) {
+function checkRuntimeConsistency(label, evidence, options = {}) {
+  const historicalMode = Boolean(options.historicalMode);
   const gateFailed = evidence.gate_context?.exit_code && evidence.gate_context.exit_code !== "0" && evidence.gate_context.exit_code !== "Unknown";
   if (gateFailed) {
     if (evidence.gate_context.bypass_recommended === "No") pass(`${label} gate failure does not recommend bypass`);
@@ -293,8 +305,8 @@ function checkRuntimeConsistency(label, evidence) {
     } else {
       fail(`${label} RELEASE_PREFLIGHT_READY requires isolated task revision and no force push`);
     }
-    checkReleaseTrustBinding(label, evidence);
-    checkReleasePreflightReceipt(label, evidence);
+    checkReleaseTrustBinding(label, evidence, { historicalMode });
+    checkReleasePreflightReceipt(label, evidence, { historicalMode });
   }
   if (evidence.runtime_class === "RELEASE_PREFLIGHT_FAILED" && evidence.decision_state === "CAN_CONTINUE_AUTOMATICALLY") {
     fail(`${label} failed release preflight must not continue automatically`);
@@ -386,7 +398,7 @@ function requiredSourceKindsFor(runtimeClass) {
   return [];
 }
 
-function checkReleaseTrustBinding(label, evidence) {
+function checkReleaseTrustBinding(label, evidence, options = {}) {
   const binding = evidence.release_trust_binding || {};
   const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", binding.release_candidate_ref || "");
   if (!resolved.ok) {
@@ -395,11 +407,14 @@ function checkReleaseTrustBinding(label, evidence) {
   }
   if (canonicalFileDigest(resolved.file) === binding.release_candidate_digest) pass(`${label} release candidate digest matches`);
   else fail(`${label} release candidate digest does not match current file`);
-  if (projectIdentity(projectRoot).revision === binding.source_revision) pass(`${label} release candidate source revision matches current project`);
+  if (options.historicalMode) {
+    if (/^sha256:[a-f0-9]{64}$/.test(String(binding.source_revision || ""))) pass(`${label} historical release candidate records a valid source revision`);
+    else fail(`${label} historical release candidate requires a valid source revision`);
+  } else if (projectIdentity(projectRoot).revision === binding.source_revision) pass(`${label} release candidate source revision matches current project`);
   else fail(`${label} release candidate source revision does not match current project`);
 }
 
-function checkReleasePreflightReceipt(label, evidence) {
+function checkReleasePreflightReceipt(label, evidence, options = {}) {
   const source = (evidence.runtime_source_trace || []).find((item) => item.source_kind === "release_event");
   if (!source || source.source_present !== "Yes") {
     fail(`${label} RELEASE_PREFLIGHT_READY requires a release preflight receipt source`);
@@ -413,8 +428,10 @@ function checkReleasePreflightReceipt(label, evidence) {
     releaseCandidateDigest: binding.release_candidate_digest,
     sourceRevision: binding.source_revision,
     laneState: evidence.release_context?.lane_state,
+    historical: Boolean(options.historicalMode),
   });
-  if (checked.ok) pass(`${label} release preflight receipt is current, task-bound, candidate-bound, and external-effect free`);
+  if (checked.ok && options.historicalMode) pass(`${label} historical release preflight receipt is internally task-bound, candidate-bound, and external-effect free`);
+  else if (checked.ok) pass(`${label} release preflight receipt is current, task-bound, candidate-bound, and external-effect free`);
   else checked.errors.forEach((error) => fail(`${label} ${error}`));
 }
 
