@@ -573,14 +573,19 @@ function replayCommittedCandidate(root, baseRevision, { allowGovernedOutputs = f
   if (!/^[a-f0-9]{40,64}$/.test(base)) {
     return { ok: false, files: [], reason: "clean-checkout candidate replay requires an exact base revision" };
   }
-  const status = spawnSync("git", ["status", "--porcelain=v1", "-z", "--untracked-files=all"], { cwd: root, encoding: "utf8" });
-  const dirtyFiles = status.status === 0
-    ? status.stdout.split("\0").filter(Boolean).flatMap((entry) => entry.slice(3).split(" -> ")).map(normalizeProjectPath)
+  const trackedStatus = spawnSync("git", ["diff", "--name-only", "HEAD"], { cwd: root, encoding: "utf8" });
+  const untrackedStatus = spawnSync("git", ["ls-files", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" });
+  const statusReadable = trackedStatus.status === 0 && untrackedStatus.status === 0;
+  const dirtyFiles = statusReadable
+    ? [...new Set(`${trackedStatus.stdout}\n${untrackedStatus.stdout}`
+      .split(/\r?\n/)
+      .map(normalizeProjectPath)
+      .filter(Boolean))]
     : [];
   const relevantDirtyFiles = allowGovernedOutputs
     ? dirtyFiles.filter((file) => !isGovernedWorkflowOutputPath(file))
     : dirtyFiles;
-  if (status.status !== 0 || relevantDirtyFiles.length > 0) {
+  if (!statusReadable || relevantDirtyFiles.length > 0) {
     return { ok: false, files: [], reason: "clean-checkout candidate replay requires a completely clean worktree" };
   }
   const resolvedBase = spawnSync("git", ["rev-parse", "--verify", `${base}^{commit}`], { cwd: root, encoding: "utf8" });

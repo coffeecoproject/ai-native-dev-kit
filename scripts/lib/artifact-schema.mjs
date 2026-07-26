@@ -19,7 +19,7 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/controlled-apply-readiness.schema.json": "sha256:66d85e4ef563ec6655e23bd07fc98932486337b2ef0204e653a8a2b89b35ce9a",
   "schemas/artifacts/controlled-native-adoption-review.schema.json": "sha256:f26121fceb31f381402c355af52b10bd1493c9e0321ac8c7c96500839fda539b",
   "schemas/artifacts/eval.schema.json": "sha256:fb926d3be8f7ad2d3ac2a646bdcf5ca2af26f7cd80461513bf8a860ae2b75416",
-  "schemas/artifacts/execution-assurance.schema.json": "sha256:4fba2c74b6568b06868c374c87aed7ef70c098d3f2e714dd26e6b61b213062b5",
+  "schemas/artifacts/execution-assurance.schema.json": "sha256:59cd891e633b187e206eb5efb2da3a3cebf9ef1a88b2f886302c5b32e278d05b",
   "schemas/artifacts/existing-project-adoption-autopilot.schema.json": "sha256:a8d535d4a84b0d97ca1f8a73ea0e4a8db9ab80d226a1616e544dfaab235d17af",
   "schemas/artifacts/existing-rule-reconciliation.schema.json": "sha256:e2d8b747ff4c3c4e44e635c17f00e6964bd58b476b5fa16450b838586f94f552",
   "schemas/artifacts/goal-card.schema.json": "sha256:1ff608263461e0c4939c410441537edd0bcaeb0841857e6234dcd4963f55d4dd",
