@@ -13,10 +13,10 @@ Verification state VERIFICATION_PLAN_READY; 8 affected surfaces require 19 oblig
 
 | Source | Status | Ref | Outcome | Digest |
 |---|---|---|---|---|
-| `business_rule_closure` | `RECORDED` | `artifact:business-rule-closures/119-resolve-operating-loop-modularity.md` | `READY_FOR_IMPACT_COVERAGE` | `sha256:fccd6c85ef0abc9a36d1fe57ca98641a49cdd687e565f7bbf7f4b276d73001e2` |
-| `change_impact_coverage` | `RECORDED` | `artifact:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md` | `CHANGE_IMPACT_RECORDED` | `sha256:b382405642b1c91b6f98c790f8bb2d00196ab25f8d169660fb98f1217976d4cf` |
-| `business_universe_coverage` | `RECORDED` | `artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md` | `COVERAGE_READY` | `sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235` |
-| `control_effectiveness` | `RECORDED` | `artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md` | `CONTROL_PROVEN_EFFECTIVE` | `sha256:eb736f2fdb02eed2140094406e82e954088a4dc30d035dd464bc5700a46ee1b1` |
+| `business_rule_closure` | `RECORDED` | `artifact:business-rule-closures/119-resolve-operating-loop-modularity.md` | `READY_FOR_IMPACT_COVERAGE` | `sha256:c9ed2b102a989b23015c0e4aebd0c00a9599495d2de48fb0c05072c9df37ab01` |
+| `change_impact_coverage` | `RECORDED` | `artifact:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md` | `CHANGE_IMPACT_RECORDED` | `sha256:02893fd9b01c8ab94e78640e30c353a6b48ad12d1508c0d74af1578940f9c32f` |
+| `business_universe_coverage` | `RECORDED` | `artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md` | `COVERAGE_READY` | `sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471` |
+| `control_effectiveness` | `RECORDED` | `artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md` | `CONTROL_PROVEN_EFFECTIVE` | `sha256:71ee838b45a224a0c19d85881af8c471fc446fee3de70d8dd233f0afc95729cc` |
 
 ## Control Effectiveness Binding
 
@@ -29,7 +29,7 @@ Verification state VERIFICATION_PLAN_READY; 8 affected surfaces require 19 oblig
 ## Verification Plan Identity
 
 - Verification plan ref: `artifact:verification-plans/119-resolve-operating-loop-modularity.md`
-- Verification plan digest: `sha256:deda43ead0c1abdfbe3671530a14c195f856fb957994d7231ddfecc4f81c1e4c`
+- Verification plan digest: `sha256:12a35b2a9127a0901cc43d37ba151f7c1e6a64775f1da5076a1dace9f6e4c2f6`
 - Intent digest: `sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c`
 
 ## Project Calibration
@@ -115,15 +115,15 @@ Verification state VERIFICATION_PLAN_READY; 8 affected surfaces require 19 oblig
   "intent": "modularize scripts/resolve-operating-loop.mjs into cohesive internal modules while preserving workflow state, public CLI arguments, command output, subprocess ordering, exit codes, generated-project distribution, and resolver behavior",
   "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
   "verification_plan_ref": "artifact:verification-plans/119-resolve-operating-loop-modularity.md",
-  "verification_plan_digest": "sha256:deda43ead0c1abdfbe3671530a14c195f856fb957994d7231ddfecc4f81c1e4c",
+  "verification_plan_digest": "sha256:12a35b2a9127a0901cc43d37ba151f7c1e6a64775f1da5076a1dace9f6e4c2f6",
   "business_rule_ref": "artifact:business-rule-closures/119-resolve-operating-loop-modularity.md",
-  "business_rule_digest": "sha256:fccd6c85ef0abc9a36d1fe57ca98641a49cdd687e565f7bbf7f4b276d73001e2",
+  "business_rule_digest": "sha256:c9ed2b102a989b23015c0e4aebd0c00a9599495d2de48fb0c05072c9df37ab01",
   "business_rule_state": "READY_FOR_IMPACT_COVERAGE",
   "business_universe_binding": {
     "required": "Yes",
     "routing_result": "REQUIRED_WITH_EVIDENCE",
     "business_universe_ref": "artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
-    "business_universe_digest": "sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235",
+    "business_universe_digest": "sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471",
     "business_universe_state": "COVERAGE_READY",
     "coverage_scenario_ids": [
       "coverage-scenario:54d5e4301d4c6638bf60f92e",
@@ -138,7 +138,7 @@ Verification state VERIFICATION_PLAN_READY; 8 affected surfaces require 19 oblig
     "requirement": "REQUIRED",
     "status": "VERIFIED",
     "report_ref": "artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
-    "report_digest": "sha256:eb736f2fdb02eed2140094406e82e954088a4dc30d035dd464bc5700a46ee1b1",
+    "report_digest": "sha256:71ee838b45a224a0c19d85881af8c471fc446fee3de70d8dd233f0afc95729cc",
     "required_claim_ids": [
       "claim:package-script-verify-candidate",
       "claim:package-script-verify-consumer-chain-candidate",
@@ -157,42 +157,42 @@ Verification state VERIFICATION_PLAN_READY; 8 affected surfaces require 19 oblig
     "reason": "The exact current report proves every relied-on bounded control claim."
   },
   "impact_ref": "artifact:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md",
-  "impact_digest": "sha256:b382405642b1c91b6f98c790f8bb2d00196ab25f8d169660fb98f1217976d4cf",
+  "impact_digest": "sha256:02893fd9b01c8ab94e78640e30c353a6b48ad12d1508c0d74af1578940f9c32f",
   "source_systems": [
     {
       "name": "business_rule_closure",
       "status": "RECORDED",
       "ref": "artifact:business-rule-closures/119-resolve-operating-loop-modularity.md",
       "source_outcome": "READY_FOR_IMPACT_COVERAGE",
-      "digest": "sha256:fccd6c85ef0abc9a36d1fe57ca98641a49cdd687e565f7bbf7f4b276d73001e2"
+      "digest": "sha256:c9ed2b102a989b23015c0e4aebd0c00a9599495d2de48fb0c05072c9df37ab01"
     },
     {
       "name": "change_impact_coverage",
       "status": "RECORDED",
       "ref": "artifact:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md",
       "source_outcome": "CHANGE_IMPACT_RECORDED",
-      "digest": "sha256:b382405642b1c91b6f98c790f8bb2d00196ab25f8d169660fb98f1217976d4cf"
+      "digest": "sha256:02893fd9b01c8ab94e78640e30c353a6b48ad12d1508c0d74af1578940f9c32f"
     },
     {
       "name": "business_universe_coverage",
       "status": "RECORDED",
       "ref": "artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
       "source_outcome": "COVERAGE_READY",
-      "digest": "sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235"
+      "digest": "sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471"
     },
     {
       "name": "control_effectiveness",
       "status": "RECORDED",
       "ref": "artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
       "source_outcome": "CONTROL_PROVEN_EFFECTIVE",
-      "digest": "sha256:eb736f2fdb02eed2140094406e82e954088a4dc30d035dd464bc5700a46ee1b1"
+      "digest": "sha256:71ee838b45a224a0c19d85881af8c471fc446fee3de70d8dd233f0afc95729cc"
     }
   ],
   "authority_binding": {
     "binding_version": "1.91.0",
     "project": {
       "kind": "GIT",
-      "fingerprint": "sha256:dbef23f6a47beaf5612cad4eb256020929ca4c046f904d658cf3951b611af206",
+      "fingerprint": "sha256:4a77760d85b61ab83d59a03b95a53a3ef502e9467711cef8ca0603a585905d58",
       "revision": "sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58"
     },
     "task": {
@@ -203,22 +203,22 @@ Verification state VERIFICATION_PLAN_READY; 8 affected surfaces require 19 oblig
       {
         "ref": "artifact:business-rule-closures/119-resolve-operating-loop-modularity.md",
         "relative_path": "business-rule-closures/119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:b8683c794f1555b516fe3bbdac810dac37475e2d6ea81a0c561994f909c0e424"
+        "raw_file_digest": "sha256:7a9e0aa386109ce81147ea03fff1120fc33824fa5365bf4230dbb22cac1ed665"
       },
       {
         "ref": "artifact:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md",
         "relative_path": "change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:cc6ee4b18c507ae778a2bce20ff7fa4befbdf6a4fff2ff304875e256d0db38f9"
+        "raw_file_digest": "sha256:a53b0b859714e23c300cbacb5b6354161b8c893e64a9ea0302c7f23cba29205c"
       },
       {
         "ref": "artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
         "relative_path": "business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:b1eae7c1fa0c93bb202b9ecafa718115b8b59fba937f3cedf80bc0c84cc019b4"
+        "raw_file_digest": "sha256:64ff81cb80b542bd3e841028629c261938ec01513144b71d5cb16076b2853132"
       },
       {
         "ref": "artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
         "relative_path": "control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:a24cb8b06d91947dcdf7a09cc30c5456989448145696067056959d1d23b667fd"
+        "raw_file_digest": "sha256:430869c61da8a98868a2ef29306844aeb7f793c247c833d660eff767fd2d272d"
       }
     ]
   },

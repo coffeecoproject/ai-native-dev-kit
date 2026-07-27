@@ -10,10 +10,10 @@ Change type DATA_OR_MODEL_CHANGE; 8 required surfaces were identified. Risk leve
 - Task ref: task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630
 - Project/profile: inferred from project signals
 - Business rule closure ref: artifact:business-rule-closures/119-resolve-operating-loop-modularity.md
-- Business rule digest: sha256:fccd6c85ef0abc9a36d1fe57ca98641a49cdd687e565f7bbf7f4b276d73001e2
+- Business rule digest: sha256:c9ed2b102a989b23015c0e4aebd0c00a9599495d2de48fb0c05072c9df37ab01
 - Business rule state: READY_FOR_IMPACT_COVERAGE
 - Business Universe ref: artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md
-- Business Universe digest: sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235
+- Business Universe digest: sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471
 
 ## Business Universe Scenario Impact
 
@@ -204,7 +204,7 @@ None. Codex derives technical surface coverage and asks only for a missing busin
   "schema_version": "1.113.0",
   "artifact_type": "change_impact_coverage",
   "artifact_id": "modularize-scripts-resolve-operating-loop.mjs-into-cohesive-inte",
-  "impact_digest": "sha256:b382405642b1c91b6f98c790f8bb2d00196ab25f8d169660fb98f1217976d4cf",
+  "impact_digest": "sha256:02893fd9b01c8ab94e78640e30c353a6b48ad12d1508c0d74af1578940f9c32f",
   "task_ref": "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
   "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
   "mode": "preflight",
@@ -214,13 +214,13 @@ None. Codex derives technical surface coverage and asks only for a missing busin
     "project_profile": "inferred from project signals"
   },
   "business_rule_ref": "artifact:business-rule-closures/119-resolve-operating-loop-modularity.md",
-  "business_rule_digest": "sha256:fccd6c85ef0abc9a36d1fe57ca98641a49cdd687e565f7bbf7f4b276d73001e2",
+  "business_rule_digest": "sha256:c9ed2b102a989b23015c0e4aebd0c00a9599495d2de48fb0c05072c9df37ab01",
   "business_rule_state": "READY_FOR_IMPACT_COVERAGE",
   "business_universe_binding": {
     "required": "Yes",
     "routing_result": "REQUIRED_WITH_EVIDENCE",
     "business_universe_ref": "artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
-    "business_universe_digest": "sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235",
+    "business_universe_digest": "sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471",
     "business_universe_state": "COVERAGE_READY",
     "coverage_scenario_ids": [
       "coverage-scenario:54d5e4301d4c6638bf60f92e",

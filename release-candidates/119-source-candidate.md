@@ -3,8 +3,8 @@
 ## Scope
 
 - Task: `task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630`
-- Base revision: `99190f0efb786d7e1bdcdeabce6d52e82e265327`
-- Source revision: `sha256:17f262e2d32424a4857d6142002e0cf51a47c934091f2949bfc2031f630b2409`
+- Base revision: `3a5165733bcc942a706153a350e1678c9924cf06`
+- Source revision: `sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58`
 - Candidate: the exact staged 1.119 source and governed evidence diff
 - Release channel: `source_only`
 - Package identity: not applicable
@@ -13,7 +13,7 @@
 
 - This candidate is for source review only and does not approve commit, push, deployment, publication, submission, migration, or another external effect.
 - It does not contain or authorize production credentials, production configuration, DNS, payment, or irreversible data operations.
-- The independent untracked draft `docs/plans/controlled-adoption-change-attribution-auto-closeout.md` is excluded.
+- No independent draft or unrelated untracked file is included in this candidate.
 - A later external release requires its own current evidence and exact real-world consent.
 
 ## Acceptance

@@ -48,7 +48,7 @@
 | Required | Yes |
 | Routing result | REQUIRED_WITH_EVIDENCE |
 | Coverage ref | artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md |
-| Coverage digest | sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235 |
+| Coverage digest | sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471 |
 | Coverage state | COVERAGE_READY |
 | Coverage scenarios | coverage-scenario:54d5e4301d4c6638bf60f92e, coverage-scenario:ecfcf7c958bb154d7ec23da9, coverage-scenario:31cc3db857547fa9a3a9cbeb, coverage-scenario:3ab1bd0537b3500e5517624a, coverage-scenario:9bf19075a1d696dfaa06199b |
 | Scenario review | COMPLETE |
@@ -64,7 +64,7 @@
 | Requirement | REQUIRED |
 | Status | VERIFIED |
 | Report ref | artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md |
-| Report digest | sha256:eb736f2fdb02eed2140094406e82e954088a4dc30d035dd464bc5700a46ee1b1 |
+| Report digest | sha256:71ee838b45a224a0c19d85881af8c471fc446fee3de70d8dd233f0afc95729cc |
 | Required claims | claim:package-script-verify-candidate, claim:package-script-verify-consumer-chain-candidate, claim:file-scripts-check-adoption-assurance-mjs, claim:file-scripts-check-ai-workflow-mjs, claim:file-scripts-check-apply-execution-receipt-mjs, claim:file-scripts-check-apply-plan-mjs, claim:file-scripts-check-approval-record-mjs, claim:file-scripts-check-baseline-enforcement-mjs |
 | Assessment outcome | CONTROL_PROVEN_EFFECTIVE |
 | Reason | The exact current report proves every relied-on bounded control claim. |
@@ -109,11 +109,11 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | task_governance | artifact:task-governance-reports/119-resolve-operating-loop-modularity.md | sha256:9bf32ab513b274a3685d6b6deac3b0095e24a502261b3512e2b9c93e9fc7b03c | HIGH_REQUIRES_FULL_GOVERNANCE | Yes | No | intentos-governance |
 | review_surface_card | artifact:review-surface-cards/119-resolve-operating-loop-modularity.md | sha256:a6a06fdbdc5ef0131cc5dace3494478157a173edc0f749b196761f4f852f0fe7 | RECORDED | N/A | Yes | project-review-evidence |
-| verification_plan | artifact:verification-plans/119-resolve-operating-loop-modularity.md | sha256:6fd9725583e8b90441ccf83869d7ab497ac7e657efafaac740ecc78f3431b490 | VERIFICATION_PLAN_READY | Yes | No | codex |
-| business_rule_closure | artifact:business-rule-closures/119-resolve-operating-loop-modularity.md | sha256:b8683c794f1555b516fe3bbdac810dac37475e2d6ea81a0c561994f909c0e424 | READY_FOR_IMPACT_COVERAGE | Yes | No | project-business-evidence |
-| change_impact_coverage | artifact:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md | sha256:cc6ee4b18c507ae778a2bce20ff7fa4befbdf6a4fff2ff304875e256d0db38f9 | CHANGE_IMPACT_RECORDED | Yes | No | codex |
-| business_universe_coverage | artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md | sha256:b1eae7c1fa0c93bb202b9ecafa718115b8b59fba937f3cedf80bc0c84cc019b4 | COVERAGE_READY | Yes | No | codex |
-| control_effectiveness | artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md | sha256:eb736f2fdb02eed2140094406e82e954088a4dc30d035dd464bc5700a46ee1b1 | CONTROL_PROVEN_EFFECTIVE | Yes | No | codex |
+| verification_plan | artifact:verification-plans/119-resolve-operating-loop-modularity.md | sha256:2737be9b9c22abe9d901fb3037bc905a8d8bc31f505ea10e209047cc0f60aa85 | VERIFICATION_PLAN_READY | Yes | No | codex |
+| business_rule_closure | artifact:business-rule-closures/119-resolve-operating-loop-modularity.md | sha256:7a9e0aa386109ce81147ea03fff1120fc33824fa5365bf4230dbb22cac1ed665 | READY_FOR_IMPACT_COVERAGE | Yes | No | project-business-evidence |
+| change_impact_coverage | artifact:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md | sha256:a53b0b859714e23c300cbacb5b6354161b8c893e64a9ea0302c7f23cba29205c | CHANGE_IMPACT_RECORDED | Yes | No | codex |
+| business_universe_coverage | artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md | sha256:64ff81cb80b542bd3e841028629c261938ec01513144b71d5cb16076b2853132 | COVERAGE_READY | Yes | No | codex |
+| control_effectiveness | artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md | sha256:71ee838b45a224a0c19d85881af8c471fc446fee3de70d8dd233f0afc95729cc | CONTROL_PROVEN_EFFECTIVE | Yes | No | codex |
 
 ## Reviewed Surfaces
 
@@ -209,7 +209,7 @@
   "schema_version": "1.113.0",
   "artifact_type": "plan_review",
   "plan_review_ref": "plan-review-reports/119-resolve-operating-loop-modularity.md",
-  "plan_review_digest": "sha256:710e9e00948ad71b98b3188068f7ff50e7e81514c5e0ebe021c1caefdbeb5514",
+  "plan_review_digest": "sha256:90bbc5aa3a511790210eb70de87f04270935ca724a1e595fcefea97e3c36b357",
   "task_ref": "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
   "intent": "modularize scripts/resolve-operating-loop.mjs into cohesive internal modules while preserving workflow state, public CLI arguments, command output, subprocess ordering, exit codes, generated-project distribution, and resolver behavior",
   "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
@@ -253,7 +253,7 @@
     "required": "Yes",
     "routing_result": "REQUIRED_WITH_EVIDENCE",
     "business_universe_ref": "artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
-    "business_universe_digest": "sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235",
+    "business_universe_digest": "sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471",
     "business_universe_state": "COVERAGE_READY",
     "coverage_scenario_ids": [
       "coverage-scenario:54d5e4301d4c6638bf60f92e",
@@ -273,7 +273,7 @@
     "requirement": "REQUIRED",
     "status": "VERIFIED",
     "report_ref": "artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
-    "report_digest": "sha256:eb736f2fdb02eed2140094406e82e954088a4dc30d035dd464bc5700a46ee1b1",
+    "report_digest": "sha256:71ee838b45a224a0c19d85881af8c471fc446fee3de70d8dd233f0afc95729cc",
     "required_claim_ids": [
       "claim:package-script-verify-candidate",
       "claim:package-script-verify-consumer-chain-candidate",
@@ -417,7 +417,7 @@
     {
       "source_kind": "verification_plan",
       "source_ref": "artifact:verification-plans/119-resolve-operating-loop-modularity.md",
-      "source_digest": "sha256:6fd9725583e8b90441ccf83869d7ab497ac7e657efafaac740ecc78f3431b490",
+      "source_digest": "sha256:2737be9b9c22abe9d901fb3037bc905a8d8bc31f505ea10e209047cc0f60aa85",
       "source_state": "VERIFICATION_PLAN_READY",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",
@@ -427,7 +427,7 @@
     {
       "source_kind": "business_rule_closure",
       "source_ref": "artifact:business-rule-closures/119-resolve-operating-loop-modularity.md",
-      "source_digest": "sha256:b8683c794f1555b516fe3bbdac810dac37475e2d6ea81a0c561994f909c0e424",
+      "source_digest": "sha256:7a9e0aa386109ce81147ea03fff1120fc33824fa5365bf4230dbb22cac1ed665",
       "source_state": "READY_FOR_IMPACT_COVERAGE",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",
@@ -437,7 +437,7 @@
     {
       "source_kind": "change_impact_coverage",
       "source_ref": "artifact:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md",
-      "source_digest": "sha256:cc6ee4b18c507ae778a2bce20ff7fa4befbdf6a4fff2ff304875e256d0db38f9",
+      "source_digest": "sha256:a53b0b859714e23c300cbacb5b6354161b8c893e64a9ea0302c7f23cba29205c",
       "source_state": "CHANGE_IMPACT_RECORDED",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",
@@ -447,7 +447,7 @@
     {
       "source_kind": "business_universe_coverage",
       "source_ref": "artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
-      "source_digest": "sha256:b1eae7c1fa0c93bb202b9ecafa718115b8b59fba937f3cedf80bc0c84cc019b4",
+      "source_digest": "sha256:64ff81cb80b542bd3e841028629c261938ec01513144b71d5cb16076b2853132",
       "source_state": "COVERAGE_READY",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",
@@ -457,7 +457,7 @@
     {
       "source_kind": "control_effectiveness",
       "source_ref": "artifact:control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
-      "source_digest": "sha256:eb736f2fdb02eed2140094406e82e954088a4dc30d035dd464bc5700a46ee1b1",
+      "source_digest": "sha256:71ee838b45a224a0c19d85881af8c471fc446fee3de70d8dd233f0afc95729cc",
       "source_state": "CONTROL_PROVEN_EFFECTIVE",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",

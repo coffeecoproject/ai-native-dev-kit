@@ -1,0 +1,7 @@
+run_id=vrun-119-resolve-operating-loop-modularity-r61
+owner_marker_digest=sha256:50fee3b3464c238f161e5e83066e3c8a03fb9cf1e0ba737d7758ff55b9e28097
+cache:CACHE_NAMESPACE:cleaned=Yes
+context:SESSION_NAMESPACE:cleaned=Yes
+data:FILE_NAMESPACE:cleaned=Yes
+files:FILE_NAMESPACE:cleaned=Yes
+process:self-runtime-service:pid=49566:cleaned=Yes

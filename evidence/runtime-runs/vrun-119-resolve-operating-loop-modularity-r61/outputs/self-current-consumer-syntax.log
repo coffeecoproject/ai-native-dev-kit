@@ -1,0 +1,61 @@
+
+> intentos@1.113.0 verify:consumer-syntax
+> node --check scripts/lib/release-action-authority.mjs && node --check scripts/lib/check-result.mjs && node --check scripts/lib/task-obligations.mjs && node --check scripts/lib/execution-assurance-consumer.mjs && node --check scripts/lib/current-trust-fixture.mjs && node --check scripts/check-consumer-chain.mjs && node --test tests/typed-consumer-contract.test.mjs tests/task-obligation-hardcut.test.mjs tests/current-trust-fixture.test.mjs tests/test-evidence-obligation-proof.test.mjs
+
+✔ implementation coverage tolerates rotating governance evidence but never omitted source (1.768458ms)
+✔ current strict trust fixture reaches Completion only through current task evidence (6431.357458ms)
+✔ LOW non-behavioral completion records proportional NOT_REQUIRED sources without bypassing Execution Assurance (2639.849708ms)
+✔ Execution Assurance rejects a recorded Test Evidence source that fails its strict checker (5797.327959ms)
+✔ LOW execution keeps governed documentation scope and blocks an extra executable diff (2894.925583ms)
+✔ LOW proportional completion rejects forged NOT_REQUIRED semantics and missing Execution Assurance (3355.332292ms)
+✔ 1.113 Unified Closure round-trips typed current Completion Evidence and rejects weaker claims (6042.876542ms)
+✔ 1.113 Change Impact rejects prose-only exclusions and unbound user decisions (5145.589875ms)
+✔ actual diff authority rejects empty feature, omitted untracked, and forged file sets (88.434292ms)
+✔ actual implementation diff excludes governed outputs but retains project files (57.233666ms)
+✔ candidate diff sources exclude unrelated unstaged drafts (84.056875ms)
+✔ cached candidate diff replays the exact committed candidate in a clean checkout (367.597167ms)
+✔ 1.113 Runtime Hygiene preserves the exact current intent digest (54.433916ms)
+✔ 1.113 Runtime Hygiene keeps release review compatible with a zero-experience solo user (195.285166ms)
+✔ 1.113 release-channel blockers stay plain-language and do not require role assignment (40.588041ms)
+✔ 1.113 Work Queue takeover ignores fixtures and accepts one governed current task in a dirty worktree (406.698125ms)
+✔ 1.113 consumer chain uses HEAD for a staged candidate instead of mixing in the previous release commit (224.418ms)
+✔ 1.113 LOW non-behavioral work keeps lightweight verification but still requires execution and completion proof (51.455583ms)
+✔ 1.113 explicit README copy scope is not promoted by the behavior it documents (111.46175ms)
+✔ 1.113 UI activation intent outranks visual wording across English forms and Chinese requests (567.140916ms)
+✔ 1.113 explicit non-behavioral visual and copy requests stay LOW (319.674125ms)
+✔ 1.113 low-impact visual words cannot downgrade unresolved behavior from POSSIBLE_HIGH (52.551375ms)
+✔ 1.113 MEDIUM behavior keeps the minimum business, impact, verification, test, and completion chain without Universe routing (52.812459ms)
+✔ 1.113 Task Governance rejects weakened Business Universe and Control Effectiveness projections (148.038334ms)
+✔ 1.113 an explicit non-behavioral override cannot downgrade inferred behavior (51.5935ms)
+✔ 1.113 Plan Review only accepts the exact current Task Governance identity (363.709875ms)
+✔ 1.113 Plan Review binds plan content and all minimum MEDIUM obligations (511.800542ms)
+✔ a missing Verification Plan produces valid blocked evidence that strict consumers reject (147.691542ms)
+✔ strict Test Evidence rejects a nine-target local command declaring all 119 obligations (749.739291ms)
+✔ a required quality control is not applicable when its surface has no current obligation (532.453042ms)
+✔ strict high-trust Test Evidence rejects even complete hand-written command output without Runtime Trust (701.260208ms)
+✔ a selected proof runner may bind delegated child results only through its recorded wrapper target (394.2425ms)
+✔ Verification Plan RUNTIME_BEHAVIOR cannot be downgraded by omitting the runtime manifest option (508.835208ms)
+✔ strict checker rejects BL1 declaration-only evidence without observed behavior (193.442125ms)
+✔ a blocked Verification Plan can never produce complete Test Evidence (131.257ms)
+✔ 1.113 evidence authority binds an exact item inside a file-backed artifact (26.531625ms)
+✔ post-write evidence authority accepts only an exact ancestor source revision (193.164167ms)
+✔ 1.113 missing Change Boundary and Standard Baseline artifacts are typed MISSING (73.5145ms)
+✔ 1.113 strict Change Boundary fails when the required artifact is missing (32.576125ms)
+✔ 1.113 execution kind uses adoption intent instead of the IntentOS product name (601.48325ms)
+✔ 1.113 a structurally valid Plan Review revision is BLOCKED, not READY (48.369917ms)
+✔ 1.113 project-native Review Surface evidence does not invent a task binding (1.3445ms)
+✔ 1.113 historical completion evidence is readable but cannot satisfy current readiness (256.194833ms)
+✔ 1.113 historical Plan Review is readable but cannot become current task authority (9.915542ms)
+✔ 1.113 historical release evidence requires explicit compatibility audit and cannot satisfy current release authority (521.399458ms)
+✔ 1.113 a blocked POSSIBLE_HIGH completion report may omit not-yet-created execution evidence (104.618542ms)
+✔ 1.113 strict user delivery binds the current intent outside the plain user surface (93.253042ms)
+ℹ tests 47
+ℹ suites 0
+ℹ pass 47
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32965.503083
+
+process_signal=none

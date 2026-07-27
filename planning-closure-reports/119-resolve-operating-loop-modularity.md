@@ -45,8 +45,8 @@ write, apply, release, production, or completion claim.
   "schema_version": "1.111.0",
   "artifact_type": "planning_closure",
   "report_ref": "file:planning-closure-reports/119-resolve-operating-loop-modularity.md",
-  "report_digest": "sha256:15d1c0a5948c7dd5cba1bd95cddfb85c97da314a1903f83cdb0f188fdaf9aa7f",
-  "closure_core_digest": "sha256:dc24034eca7fab0ed1559147d55ab6eba360b7ca517d61b55c38015eee59dc28",
+  "report_digest": "sha256:e285eaebb0f630268847e4754fcc2987d6bfe2c40ac65aac1370bf9baafa54a3",
+  "closure_core_digest": "sha256:af82a44881d66410614e170a72522039f89ae6587e56c006c8a6b1e2f4331b16",
   "task_ref": "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
   "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
   "task_impact": "HIGH",
@@ -54,7 +54,7 @@ write, apply, release, production, or completion claim.
     "binding_version": "1.91.0",
     "project": {
       "kind": "GIT",
-      "fingerprint": "sha256:dbef23f6a47beaf5612cad4eb256020929ca4c046f904d658cf3951b611af206",
+      "fingerprint": "sha256:4a77760d85b61ab83d59a03b95a53a3ef502e9467711cef8ca0603a585905d58",
       "revision": "sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58"
     },
     "task": {
@@ -70,32 +70,32 @@ write, apply, release, production, or completion claim.
       {
         "ref": "file:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
         "relative_path": "business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:b1eae7c1fa0c93bb202b9ecafa718115b8b59fba937f3cedf80bc0c84cc019b4"
+        "raw_file_digest": "sha256:64ff81cb80b542bd3e841028629c261938ec01513144b71d5cb16076b2853132"
       },
       {
         "ref": "file:business-rule-closures/119-resolve-operating-loop-modularity.md",
         "relative_path": "business-rule-closures/119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:b8683c794f1555b516fe3bbdac810dac37475e2d6ea81a0c561994f909c0e424"
+        "raw_file_digest": "sha256:7a9e0aa386109ce81147ea03fff1120fc33824fa5365bf4230dbb22cac1ed665"
       },
       {
         "ref": "file:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md",
         "relative_path": "change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:cc6ee4b18c507ae778a2bce20ff7fa4befbdf6a4fff2ff304875e256d0db38f9"
+        "raw_file_digest": "sha256:a53b0b859714e23c300cbacb5b6354161b8c893e64a9ea0302c7f23cba29205c"
       },
       {
         "ref": "file:verification-plans/119-resolve-operating-loop-modularity.md",
         "relative_path": "verification-plans/119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:6fd9725583e8b90441ccf83869d7ab497ac7e657efafaac740ecc78f3431b490"
+        "raw_file_digest": "sha256:2737be9b9c22abe9d901fb3037bc905a8d8bc31f505ea10e209047cc0f60aa85"
       },
       {
         "ref": "file:plan-review-reports/119-resolve-operating-loop-modularity.md",
         "relative_path": "plan-review-reports/119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:13fda64816c4f2eb5c6c53e6d8e123f3d2f157a890235ed2e84b10e9e0f81d12"
+        "raw_file_digest": "sha256:2f40afed9ae1c8ca9724f286fe1477ef65339cb5e7aeddbd731cfdc8018e3656"
       },
       {
         "ref": "file:control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
         "relative_path": "control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
-        "raw_file_digest": "sha256:a24cb8b06d91947dcdf7a09cc30c5456989448145696067056959d1d23b667fd"
+        "raw_file_digest": "sha256:430869c61da8a98868a2ef29306844aeb7f793c247c833d660eff767fd2d272d"
       }
     ]
   },
@@ -123,7 +123,7 @@ write, apply, release, production, or completion claim.
     {
       "source_kind": "BUSINESS_UNIVERSE",
       "report_ref": "file:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
-      "report_digest": "sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235",
+      "report_digest": "sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471",
       "source_state": "COVERAGE_READY",
       "validation_state": "VALID",
       "current_task_match": "Yes",
@@ -134,7 +134,7 @@ write, apply, release, production, or completion claim.
     {
       "source_kind": "BUSINESS_RULE",
       "report_ref": "file:business-rule-closures/119-resolve-operating-loop-modularity.md",
-      "report_digest": "sha256:585d45733459e084e92013852122598c19ce1b9af258048b4a20e633b04912a9",
+      "report_digest": "sha256:46dd516712fb167f4c26628c508c5817bbf7327d09a6af021733ad6e38755a2e",
       "source_state": "READY_FOR_IMPACT_COVERAGE",
       "validation_state": "VALID",
       "current_task_match": "Yes",
@@ -145,7 +145,7 @@ write, apply, release, production, or completion claim.
     {
       "source_kind": "CHANGE_IMPACT",
       "report_ref": "file:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md",
-      "report_digest": "sha256:b382405642b1c91b6f98c790f8bb2d00196ab25f8d169660fb98f1217976d4cf",
+      "report_digest": "sha256:02893fd9b01c8ab94e78640e30c353a6b48ad12d1508c0d74af1578940f9c32f",
       "source_state": "CHANGE_IMPACT_RECORDED",
       "validation_state": "VALID",
       "current_task_match": "Yes",
@@ -156,7 +156,7 @@ write, apply, release, production, or completion claim.
     {
       "source_kind": "VERIFICATION_PLAN",
       "report_ref": "file:verification-plans/119-resolve-operating-loop-modularity.md",
-      "report_digest": "sha256:deda43ead0c1abdfbe3671530a14c195f856fb957994d7231ddfecc4f81c1e4c",
+      "report_digest": "sha256:12a35b2a9127a0901cc43d37ba151f7c1e6a64775f1da5076a1dace9f6e4c2f6",
       "source_state": "VERIFICATION_PLAN_READY",
       "validation_state": "VALID",
       "current_task_match": "Yes",
@@ -167,7 +167,7 @@ write, apply, release, production, or completion claim.
     {
       "source_kind": "PLAN_REVIEW",
       "report_ref": "file:plan-review-reports/119-resolve-operating-loop-modularity.md",
-      "report_digest": "sha256:710e9e00948ad71b98b3188068f7ff50e7e81514c5e0ebe021c1caefdbeb5514",
+      "report_digest": "sha256:90bbc5aa3a511790210eb70de87f04270935ca724a1e595fcefea97e3c36b357",
       "source_state": "PLAN_REVIEW_PASSED",
       "validation_state": "VALID",
       "current_task_match": "Yes",
@@ -178,7 +178,7 @@ write, apply, release, production, or completion claim.
     {
       "source_kind": "CONTROL_EFFECTIVENESS",
       "report_ref": "file:control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
-      "report_digest": "sha256:eb736f2fdb02eed2140094406e82e954088a4dc30d035dd464bc5700a46ee1b1",
+      "report_digest": "sha256:71ee838b45a224a0c19d85881af8c471fc446fee3de70d8dd233f0afc95729cc",
       "source_state": "CONTROL_PROVEN_EFFECTIVE",
       "validation_state": "VALID",
       "current_task_match": "Yes",
@@ -195,15 +195,15 @@ write, apply, release, production, or completion claim.
   },
   "execution_entry_contract": {
     "contract_id": "execution-entry:task-8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
-    "contract_digest": "sha256:df4310a72bef75530509e06bdd5862105b2dde05e60d4ae920c33a4ce425dd4d",
-    "project_identity_digest": "sha256:dbef23f6a47beaf5612cad4eb256020929ca4c046f904d658cf3951b611af206",
+    "contract_digest": "sha256:187a999720530c2caa4249b0871758b408b2b91f1576c76fb0b766dee6517aec",
+    "project_identity_digest": "sha256:4a77760d85b61ab83d59a03b95a53a3ef502e9467711cef8ca0603a585905d58",
     "source_revision_digest": "sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58",
-    "source_git_commit": "c0ca10bcba64a98dddb2d4511a8b7685000e3612",
+    "source_git_commit": "22af56e80a1b05965229eda6a305df9bb45147fc",
     "task_ref": "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
     "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
     "task_impact": "HIGH",
     "planning_closure_ref": "file:planning-closure-reports/119-resolve-operating-loop-modularity.md",
-    "planning_closure_digest": "sha256:dc24034eca7fab0ed1559147d55ab6eba360b7ca517d61b55c38015eee59dc28",
+    "planning_closure_digest": "sha256:af82a44881d66410614e170a72522039f89ae6587e56c006c8a6b1e2f4331b16",
     "source_bindings": [
       {
         "source_kind": "TASK_GOVERNANCE",
@@ -215,42 +215,42 @@ write, apply, release, production, or completion claim.
       {
         "source_kind": "BUSINESS_UNIVERSE",
         "ref": "file:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
-        "digest": "sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235",
+        "digest": "sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471",
         "state": "COVERAGE_READY",
         "current_task_match": "Yes"
       },
       {
         "source_kind": "BUSINESS_RULE",
         "ref": "file:business-rule-closures/119-resolve-operating-loop-modularity.md",
-        "digest": "sha256:585d45733459e084e92013852122598c19ce1b9af258048b4a20e633b04912a9",
+        "digest": "sha256:46dd516712fb167f4c26628c508c5817bbf7327d09a6af021733ad6e38755a2e",
         "state": "READY_FOR_IMPACT_COVERAGE",
         "current_task_match": "Yes"
       },
       {
         "source_kind": "CHANGE_IMPACT",
         "ref": "file:change-impact-coverage-reports/preflight-119-resolve-operating-loop-modularity.md",
-        "digest": "sha256:b382405642b1c91b6f98c790f8bb2d00196ab25f8d169660fb98f1217976d4cf",
+        "digest": "sha256:02893fd9b01c8ab94e78640e30c353a6b48ad12d1508c0d74af1578940f9c32f",
         "state": "CHANGE_IMPACT_RECORDED",
         "current_task_match": "Yes"
       },
       {
         "source_kind": "VERIFICATION_PLAN",
         "ref": "file:verification-plans/119-resolve-operating-loop-modularity.md",
-        "digest": "sha256:deda43ead0c1abdfbe3671530a14c195f856fb957994d7231ddfecc4f81c1e4c",
+        "digest": "sha256:12a35b2a9127a0901cc43d37ba151f7c1e6a64775f1da5076a1dace9f6e4c2f6",
         "state": "VERIFICATION_PLAN_READY",
         "current_task_match": "Yes"
       },
       {
         "source_kind": "PLAN_REVIEW",
         "ref": "file:plan-review-reports/119-resolve-operating-loop-modularity.md",
-        "digest": "sha256:710e9e00948ad71b98b3188068f7ff50e7e81514c5e0ebe021c1caefdbeb5514",
+        "digest": "sha256:90bbc5aa3a511790210eb70de87f04270935ca724a1e595fcefea97e3c36b357",
         "state": "PLAN_REVIEW_PASSED",
         "current_task_match": "Yes"
       },
       {
         "source_kind": "CONTROL_EFFECTIVENESS",
         "ref": "file:control-effectiveness-reports/119-resolve-operating-loop-modularity.md",
-        "digest": "sha256:eb736f2fdb02eed2140094406e82e954088a4dc30d035dd464bc5700a46ee1b1",
+        "digest": "sha256:71ee838b45a224a0c19d85881af8c471fc446fee3de70d8dd233f0afc95729cc",
         "state": "CONTROL_PROVEN_EFFECTIVE",
         "current_task_match": "Yes"
       }

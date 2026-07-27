@@ -30,7 +30,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Branch | `main` |
 | Upstream | `origin/main` |
 | Origin main fresh | `Yes` |
-| Ahead count | `4` |
+| Ahead count | `1` |
 | Behind count | `0` |
 | Current task commit isolated | `Yes` |
 | Force push required | `No` |
@@ -63,7 +63,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Release ID reusable | `Yes` |
 | Release owner required | `Yes` |
 | Release execution topology ref | `artifact:release-execution-topologies/119-resolve-operating-loop-modularity.md` |
-| Release execution topology digest | `sha256:47ccbeaac4b2f1d8910db6f8653b690fb23c5644c6747e690ff5b6442d321ed5` |
+| Release execution topology digest | `sha256:58fa8f8621b33b2c65d9499d85ddff17ca17368da71d724c4b53422690ae81c3` |
 
 ## Artifact Context
 
@@ -92,7 +92,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | `ci_log` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
 | `artifact_error` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
 | `bundle_summary` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
-| `release_event` | `artifact:evidence/119-release-preflight.json` | `sha256:5a87eb5b7a79d8016c1ca174467093d87aca8cf59c2b57043d50358ca3ca5904` | `Yes` | `Unknown` |
+| `release_event` | `artifact:evidence/119-release-preflight.json` | `sha256:bb67b3edd4b4a8ecfe2886f97a72d0ec8aa9fcaf95e7a364ae1a3e69ebd570cb` | `Yes` | `Unknown` |
 
 ## Boundaries
 
@@ -127,7 +127,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "schema_version": "1.93.0",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/119-resolve-operating-loop-modularity.md",
-  "runtime_hygiene_digest": "sha256:1e2e5c811363e0cb502547911ec6108ce27b1af2f3930b94abf3ecd806020c91",
+  "runtime_hygiene_digest": "sha256:a0f9376eae871fb700d08af012033cc7eadb462e953b08e0708a91cc2e5129bb",
   "task_ref": "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
   "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
   "work_queue_item_ref": "artifact:work-queue-takeover-reports/119-resolve-operating-loop-modularity.md#WQ-010",
@@ -165,7 +165,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
     "branch": "main",
     "upstream": "origin/main",
     "origin_main_fresh": "Yes",
-    "ahead_count": 4,
+    "ahead_count": 1,
     "behind_count": 0,
     "current_task_commit_isolated": "Yes",
     "force_push_required": "No"
@@ -234,7 +234,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
     {
       "source_kind": "release_event",
       "source_ref": "artifact:evidence/119-release-preflight.json",
-      "source_digest": "sha256:5a87eb5b7a79d8016c1ca174467093d87aca8cf59c2b57043d50358ca3ca5904",
+      "source_digest": "sha256:bb67b3edd4b4a8ecfe2886f97a72d0ec8aa9fcaf95e7a364ae1a3e69ebd570cb",
       "source_present": "Yes",
       "current_task_match": "Unknown"
     }
@@ -261,10 +261,10 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "outcome": "CAN_CONTINUE_TO_RELEASE_REVIEW",
   "release_trust_binding": {
     "release_candidate_ref": "artifact:release-candidates/119-source-candidate.md",
-    "release_candidate_digest": "sha256:f5b598cb23272225ab9dfb41782cca012890163140f414a368bcbe658ce62603",
-    "source_revision": "sha256:17f262e2d32424a4857d6142002e0cf51a47c934091f2949bfc2031f630b2409",
+    "release_candidate_digest": "sha256:cc1530eafb4228993dbd1e86e4921217d183fdfa8da9026ac864f918eb0a5262",
+    "source_revision": "sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58",
     "release_execution_topology_ref": "artifact:release-execution-topologies/119-resolve-operating-loop-modularity.md",
-    "release_execution_topology_digest": "sha256:47ccbeaac4b2f1d8910db6f8653b690fb23c5644c6747e690ff5b6442d321ed5"
+    "release_execution_topology_digest": "sha256:58fa8f8621b33b2c65d9499d85ddff17ca17368da71d724c4b53422690ae81c3"
   }
 }
 ```

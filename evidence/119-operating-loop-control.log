@@ -1,10 +1,10 @@
 Command argv: ["node","--test","tests/resolve-operating-loop-modularity.test.mjs","tests/self-check-modular-source-marker.test.mjs"]
 Exit code: 0
 Stdout:
-✔ resolve-operating-loop keeps a bounded composition entry and cohesive internal modules (22.6145ms)
-✔ operating-loop modules remain Manifest-authoritative distributed assets (4.00225ms)
-✔ operating-loop dependency direction stays acyclic (0.581208ms)
-✔ legacy source-marker checks follow modular implementation graphs (4.30675ms)
+✔ resolve-operating-loop keeps a bounded composition entry and cohesive internal modules (23.675667ms)
+✔ operating-loop modules remain Manifest-authoritative distributed assets (4.0925ms)
+✔ operating-loop dependency direction stays acyclic (0.609583ms)
+✔ legacy source-marker checks follow modular implementation graphs (4.382833ms)
 ℹ tests 4
 ℹ suites 0
 ℹ pass 4
@@ -12,20 +12,20 @@ Stdout:
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 72.607625
+ℹ duration_ms 72.04875
 Stderr:
 
 Command argv: ["node","--test","tests/control-effectiveness.test.mjs"]
 Exit code: 0
 Stdout:
-✔ routing is conditional and keeps technical judgment away from the user (3.415625ms)
-✔ exact effective proof passes strict checking (79.037458ms)
-✔ PASS-like evidence cannot hide semantic mismatch or missing failure capability (123.319666ms)
-✔ changed implementation and copied-project evidence fail closed (120.903333ms)
-✔ filenames cannot grant current authority; only explicit report selection can (156.861833ms)
-✔ bounded adapters reject shell, network, secrets, and unsafe cleanup (0.5275ms)
-✔ blocked bindings are valid only as explicit non-ready evidence (1.049417ms)
-✔ Plan Review accepts digest-only Control Effectiveness identity without weakening task binding (111.994292ms)
+✔ routing is conditional and keeps technical judgment away from the user (3.428833ms)
+✔ exact effective proof passes strict checking (83.1335ms)
+✔ PASS-like evidence cannot hide semantic mismatch or missing failure capability (128.6205ms)
+✔ changed implementation and copied-project evidence fail closed (128.605334ms)
+✔ filenames cannot grant current authority; only explicit report selection can (164.171875ms)
+✔ bounded adapters reject shell, network, secrets, and unsafe cleanup (0.553834ms)
+✔ blocked bindings are valid only as explicit non-ready evidence (1.059958ms)
+✔ Plan Review accepts digest-only Control Effectiveness identity without weakening task binding (126.079584ms)
 ℹ tests 8
 ℹ suites 0
 ℹ pass 8
@@ -33,5 +33,5 @@ Stdout:
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 645.244416
+ℹ duration_ms 686.263834
 Stderr:

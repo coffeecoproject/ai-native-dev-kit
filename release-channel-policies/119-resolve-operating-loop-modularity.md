@@ -89,8 +89,8 @@
 
 | Source | Ref | Digest | Scope Match | Release Candidate Match | Project Match |
 | --- | --- | --- | --- | --- | --- |
-| release_evidence_gate | artifact:release-evidence-gate-reports/119-resolve-operating-loop-modularity.md | sha256:9d0345319a66206b6813e45a8ce2c75b1880b74391037949da540aaa70fc35e0 | release_candidate | Yes | Unknown |
-| runtime_hygiene | artifact:runtime-hygiene-reports/119-resolve-operating-loop-modularity.md | sha256:d79db58871d21c910729614821d15137e8f69e04072f7e8391257fe7a692e567 | release_candidate | Yes | Unknown |
+| release_evidence_gate | artifact:release-evidence-gate-reports/119-resolve-operating-loop-modularity.md | sha256:7c8ed3e71bd50687adc61d5d04fe99950ed40bca21c1066bd3912927c469d4ab | release_candidate | Yes | Unknown |
+| runtime_hygiene | artifact:runtime-hygiene-reports/119-resolve-operating-loop-modularity.md | sha256:9dba82c497fcc01bbd66b56e250cfa0cdc88121a73ad9da301f2a0ffae6738ac | release_candidate | Yes | Unknown |
 | project_sop | artifact:release-channel-policies/113-cross-domain-trust-closure.md | sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af | project | N/A | Yes |
 | ci_workflow | artifact:.github/workflows/intentos-release-checks.yml | sha256:10b5b231ca6e45ebcca2a5376d6d79888777ca7225e395a704218245a415476a | project | N/A | Yes |
 | package_config | artifact:package.json | sha256:63c86790a720e6649496c1ed62312545043a42f6cbf5b8576cd6e2f0eff58a32 | project | N/A | Yes |
@@ -117,7 +117,7 @@
   "schema_version": "1.87.1",
   "artifact_type": "release_channel_policy",
   "release_channel_policy_ref": "release-channel-policies/119-resolve-operating-loop-modularity.md",
-  "release_channel_policy_digest": "sha256:10ce459251e7dec092b6a9abccdf63ec49b365a05d90e1737bea09ce7067b526",
+  "release_channel_policy_digest": "sha256:0ee1597e65d15c837124fad3bbf3107dacbe609133c71ca0cd83667470c1dda4",
   "intent": "source-only review for IntentOS 1.119",
   "intent_digest": "sha256:1c1bb462a6217d1c4b6fcc8291e1439956a2efa8d0e91596d3a0742578f05a51",
   "project_type": "new_project",
@@ -202,7 +202,7 @@
     {
       "source_kind": "release_evidence_gate",
       "source_ref": "artifact:release-evidence-gate-reports/119-resolve-operating-loop-modularity.md",
-      "source_digest": "sha256:9d0345319a66206b6813e45a8ce2c75b1880b74391037949da540aaa70fc35e0",
+      "source_digest": "sha256:7c8ed3e71bd50687adc61d5d04fe99950ed40bca21c1066bd3912927c469d4ab",
       "source_scope_match": "release_candidate",
       "current_release_candidate_match": "Yes",
       "project_match": "Unknown"
@@ -210,7 +210,7 @@
     {
       "source_kind": "runtime_hygiene",
       "source_ref": "artifact:runtime-hygiene-reports/119-resolve-operating-loop-modularity.md",
-      "source_digest": "sha256:d79db58871d21c910729614821d15137e8f69e04072f7e8391257fe7a692e567",
+      "source_digest": "sha256:9dba82c497fcc01bbd66b56e250cfa0cdc88121a73ad9da301f2a0ffae6738ac",
       "source_scope_match": "release_candidate",
       "current_release_candidate_match": "Yes",
       "project_match": "Unknown"

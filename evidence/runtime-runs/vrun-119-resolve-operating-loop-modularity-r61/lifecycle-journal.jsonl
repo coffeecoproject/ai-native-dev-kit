@@ -1,0 +1,62 @@
+{"at":"2026-07-26T18:30:01.060Z","event":"PREFLIGHT_RUNNING","run_id":"vrun-119-resolve-operating-loop-modularity-r61"}
+{"at":"2026-07-26T18:30:01.062Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"EXECUTABLE_AVAILABILITY","result":"PASS","reason":"all 13 declared executables resolved in the bounded executor PATH"}
+{"at":"2026-07-26T18:30:01.062Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SOURCE_IDENTITY","result":"PASS","reason":"current project identity matches sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58"}
+{"at":"2026-07-26T18:30:01.062Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"WORKTREE_STATE","result":"PASS","reason":"the exact pre-run worktree identity was captured for post-run comparison"}
+{"at":"2026-07-26T18:30:01.062Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"OLD_PROCESS","result":"PASS","reason":"process inventory probe is unavailable on this executor; the run workspace is new, every service is spawned with a fresh owner token, and reusable network endpoints are independently bind-probed"}
+{"at":"2026-07-26T18:30:01.062Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"PORT_CONFLICT","result":"PASS","reason":"no network port is declared or reused by this lifecycle"}
+{"at":"2026-07-26T18:30:01.062Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SENSITIVE_ENVIRONMENT","result":"PASS","reason":"child environment is rebuilt from the non-sensitive allowlist: PATH, LANG, LC_ALL, CI, TERM"}
+{"at":"2026-07-26T18:30:01.063Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"DATA_IDENTITY","result":"PASS","reason":"all 4 declared resources are new run-scoped, non-production, and non-shared paths"}
+{"at":"2026-07-26T18:30:01.063Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"SESSION_RESIDUE","result":"PASS","reason":"no run-scoped session namespace existed before execution (1 declared)"}
+{"at":"2026-07-26T18:30:01.063Z","event":"PREFLIGHT_PROBE_OBSERVED","probe":"PRODUCTION_RESOURCE_GUARD","result":"PASS","reason":"all actions and resources are explicitly non-production and contain no external-effect command marker"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-runtime-service","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-runtime-negative","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-runtime-positive","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-syntax","executable":"/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-consumer-syntax","executable":"/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-runtime-trust-core","executable":"/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-evidence-retention","executable":"/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-governance-core","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-operating-core","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-distribution-trust","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-26T18:30:01.063Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-release-topology-consumer","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-26T18:30:01.064Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-obligation-evidence","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-26T18:30:01.064Z","event":"EXECUTABLE_RESOLVED","action_id":"self-current-runtime-behavior","executable":"/opt/homebrew/Cellar/node/23.11.0/bin/node"}
+{"at":"2026-07-26T18:30:01.064Z","event":"PREFLIGHT_PASSED"}
+{"at":"2026-07-26T18:30:01.064Z","event":"RESOURCE_CREATED","resource_id":"cache","resource_type":"CACHE_NAMESPACE"}
+{"at":"2026-07-26T18:30:01.064Z","event":"RESOURCE_CREATED","resource_id":"context","resource_type":"SESSION_NAMESPACE"}
+{"at":"2026-07-26T18:30:01.064Z","event":"RESOURCE_CREATED","resource_id":"data","resource_type":"FILE_NAMESPACE"}
+{"at":"2026-07-26T18:30:01.064Z","event":"RESOURCE_CREATED","resource_id":"files","resource_type":"FILE_NAMESPACE"}
+{"at":"2026-07-26T18:30:01.065Z","event":"ACTION_STARTING","action_id":"self-runtime-service","phase":"START_SERVICE","kind":"SERVICE"}
+{"at":"2026-07-26T18:30:02.068Z","event":"SERVICE_OBSERVED","action_id":"self-runtime-service","pid":49566}
+{"at":"2026-07-26T18:30:02.068Z","event":"ACTION_STARTING","action_id":"self-runtime-negative","phase":"VERIFY","kind":"PROBE"}
+{"at":"2026-07-26T18:30:02.118Z","event":"ACTION_FINISHED","action_id":"self-runtime-negative","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:30:02.118Z","event":"ACTION_STARTING","action_id":"self-runtime-positive","phase":"VERIFY","kind":"PROBE"}
+{"at":"2026-07-26T18:30:02.153Z","event":"ACTION_FINISHED","action_id":"self-runtime-positive","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:30:02.153Z","event":"ACTION_STARTING","action_id":"self-current-syntax","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:30:05.987Z","event":"ACTION_FINISHED","action_id":"self-current-syntax","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:30:05.987Z","event":"ACTION_STARTING","action_id":"self-current-consumer-syntax","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:30:39.207Z","event":"ACTION_FINISHED","action_id":"self-current-consumer-syntax","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:30:39.207Z","event":"ACTION_STARTING","action_id":"self-current-runtime-trust-core","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:31:54.509Z","event":"ACTION_FINISHED","action_id":"self-current-runtime-trust-core","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:31:54.509Z","event":"ACTION_STARTING","action_id":"self-current-evidence-retention","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:32:06.214Z","event":"ACTION_FINISHED","action_id":"self-current-evidence-retention","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:32:06.215Z","event":"ACTION_STARTING","action_id":"self-current-governance-core","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:32:41.528Z","event":"ACTION_FINISHED","action_id":"self-current-governance-core","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:32:41.528Z","event":"ACTION_STARTING","action_id":"self-current-operating-core","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:38:28.979Z","event":"ACTION_FINISHED","action_id":"self-current-operating-core","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:38:28.980Z","event":"ACTION_STARTING","action_id":"self-current-distribution-trust","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:40:12.301Z","event":"ACTION_FINISHED","action_id":"self-current-distribution-trust","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:40:12.301Z","event":"ACTION_STARTING","action_id":"self-current-release-topology-consumer","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:40:14.300Z","event":"ACTION_FINISHED","action_id":"self-current-release-topology-consumer","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:40:14.300Z","event":"ACTION_STARTING","action_id":"self-current-obligation-evidence","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:40:14.410Z","event":"ACTION_FINISHED","action_id":"self-current-obligation-evidence","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:40:14.410Z","event":"ACTION_STARTING","action_id":"self-current-runtime-behavior","phase":"VERIFY","kind":"COMMAND"}
+{"at":"2026-07-26T18:40:14.482Z","event":"ACTION_FINISHED","action_id":"self-current-runtime-behavior","exit_code":0,"timed_out":false}
+{"at":"2026-07-26T18:40:14.483Z","event":"CLEANUP_EVIDENCE_BEFORE_RECORDED"}
+{"at":"2026-07-26T18:40:14.483Z","event":"CLEANING_UP"}
+{"at":"2026-07-26T18:40:14.485Z","event":"PROCESS_CLEANED","action_id":"self-runtime-service","pid":49566}
+{"at":"2026-07-26T18:40:14.485Z","event":"RESOURCE_CLEANED","resource_id":"files"}
+{"at":"2026-07-26T18:40:14.486Z","event":"RESOURCE_CLEANED","resource_id":"data"}
+{"at":"2026-07-26T18:40:14.486Z","event":"RESOURCE_CLEANED","resource_id":"context"}
+{"at":"2026-07-26T18:40:14.487Z","event":"RESOURCE_CLEANED","resource_id":"cache"}
+{"at":"2026-07-26T18:40:15.246Z","event":"COMPLETED"}

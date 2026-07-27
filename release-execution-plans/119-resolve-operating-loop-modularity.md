@@ -77,7 +77,7 @@ Safe next step: Codex should finish the evidence and exact action plan; do not r
 | Release Execution Topology | Conditional | N/A |
 | Platform Release Recipe | Conditional | N/A |
 | Release Handoff Pack | Conditional | N/A |
-| Preflight verification | Yes | r58 Runtime Trust and current evidence chain passed |
+| Preflight verification | Yes | r61 Runtime Trust and current evidence chain passed |
 | Build output | Conditional | N/A |
 | Release handoff evidence | Yes | N/A |
 | Monitoring observation | Yes | N/A |
@@ -120,11 +120,11 @@ Safe next step: Codex should finish the evidence and exact action plan; do not r
   "schema_version": "1.93.0",
   "artifact_type": "release_execution_plan",
   "artifact_id": "generated-release-execution-plan",
-  "release_execution_digest": "sha256:63c7b5754a079792f8bf983e82fa41326c5d90839f6eb201141cb42bf5fd516a",
+  "release_execution_digest": "sha256:5033c5f6c6b822c0e10c7b83d524deddce0b1f8098661d5ddd90af8d3c9e50e5",
   "project_identity": {
     "kind": "GIT",
     "fingerprint": "sha256:4a77760d85b61ab83d59a03b95a53a3ef502e9467711cef8ca0603a585905d58",
-    "revision": "sha256:17f262e2d32424a4857d6142002e0cf51a47c934091f2949bfc2031f630b2409"
+    "revision": "sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58"
   },
   "release_candidate": {
     "release_target": "N/A",
@@ -138,7 +138,7 @@ Safe next step: Codex should finish the evidence and exact action plan; do not r
   "external_effect_request": {
     "request_type": "none",
     "action": "DEPLOY_OR_SUBMIT",
-    "provider": "source",
+    "provider": "generic",
     "command_or_request_digest": "N/A"
   },
   "trust_inputs": {

@@ -41,7 +41,7 @@
 
 | Plane | Ref | Digest | Confidence |
 | --- | --- | --- | --- |
-| source_control | .git/config | sha256:b575296094b4b734945c6131108a0b768a2066f76296eebb60a4fe498d8631c3 | OBSERVED |
+| source_control | .git/config | sha256:d2d7d49ef247798a7dc1a2f108bc3f27c3c2f1532989ac8c00524fd790162c51 | OBSERVED |
 | orchestration | .github/workflows/intentos-pr-checks.yml | sha256:483d945d493cce1674ffe72448cea5921ea5a5bbb255e45c7baa603d4802235c | OBSERVED |
 | execution_backend | release-channel-policies/113-cross-domain-trust-closure.md | sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af | OBSERVED |
 | package_transport | release-channel-policies/113-cross-domain-trust-closure.md | sha256:9dfef78b8165fa24db718e18eae4f1fd4b4665fbb8e60f463d79dc92c71843af | DECLARED |
@@ -65,13 +65,13 @@
   "schema_version": "1.105.0",
   "artifact_type": "release_execution_topology",
   "topology_ref": "release-execution-topologies/119-resolve-operating-loop-modularity.md",
-  "topology_digest": "sha256:6ac84ddf31a3927c77b5cd723a9a05ae854a2b6bccffe1c11595ee3b396848d7",
+  "topology_digest": "sha256:f7d0e908399415b75046aae61fe6656fa6c3a1abf4c889a640b58d66f14c2d98",
   "intent": "source-only review for IntentOS 1.119",
   "intent_digest": "sha256:1c1bb462a6217d1c4b6fcc8291e1439956a2efa8d0e91596d3a0742578f05a51",
   "project_identity": {
     "kind": "GIT",
     "fingerprint": "sha256:4a77760d85b61ab83d59a03b95a53a3ef502e9467711cef8ca0603a585905d58",
-    "revision": "sha256:17f262e2d32424a4857d6142002e0cf51a47c934091f2949bfc2031f630b2409"
+    "revision": "sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58"
   },
   "planes": {
     "source_control": {
@@ -187,7 +187,7 @@
     {
       "plane": "source_control",
       "ref": ".git/config",
-      "digest": "sha256:b575296094b4b734945c6131108a0b768a2066f76296eebb60a4fe498d8631c3",
+      "digest": "sha256:d2d7d49ef247798a7dc1a2f108bc3f27c3c2f1532989ac8c00524fd790162c51",
       "confidence": "OBSERVED"
     },
     {

@@ -28,16 +28,16 @@ What happens if you do nothing: No files are changed. No task state, apply, comm
 
 | Input | Status | Required | Verified | Ref | Checker | Finding |
 |---|---|---|---|---|---|---|
-| Project path | `PASS` | No | N/A | /Users/liushan/Developer/CodingFlow/ai-native-dev-kit | N/A | Project path is readable. |
+| Project path | `PASS` | No | N/A | /private/tmp/intentos-119-r59-candidate.NI7aRd | N/A | Project path is readable. |
 | Task intent | `PASS` | Yes | Yes | task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630 | work-queue-task-identity | Canonical task reference and intent digest are present. |
 | Completion Evidence | `PASS` | Yes | Yes | completion-evidence-reports/119-resolve-operating-loop-modularity.md | check-completion-evidence --require-ready | Current Completion Evidence passes strict validation for the exact task and intent. |
-| Verification | `PASS` | No | Yes | r58 Runtime Trust and current evidence chain passed | explicit-verification-summary | Passing verification was provided. |
+| Verification | `PASS` | No | Yes | r61 Runtime Trust and current evidence chain passed | explicit-verification-summary | Passing verification was provided. |
 | Runtime Trust | `PASS` | No | Yes | artifact:verification-run-manifests/119-resolve-operating-loop-modularity.md | scripts/check-verification-run-manifest.mjs --require-complete | The exact current run passed the authoritative checker and consumer identity checks. |
 | Change Impact Coverage | `PASS` | No | Yes | change-impact-coverage-reports/119-resolve-operating-loop-modularity.md | check-change-impact-coverage --report --require-precise-evidence | Change Impact Coverage passes strict validation and matches the current task. |
 | Execution Closure | `MISSING` | No | No | N/A | check-execution-closure --report --require-impact-coverage --require-precise-evidence | No Execution Closure matching the current task is available; unrelated historical records were not used. |
 | Guided Closure | `OPTIONAL` | No | N/A | N/A | N/A | Guided summary is optional after the unified decision. |
 | Human Decision | `N/A` | No | N/A | N/A | N/A | No bounded business, external-fact, or exact real-world consent reference was supplied; technical risk remains Codex-owned. |
-| Git worktree | `NEEDS_REVIEW` | No | N/A | main | N/A | 51 changed file(s) detected. |
+| Git worktree | `NEEDS_REVIEW` | No | N/A | main | N/A | 45 changed file(s) detected. |
 
 ## Decision Trace
 
@@ -87,7 +87,7 @@ If lower-level close-out artifacts disagree, this decision uses the stricter res
 | Input | Required | Verified | Evidence ref | Checker |
 |---|---|---|---|---|
 | Completion Evidence | Yes | Yes | completion-evidence-reports/119-resolve-operating-loop-modularity.md | check-completion-evidence --require-ready |
-| Verification | No | Yes | r58 Runtime Trust and current evidence chain passed | explicit-verification-summary |
+| Verification | No | Yes | r61 Runtime Trust and current evidence chain passed | explicit-verification-summary |
 | Runtime Trust | No | Yes | artifact:verification-run-manifests/119-resolve-operating-loop-modularity.md | scripts/check-verification-run-manifest.mjs --require-complete |
 | Change Impact Coverage | No | Yes | change-impact-coverage-reports/119-resolve-operating-loop-modularity.md | check-change-impact-coverage --report --require-precise-evidence |
 | Execution Closure | No | No | N/A | check-execution-closure --report --require-impact-coverage --require-precise-evidence |
@@ -98,7 +98,7 @@ If lower-level close-out artifacts disagree, this decision uses the stricter res
 | Evidence | Status | Verified | Ref | Checker |
 |---|---|---|---|
 | Completion Evidence | `PASS` | Yes | completion-evidence-reports/119-resolve-operating-loop-modularity.md | check-completion-evidence --require-ready |
-| Verification | `PASS` | Yes | r58 Runtime Trust and current evidence chain passed | explicit-verification-summary |
+| Verification | `PASS` | Yes | r61 Runtime Trust and current evidence chain passed | explicit-verification-summary |
 | Runtime Trust | `PASS` | Yes | artifact:verification-run-manifests/119-resolve-operating-loop-modularity.md | scripts/check-verification-run-manifest.mjs --require-complete |
 | Change Impact Coverage | `PASS` | Yes | change-impact-coverage-reports/119-resolve-operating-loop-modularity.md | check-change-impact-coverage --report --require-precise-evidence |
 | Execution Closure | `MISSING` | No | N/A | check-execution-closure --report --require-impact-coverage --require-precise-evidence |

@@ -29,8 +29,8 @@ modularize scripts/resolve-operating-loop.mjs into cohesive internal modules whi
 | Business Rule ID | `business-rule:modularize-scripts-resolve-operating-loop-mjs-into-cohesive-inte` |
 | Business Rule Ref | `artifact:business-rule-closures/119-resolve-operating-loop-modularity.md` |
 | Source Request Digest | `sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c` |
-| Business Rule Digest | `sha256:fccd6c85ef0abc9a36d1fe57ca98641a49cdd687e565f7bbf7f4b276d73001e2` |
-| Closure Digest | `sha256:585d45733459e084e92013852122598c19ce1b9af258048b4a20e633b04912a9` |
+| Business Rule Digest | `sha256:c9ed2b102a989b23015c0e4aebd0c00a9599495d2de48fb0c05072c9df37ab01` |
+| Closure Digest | `sha256:46dd516712fb167f4c26628c508c5817bbf7327d09a6af021733ad6e38755a2e` |
 
 ## Business Universe Binding
 
@@ -40,7 +40,7 @@ modularize scripts/resolve-operating-loop.mjs into cohesive internal modules whi
 | Routing result | `REQUIRED_WITH_EVIDENCE` |
 | Reason codes | SELECTIVE_INCLUSION_OR_FANOUT, LIFECYCLE_BRANCH_OR_RECOVERY, PATH_PROVENANCE_AMBIGUITY, DOMAIN_COMPLETENESS_CLAIM, HIGH_RISK_OMISSION_AMPLIFIER |
 | Coverage ref | `artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md` |
-| Coverage digest | `sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235` |
+| Coverage digest | `sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471` |
 | Coverage state | `COVERAGE_READY` |
 | Coverage scenarios | coverage-scenario:54d5e4301d4c6638bf60f92e, coverage-scenario:ecfcf7c958bb154d7ec23da9, coverage-scenario:31cc3db857547fa9a3a9cbeb, coverage-scenario:3ab1bd0537b3500e5517624a, coverage-scenario:9bf19075a1d696dfaa06199b |
 | Coverage mapping status | `COMPLETE` |
@@ -142,8 +142,8 @@ Local smoke evidence first; staging or internal trial evidence when available be
   "source_request_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
   "business_rule_id": "business-rule:modularize-scripts-resolve-operating-loop-mjs-into-cohesive-inte",
   "business_rule_ref": "artifact:business-rule-closures/119-resolve-operating-loop-modularity.md",
-  "business_rule_digest": "sha256:fccd6c85ef0abc9a36d1fe57ca98641a49cdd687e565f7bbf7f4b276d73001e2",
-  "closure_digest": "sha256:585d45733459e084e92013852122598c19ce1b9af258048b4a20e633b04912a9",
+  "business_rule_digest": "sha256:c9ed2b102a989b23015c0e4aebd0c00a9599495d2de48fb0c05072c9df37ab01",
+  "closure_digest": "sha256:46dd516712fb167f4c26628c508c5817bbf7327d09a6af021733ad6e38755a2e",
   "primary_business_rule_type": "STATUS_TRANSITION",
   "business_rule_types": [
     "STATUS_TRANSITION"
@@ -162,7 +162,7 @@ Local smoke evidence first; staging or internal trial evidence when available be
       "HIGH_RISK_OMISSION_AMPLIFIER"
     ],
     "business_universe_ref": "artifact:business-universe-coverage-reports/119-resolve-operating-loop-modularity.md",
-    "business_universe_digest": "sha256:00d97ffe4e6f3792b248077545d48f29de23b6dfdb580f5dcbd17d3a32c2a235",
+    "business_universe_digest": "sha256:21192cecd888079dde1663a4cdc2b12cf7ce9d3ecc61cebab4f4c27a77a08471",
     "business_universe_state": "COVERAGE_READY",
     "coverage_scenario_ids": [
       "coverage-scenario:54d5e4301d4c6638bf60f92e",

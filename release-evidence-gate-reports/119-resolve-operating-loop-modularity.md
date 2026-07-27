@@ -14,10 +14,10 @@
 
 | Field | Value |
 |---|---|
-| Source Revision | sha256:17f262e2d32424a4857d6142002e0cf51a47c934091f2949bfc2031f630b2409 |
+| Source Revision | sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58 |
 | Dirty Worktree Status | dirty |
 | Build Artifact | missing |
-| Build Artifact Digest | sha256:ae687489d4959e957564199941ec194e760ba0b23ea0da727a5dfdca39090574 |
+| Build Artifact Digest | sha256:d6d767f4dd550cefe2cea27170fcf44cabab0081cbdd5da2e185b1089b338230 |
 | Completion Evidence Count | 1 |
 
 ## Release Target Requirements
@@ -29,8 +29,8 @@
 | Source | Status | Ref | Current Release Match | Outcome |
 |---|---|---|---|---|
 | completion_evidence | RECORDED | artifact:completion-evidence-reports/119-resolve-operating-loop-modularity.md | Yes | COMPLETION_EVIDENCE_READY |
-| test_evidence | RECORDED | artifact:test-evidence-reports/119-resolve-operating-loop-modularity.md | Yes | TEST_EVIDENCE_COMPLETE |
-| execution_assurance | RECORDED | artifact:execution-assurance-reports/119-resolve-operating-loop-modularity.md | Yes | VERIFIED_DONE |
+| test_evidence | OPTIONAL | not provided | N/A | not provided |
+| execution_assurance | OPTIONAL | not provided | N/A | not provided |
 | product_completeness | OPTIONAL | not provided | N/A | not provided |
 | launch_review_view | OPTIONAL | not provided | N/A | not provided |
 | release_plan | OPTIONAL | not provided | N/A | not provided |
@@ -51,8 +51,8 @@
 | Field | Value |
 |---|---|
 | Release Owner Identified | Yes |
-| Release Owner Ref | Codex |
-| Release Owner Review Ref | pending |
+| Release Owner Ref | missing |
+| Release Owner Review Ref | missing |
 | Risk Owner Ref | not_applicable |
 | Environment Owner Ref | not_applicable |
 | Release Approval Ref | out_of_scope |
@@ -126,12 +126,12 @@
   "artifact_type": "release_evidence_gate",
   "intent": "source-only review for IntentOS 1.119",
   "intent_digest": "sha256:1c1bb462a6217d1c4b6fcc8291e1439956a2efa8d0e91596d3a0742578f05a51",
-  "release_evidence_digest": "sha256:d1c13a0266d4eb0c8c96e082e1440087036a7770b8849c8daad4f834520b41b0",
+  "release_evidence_digest": "sha256:1c2af9828f5151ddd38a89d011bc587c08924cf626e616b15804e3bf4eda49c2",
   "release_target": "source_review",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/119-source-candidate.md",
-    "release_candidate_digest": "sha256:f5b598cb23272225ab9dfb41782cca012890163140f414a368bcbe658ce62603",
-    "source_revision": "sha256:17f262e2d32424a4857d6142002e0cf51a47c934091f2949bfc2031f630b2409",
+    "release_candidate_digest": "sha256:cc1530eafb4228993dbd1e86e4921217d183fdfa8da9026ac864f918eb0a5262",
+    "source_revision": "sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58",
     "dirty_worktree_status": "dirty",
     "included_task_refs": [
       "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630"
@@ -141,7 +141,7 @@
     ],
     "excluded_known_items": [],
     "build_artifact_ref": "missing",
-    "build_artifact_digest": "sha256:ae687489d4959e957564199941ec194e760ba0b23ea0da727a5dfdca39090574"
+    "build_artifact_digest": "sha256:d6d767f4dd550cefe2cea27170fcf44cabab0081cbdd5da2e185b1089b338230"
   },
   "gate_state": "OUT_OF_SCOPE_FOR_RELEASE_GATE",
   "can_handoff_to_release_owner": "No",
@@ -151,28 +151,28 @@
       "name": "completion_evidence",
       "status": "RECORDED",
       "ref": "artifact:completion-evidence-reports/119-resolve-operating-loop-modularity.md",
-      "digest": "sha256:a903116990ad001278b1709ea3a479cb1315089bc4572a53584c80f0f99c99b0",
+      "digest": "sha256:a2c74dbb57d8a958398c91ceb5a9e23cf11f4858add36e435c2f3afc8707a8ab",
       "source_outcome": "COMPLETION_EVIDENCE_READY",
       "current_release_match": "Yes",
       "reason": "Source artifact has machine-readable evidence."
     },
     {
       "name": "test_evidence",
-      "status": "RECORDED",
-      "ref": "artifact:test-evidence-reports/119-resolve-operating-loop-modularity.md",
-      "digest": "sha256:f50c24c596d396f5baf10ae922db7ab5d0e890924b18da7066f427ccc0065325",
-      "source_outcome": "TEST_EVIDENCE_COMPLETE",
-      "current_release_match": "Yes",
-      "reason": "Source artifact has machine-readable evidence."
+      "status": "OPTIONAL",
+      "ref": "",
+      "digest": "",
+      "source_outcome": "",
+      "current_release_match": "N/A",
+      "reason": "Optional source was not provided."
     },
     {
       "name": "execution_assurance",
-      "status": "RECORDED",
-      "ref": "artifact:execution-assurance-reports/119-resolve-operating-loop-modularity.md",
-      "digest": "sha256:024c1b6feadee19a1f42584bc1705163872be152028eab0d5b7fb8f7c2f00a43",
-      "source_outcome": "VERIFIED_DONE",
-      "current_release_match": "Yes",
-      "reason": "Source artifact has machine-readable evidence."
+      "status": "OPTIONAL",
+      "ref": "",
+      "digest": "",
+      "source_outcome": "",
+      "current_release_match": "N/A",
+      "reason": "Optional source was not provided."
     },
     {
       "name": "product_completeness",
@@ -223,7 +223,7 @@
       "name": "release_execution_topology",
       "status": "RECORDED",
       "ref": "artifact:release-execution-topologies/119-resolve-operating-loop-modularity.md",
-      "digest": "sha256:47ccbeaac4b2f1d8910db6f8653b690fb23c5644c6747e690ff5b6442d321ed5",
+      "digest": "sha256:58fa8f8621b33b2c65d9499d85ddff17ca17368da71d724c4b53422690ae81c3",
       "source_outcome": "RELEASE_TOPOLOGY_RECORDED",
       "current_release_match": "Yes",
       "reason": "Source artifact has machine-readable evidence."
@@ -263,7 +263,7 @@
     {
       "ref": "artifact:completion-evidence-reports/119-resolve-operating-loop-modularity.md",
       "status": "RECORDED",
-      "digest": "sha256:a903116990ad001278b1709ea3a479cb1315089bc4572a53584c80f0f99c99b0",
+      "digest": "sha256:a2c74dbb57d8a958398c91ceb5a9e23cf11f4858add36e435c2f3afc8707a8ab",
       "task_ref": "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
       "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
       "completion_state": "COMPLETION_EVIDENCE_READY",
@@ -275,8 +275,8 @@
     }
   ],
   "owner_readiness": {
-    "release_owner_ref": "Codex",
-    "release_owner_review_ref": "pending",
+    "release_owner_ref": "missing",
+    "release_owner_review_ref": "missing",
     "risk_owner_ref": "not_applicable",
     "environment_owner_ref": "not_applicable",
     "release_approval_ref": "out_of_scope",

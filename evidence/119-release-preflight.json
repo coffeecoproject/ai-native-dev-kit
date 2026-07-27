@@ -5,13 +5,13 @@
   "task_ref": "task:8076c2a8a25ff7cf3510a05e8fe5654511690bc16aa43429a0b680daf0643630",
   "intent_digest": "sha256:7c2e387d1e68deeaa956cdd690e69b3965d294aa1e7b4f65e4933002da307e4c",
   "release_candidate_ref": "artifact:release-candidates/119-source-candidate.md",
-  "release_candidate_digest": "sha256:f5b598cb23272225ab9dfb41782cca012890163140f414a368bcbe658ce62603",
-  "source_revision": "sha256:17f262e2d32424a4857d6142002e0cf51a47c934091f2949bfc2031f630b2409",
+  "release_candidate_digest": "sha256:cc1530eafb4228993dbd1e86e4921217d183fdfa8da9026ac864f918eb0a5262",
+  "source_revision": "sha256:84e65e70d5b495127420d650fd08e893e0c41372c7b553eadb7d82719d549d58",
   "lane_state": "PREFLIGHT_ONLY",
   "command": "git diff --cached --check",
   "result": "PASS",
   "exit_code": 0,
   "external_effects_executed": "No",
   "production_touched": "No",
-  "receipt_digest": "sha256:d979b85416c1e196e92620f904c73a0e3e713988dfc413846308022903b9c5c8"
+  "receipt_digest": "sha256:aafa7cd523ed1e8f43b9564a2d35eddb1501285877f45772f088a71ec04281ca"
 }
