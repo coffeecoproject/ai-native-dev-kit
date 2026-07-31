@@ -70,7 +70,7 @@ const businessPattern = /\b(customer|user-visible|business|contract|invoice|tax|
 const engineeringPattern = /\b(enum|string|schema|dto|type|architecture|architectural|layers?|layered|layering|presentation|domain|infrastructure|build|test|lint|package|database|api|folder|structure|dependency|frontend|backend|component)\b|架构|分层|枚举|数据库|接口|组件|构建|测试|目录|依赖/i;
 const workflowPattern = /\b(codex|ai|agent|workflow|review|approval|apply|task|commit|pr|pull request|prompt|subagent|finish|queue|evidence|plan)\b|任务|审查|证据|复盘|计划|执行|验收|工作流/i;
 const historicalPattern = /\b(historical|legacy|old note|deprecated|stale|archive|todo|temporary)\b|历史|废弃|过期|归档|临时/i;
-const governanceHeadingPattern = /\b(rule|rules|governance|policy|policies|constraint|constraints|baseline|release|permission|approval|workflow|agent|codex|业务|规则|治理|基线|发布|权限|审批|流程)\b/i;
+const governanceHeadingPattern = /\b(rule|rules|governance|policy|policies|constraint|constraints|baseline|release|permission|approval|workflow|agent|codex)\b|业务|规则|治理|基线|发布|权限|审批|流程/i;
 const tableRuleHeaders = new Set([
   "rule",
   "requirement",
@@ -230,19 +230,22 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
       }
       continue;
     }
-    if (!hasRuleSignal(candidate) && !hasRuleSignal(currentHeading(headingStack))) {
-      if (governanceHeadingPattern.test(currentHeading(headingStack))) {
-        lowSignalBlocks.push({
-          source_file: sourceFile,
-          source_start_line: lineNumber,
-          source_end_line: lineNumber,
-          context_heading: currentHeading(headingStack),
-          excerpt: normalizeExcerpt(candidate),
-          reason: "Low-signal text under a governance-like heading was not classified automatically.",
-        });
-        parserWarnings.push(`${sourceFile}:${lineNumber}-${lineNumber} low-signal governance text needs manual review`);
-      }
+    if (isPlaceholderDeclaration(candidate)) {
+      lowSignalBlocks.push({
+        source_file: sourceFile,
+        source_start_line: lineNumber,
+        source_end_line: lineNumber,
+        context_heading: currentHeading(headingStack),
+        excerpt: normalizeExcerpt(candidate),
+        reason: "Placeholder-only declaration was preserved for review instead of emitted as a project rule.",
+        disposition: "RESOLVED_NON_RULE",
+      });
+      parserWarnings.push(`${sourceFile}:${lineNumber}-${lineNumber} placeholder-only declaration needs manual review`);
       continue;
+    }
+
+    if (!hasRuleSignal(candidate) && !hasRuleSignal(currentHeading(headingStack))) {
+      if (!governanceHeadingPattern.test(currentHeading(headingStack))) continue;
     }
 
     const classification = classifyNativeRule({
@@ -557,7 +560,9 @@ function flushTableBlock(block, rules, skippedBlocks, lowSignalBlocks, parserWar
   if (table) {
     for (const row of table.rows) {
       const candidate = normalizeText(row.cells.map((cell, index) => `${table.headers[index]}: ${cell}`).join(" "));
-      if (!hasRuleSignal(candidate) && !hasRuleSignal(block.contextHeading)) {
+      if (!hasRuleSignal(candidate)
+        && !hasRuleSignal(block.contextHeading)
+        && !governanceHeadingPattern.test(block.contextHeading)) {
         lowSignalBlocks.push({
           source_file: sourceFile,
           source_start_line: row.lineNumber,
@@ -612,7 +617,8 @@ function parseSimpleTable(block) {
   if (!separator.cells.every((cell) => /^:?-{3,}:?$/.test(cell))) return null;
   const headers = header.cells.map((cell) => cell.toLowerCase());
   const hasRuleColumn = headers.some((cell) => tableRuleHeaders.has(cell));
-  const hasGovernanceSignal = hasRuleSignal(`${block.contextHeading} ${header.cells.join(" ")}`);
+  const tableContext = `${block.contextHeading} ${header.cells.join(" ")}`;
+  const hasGovernanceSignal = hasRuleSignal(tableContext) || governanceHeadingPattern.test(tableContext);
   if ((!hasRuleColumn && !hasGovernanceSignal) || headers.length > 12) return null;
   const dataRows = rows.filter((row) => row.cells.length === headers.length && row.cells.some(Boolean));
   if (dataRows.length === 0) return null;
@@ -633,6 +639,10 @@ function normalizeText(value) {
 
 function normalizeExcerpt(value) {
   return normalizeText(value).replace(/\|/g, "/").slice(0, 180);
+}
+
+function isPlaceholderDeclaration(value) {
+  return /^(?:n\/?a|none|not applicable|not configured|not selected|暂无|无|不适用)$/i.test(normalizeText(value));
 }
 
 function escapeRegExp(value) {

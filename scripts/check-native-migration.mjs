@@ -731,6 +731,7 @@ function checkApplyChain(content, label) {
 }
 
 function checkBoundaries(content, label) {
+  const body = sectionBody(content, "Boundaries", { fallback: "" }) || "";
   for (const boundary of [
     "This plan writes target files",
     "This plan authorizes target-file writes",
@@ -740,9 +741,9 @@ function checkBoundaries(content, label) {
     "This plan changes production config, secrets, migrations, payment, permissions, data, provider state, legal, tax, finance, HR, security, privacy, or compliance behavior",
     "This plan treats IntentOS workflow authority as business authority",
   ]) {
-    requireBoundaryNo(content, label, boundary);
+    requireBoundaryNo(body, label, boundary);
   }
-  const approval = boundaryValue(content, "This plan requires human approval before governance replacement");
+  const approval = boundaryValue(body, "This plan requires human approval before governance replacement");
   if (approval === "Yes") pass(`${label} requires human approval before governance replacement`);
   else fail(`${label} must require human approval before governance replacement`);
 }

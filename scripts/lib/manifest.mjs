@@ -50,14 +50,16 @@ export function manifestPathForRoot(root = kitRoot, manifestPath = null) {
   if (fs.existsSync(installedManifest)) return installedManifest;
 
   const sourceManifest = path.join(root, "intentos-manifest.json");
-  if (isIntentOSSourceCheckout(root, sourceManifest)) return sourceManifest;
+  if (isIntentOSSourceCheckout(root)) return sourceManifest;
   return installedManifest;
 }
 
-function isIntentOSSourceCheckout(root, sourceManifest) {
+export function isIntentOSSourceCheckout(root) {
+  const sourceManifest = path.join(root, "intentos-manifest.json");
   if (!fs.existsSync(sourceManifest)
     || !fs.existsSync(path.join(root, "VERSION.md"))
-    || !fs.existsSync(path.join(root, "package.json"))) {
+    || !fs.existsSync(path.join(root, "package.json"))
+    || !fs.existsSync(path.join(root, "core", "workflow.md"))) {
     return false;
   }
 

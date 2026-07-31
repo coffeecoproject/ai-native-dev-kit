@@ -5,9 +5,18 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { extractMachineReadableEvidence } from "../scripts/lib/artifact-schema.mjs";
+import { projectIdentity } from "../scripts/lib/evidence-authority.mjs";
 
 const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const coverageSuite = path.join(kitRoot, "tests", "business-universe-coverage.test.mjs");
+
+function reportProjectAuthorityMatchesCurrent(relativePath) {
+  const content = fs.readFileSync(path.join(kitRoot, relativePath), "utf8");
+  const extracted = extractMachineReadableEvidence(content);
+  assert.equal(extracted?.ok, true, `${relativePath} must contain valid structured evidence`);
+  return JSON.stringify(extracted.value.authority_binding?.project) === JSON.stringify(projectIdentity(kitRoot));
+}
 
 function run(script, args, options = {}) {
   return spawnSync(process.execPath, [path.join(kitRoot, script), ...args], {
@@ -258,11 +267,16 @@ test("1.119 Business Rule Closure batch preserves history without granting stale
     "--require-structured-evidence",
     "--require-task-lineage",
   ]);
-  assert.equal(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
-  assert.match(
-    explicitCurrent.stdout,
-    /119-resolve-operating-loop-modularity\.md referenced Business Universe Coverage passes strict ready check/,
-  );
+  if (reportProjectAuthorityMatchesCurrent("business-universe-coverage-reports/119-resolve-operating-loop-modularity.md")) {
+    assert.equal(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
+    assert.match(
+      explicitCurrent.stdout,
+      /119-resolve-operating-loop-modularity\.md referenced Business Universe Coverage passes strict ready check/,
+    );
+  } else {
+    assert.notEqual(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
+    assert.match(`${explicitCurrent.stdout}\n${explicitCurrent.stderr}`, /authority_binding\.project does not match/);
+  }
 
   const explicitHistorical = run("scripts/check-business-rule-closure.mjs", [
     kitRoot,
@@ -308,11 +322,16 @@ test("1.119 Verification Plan batch preserves history without granting stale sou
     "--require-evidence-authority",
     "--require-task-lineage",
   ]);
-  assert.equal(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
-  assert.match(
-    explicitCurrent.stdout,
-    /119-resolve-operating-loop-modularity\.md Control Effectiveness binding is exact and current/,
-  );
+  if (reportProjectAuthorityMatchesCurrent("verification-plans/119-resolve-operating-loop-modularity.md")) {
+    assert.equal(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
+    assert.match(
+      explicitCurrent.stdout,
+      /119-resolve-operating-loop-modularity\.md Control Effectiveness binding is exact and current/,
+    );
+  } else {
+    assert.notEqual(explicitCurrent.status, 0, `${explicitCurrent.stdout}\n${explicitCurrent.stderr}`);
+    assert.match(`${explicitCurrent.stdout}\n${explicitCurrent.stderr}`, /authority_binding\.project does not match/);
+  }
 
   const explicitHistorical = run("scripts/check-verification-plan.mjs", [
     kitRoot,

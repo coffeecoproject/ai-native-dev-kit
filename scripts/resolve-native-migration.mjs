@@ -8,12 +8,14 @@ import { gitWorktreeState } from "./lib/git.mjs";
 import {
   defaultIgnoredDirs,
   hasProjectSignals,
+  partitionNativeAuthorityPaths,
   walkRelativePaths,
 } from "./lib/project-signals.mjs";
 import { extractNativeRulesFromMarkdown } from "./lib/native-rule-extraction.mjs";
 import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
 import { sameRunBindingFromTrust } from "./lib/same-run-evidence-envelope.mjs";
+import { stringifyJsonForMarkdownFence } from "./lib/artifact-schema.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const kitRoot = path.resolve(scriptDir, "..");
@@ -61,7 +63,7 @@ function buildNativeMigration(root, options) {
     ignoredDirs: defaultIgnoredDirs,
   }).sort() : [];
   const pathSet = new Set(paths);
-  const signals = exists ? collectSignals(root, pathSet) : emptySignals();
+  const signals = exists ? collectSignals(root, pathSet, kitRoot) : emptySignals();
   const projectState = classifyProject(root, exists, git, signals);
   const migrationSignals = projectState.state === "INTENTOS_REPOSITORY"
     ? currentIntentOSSignals(root)
@@ -90,6 +92,7 @@ function buildNativeMigration(root, options) {
     requiresHumanApprovalBeforeApply: "Yes",
     recommendedNextStep: recommendedNextStepFor(posture),
     existingGovernanceInventory: inventory,
+    authoritySourceBoundary: sourceBoundaryFor(migrationSignals),
     ruleExtractionCoverage,
     parserWarnings,
     ruleClassifications,
@@ -116,6 +119,11 @@ function buildNativeMigration(root, options) {
 function currentIntentOSSignals(root) {
   const existing = (refs) => refs.filter((ref) => fs.existsSync(path.join(root, ref)));
   return {
+    authoritySourceBoundary: {
+      nativePaths: [],
+      excluded: [],
+      status: "SOURCE_REPOSITORY",
+    },
     hasProjectSignals: true,
     agentRules: existing(["AGENTS.md", "platforms/codex/AGENTS.template.md"]),
     governanceDocs: existing(["core/operating-model.md", "core/project-entry-adoption-trust.md"]),
@@ -128,13 +136,16 @@ function currentIntentOSSignals(root) {
   };
 }
 
-function collectSignals(root, pathSet) {
+function collectSignals(root, pathSet, sourceRoot) {
   const allPaths = Array.from(pathSet);
-  const matching = (patterns) => {
-    const matches = allPaths.filter((item) => patterns.some((pattern) => pattern.test(item))).sort();
+  const partition = partitionNativeAuthorityPaths(root, sourceRoot, allPaths);
+  const nativePaths = partition.nativePaths;
+  const matching = (patterns, paths = nativePaths) => {
+    const matches = paths.filter((item) => patterns.some((pattern) => pattern.test(item))).sort();
     return matches;
   };
   return {
+    authoritySourceBoundary: partition,
     hasProjectSignals: hasProjectSignals(root),
     agentRules: matching([
       /(^|\/)AGENTS\.md$/i,
@@ -161,7 +172,7 @@ function collectSignals(root, pathSet) {
       /^issues(\/|$)/i,
       /^\.github\/pull_request_template\.md$/i,
       /^\.github\/ISSUE_TEMPLATE(\/|$)/i,
-    ]),
+    ], allPaths),
     ciGates: matching([
       /(^|\/)\.github\/workflows(\/|$)/i,
       /^scripts\/guard(\/|$)/i,
@@ -197,13 +208,18 @@ function collectSignals(root, pathSet) {
       /^workflow-adoption-maps(\/|$)/i,
       /^native-migration-plans(\/|$)/i,
       /^apply-plans(\/|$)/i,
-    ]),
+    ], allPaths),
     productionSignals: matching([/\b(prod|production|release|deploy|rollback|incident|runbook|migration|backup|restore|staging)\b/i]),
   };
 }
 
 function emptySignals() {
   return {
+    authoritySourceBoundary: {
+      nativePaths: [],
+      excluded: [],
+      status: "NO_PROJECT",
+    },
     hasProjectSignals: false,
     agentRules: [],
     governanceDocs: [],
@@ -213,6 +229,21 @@ function emptySignals() {
     hooksAutomation: [],
     intentOSAssets: [],
     productionSignals: [],
+  };
+}
+
+function sourceBoundaryFor(signals) {
+  const boundary = signals.authoritySourceBoundary || { nativePaths: [], excluded: [], status: "NOT_APPLICABLE" };
+  const byClassification = {};
+  for (const item of boundary.excluded || []) {
+    byClassification[item.classification] = (byClassification[item.classification] || 0) + 1;
+  }
+  return {
+    status: boundary.status,
+    nativePathCount: boundary.nativePaths?.length || 0,
+    excludedPathCount: boundary.excluded?.length || 0,
+    excludedByClassification: byClassification,
+    exclusions: boundary.excluded || [],
   };
 }
 
@@ -563,6 +594,7 @@ function toCoverage(coverage) {
       contextHeading: item.context_heading,
       excerpt: item.excerpt,
       reason: item.reason,
+      ...(item.disposition ? { disposition: item.disposition } : {}),
     })),
     parserWarnings: coverage.parser_warnings,
   };
@@ -587,6 +619,18 @@ function structuredEvidenceFor(report, sourceBinding) {
     guidance_digest: sourceBinding.guidanceDigest,
     authority_inventory_digest: sourceBinding.authorityInventoryDigest,
     source_revision: sourceBinding.sourceRevision,
+    authority_source_boundary: {
+      status: report.authoritySourceBoundary.status,
+      native_path_count: report.authoritySourceBoundary.nativePathCount,
+      excluded_path_count: report.authoritySourceBoundary.excludedPathCount,
+      excluded_by_classification: report.authoritySourceBoundary.excludedByClassification,
+      exclusions: report.authoritySourceBoundary.exclusions.map((item) => ({
+        path: item.path,
+        classification: item.classification,
+        evidence: item.evidence,
+        ...(item.source ? { source: item.source } : {}),
+      })),
+    },
     rule_extraction_coverage: report.ruleExtractionCoverage.map((item) => ({
       source_file: item.sourceFile,
       lines_scanned: item.linesScanned,
@@ -614,6 +658,7 @@ function structuredEvidenceFor(report, sourceBinding) {
         context_heading: block.contextHeading,
         excerpt: block.excerpt,
         reason: block.reason,
+        ...(block.disposition ? { disposition: block.disposition } : {}),
       })),
       parser_warnings: item.parserWarnings,
     })),
@@ -759,6 +804,19 @@ function printHuman(report) {
     console.log(`| ${item.area} | ${item.source} | ${item.handling} |`);
   }
   console.log("");
+  console.log("## Authority Source Boundary");
+  console.log("");
+  console.log("| Field | Value |");
+  console.log("| --- | --- |");
+  console.log(`| Status | \`${report.authoritySourceBoundary.status}\` |`);
+  console.log(`| Native candidate paths | ${report.authoritySourceBoundary.nativePathCount} |`);
+  console.log(`| Excluded IntentOS paths | ${report.authoritySourceBoundary.excludedPathCount} |`);
+  for (const [classification, count] of Object.entries(report.authoritySourceBoundary.excludedByClassification)) {
+    console.log(`| ${classification} | ${count} |`);
+  }
+  console.log("");
+  console.log("Excluded paths remain present in structured evidence with their ownership proof; drifted files are not excluded.");
+  console.log("");
   console.log("## Rule Extraction Coverage");
   console.log("");
   console.log("| Source file | Lines scanned | Rules extracted | Unclassified blocks | Skipped blocks | Low-signal blocks | Parser warnings |");
@@ -857,7 +915,7 @@ function printHuman(report) {
   console.log("## Machine-Readable Evidence");
   console.log("");
   console.log("```json");
-  console.log(JSON.stringify(report.structuredEvidence, null, 2));
+  console.log(stringifyJsonForMarkdownFence(report.structuredEvidence));
   console.log("```");
   console.log("");
   console.log("## Outcome");

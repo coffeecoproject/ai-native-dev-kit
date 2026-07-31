@@ -5,7 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { loadManifest, manifestPathForRoot } from "../scripts/lib/manifest.mjs";
+import { isIntentOSSourceCheckout, loadManifest, manifestPathForRoot } from "../scripts/lib/manifest.mjs";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const kitRoot = path.resolve(testDir, "..");
@@ -119,6 +119,28 @@ test("installed managed manifest overrides a stale root manifest", () => {
     fs.writeFileSync(path.join(root, ".intentos", "intentos-manifest.json"), JSON.stringify({ intentOSVersion: "9.9.9", mode: "installed" }));
     assert.equal(manifestPathForRoot(root), path.join(root, ".intentos", "intentos-manifest.json"));
     assert.equal(loadManifest(root).intentOSVersion, "9.9.9");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("authoritative source identity requires the full source-only contract", () => {
+  assert.equal(isIntentOSSourceCheckout(kitRoot), true);
+
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-source-near-miss-"));
+  try {
+    fs.mkdirSync(path.join(root, "core"), { recursive: true });
+    fs.writeFileSync(path.join(root, "VERSION.md"), "Current version: `9.9.9`\n");
+    fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ name: "intentos" }));
+    fs.writeFileSync(path.join(root, "intentos-manifest.json"), JSON.stringify({
+      mode: "authoritative",
+      compatibilityPolicy: { authoritative: true },
+    }));
+    assert.equal(isIntentOSSourceCheckout(root), false, "core/workflow.md is required");
+    fs.writeFileSync(path.join(root, "core", "workflow.md"), "# Workflow\n");
+    assert.equal(isIntentOSSourceCheckout(root), true);
+    fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ name: "business-project" }));
+    assert.equal(isIntentOSSourceCheckout(root), false, "package identity is required");
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

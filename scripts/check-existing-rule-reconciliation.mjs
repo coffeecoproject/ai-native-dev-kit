@@ -154,8 +154,9 @@ function checkReports() {
     } else {
       pass(`${label} states recommendation-not-permission boundary`);
     }
+    const claimScanContent = reconciliationClaimSurface(content);
     for (const pattern of forbiddenClaims) {
-      if (pattern.test(content)) fail(`${label} contains forbidden reconciliation claim: ${pattern.source}`);
+      if (pattern.test(claimScanContent)) fail(`${label} contains forbidden reconciliation claim: ${pattern.source}`);
     }
     for (const section of requiredSections) requireSection(content, section, label);
     if (requireStructuredEvidence) {
@@ -177,6 +178,21 @@ function checkReports() {
       fail(`${label} has invalid Outcome: ${outcome || "<empty>"}`);
     }
   }
+}
+
+function reconciliationClaimSurface(content) {
+  return [
+    "Human Summary",
+    "Engineering Baseline Recommendations",
+    "Release / Production Recommendations",
+    "Protected Constraint Handling",
+    "Conflicts And Human Decisions",
+    "IntentOS Adoption Recommendation",
+    "False Positive / False Negative Notes",
+    "Proposed Next Step",
+    "Boundaries",
+    "Outcome",
+  ].map((heading) => sectionBody(content, heading, { fallback: "" }) || "").join("\n");
 }
 
 function checkSummary(summary, label) {

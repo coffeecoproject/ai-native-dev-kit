@@ -104,6 +104,12 @@ export function extractMachineReadableEvidence(content) {
   }
 }
 
+export function stringifyJsonForMarkdownFence(value, space = 2) {
+  const serialized = JSON.stringify(value, null, space);
+  if (typeof serialized !== "string") return serialized;
+  return serialized.replaceAll("```", "\\u0060\\u0060\\u0060");
+}
+
 export function validateSchema(value, schema, options = {}) {
   const errors = [];
   validateValue(value, schema, options.label || "$", errors, schema);

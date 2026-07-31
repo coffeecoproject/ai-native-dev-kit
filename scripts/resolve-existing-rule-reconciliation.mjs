@@ -11,7 +11,7 @@ import {
   readSameRunEnvelopeFromEnvironment,
   sameRunBindingFromTrust,
 } from "./lib/same-run-evidence-envelope.mjs";
-import { loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
+import { loadSchema, stringifyJsonForMarkdownFence, validateSchema } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "intent", "auto-native"]);
@@ -385,9 +385,12 @@ function buildRuleReconciliationCoverage(rules, nativePlans) {
   const unclassifiedBlocks = extractionRows.reduce((sum, item) => sum + (item.unclassified_blocks?.length || 0), 0);
   const skippedBlocks = extractionRows.reduce((sum, item) => sum + (item.skipped_blocks?.length || 0), 0);
   const lowSignalBlocks = extractionRows.reduce((sum, item) => sum + (item.low_signal_blocks?.length || 0), 0);
+  const resolvedNonRuleBlocks = extractionRows.reduce((sum, item) => sum + (item.low_signal_blocks || [])
+    .filter(isResolvedNonRuleBlock).length, 0);
+  const unresolvedLowSignalBlocks = Math.max(0, lowSignalBlocks - resolvedNonRuleBlocks);
   const extractedBySource = extractionRows.reduce((sum, item) => sum + Number(item.rules_extracted || 0), 0);
   const reconciledRules = rules.length;
-  const unresolvedBlocks = unclassifiedBlocks + skippedBlocks + lowSignalBlocks;
+  const unresolvedBlocks = unclassifiedBlocks + skippedBlocks + unresolvedLowSignalBlocks;
   const omittedRules = Math.max(0, extractedBySource - rules.length) + unresolvedBlocks;
   const totalExtractedRules = rules.length + omittedRules;
   return {
@@ -395,10 +398,14 @@ function buildRuleReconciliationCoverage(rules, nativePlans) {
     reconciledRules,
     omittedRules,
     truncationWarning: omittedRules > 0
-      ? `Only first ${reconciledRules} of ${totalExtractedRules} extracted rules were reconciled; ${unclassifiedBlocks} unclassified, ${skippedBlocks} skipped, and ${lowSignalBlocks} low-signal blocks remain unresolved.`
-      : "None; every extracted rule and parser block is represented in this reconciliation.",
+      ? `Only first ${reconciledRules} of ${totalExtractedRules} extracted rules were reconciled; ${unclassifiedBlocks} unclassified, ${skippedBlocks} skipped, and ${unresolvedLowSignalBlocks} low-signal blocks remain unresolved.`
+      : `None; every extracted rule and unresolved parser block is represented in this reconciliation${resolvedNonRuleBlocks > 0 ? `; ${resolvedNonRuleBlocks} sentinel-only declaration(s) were retained as resolved non-rules` : ""}.`,
     blocksSelectedNativeAdoption: omittedRules > 0 ? "Yes" : "No",
   };
+}
+
+function isResolvedNonRuleBlock(block) {
+  return block?.disposition === "RESOLVED_NON_RULE";
 }
 
 function buildReconciliationItems(rules) {
@@ -792,7 +799,7 @@ function printHuman(report) {
   console.log("## Machine-Readable Evidence");
   console.log("");
   console.log("```json");
-  console.log(JSON.stringify(report.structuredEvidence, null, 2));
+  console.log(stringifyJsonForMarkdownFence(report.structuredEvidence));
   console.log("```");
   console.log("");
   console.log("## Outcome");

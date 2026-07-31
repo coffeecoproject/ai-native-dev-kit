@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -6,12 +7,17 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { evidenceDigest, extractMachineReadableEvidence } from "../scripts/lib/artifact-schema.mjs";
+import {
+  evidenceDigest,
+  extractMachineReadableEvidence,
+  stringifyJsonForMarkdownFence,
+} from "../scripts/lib/artifact-schema.mjs";
 import {
   inspectGovernedWorkQueueTakeover,
   resolveGovernedCurrentTaskRoute,
 } from "../scripts/lib/behavioral-adoption-activation.mjs";
 import { extractNativeRulesFromMarkdown } from "../scripts/lib/native-rule-extraction.mjs";
+import { partitionNativeAuthorityPaths } from "../scripts/lib/project-signals.mjs";
 import { collectProjectAgentAuthority, resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
 import {
   createTaskResumeDecision,
@@ -190,6 +196,107 @@ test("agent authority filenames do not turn architecture rules into replaceable 
   assert.equal(architecture.preserve_or_replace, "map");
 });
 
+test("placeholder-only governance declarations stay visible without becoming pseudo-rules", () => {
+  const extracted = extractNativeRulesFromMarkdown([
+    "# Baseline Selection",
+    "",
+    "## Selected Industrial Packs",
+    "",
+    "None",
+    "",
+  ].join("\n"), "docs/baseline-selection.md");
+
+  assert.equal(extracted.rules.some((item) => item.source_excerpt.toLowerCase() === "none"), false);
+  assert.ok(extracted.coverage.low_signal_blocks.some((item) => item.excerpt === "None"));
+  assert.ok(extracted.coverage.low_signal_blocks.some((item) => item.disposition === "RESOLVED_NON_RULE"));
+  assert.ok(extracted.coverage.parser_warnings.some((item) => /placeholder-only declaration/.test(item)));
+});
+
+test("native authority partition excludes only proven IntentOS assets and workflow records", (t) => {
+  const root = fixture(t, "intentos-native-source-boundary-");
+  const sourceManifest = fs.readFileSync(path.join(kitRoot, "intentos-manifest.json"));
+  write(root, ".intentos/intentos-manifest.json", sourceManifest);
+
+  const managedAgent = "# Previously managed agent entry\n";
+  write(root, "AGENTS.md", managedAgent);
+  const managedDigest = `sha256:${createHash("sha256").update(managedAgent).digest("hex")}`;
+  write(root, ".intentos/version.json", `${JSON.stringify({
+    workflowAssets: ["AGENTS.md"],
+    managedAssetDigests: { "AGENTS.md": managedDigest },
+  }, null, 2)}\n`);
+
+  const exactPath = "scripts/check-platform-release-recipe.mjs";
+  write(root, exactPath, fs.readFileSync(path.join(kitRoot, exactPath)));
+  const driftedPath = "scripts/check-release-adapter.mjs";
+  write(root, driftedPath, `${fs.readFileSync(path.join(kitRoot, driftedPath), "utf8")}\n// project drift\n`);
+  write(root, "requests/001-history.md", "# Historical generated request\n");
+  write(root, "docs/project-baseline.md", "# Project baseline\n");
+
+  const partition = partitionNativeAuthorityPaths(root, kitRoot, [
+    "AGENTS.md",
+    exactPath,
+    driftedPath,
+    "requests/001-history.md",
+    "docs/project-baseline.md",
+  ]);
+  const byPath = new Map(partition.excluded.map((item) => [item.path, item]));
+  assert.equal(partition.status, "PARTITIONED");
+  assert.equal(byPath.get("AGENTS.md")?.classification, "VERIFIED_PRIOR_INTENTOS_MANAGED");
+  assert.equal(byPath.get(exactPath)?.classification, "EXACT_SOURCE_DISTRIBUTION_MATCH");
+  assert.equal(byPath.get("requests/001-history.md")?.classification, "INTENTOS_WORKFLOW_RECORD");
+  assert.ok(partition.nativePaths.includes(driftedPath), "drifted distribution files remain project-owned candidates");
+  assert.ok(partition.nativePaths.includes("docs/project-baseline.md"));
+});
+
+test("governance tables and substantive Chinese rules are deterministically represented", () => {
+  const extracted = extractNativeRulesFromMarkdown([
+    "# Pawcode UI Baseline",
+    "",
+    "## Core Decisions",
+    "",
+    "| Area | Decision | Label |",
+    "|---|---|---|",
+    "| Navigation | 原生优先，例外必须由页面 spec 证明 | PROJECT_DECISION |",
+    "",
+    "## Layout rules",
+    "",
+    "- 使用流式宽度、内容约束、换行和断点，不把整页按单一比例缩放；",
+    "",
+    "## Selected Industrial Packs",
+    "",
+    "None",
+    "",
+  ].join("\n"), "docs/miniprogram-ui-baseline.md");
+
+  assert.ok(extracted.rules.some((item) => item.source_start_line === 7 && /Navigation/.test(item.source_excerpt)));
+  assert.ok(extracted.rules.some((item) => item.source_start_line === 11 && /流式宽度/.test(item.source_excerpt)));
+  assert.equal(extracted.coverage.skipped_blocks.length, 0);
+  assert.equal(extracted.coverage.unclassified_blocks.length, 0);
+  assert.deepEqual(extracted.coverage.low_signal_blocks.map((item) => item.excerpt), ["None"]);
+});
+
+test("sentinel-only declarations remain visible without blocking reconciliation coverage", (t) => {
+  const root = fixture(t, "intentos-native-sentinel-coverage-");
+  write(root, "README.md", "# Existing project\n");
+  write(root, "Agent.md", "# Agent Rules\n\nRun tests before review.\n");
+  write(root, "docs/Governance.md", [
+    "# Governance",
+    "",
+    "## Selected Industrial Packs",
+    "",
+    "None",
+    "",
+  ].join("\n"));
+
+  const report = runJson("scripts/resolve-existing-rule-reconciliation.mjs", root, [
+    "--json", "--auto-native", "--intent", "Adopt this project under IntentOS",
+  ]);
+  const coverage = report.structuredEvidence.rule_reconciliation_coverage;
+  assert.equal(coverage.omitted_rules, 0, JSON.stringify(coverage, null, 2));
+  assert.equal(coverage.blocks_selected_native_adoption, "No");
+  assert.match(coverage.truncation_warning, /sentinel-only declaration/);
+});
+
 test("native migration checker accepts producer-owned UNKNOWN stop and preserve fields without prose coupling", (t) => {
   const root = fixture(t, "intentos-native-contract-");
   write(root, "README.md", "# Existing project\n");
@@ -240,6 +347,10 @@ test("incomplete reconciliation coverage outranks dirty-worktree routing and fai
     "# Governance",
     "",
     "This descriptive context has no classified authority yet.",
+    "",
+    "```text",
+    "node scripts/workflow-next.mjs .",
+    "```",
     "",
     "Run tests before review.",
     "",
@@ -292,6 +403,10 @@ test("adoption assurance consumes checker-valid blocked reconciliation as same-r
     "",
     "This descriptive context has no classified authority yet.",
     "",
+    "```text",
+    "node scripts/workflow-next.mjs .",
+    "```",
+    "",
   ].join("\n"));
   git(root, ["init", "-q"]);
   git(root, ["add", "."]);
@@ -309,6 +424,40 @@ test("adoption assurance consumes checker-valid blocked reconciliation as same-r
   assert.equal(convergence.status, "NEEDS_INPUT", JSON.stringify(convergence, null, 2));
   assert.match(convergence.ref, /^same-run:/);
   assert.doesNotMatch(`${reconciliation.contribution} ${convergence.contribution}`, /SAME_RUN_STDIN|unavailable/i);
+});
+
+test("markdown evidence transport preserves literal triple-backtick project rules", (t) => {
+  const original = {
+    source_excerpt: '.replace(/```[\\s\\S]*?```/g, " ")',
+    nested: { value: "before ``` after" },
+  };
+  const serialized = stringifyJsonForMarkdownFence(original);
+  assert.doesNotMatch(serialized, /```/);
+  assert.deepEqual(JSON.parse(serialized), original);
+
+  const root = fixture(t, "intentos-markdown-fence-adoption-");
+  write(root, "README.md", "# Existing project\n");
+  write(root, "AGENTS.md", "# Agent Rules\n\nRun tests before review.\n");
+  write(root, "scripts/parse-markdown.mjs", [
+    'export function stripFence(value) {',
+    '  return value.replace(/```[\\s\\S]*?```/g, " ");',
+    '}',
+    'export const boundaryText = "- This plan modifies CI or hooks: No";',
+    'export const protectedProjectRule = "Never deploy production without approval";',
+    '',
+  ].join("\n"));
+  git(root, ["init", "-q"]);
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"]);
+
+  const assurance = runJson("scripts/resolve-adoption-assurance.mjs", root, [
+    "--json", "--intent", "Adopt this project under IntentOS",
+  ]);
+  const native = assurance.sourceSystems.native_migration;
+  const reconciliation = assurance.sourceSystems.existing_rule_reconciliation;
+  assert.match(native.ref, /^same-run:/, JSON.stringify(native, null, 2));
+  assert.match(reconciliation.ref, /^same-run:/, JSON.stringify(reconciliation, null, 2));
+  assert.doesNotMatch(`${native.contribution} ${reconciliation.contribution}`, /strict checker failed|invalid evidence|unavailable/i);
 });
 
 test("all root and nested agent authorities participate in identity and semantic conflict checks", (t) => {

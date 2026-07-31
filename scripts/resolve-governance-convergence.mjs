@@ -12,6 +12,7 @@ import {
   sameRunBindingFromTrust,
 } from "./lib/same-run-evidence-envelope.mjs";
 import { controlEffectivenessBinding, loadControlEffectivenessReport } from "./lib/control-effectiveness.mjs";
+import { stringifyJsonForMarkdownFence } from "./lib/artifact-schema.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -509,7 +510,7 @@ function humanReportText(report) {
   push("## Machine-Readable Evidence");
   push("");
   push("```json");
-  push(JSON.stringify(report.structuredEvidence, null, 2));
+  push(stringifyJsonForMarkdownFence(report.structuredEvidence));
   push("```");
   push("");
   push("## Outcome");

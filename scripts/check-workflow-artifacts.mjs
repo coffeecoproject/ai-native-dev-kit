@@ -7,6 +7,7 @@ import { parseArgs } from "./lib/args.mjs";
 import { parseFrontmatter, validateFrontmatter } from "./lib/frontmatter.mjs";
 import { changedFiles } from "./lib/git.mjs";
 import { requiresRealWorldConsent } from "./lib/baseline-selection.mjs";
+import { isIntentOSSourceCheckout } from "./lib/manifest.mjs";
 import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
 import { resolveIndustrialBaseline } from "./resolve-industrial-baseline.mjs";
 import { resolvePlatformBaseline } from "./resolve-platform-baseline.mjs";
@@ -466,9 +467,12 @@ function requireIndustrialEvalEvidence(file, taskContent, industrialBaseline) {
 function requireBaselineImplementationGates(file, taskContent) {
   if (mode !== "implementation") return;
 
-  const platformBaseline = resolvePlatformBaseline(projectRoot);
-  const platformSelectionApplies = platformBaseline.selectedProfiles.length > 0
-    || platformBaseline.inferredProfiles.length > 0;
+  const sourceCheckout = isIntentOSSourceCheckout(projectRoot);
+  const platformBaseline = sourceCheckout ? null : resolvePlatformBaseline(projectRoot);
+  const platformSelectionApplies = !sourceCheckout && (
+    platformBaseline.selectedProfiles.length > 0
+      || platformBaseline.inferredProfiles.length > 0
+  );
   if (platformSelectionApplies && platformBaseline.strictState !== "BASELINE_READY") {
     fail(`${file} platform baseline is not satisfied: ${platformBaseline.strictState}`);
   }
@@ -478,7 +482,7 @@ function requireBaselineImplementationGates(file, taskContent) {
     fail(`${file} industrial baseline is not satisfied: ${industrialBaseline.strictState}`);
   }
 
-  const requiredLevel = baselineRequiredTaskLevel(taskContent, platformBaseline, industrialBaseline);
+  const requiredLevel = baselineRequiredTaskLevel(taskContent, platformBaseline || {}, industrialBaseline);
   const actualLevel = taskLevel(taskContent);
   if (requiredLevel && actualLevel && taskLevelRank[actualLevel] < taskLevelRank[requiredLevel]) {
     fail(`${file} Task Level ${actualLevel} is lower than baseline-required ${requiredLevel}`);

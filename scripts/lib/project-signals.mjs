@@ -1,5 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { createHash } from "node:crypto";
+
+import { isIntentOSSourceCheckout, loadManifestOrNull } from "./manifest.mjs";
 
 export const defaultIgnoredDirs = new Set([
   ".git",
@@ -133,6 +136,154 @@ export function filterIntentOSManagedPaths(root, relativePaths) {
     return ![...directoryTargets, ...versionManagedDirectories]
       .some((target) => normalized === target || normalized.startsWith(`${target}/`));
   });
+}
+
+export function partitionNativeAuthorityPaths(root, sourceRoot, relativePaths) {
+  const paths = [...new Set(relativePaths.map((value) => normalizeSignalPath(value)).filter(Boolean))].sort();
+  if (!isIntentOSSourceCheckout(sourceRoot)) {
+    return {
+      nativePaths: paths,
+      excluded: [],
+      status: "NO_AUTHORITATIVE_SOURCE",
+    };
+  }
+
+  const installedManifestPath = path.join(root, ".intentos", "intentos-manifest.json");
+  const installedVersionPath = path.join(root, ".intentos", "version.json");
+  if (!isRegularFile(installedManifestPath) || !isRegularFile(installedVersionPath)) {
+    return {
+      nativePaths: paths,
+      excluded: [],
+      status: "NO_INSTALLED_INTENTOS_EVIDENCE",
+    };
+  }
+
+  const sourceManifest = loadManifestOrNull(sourceRoot);
+  const version = readJson(installedVersionPath);
+  if (!sourceManifest || !version) {
+    return {
+      nativePaths: paths,
+      excluded: [],
+      status: "INVALID_INSTALLED_INTENTOS_EVIDENCE",
+    };
+  }
+
+  const workflowDirs = new Set((sourceManifest.groups?.workflowDirs || [])
+    .map((value) => normalizeSignalPath(value))
+    .filter(isSafeRelativeSignalPath));
+  const distribution = sourceDistributionMappings(sourceManifest);
+  const nativePaths = [];
+  const excluded = [];
+
+  for (const relativePath of paths) {
+    const workflowDir = [...workflowDirs].find((dir) => relativePath === dir || relativePath.startsWith(`${dir}/`));
+    if (workflowDir) {
+      excluded.push({
+        path: relativePath,
+        classification: "INTENTOS_WORKFLOW_RECORD",
+        evidence: `intentos-manifest.json#groups.workflowDirs:${workflowDir}`,
+      });
+      continue;
+    }
+
+    const targetDigest = regularFileDigest(root, relativePath);
+    if (!targetDigest) {
+      nativePaths.push(relativePath);
+      continue;
+    }
+
+    if (hasVerifiedPriorManagedOwnership(version, relativePath, targetDigest)) {
+      excluded.push({
+        path: relativePath,
+        classification: "VERIFIED_PRIOR_INTENTOS_MANAGED",
+        evidence: `.intentos/version.json#managedAssetDigests:${targetDigest}`,
+      });
+      continue;
+    }
+
+    const mapping = distributionSourceForTarget(distribution, relativePath);
+    if (!mapping) {
+      nativePaths.push(relativePath);
+      continue;
+    }
+
+    const sourceDigest = regularFileDigest(sourceRoot, mapping.source);
+    if (sourceDigest && sourceDigest === targetDigest) {
+      excluded.push({
+        path: relativePath,
+        classification: "EXACT_SOURCE_DISTRIBUTION_MATCH",
+        evidence: `intentos-manifest.json#copyRules:${sourceDigest}`,
+        source: mapping.source,
+      });
+      continue;
+    }
+
+    nativePaths.push(relativePath);
+  }
+
+  return {
+    nativePaths,
+    excluded,
+    status: "PARTITIONED",
+  };
+}
+
+function sourceDistributionMappings(manifest) {
+  const files = (manifest.copyRules?.files || [])
+    .map((item) => ({
+      source: normalizeSignalPath(item.source),
+      target: normalizeSignalPath(item.target),
+    }))
+    .filter((item) => isSafeRelativeSignalPath(item.source) && isSafeRelativeSignalPath(item.target));
+  const directories = (manifest.copyRules?.directories || [])
+    .map((item) => ({
+      source: normalizeSignalPath(item.source),
+      target: normalizeSignalPath(item.target),
+    }))
+    .filter((item) => isSafeRelativeSignalPath(item.source) && isSafeRelativeSignalPath(item.target))
+    .sort((left, right) => right.target.length - left.target.length);
+  return { files, directories };
+}
+
+function distributionSourceForTarget(distribution, target) {
+  const file = distribution.files.find((item) => item.target === target);
+  if (file) return file;
+  const directory = distribution.directories.find((item) => target === item.target || target.startsWith(`${item.target}/`));
+  if (!directory || target === directory.target) return null;
+  const suffix = target.slice(directory.target.length + 1);
+  const source = normalizeSignalPath(`${directory.source}/${suffix}`);
+  return isSafeRelativeSignalPath(source) ? { source, target } : null;
+}
+
+function hasVerifiedPriorManagedOwnership(version, target, digest) {
+  if (version?.managedAssetDigests?.[target] !== digest) return false;
+  return (version.workflowAssets || [])
+    .map((value) => normalizeSignalPath(value))
+    .filter(Boolean)
+    .some((managed) => target === managed || target.startsWith(`${managed}/`));
+}
+
+function regularFileDigest(root, relativePath) {
+  if (!isSafeRelativeSignalPath(relativePath)) return null;
+  const file = path.join(root, relativePath);
+  if (!isRegularFile(file)) return null;
+  return `sha256:${createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
+}
+
+function isRegularFile(file) {
+  try {
+    const stat = fs.lstatSync(file);
+    return stat.isFile() && !stat.isSymbolicLink();
+  } catch {
+    return false;
+  }
+}
+
+function isSafeRelativeSignalPath(value) {
+  const normalized = normalizeSignalPath(value);
+  return Boolean(normalized)
+    && !path.posix.isAbsolute(normalized)
+    && !normalized.split("/").includes("..");
 }
 
 function readJson(filePath) {

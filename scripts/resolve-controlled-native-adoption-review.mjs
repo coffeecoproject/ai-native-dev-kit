@@ -6,7 +6,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, stringifyJsonForMarkdownFence } from "./lib/artifact-schema.mjs";
 import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
 import {
   consumeSameRunEvidenceEnvelope,
@@ -551,7 +551,7 @@ ${e.human_decisions.map((item) => `- ${item.plain_question}`).join("\n")}
 ## Machine-Readable Evidence
 
 \`\`\`json
-${JSON.stringify(e, null, 2)}
+${stringifyJsonForMarkdownFence(e)}
 \`\`\`
 
 ## Outcome
