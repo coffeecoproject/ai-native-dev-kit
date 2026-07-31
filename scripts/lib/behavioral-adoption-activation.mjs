@@ -116,6 +116,65 @@ export function validateBehavioralActivation(value, options = {}) {
   return { ok: errors.length === 0, errors };
 }
 
+export function isReadOnlyGitInvocation(args = []) {
+  const tokens = Array.isArray(args) ? args.map((value) => String(value || "")) : [];
+  const globalOptionsWithValue = new Set([
+    "-C",
+    "-c",
+    "--config-env",
+    "--exec-path",
+    "--git-dir",
+    "--namespace",
+    "--super-prefix",
+    "--work-tree",
+  ]);
+  let commandIndex = -1;
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (globalOptionsWithValue.has(token)) {
+      index += 1;
+      continue;
+    }
+    if (/^(?:-C|-c).+/.test(token) || /^--(?:config-env|exec-path|git-dir|namespace|super-prefix|work-tree)=/.test(token)) continue;
+    if (token.startsWith("-")) continue;
+    commandIndex = index;
+    break;
+  }
+  if (commandIndex < 0) return false;
+
+  const command = tokens[commandIndex].toLowerCase();
+  const commandArgs = tokens.slice(commandIndex + 1);
+  if (commandArgs.some((token) => token === "--output" || token.startsWith("--output="))) return false;
+
+  const readOnlyCommands = new Set([
+    "cat-file",
+    "check-attr",
+    "check-ignore",
+    "describe",
+    "diff",
+    "for-each-ref",
+    "log",
+    "ls-files",
+    "ls-tree",
+    "merge-base",
+    "name-rev",
+    "rev-list",
+    "rev-parse",
+    "show",
+    "show-ref",
+    "status",
+  ]);
+  if (readOnlyCommands.has(command)) return true;
+  if (command === "branch") {
+    return commandArgs.includes("--show-current") || commandArgs.includes("--list");
+  }
+  if (command === "config") {
+    return commandArgs.some((token) => ["--get", "--get-all", "--get-regexp", "--list"].includes(token))
+      && !commandArgs.some((token) => ["--add", "--replace-all", "--unset", "--unset-all", "--remove-section", "--rename-section"].includes(token));
+  }
+  return false;
+}
+
 export function verifyProjectLocalBehavioralRoute(options = {}) {
   const targetRoot = path.resolve(options.targetRoot || ".");
   const sourceRoot = options.sourceRoot ? path.resolve(options.sourceRoot) : "";
@@ -1031,6 +1090,7 @@ const childProcess = require("node:child_process");
 const { syncBuiltinESMExports } = require("node:module");
 const denied = ${JSON.stringify(sourceRoot)} ? fs.realpathSync(${JSON.stringify(sourceRoot)}) : "";
 const executionDenied = ${JSON.stringify(executionRoot)} ? fs.realpathSync(${JSON.stringify(executionRoot)}) : "";
+const readOnlyGitInvocation = ${isReadOnlyGitInvocation.toString()};
 const guarded = ["readFileSync", "readFile", "openSync", "open", "statSync", "stat", "lstatSync", "lstat", "readdirSync", "readdir", "accessSync", "access", "realpathSync", "realpath"];
 const blocked = (value) => {
   if (!denied) return false;
@@ -1039,17 +1099,32 @@ const blocked = (value) => {
   const resolved = path.resolve(raw);
   return resolved === denied || resolved.startsWith(denied + path.sep);
 };
-const executionPath = (value, cwd) => {
+const executionPath = (value, cwd, spawnOptions = {}) => {
   if (typeof value !== "string" && !Buffer.isBuffer(value) && !(value instanceof URL)) return "";
   const raw = value instanceof URL ? value.pathname : Buffer.isBuffer(value) ? value.toString() : value;
-  return path.resolve(cwd || process.cwd(), raw);
+  const base = cwd || process.cwd();
+  if (path.isAbsolute(raw) || raw.includes(path.sep) || raw.includes(path.win32.sep)) return path.resolve(base, raw);
+  const environment = spawnOptions && spawnOptions.env ? spawnOptions.env : process.env;
+  const pathEntries = String(environment.PATH || "").split(path.delimiter);
+  const extensions = process.platform === "win32"
+    ? String(environment.PATHEXT || ".EXE;.CMD;.BAT;.COM").split(";")
+    : [""];
+  for (const entry of pathEntries) {
+    const directory = path.resolve(base, entry || ".");
+    for (const extension of extensions) {
+      const candidate = path.join(directory, raw + extension);
+      if (fs.existsSync(candidate)) return candidate;
+    }
+  }
+  return "";
 };
 const executionBlocked = (command, args, spawnOptions = {}) => {
   if (!executionDenied) return false;
   const cwd = spawnOptions && typeof spawnOptions.cwd === "string" ? spawnOptions.cwd : process.cwd();
-  const commandPath = executionPath(command, cwd);
+  const commandPath = executionPath(command, cwd, spawnOptions);
   if (commandPath === executionDenied || commandPath.startsWith(executionDenied + path.sep)) return true;
   const commandName = path.basename(String(command || "")).toLowerCase();
+  if (/^git(?:\\.exe)?$/.test(commandName)) return !readOnlyGitInvocation(args);
   if (!/^(?:node|nodejs)(?:\\.exe)?$/.test(commandName)) return false;
   const values = Array.isArray(args) ? args : [];
   let skipNext = false;
@@ -1064,7 +1139,7 @@ const executionBlocked = (command, args, spawnOptions = {}) => {
       continue;
     }
     if (token.startsWith("-")) continue;
-    const candidate = executionPath(token, cwd);
+    const candidate = executionPath(token, cwd, spawnOptions);
     return candidate === executionDenied || candidate.startsWith(executionDenied + path.sep);
   }
   return false;

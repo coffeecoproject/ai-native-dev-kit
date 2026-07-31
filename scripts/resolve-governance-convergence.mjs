@@ -352,8 +352,8 @@ function blockedReasons(context) {
 }
 
 function convergenceStateFor({ dirty, omittedRules, blocked, projectState }) {
-  if (dirty || projectState === "DIRTY_WORKTREE_PROJECT") return "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE";
   if (omittedRules > 0) return "CONVERGENCE_BLOCKED_BY_RULE_COVERAGE";
+  if (dirty || projectState === "DIRTY_WORKTREE_PROJECT") return "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE";
   if (blocked.some((item) => /owner|authority|BLOCKED_NEEDS_OWNER/i.test(item))) return "CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY";
   if (blocked.some((item) => /upstream source requires input/i.test(item))) return "CONVERGENCE_BLOCKED_BY_UPSTREAM_EVIDENCE";
   if (/EXISTING_GOVERNED_PROJECT|EXISTING_PRODUCTION_PROJECT/.test(projectState)) return "CONVERGENCE_READY_FOR_PLAN";

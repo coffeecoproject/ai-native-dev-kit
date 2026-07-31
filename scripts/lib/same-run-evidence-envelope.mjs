@@ -1,9 +1,10 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
+import path from "node:path";
 import zlib from "node:zlib";
 import { evidenceDigest, validateSchema } from "./artifact-schema.mjs";
 
-let cachedStdinEnvelopeBundle;
+let cachedEnvelopeBundle;
 
 export function createSameRunEvidenceEnvelope(options = {}) {
   const createdAt = options.createdAt || new Date().toISOString();
@@ -113,16 +114,31 @@ export function readSameRunEnvelopeFromEnvironment(evidenceType, env = process.e
       throw new Error(`${key} is not valid JSON: ${error.message}`);
     }
   }
+  const bundleFile = String(env.INTENTOS_SAME_RUN_BUNDLE_FILE || "");
+  if (bundleFile) {
+    if (cachedEnvelopeBundle === undefined) {
+      try {
+        if (!path.isAbsolute(bundleFile)) throw new Error("path must be absolute");
+        const stat = fs.lstatSync(bundleFile);
+        if (!stat.isFile() || stat.isSymbolicLink()) throw new Error("path must be a regular non-symlink file");
+        if (stat.size > 64 * 1024 * 1024) throw new Error("bundle exceeds 64 MiB");
+        cachedEnvelopeBundle = decodeSameRunEnvelopeBundle(fs.readFileSync(bundleFile, "utf8"));
+      } catch (error) {
+        throw new Error(`INTENTOS_SAME_RUN_BUNDLE_FILE is invalid: ${error.message}`);
+      }
+    }
+    return cachedEnvelopeBundle?.envelopes?.[evidenceType] || null;
+  }
   if (env.INTENTOS_SAME_RUN_STDIN !== "1") return null;
-  if (cachedStdinEnvelopeBundle === undefined) {
+  if (cachedEnvelopeBundle === undefined) {
     try {
       const content = process.stdin.isTTY ? "" : fs.readFileSync(0, "utf8");
-      cachedStdinEnvelopeBundle = content ? decodeSameRunEnvelopeBundle(content) : {};
+      cachedEnvelopeBundle = content ? decodeSameRunEnvelopeBundle(content) : {};
     } catch (error) {
       throw new Error(`INTENTOS_SAME_RUN_STDIN is not valid JSON: ${error.message}`);
     }
   }
-  return cachedStdinEnvelopeBundle?.envelopes?.[evidenceType] || null;
+  return cachedEnvelopeBundle?.envelopes?.[evidenceType] || null;
 }
 
 export function encodeSameRunEnvelopeBundle(envelopes = []) {

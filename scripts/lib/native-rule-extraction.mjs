@@ -65,8 +65,9 @@ const ruleKeywords = [
 ];
 
 const productionPattern = /\b(release|rollback|deploy|deployment|production|prod|incident|secret|migration|provider|staging|backup|restore|app store review|mini program review|external effects?)\b|生产|上线|发布|回滚|事故|密钥|生产配置|外部影响/i;
+const chineseProductionPattern = /生产|上线|发布|回滚|事故|密钥|生产配置/;
 const businessPattern = /\b(customer|user-visible|business|contract|invoice|tax|finance|hr|payment|permission|data meaning|contract meaning|tax meaning|legal|compliance|approval limit|role changes?)\b|客户|合同|协议|订单|发票|税务|结算|财务|门店|审批|权限|角色|客户数据|隐私|合规/i;
-const engineeringPattern = /\b(enum|string|schema|dto|type|architecture|build|test|lint|package|database|api|folder|structure|dependency|frontend|backend|component)\b|枚举|数据库|接口|组件|构建|测试|目录|依赖/i;
+const engineeringPattern = /\b(enum|string|schema|dto|type|architecture|architectural|layers?|layered|layering|presentation|domain|infrastructure|build|test|lint|package|database|api|folder|structure|dependency|frontend|backend|component)\b|架构|分层|枚举|数据库|接口|组件|构建|测试|目录|依赖/i;
 const workflowPattern = /\b(codex|ai|agent|workflow|review|approval|apply|task|commit|pr|pull request|prompt|subagent|finish|queue|evidence|plan)\b|任务|审查|证据|复盘|计划|执行|验收|工作流/i;
 const historicalPattern = /\b(historical|legacy|old note|deprecated|stale|archive|todo|temporary)\b|历史|废弃|过期|归档|临时/i;
 const governanceHeadingPattern = /\b(rule|rules|governance|policy|policies|constraint|constraints|baseline|release|permission|approval|workflow|agent|codex|业务|规则|治理|基线|发布|权限|审批|流程)\b/i;
@@ -289,7 +290,7 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
 }
 
 export function classifyNativeRule({ sourceFile, text, contextHeading = "" }) {
-  const value = `${sourceFile} ${contextHeading} ${text}`;
+  const value = nativeRuleSemanticValue({ sourceFile, text, contextHeading });
   if (productionPattern.test(value)) {
     return ruleClass("PRODUCTION_CONTROL", "project/release owner", "preserve and escalate", "preserve", "Release and production controls remain external to IntentOS workflow convenience.", "release, production", "map to Release Guide / Recipe / Handoff without replacement", "Yes", confidence(value, productionPattern));
   }
@@ -316,6 +317,66 @@ export function classifyNativeRule({ sourceFile, text, contextHeading = "" }) {
     "No",
     "LOW",
   );
+}
+
+export function validateNativeRuleClassification(rule = {}) {
+  const errors = [];
+  const ruleClassValue = ruleValue(rule, "rule_class", "ruleClass");
+  const preserveOrReplace = ruleValue(rule, "preserve_or_replace", "preserveOrReplace");
+  const defaultHandling = ruleValue(rule, "default_handling", "defaultHandling");
+  const semanticValue = nativeRuleSemanticValue({
+    sourceFile: ruleValue(rule, "source_file", "sourceFile"),
+    text: ruleValue(rule, "source_excerpt", "sourceExcerpt"),
+    contextHeading: ruleValue(rule, "context_heading", "contextHeading"),
+  });
+  const replacement = /\b(replace|remove|drop)\b|替换|删除/i.test(`${preserveOrReplace} ${ruleValue(rule, "target_action", "targetAction")}`);
+
+  if (ruleClassValue === "WORKFLOW_RULE" && businessPattern.test(semanticValue) && replacement) {
+    errors.push("misclassifies a business rule as replaceable workflow");
+  }
+  if (ruleClassValue === "ENGINEERING_BASELINE" && productionPattern.test(semanticValue)) {
+    errors.push("misclassifies production control as engineering baseline");
+  }
+  if (ruleClassValue === "ENGINEERING_BASELINE"
+    && businessPattern.test(semanticValue)
+    && engineeringPattern.test(semanticValue)) {
+    errors.push("misclassifies mixed business + engineering rule as plain engineering baseline");
+  }
+  if (ruleClassValue !== "PRODUCTION_CONTROL" && chineseProductionPattern.test(semanticValue)) {
+    errors.push("misclassifies Chinese production or release rule");
+  }
+  if (ruleClassValue === "UNKNOWN_AUTHORITY") {
+    const stopsForClassification = /\bstop\b|\bclassif(?:y|ication)\b|停止|分类/i.test(defaultHandling);
+    const preservesSource = /\bpreserve\b|保留/i.test(preserveOrReplace);
+    if (!stopsForClassification || !preservesSource) {
+      errors.push("unknown authority must stop for classification and preserve the source");
+    }
+  }
+  return errors;
+}
+
+function nativeRuleSemanticValue({ sourceFile = "", text = "", contextHeading = "" }) {
+  const context = classificationContext(sourceFile, contextHeading);
+  return normalizeText(`${context} ${text}`);
+}
+
+function classificationContext(sourceFile, contextHeading) {
+  const segments = String(contextHeading || "")
+    .split(">")
+    .map(normalizeText)
+    .filter(Boolean);
+  if (isAgentAuthorityFile(sourceFile) && /\b(?:agent|codex)\b/i.test(segments[0] || "")) {
+    segments.shift();
+  }
+  return segments.join(" > ");
+}
+
+function isAgentAuthorityFile(sourceFile) {
+  return /(^|\/)(?:agents?|\.agent)\.md$/i.test(String(sourceFile || "").replaceAll("\\", "/"));
+}
+
+function ruleValue(rule, snakeCase, camelCase) {
+  return String(rule?.[snakeCase] ?? rule?.[camelCase] ?? "").trim();
 }
 
 function candidateText(trimmed) {

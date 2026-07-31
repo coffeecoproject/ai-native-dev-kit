@@ -473,19 +473,23 @@ function checkStateAndOutcome(content, label, evidence, summary, markdownDimensi
     else fail(`${label} markdown outcome must match structured outcome`);
     checkMarkdownStructuredDimensionConsistency(label, markdownDimensions, evidence);
     const blockedText = Array.isArray(evidence.blocked) ? evidence.blocked.join(" ") : "";
-    if (/omitted extracted rules/i.test(blockedText)) {
+    const hasOmittedRuleBlock = /omitted extracted rules/i.test(blockedText);
+    const hasDirtyWorktreeBlock = /dirty worktree/i.test(blockedText);
+    if (hasOmittedRuleBlock) {
       if (evidence.convergence_state === "CONVERGENCE_BLOCKED_BY_RULE_COVERAGE") {
         pass(`${label} omitted rules block convergence readiness`);
       } else {
         fail(`${label} omitted rules must set CONVERGENCE_BLOCKED_BY_RULE_COVERAGE`);
       }
     }
-    if (/dirty worktree/i.test(blockedText)) {
+    if (hasDirtyWorktreeBlock && !hasOmittedRuleBlock) {
       if (evidence.convergence_state === "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE") {
         pass(`${label} dirty worktree blocks convergence readiness`);
       } else {
         fail(`${label} dirty worktree must set CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE`);
       }
+    } else if (hasDirtyWorktreeBlock) {
+      pass(`${label} dirty worktree remains recorded behind the higher-priority rule coverage block`);
     }
     const sourceSystems = evidence.source_systems || {};
     const upstreamNeedsInput = Object.entries(sourceSystems)

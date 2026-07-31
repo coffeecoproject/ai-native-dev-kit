@@ -244,7 +244,7 @@ function resolveSources(root, options) {
     sequence: 2,
     binding,
     sources: envelopes,
-    env: envelopeEnvironment(process.env, envelopes),
+    env: envelopeEnvironment(process.env),
   });
   if (reconciliation.envelope) envelopes.push(reconciliation.envelope);
 
@@ -258,7 +258,7 @@ function resolveSources(root, options) {
     sequence: 3,
     binding,
     sources: envelopes,
-    env: envelopeEnvironment(process.env, envelopes),
+    env: envelopeEnvironment(process.env),
   });
   if (convergence.envelope) envelopes.push(convergence.envelope);
 
@@ -272,7 +272,7 @@ function resolveSources(root, options) {
     sequence: 4,
     binding,
     sources: convergence.envelope ? [convergence.envelope] : [],
-    env: envelopeEnvironment(process.env, convergence.envelope ? [convergence.envelope] : []),
+    env: envelopeEnvironment(process.env),
   });
   if (adoptionReview.envelope) envelopes.push(adoptionReview.envelope);
 
@@ -293,13 +293,18 @@ function resolveSources(root, options) {
 
 function runSameRunProducer(options) {
   const humanArgs = options.args.filter((item) => item !== "--json");
-  const result = spawnSync(process.execPath, [path.join(scriptDir, options.script), options.root, ...humanArgs], {
-    cwd: kitRoot,
-    env: options.env,
-    input: options.sources.length > 0 ? encodeSameRunEnvelopeBundle(options.sources) : undefined,
-    encoding: "utf8",
-    maxBuffer: 1024 * 1024 * 50,
-  });
+  const transport = createSameRunBundleTransport(options.env, options.sources);
+  let result;
+  try {
+    result = spawnSync(process.execPath, [path.join(scriptDir, options.script), options.root, ...humanArgs], {
+      cwd: kitRoot,
+      env: transport.environment,
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024 * 50,
+    });
+  } finally {
+    transport.cleanup();
+  }
   const extracted = extractSingleMachineEvidence(result.stdout);
   const evidence = extracted.ok ? extracted.value : null;
   const parsed = evidence ? {
@@ -315,10 +320,11 @@ function runSameRunProducer(options) {
   const validation = evidence && schema
     ? validateSchema(evidence, schema, { label: options.name })
     : { ok: false, errors: [evidence ? `${options.schemaRef} is unavailable` : "structured evidence is missing"] };
-  const semantic = result.status === 0 && parsed && validation.ok
+  const evidenceBearingExit = producerExitCarriesEvidence(options.name, result.status, evidence);
+  const semantic = evidenceBearingExit && parsed && validation.ok
     ? validateProducerWithStrictChecker(options, evidence, result.stdout)
     : { ok: false, errors: [] };
-  const ok = result.status === 0 && parsed && validation.ok && semantic.ok;
+  const ok = evidenceBearingExit && parsed && validation.ok && semantic.ok;
   if (!ok) {
     const diagnostic = [result.error?.message, result.stderr, !parsed ? result.stdout : validation.errors?.join("; "), semantic.errors?.join("; ")]
       .filter(Boolean)
@@ -374,6 +380,31 @@ function runSameRunProducer(options) {
     },
     envelope,
   };
+}
+
+function createSameRunBundleTransport(baseEnvironment, sources) {
+  const environment = { ...baseEnvironment };
+  delete environment.INTENTOS_SAME_RUN_STDIN;
+  delete environment.INTENTOS_SAME_RUN_BUNDLE_FILE;
+  if (sources.length === 0) return { environment, cleanup() {} };
+
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-same-run-bundle-"));
+  const file = path.join(root, "envelopes.json");
+  fs.writeFileSync(file, encodeSameRunEnvelopeBundle(sources), { flag: "wx", mode: 0o600 });
+  environment.INTENTOS_SAME_RUN_BUNDLE_FILE = file;
+  return {
+    environment,
+    cleanup() {
+      fs.rmSync(root, { recursive: true, force: true });
+    },
+  };
+}
+
+function producerExitCarriesEvidence(name, status, evidence) {
+  if (status === 0) return true;
+  return name === "existing_rule_reconciliation"
+    && status === 1
+    && evidence?.outcome === "BLOCKED";
 }
 
 function validateProducerWithStrictChecker(options, expectedEvidence, humanOutput) {
@@ -468,9 +499,10 @@ function compactProducerPayload(report) {
   };
 }
 
-function envelopeEnvironment(base, envelopes) {
+function envelopeEnvironment(base) {
   const env = { ...base };
-  if (envelopes.length > 0) env.INTENTOS_SAME_RUN_STDIN = "1";
+  delete env.INTENTOS_SAME_RUN_STDIN;
+  delete env.INTENTOS_SAME_RUN_BUNDLE_FILE;
   return env;
 }
 

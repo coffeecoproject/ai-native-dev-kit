@@ -67,6 +67,11 @@ function runJsonWithBlockedOutcome(script, root, args = []) {
   return JSON.parse(result.stdout);
 }
 
+function git(root, args) {
+  const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+  assert.equal(result.status, 0, `${args.join(" ")}\n${result.stdout}\n${result.stderr}`);
+}
+
 function writeEvidence(root, relativePath, title, evidence) {
   return write(root, relativePath, [
     `# ${title}`,
@@ -169,6 +174,141 @@ test("short unpunctuated governance rules and CI YAML signals are never silently
   assert.ok(workflow.rules.some((item) => item.rule_class === "PRODUCTION_CONTROL"));
   assert.equal(workflow.coverage.rules_extracted, workflow.rules.length);
   assert.equal(workflow.coverage.unclassified_blocks.length, 0);
+});
+
+test("agent authority filenames do not turn architecture rules into replaceable workflow guidance", () => {
+  const extracted = extractNativeRulesFromMarkdown([
+    "# ActivityAPP Agent Rules",
+    "",
+    "使用分层架构：Presentation / Domain / Data / Infrastructure",
+    "",
+  ].join("\n"), "Agent.md");
+
+  const architecture = extracted.rules.find((item) => item.source_excerpt.includes("Presentation / Domain / Data / Infrastructure"));
+  assert.ok(architecture, JSON.stringify(extracted, null, 2));
+  assert.equal(architecture.rule_class, "ENGINEERING_BASELINE");
+  assert.equal(architecture.preserve_or_replace, "map");
+});
+
+test("native migration checker accepts producer-owned UNKNOWN stop and preserve fields without prose coupling", (t) => {
+  const root = fixture(t, "intentos-native-contract-");
+  write(root, "README.md", "# Existing project\n");
+  write(root, "Agent.md", [
+    "# ActivityAPP Agent Rules",
+    "",
+    "使用分层架构：Presentation / Domain / Data / Infrastructure",
+    "",
+  ].join("\n"));
+  write(root, "docs/Directory-Module-Governance-v1.0.md", [
+    "# Directory Module Governance",
+    "",
+    "## 4.4 Data",
+    "",
+  ].join("\n"));
+
+  const resolved = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/resolve-native-migration.mjs"),
+    root,
+    "--intent", "Adopt this project under IntentOS",
+  ], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  assert.equal(resolved.status, 0, `${resolved.stdout}\n${resolved.stderr}`);
+  write(root, "native-migration-plans/current.md", resolved.stdout);
+
+  const checked = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/check-native-migration.mjs"),
+    root,
+    "--require-structured-evidence",
+  ], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  assert.equal(checked.status, 0, `${checked.stdout}\n${checked.stderr}`);
+});
+
+test("incomplete reconciliation coverage outranks dirty-worktree routing and fails closed", (t) => {
+  const root = fixture(t, "intentos-reconciliation-precedence-");
+  write(root, "README.md", "# Existing project\n");
+  write(root, "Agent.md", "# Agent Rules\n\nRun tests before review.\n");
+  write(root, "docs/Governance.md", [
+    "# Governance",
+    "",
+    "This descriptive context has no classified authority yet.",
+    "",
+    "Run tests before review.",
+    "",
+  ].join("\n"));
+  git(root, ["init", "-q"]);
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"]);
+  write(root, "README.md", "# Existing project with current work\n");
+
+  const resolved = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/resolve-existing-rule-reconciliation.mjs"),
+    root,
+    "--auto-native",
+    "--intent", "Adopt this project under IntentOS",
+  ], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  write(root, "existing-rule-reconciliations/current.md", resolved.stdout);
+  const evidence = extractMachineReadableEvidence(resolved.stdout);
+  assert.equal(evidence.ok, true, `${resolved.stdout}\n${resolved.stderr}`);
+  assert.ok(evidence.value.rule_reconciliation_coverage.omitted_rules > 0);
+  assert.equal(evidence.value.rule_reconciliation_coverage.blocks_selected_native_adoption, "Yes");
+  assert.equal(evidence.value.native_adoption_decision.recommendation, "BLOCKED_NEEDS_OWNER");
+  assert.equal(evidence.value.can_recommend_apply_plan_now, "No");
+  assert.equal(evidence.value.outcome, "BLOCKED");
+  assert.equal(resolved.status, 1, `${resolved.stdout}\n${resolved.stderr}`);
+
+  const checked = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/check-existing-rule-reconciliation.mjs"),
+    root,
+    "--require-structured-evidence",
+  ], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  assert.equal(checked.status, 0, `${checked.stdout}\n${checked.stderr}`);
+});
+
+test("adoption assurance consumes checker-valid blocked reconciliation as same-run evidence", (t) => {
+  const root = fixture(t, "intentos-blocked-reconciliation-chain-");
+  write(root, "README.md", "# Existing project\n");
+  write(root, "Agent.md", "# Agent Rules\n\nRun tests before review.\n");
+  write(root, "docs/Governance.md", [
+    "# Governance",
+    "",
+    "This descriptive context has no classified authority yet.",
+    "",
+  ].join("\n"));
+  git(root, ["init", "-q"]);
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"]);
+  write(root, "README.md", "# Existing project with current work\n");
+
+  const assurance = runJson("scripts/resolve-adoption-assurance.mjs", root, [
+    "--json", "--intent", "Adopt this project under IntentOS",
+  ]);
+  const reconciliation = assurance.sourceSystems.existing_rule_reconciliation;
+  const convergence = assurance.sourceSystems.governance_convergence;
+  assert.equal(reconciliation.status, "NEEDS_INPUT", JSON.stringify(reconciliation, null, 2));
+  assert.match(reconciliation.ref, /^same-run:/);
+  assert.equal(reconciliation.contribution, "BLOCKED_NEEDS_OWNER");
+  assert.equal(convergence.status, "NEEDS_INPUT", JSON.stringify(convergence, null, 2));
+  assert.match(convergence.ref, /^same-run:/);
+  assert.doesNotMatch(`${reconciliation.contribution} ${convergence.contribution}`, /SAME_RUN_STDIN|unavailable/i);
 });
 
 test("all root and nested agent authorities participate in identity and semantic conflict checks", (t) => {

@@ -263,6 +263,20 @@ function nativeAdoptionDecisionFor(nativePlans, rules, items, coverage) {
     .filter((rule) => surfaceForRule(rule) === "UNKNOWN_AUTHORITY")
     .some((rule) => !isLowSignalGeneratedUnknown(rule));
 
+  if (coverage.omittedRules > 0) {
+    return nativeDecision({
+      recommendation: "BLOCKED_NEEDS_OWNER",
+      migrationDepth: "READ_ONLY_DIAGNOSIS",
+      confidence: "HIGH",
+      defaultPath: "review omitted extracted rules before selected native adoption",
+      preserve: ["all omitted existing project rules", "existing release / production and protected constraints"],
+      merge: [],
+      replace: [],
+      blocked: ["selected native adoption", "governance apply plan until omitted rules are reviewed"],
+      humanConfirmation: "NO_USER_ACTION: Codex continues bounded inventory pages until every extracted rule is reconciled.",
+    });
+  }
+
   if (generatedState === "DIRTY_WORKTREE_PROJECT") {
     return nativeDecision({
       recommendation: hasActionableUnknown ? "DOCS_BRIDGE" : "SELECTED_NATIVE_ADOPTION",
@@ -288,20 +302,6 @@ function nativeAdoptionDecisionFor(nativePlans, rules, items, coverage) {
       replace: [],
       blocked: ["native adoption apply plan"],
       humanConfirmation: "NO_USER_ACTION: Codex generates native migration evidence in read-only mode first.",
-    });
-  }
-
-  if (coverage.omittedRules > 0) {
-    return nativeDecision({
-      recommendation: "BLOCKED_NEEDS_OWNER",
-      migrationDepth: "READ_ONLY_DIAGNOSIS",
-      confidence: "HIGH",
-      defaultPath: "review omitted extracted rules before selected native adoption",
-      preserve: ["all omitted existing project rules", "existing release / production and protected constraints"],
-      merge: [],
-      replace: [],
-      blocked: ["selected native adoption", "governance apply plan until omitted rules are reviewed"],
-      humanConfirmation: "NO_USER_ACTION: Codex continues bounded inventory pages until every extracted rule is reconciled.",
     });
   }
 

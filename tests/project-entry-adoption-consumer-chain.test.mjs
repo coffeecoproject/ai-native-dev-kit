@@ -4,9 +4,12 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { evidenceDigest, validateSchema } from "../scripts/lib/artifact-schema.mjs";
-import { verifyProjectLocalBehavioralRoute } from "../scripts/lib/behavioral-adoption-activation.mjs";
+import {
+  isReadOnlyGitInvocation,
+  verifyProjectLocalBehavioralRoute,
+} from "../scripts/lib/behavioral-adoption-activation.mjs";
 import { collectCurrentWorkContinuity, evaluateWriteOverlap } from "../scripts/lib/current-work-continuity.mjs";
 import { collectProjectFactProjection } from "../scripts/lib/project-fact-projection.mjs";
 import { resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
@@ -14,6 +17,7 @@ import {
   consumeAuthoritativeEvidence,
   consumeSameRunEvidenceEnvelope,
   createSameRunEvidenceEnvelope,
+  encodeSameRunEnvelopeBundle,
   sameRunBindingFromTrust,
   validateSameRunEvidenceEnvelope,
 } from "../scripts/lib/same-run-evidence-envelope.mjs";
@@ -197,6 +201,30 @@ test("1.109 same-run producer binding always carries one deterministic task iden
   assert.match(first.taskRef, /^task:[a-f0-9]{64}$/);
   assert.notEqual(first.taskRef, "N/A");
   assert.equal(first.taskRef, second.taskRef);
+});
+
+test("1.109 same-run envelope bundles can use an ephemeral file without stdin", () => {
+  const root = fixture("intentos-same-run-file-transport-");
+  const valid = envelope();
+  const bundle = write(root, "same-run-bundle.json", encodeSameRunEnvelopeBundle([valid]));
+  fs.chmodSync(bundle, 0o600);
+  const moduleUrl = pathToFileURL(path.join(kitRoot, "scripts/lib/same-run-evidence-envelope.mjs")).href;
+  const program = [
+    `import { readSameRunEnvelopeFromEnvironment } from ${JSON.stringify(moduleUrl)};`,
+    "const value = readSameRunEnvelopeFromEnvironment('native_migration');",
+    "if (!value) process.exit(2);",
+    "process.stdout.write(value.envelope_id);",
+  ].join("\n");
+  const result = spawnSync(process.execPath, ["--input-type=module", "-e", program], {
+    cwd: kitRoot,
+    env: {
+      ...process.env,
+      INTENTOS_SAME_RUN_BUNDLE_FILE: bundle,
+    },
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  assert.equal(result.stdout, valid.envelope_id);
 });
 
 test("1.109 missing or duplicate authority inputs and duplicate source rows fail closed", () => {
@@ -444,4 +472,45 @@ test("1.109 read-only behavioral assessment never executes target-project resolv
 
   assert.equal(fs.existsSync(marker), false, JSON.stringify(result, null, 2));
   assert.notEqual(result.state, "VERIFIED_ACTIVE");
+});
+
+test("1.109 source-driven read-only assessment can inspect external Git state without target execution", () => {
+  const root = fixture("intentos-readonly-external-git-");
+  const marker = path.join(root, "target-script-executed.txt");
+  write(root, "README.md", "# Existing Git project\n");
+  write(root, "scripts/workflow-next.mjs", [
+    "import fs from 'node:fs';",
+    `fs.writeFileSync(${JSON.stringify(marker)}, 'unsafe execution\\n');`,
+    "process.stdout.write('{}\\n');",
+    "",
+  ].join("\n"));
+  initializeGitProject(root);
+  write(root, "README.md", "# Existing Git project with current work\n");
+
+  const result = verifyProjectLocalBehavioralRoute({
+    targetRoot: root,
+    sourceRoot: kitRoot,
+    goal: "Assess this existing project under IntentOS",
+  });
+
+  assert.equal(fs.existsSync(marker), false, JSON.stringify(result, null, 2));
+  assert.equal(
+    result.errors.some((error) => error.includes("INTENTOS_TARGET_EXECUTION_DENIED:git")),
+    false,
+    JSON.stringify(result, null, 2),
+  );
+  assert.ok(
+    result.routeCalibration.source_refs.some((ref) => ref.startsWith("workflow-next:") && !ref.includes("not-run")),
+    JSON.stringify(result, null, 2),
+  );
+});
+
+test("1.109 source-driven Git policy permits observations and rejects mutations", () => {
+  assert.equal(isReadOnlyGitInvocation(["-C", "/project", "rev-parse", "--show-toplevel"]), true);
+  assert.equal(isReadOnlyGitInvocation(["-C", "/project", "--no-pager", "-c", "core.fsmonitor=false", "status", "--porcelain"]), true);
+  assert.equal(isReadOnlyGitInvocation(["-C", "/project", "ls-files", "-co", "--exclude-standard", "-z"]), true);
+  assert.equal(isReadOnlyGitInvocation(["add", "."]), false);
+  assert.equal(isReadOnlyGitInvocation(["commit", "-m", "unexpected"]), false);
+  assert.equal(isReadOnlyGitInvocation(["config", "user.name", "unexpected"]), false);
+  assert.equal(isReadOnlyGitInvocation(["diff", "--output", "/project/proof.patch"]), false);
 });

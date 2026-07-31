@@ -82,6 +82,17 @@ contribution. If any source system is `BLOCKED` or `NEEDS_INPUT`, convergence
 must record that upstream input requirement and must not claim ready or partial
 convergence.
 
+When several blocking conditions coexist, the report keeps every condition in
+`blocked` and selects one deterministic summary state in this order:
+
+1. `CONVERGENCE_BLOCKED_BY_RULE_COVERAGE`
+2. `CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE`
+3. `CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY`
+4. `CONVERGENCE_BLOCKED_BY_UPSTREAM_EVIDENCE`
+
+This precedence chooses the summary state only. It does not remove, weaken, or
+resolve any lower-priority blocker.
+
 ## Audit Bridge
 
 Old projects have real evidence that predates IntentOS. Convergence must bridge

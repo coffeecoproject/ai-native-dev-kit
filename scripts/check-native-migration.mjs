@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
+import { validateNativeRuleClassification } from "./lib/native-rule-extraction.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "require-structured-evidence"]);
@@ -337,33 +338,7 @@ function checkRuleClassification(content, label, structuredEvidence) {
       fail(`${rowLabel} missing confidence in strict mode`);
     }
 
-    const excerptAndAction = `${sourceExcerpt} ${targetAction} ${preserveOrReplace}`;
-    if (ruleClass === "WORKFLOW_RULE"
-      && /\b(customer|business|contract|invoice|tax|finance|HR|payment|permission|data)\b/i.test(sourceExcerpt)
-      && /\b(replace|remove|drop)\b/i.test(excerptAndAction)) {
-      fail(`${rowLabel} misclassifies a business rule as replaceable workflow`);
-    }
-    if (ruleClass === "ENGINEERING_BASELINE"
-      && /\b(release|rollback|deploy|production|secret|migration|incident|provider)\b/i.test(sourceExcerpt)) {
-      fail(`${rowLabel} misclassifies production control as engineering baseline`);
-    }
-    if (ruleClass === "ENGINEERING_BASELINE"
-      && /\b(invoice|tax|finance|payment|contract|customer data|data meaning|tax meaning|approval limit|role changes?)\b/i.test(sourceExcerpt)
-      && /\b(schema|api|database|enum|type|string|dto)\b/i.test(sourceExcerpt)) {
-      fail(`${rowLabel} misclassifies mixed business + engineering rule as plain engineering baseline`);
-    }
-    if (ruleClass === "ENGINEERING_BASELINE"
-      && /(客户|合同|协议|订单|发票|税务|结算|财务|审批|权限|角色|客户数据|隐私|合规)/.test(sourceExcerpt)
-      && /(数据库|接口|枚举|schema|api|database|enum)/i.test(sourceExcerpt)) {
-      fail(`${rowLabel} misclassifies Chinese business + engineering rule as plain engineering baseline`);
-    }
-    if (ruleClass !== "PRODUCTION_CONTROL"
-      && /(生产|上线|发布|回滚|事故|密钥|生产配置)/.test(sourceExcerpt)) {
-      fail(`${rowLabel} misclassifies Chinese production or release rule`);
-    }
-    if (ruleClass === "UNKNOWN_AUTHORITY" && !/\b(stop|classify|owner|confirm)\b/i.test(targetAction)) {
-      fail(`${rowLabel} unknown authority must stop for classification`);
-    }
+    for (const error of validateNativeRuleClassification(parsed)) fail(`${rowLabel} ${error}`);
   }
   if (structuredEvidence) {
     if ((structuredEvidence.rule_classifications?.length || 0) === rows.length) {

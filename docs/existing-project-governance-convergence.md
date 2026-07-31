@@ -99,6 +99,14 @@ The report must be internally consistent:
   `release_plan`.
 - If any source system is `BLOCKED` or `NEEDS_INPUT`, the report must record an
   upstream blocked reason and must not claim ready convergence.
+- When several blockers coexist, the summary state uses this deterministic
+  precedence while the `blocked` list retains every condition:
+  `CONVERGENCE_BLOCKED_BY_RULE_COVERAGE`,
+  `CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE`,
+  `CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY`, then
+  `CONVERGENCE_BLOCKED_BY_UPSTREAM_EVIDENCE`.
+- Summary precedence does not remove, weaken, or resolve a lower-priority
+  blocker.
 
 ## Report Command
 
