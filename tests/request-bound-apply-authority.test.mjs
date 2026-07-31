@@ -5,6 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
+import { evidenceDigest } from "../scripts/lib/artifact-schema.mjs";
+import { verifiedBootstrapManagedOwnership } from "../scripts/lib/bootstrap-transaction.mjs";
 import {
   consumeRequestBoundApplyAuthority,
   createRequestBoundApplyAuthority,
@@ -13,6 +15,7 @@ import {
   requestBoundAuthorityConsumptionState,
   validateCurrentRequestForPlan,
   validateRequestBoundApplyAuthority,
+  validateRequestBoundLocalActionGraph,
   validateRequestBoundReadiness,
 } from "../scripts/lib/request-bound-apply-authority.mjs";
 
@@ -65,6 +68,69 @@ function planFor(root, legacyAgent) {
       },
     ],
   };
+}
+
+function installBootstrapOwnership(root, relative, content) {
+  const currentHash = sha(content);
+  fs.mkdirSync(path.dirname(path.join(root, relative)), { recursive: true });
+  fs.mkdirSync(path.join(root, ".intentos"), { recursive: true });
+  fs.writeFileSync(path.join(root, relative), content);
+  fs.writeFileSync(path.join(root, ".intentos/version.json"), `${JSON.stringify({
+    intentOSVersion: "0.0.0",
+    projectEntryOrigin: "NEW_PROJECT",
+    workflowAssets: [],
+    managedAssetDigests: {},
+  }, null, 2)}\n`);
+  const bootstrapPlan = {
+    planVersion: "1.1",
+    operation: "INIT_PROJECT",
+    operationKind: "NEW_BOOTSTRAP",
+    targetRoot: root,
+    receiptPath: ".intentos/bootstrap-receipt.json",
+    actions: [{
+      id: "A-764",
+      type: "CREATE",
+      path: relative,
+      source: relative,
+      willWrite: true,
+      executionSupported: true,
+      sourceHash: currentHash,
+      expectedHashAfter: currentHash,
+    }],
+  };
+  bootstrapPlan.planDigest = evidenceDigest(bootstrapPlan, ["planDigest"]);
+  fs.writeFileSync(path.join(root, ".intentos/bootstrap-plan.json"), `${JSON.stringify(bootstrapPlan, null, 2)}\n`);
+  const base = {
+    schema_version: "1.109.0",
+    artifact_type: "bootstrap_transaction_receipt",
+    transaction_id: "bootstrap-request-bound-consumer",
+    target_root: root,
+    original_topology: "ABSENT_LEAF",
+    envelope_digest: sha("bootstrap envelope"),
+    goal_digest: sha("bootstrap goal"),
+    plan_ref: ".intentos/bootstrap-plan.json",
+    plan_digest: bootstrapPlan.planDigest,
+    approval_ref: "bootstrap:original-request-approval",
+    approval_digest: sha("bootstrap approval"),
+    readiness_ref: "bootstrap:controlled-readiness",
+    readiness_digest: sha("bootstrap readiness"),
+    source_inventory_digest: sha("bootstrap source inventory"),
+    preserved_control_files: [],
+    state: "APPLY_VERIFIED",
+    actions: [{ id: "A-764", path: relative, result: "APPLIED", hash_after: currentHash }],
+    errors: [],
+    rollback_state: "NOT_REQUIRED",
+    residual_paths: [],
+    exact_action_ids: ["A-764"],
+    activation: { ok: true, state: "VERIFIED_ACTIVE" },
+  };
+  const receipt = {
+    ...base,
+    receipt_ref: ".intentos/bootstrap-receipt.json",
+    receipt_digest: evidenceDigest(base, []),
+  };
+  fs.writeFileSync(path.join(root, ".intentos/bootstrap-receipt.json"), `${JSON.stringify(receipt, null, 2)}\n`);
+  return { bootstrapPlan, currentHash, receipt };
 }
 
 function authorityContext(t) {
@@ -231,4 +297,71 @@ test("request-bound authority cannot overwrite an unmanaged existing workflow sc
   };
   const plan = { ...context.plan, actions: [...context.plan.actions, action] };
   assert.equal(isRequestBoundLocalActionAllowed(action, plan), false);
+});
+
+test("request-bound authority consumes exact independently verified bootstrap ownership", (t) => {
+  const context = authorityContext(t);
+  const relative = "scripts/check-release-execution-topology.mjs";
+  const content = "export const bootstrapManaged = true;\n";
+  const evidence = installBootstrapOwnership(context.root, relative, content);
+  const ownership = verifiedBootstrapManagedOwnership(context.root, relative, evidence.currentHash);
+  assert.deepEqual(ownership, {
+    state: "VERIFIED_PRIOR_INTENTOS_MANAGED",
+    evidence_ref: ".intentos/bootstrap-receipt.json#actions:A-764",
+    managed_digest: evidence.currentHash,
+  });
+  const action = {
+    id: "A-003",
+    type: "UPDATE_MANAGED",
+    path: relative,
+    source: relative,
+    hashBefore: evidence.currentHash,
+    ownership,
+    sourceHash: sha("updated source"),
+    expectedHashAfter: sha("updated source"),
+    willWrite: true,
+  };
+  const plan = { ...context.plan, actions: [...context.plan.actions, action] };
+  assert.deepEqual(validateRequestBoundLocalActionGraph(plan), []);
+
+  const missing = { ...action, ownership: undefined };
+  assert.equal(isRequestBoundLocalActionAllowed(missing, { ...plan, actions: [...context.plan.actions, missing] }), false);
+  const forged = { ...action, ownership: { ...ownership, evidence_ref: ".intentos/bootstrap-receipt.json#actions:A-999" } };
+  assert.equal(isRequestBoundLocalActionAllowed(forged, { ...plan, actions: [...context.plan.actions, forged] }), false);
+
+  fs.appendFileSync(path.join(context.root, relative), "// local edit\n");
+  assert.equal(isRequestBoundLocalActionAllowed(action, plan), false);
+});
+
+test("request-bound bootstrap ownership consumer rejects duplicate receipt actions and plan drift", (t) => {
+  const context = authorityContext(t);
+  const relative = "scripts/check-release-execution-topology.mjs";
+  const content = "export const bootstrapManaged = true;\n";
+  const evidence = installBootstrapOwnership(context.root, relative, content);
+  const ownership = verifiedBootstrapManagedOwnership(context.root, relative, evidence.currentHash);
+  const action = {
+    id: "A-003",
+    type: "UPDATE_MANAGED",
+    path: relative,
+    source: relative,
+    hashBefore: evidence.currentHash,
+    ownership,
+    expectedHashAfter: sha("updated source"),
+    willWrite: true,
+  };
+  const receiptFile = path.join(context.root, ".intentos/bootstrap-receipt.json");
+  const duplicate = structuredClone(evidence.receipt);
+  duplicate.actions.push({ ...duplicate.actions[0] });
+  const { receipt_digest: _digest, receipt_ref: _ref, ...duplicateBase } = duplicate;
+  duplicate.receipt_digest = evidenceDigest(duplicateBase, []);
+  fs.writeFileSync(receiptFile, `${JSON.stringify(duplicate, null, 2)}\n`);
+  assert.equal(isRequestBoundLocalActionAllowed(action, { ...context.plan, actions: [...context.plan.actions, action] }), false);
+
+  fs.writeFileSync(receiptFile, `${JSON.stringify(evidence.receipt, null, 2)}\n`);
+  const planFile = path.join(context.root, ".intentos/bootstrap-plan.json");
+  const drifted = structuredClone(evidence.bootstrapPlan);
+  drifted.actions[0].expectedHashAfter = sha("drifted");
+  drifted.planDigest = evidenceDigest(drifted, ["planDigest"]);
+  fs.writeFileSync(planFile, `${JSON.stringify(drifted, null, 2)}\n`);
+  assert.equal(isRequestBoundLocalActionAllowed(action, { ...context.plan, actions: [...context.plan.actions, action] }), false);
 });

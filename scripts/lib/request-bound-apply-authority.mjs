@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { evidenceDigest } from "./artifact-schema.mjs";
 import { normalizePathList, sameSet } from "./approval-record-validation.mjs";
+import { verifiedBootstrapManagedOwnership } from "./bootstrap-transaction.mjs";
 
 const REQUEST_AUTHORITY_VERSION = "1.113.0";
 const REQUEST_AUTHORITY_MODE = "REQUEST_BOUND_LOCAL";
@@ -551,19 +552,23 @@ function hasVerifiedPriorOwnership(action, plan) {
   if (isExplicitPreservingReconcile(action, plan)) return true;
   const target = normalizePath(action.path);
   const versionEntry = readProjectRegularFile(plan?.targetRoot, ".intentos/version.json");
-  if (!versionEntry) return false;
-  let version;
-  try { version = JSON.parse(versionEntry.content); } catch { return false; }
-  if (target === ".intentos/version.json") {
-    return /^\d+\.\d+\.\d+/.test(String(version.intentOSVersion || ""))
-      && Array.isArray(version.workflowAssets)
-      && version.workflowAssets.length > 0
-      && digestContent(versionEntry.content) === action.hashBefore;
+  if (versionEntry) {
+    let version;
+    try { version = JSON.parse(versionEntry.content); } catch { version = null; }
+    if (target === ".intentos/version.json") {
+      return /^\d+\.\d+\.\d+/.test(String(version?.intentOSVersion || ""))
+        && Array.isArray(version?.workflowAssets)
+        && version.workflowAssets.length > 0
+        && digestContent(versionEntry.content) === action.hashBefore;
+    }
+    const recorded = version?.managedAssetDigests?.[target];
+    const declared = (version?.workflowAssets || []).map(normalizePath).filter(Boolean);
+    if (recorded === action.hashBefore
+      && /^sha256:[a-f0-9]{64}$/.test(String(recorded || ""))
+      && declared.some((managed) => target === managed || target.startsWith(`${managed}/`))) return true;
   }
-  const recorded = version.managedAssetDigests?.[target];
-  if (recorded !== action.hashBefore || !/^sha256:[a-f0-9]{64}$/.test(String(recorded || ""))) return false;
-  const declared = (version.workflowAssets || []).map(normalizePath).filter(Boolean);
-  return declared.some((managed) => target === managed || target.startsWith(`${managed}/`));
+  const verified = verifiedBootstrapManagedOwnership(plan?.targetRoot, target, action.hashBefore);
+  return Boolean(verified && action.ownership && evidenceDigest(action.ownership, []) === evidenceDigest(verified, []));
 }
 
 function isExplicitPreservingReconcile(action, plan) {

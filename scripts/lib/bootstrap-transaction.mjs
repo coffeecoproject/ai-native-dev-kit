@@ -156,6 +156,61 @@ export function loadVerifiedBootstrapReceipt(projectRoot) {
   }
 }
 
+export function verifiedBootstrapManagedOwnership(projectRoot, targetRelative, currentHash) {
+  const resolvedRoot = path.resolve(projectRoot);
+  if (!fs.existsSync(resolvedRoot)) return null;
+  const root = fs.realpathSync(resolvedRoot);
+  const target = normalizeRelative(targetRelative);
+  const suppliedTarget = String(targetRelative || "").replaceAll("\\", "/").replace(/^\.\//, "");
+  if (!target || target !== suppliedTarget || !/^sha256:[a-f0-9]{64}$/.test(String(currentHash || ""))) return null;
+  try {
+    const targetFile = assertSafeWritePath(root, target, "bootstrap managed ownership target");
+    const targetStat = fs.lstatSync(targetFile);
+    if (targetStat.isSymbolicLink() || !targetStat.isFile() || fileDigest(targetFile) !== currentHash) return null;
+
+    const versionFile = assertSafeWritePath(root, ".intentos/version.json", "bootstrap managed ownership version");
+    const versionStat = fs.lstatSync(versionFile);
+    if (versionStat.isSymbolicLink() || !versionStat.isFile()) return null;
+    const version = JSON.parse(fs.readFileSync(versionFile, "utf8"));
+    if (version.projectEntryOrigin !== "NEW_PROJECT") return null;
+
+    const bootstrap = loadVerifiedBootstrapReceipt(root);
+    if (!bootstrap.ok || bootstrap.receipt?.plan_ref !== ".intentos/bootstrap-plan.json") return null;
+    const receiptMatches = (bootstrap.receipt.actions || []).filter((action) => action?.path === target);
+    if (receiptMatches.length !== 1) return null;
+    const [receiptAction] = receiptMatches;
+    if (!/^A-\d+$/.test(String(receiptAction.id || ""))
+      || receiptAction.result !== "APPLIED"
+      || receiptAction.hash_after !== currentHash) return null;
+
+    const planFile = assertSafeWritePath(root, bootstrap.receipt.plan_ref, "bootstrap managed ownership plan");
+    const planStat = fs.lstatSync(planFile);
+    if (planStat.isSymbolicLink() || !planStat.isFile()) return null;
+    const plan = JSON.parse(fs.readFileSync(planFile, "utf8"));
+    if (plan.operation !== "INIT_PROJECT"
+      || plan.receiptPath !== bootstrap.ref
+      || path.resolve(String(plan.targetRoot || "")) !== root
+      || plan.planDigest !== bootstrap.receipt.plan_digest
+      || evidenceDigest(plan, ["planDigest"]) !== bootstrap.receipt.plan_digest) return null;
+    const planMatches = (plan.actions || []).filter((action) => action?.path === target);
+    if (planMatches.length !== 1) return null;
+    const [planAction] = planMatches;
+    if (planAction.id !== receiptAction.id
+      || planAction.type !== "CREATE"
+      || planAction.willWrite !== true
+      || planAction.executionSupported !== true
+      || planAction.sourceHash !== currentHash
+      || planAction.expectedHashAfter !== currentHash) return null;
+    return {
+      state: "VERIFIED_PRIOR_INTENTOS_MANAGED",
+      evidence_ref: `${bootstrap.ref}#actions:${receiptAction.id}`,
+      managed_digest: currentHash,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function executeBootstrapTransaction(transaction, options = {}) {
   const validation = validateBootstrapTransaction(transaction, options);
   if (!validation.ok) return receipt(transaction, "APPLY_BLOCKED_BEFORE_WRITE", [], validation.errors, "NOT_REQUIRED");
