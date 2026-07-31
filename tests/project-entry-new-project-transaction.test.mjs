@@ -14,6 +14,7 @@ import {
   recoverInterruptedBootstrap,
   validateVerifiedBootstrapReceipt,
 } from "../scripts/lib/bootstrap-transaction.mjs";
+import { planDigest, priorManagedAssetOwnership } from "../scripts/init-project/plan.mjs";
 import { inspectTargetTopology } from "../scripts/lib/target-topology.mjs";
 
 const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -30,7 +31,7 @@ function transaction(targetRoot, transactionId, actions = defaultActions(), opti
     transactionId,
     actions,
     goalDigest: evidenceDigest("create an appointment app", []),
-    planDigest: evidenceDigest("exact plan", []),
+    planDigest: options.planDigest || evidenceDigest("exact plan", []),
     approvalDigest: evidenceDigest("original request", []),
     readinessDigest: evidenceDigest("ready", []),
     sourceInventoryDigest: evidenceDigest("source inventory", []),
@@ -47,6 +48,29 @@ function defaultActions() {
 
 function verifiedActivation() {
   return { ok: true, state: "VERIFIED_ACTIVE", errors: [] };
+}
+
+function ownershipPlan(target, relative, content) {
+  const digest = `sha256:${createHash("sha256").update(content).digest("hex")}`;
+  const plan = {
+    planVersion: "1.1",
+    operation: "INIT_PROJECT",
+    operationKind: "CONTROLLED_BOOTSTRAP",
+    targetRoot: target,
+    receiptPath: ".intentos/bootstrap-receipt.json",
+    actions: [{
+      id: "A-764",
+      type: "CREATE",
+      path: relative,
+      source: relative,
+      willWrite: true,
+      executionSupported: true,
+      sourceHash: digest,
+      expectedHashAfter: digest,
+    }],
+  };
+  plan.planDigest = planDigest(plan);
+  return plan;
 }
 
 function combined(result) {
@@ -296,6 +320,85 @@ test("bootstrap transaction atomically creates an absent target and verifies its
   assert.equal(fs.readFileSync(path.join(target, "src/index.mjs"), "utf8"), "export const ready = true;\n");
   assert.equal(validateVerifiedBootstrapReceipt(result, target, { transactionId: tx.transaction_id }).ok, true);
   assert.equal(fs.existsSync(path.join(parent, `.intentos-bootstrap-${tx.transaction_id}.pending.json`)), false);
+});
+
+test("verified bootstrap receipt recovers exact managed ownership omitted by a legacy version record", (t) => {
+  const parent = fixture(t, "intentos-bootstrap-ownership-");
+  const target = path.join(parent, "receipt-owned-project");
+  const relative = "scripts/check-release-execution-topology.mjs";
+  const content = "export const receiptOwned = true;\n";
+  const plan = ownershipPlan(target, relative, content);
+  const tx = transaction(target, "receipt-owned-success", [
+    { id: "A-764", path: relative, content },
+  ], { planDigest: plan.planDigest });
+  const receipt = executeBootstrapTransaction(tx, { verifyActivation: verifiedActivation });
+  assert.equal(receipt.state, "APPLY_VERIFIED", receipt.errors.join("; "));
+  fs.mkdirSync(path.join(target, ".intentos"), { recursive: true });
+  fs.writeFileSync(path.join(target, ".intentos/bootstrap-plan.json"), `${JSON.stringify(plan, null, 2)}\n`);
+  fs.writeFileSync(path.join(target, ".intentos/version.json"), `${JSON.stringify({
+    intentOSVersion: "0.0.0",
+    projectEntryOrigin: "NEW_PROJECT",
+    workflowAssets: [],
+    managedAssetDigests: {},
+  }, null, 2)}\n`);
+  const currentHash = rawFileDigest(path.join(target, relative));
+
+  assert.deepEqual(priorManagedAssetOwnership(target, relative, currentHash), {
+    state: "VERIFIED_PRIOR_INTENTOS_MANAGED",
+    evidence_ref: ".intentos/bootstrap-receipt.json#actions:A-764",
+    managed_digest: currentHash,
+  });
+
+  const receiptFile = path.join(target, ".intentos/bootstrap-receipt.json");
+  const invalid = JSON.parse(fs.readFileSync(receiptFile, "utf8"));
+  invalid.receipt_digest = `sha256:${"0".repeat(64)}`;
+  fs.writeFileSync(receiptFile, `${JSON.stringify(invalid, null, 2)}\n`);
+  assert.deepEqual(priorManagedAssetOwnership(target, relative, currentHash), { state: "UNPROVEN_PROJECT_OWNED" });
+});
+
+test("bootstrap ownership recovery rejects local edits, duplicate actions, and plan drift", (t) => {
+  const parent = fixture(t, "intentos-bootstrap-ownership-negative-");
+  const target = path.join(parent, "receipt-owned-project");
+  const relative = "scripts/check-release-execution-topology.mjs";
+  const content = "export const receiptOwned = true;\n";
+  const plan = ownershipPlan(target, relative, content);
+  const tx = transaction(target, "receipt-owned-negative", [
+    { id: "A-764", path: relative, content },
+  ], { planDigest: plan.planDigest });
+  const receipt = executeBootstrapTransaction(tx, { verifyActivation: verifiedActivation });
+  assert.equal(receipt.state, "APPLY_VERIFIED", receipt.errors.join("; "));
+  fs.mkdirSync(path.join(target, ".intentos"), { recursive: true });
+  const planFile = path.join(target, ".intentos/bootstrap-plan.json");
+  fs.writeFileSync(planFile, `${JSON.stringify(plan, null, 2)}\n`);
+  const versionFile = path.join(target, ".intentos/version.json");
+  fs.writeFileSync(versionFile, `${JSON.stringify({
+    intentOSVersion: "0.0.0",
+    projectEntryOrigin: "NEW_PROJECT",
+    workflowAssets: [],
+    managedAssetDigests: {},
+  }, null, 2)}\n`);
+  const targetFile = path.join(target, relative);
+  const receiptFile = path.join(target, ".intentos/bootstrap-receipt.json");
+  const originalReceipt = JSON.parse(fs.readFileSync(receiptFile, "utf8"));
+
+  fs.appendFileSync(targetFile, "// local edit\n");
+  assert.deepEqual(priorManagedAssetOwnership(target, relative, rawFileDigest(targetFile)), { state: "UNPROVEN_PROJECT_OWNED" });
+
+  fs.writeFileSync(targetFile, content);
+  const duplicate = structuredClone(originalReceipt);
+  duplicate.actions.push({ ...duplicate.actions[0] });
+  const { receipt_digest: _digest, receipt_ref: _ref, ...base } = duplicate;
+  duplicate.receipt_digest = evidenceDigest(base, []);
+  fs.writeFileSync(receiptFile, `${JSON.stringify(duplicate, null, 2)}\n`);
+  const currentHash = rawFileDigest(targetFile);
+  assert.deepEqual(priorManagedAssetOwnership(target, relative, currentHash), { state: "UNPROVEN_PROJECT_OWNED" });
+
+  fs.writeFileSync(receiptFile, `${JSON.stringify(originalReceipt, null, 2)}\n`);
+  const driftedPlan = structuredClone(plan);
+  driftedPlan.actions[0].expectedHashAfter = `sha256:${"f".repeat(64)}`;
+  driftedPlan.planDigest = planDigest(driftedPlan);
+  fs.writeFileSync(planFile, `${JSON.stringify(driftedPlan, null, 2)}\n`);
+  assert.deepEqual(priorManagedAssetOwnership(target, relative, currentHash), { state: "UNPROVEN_PROJECT_OWNED" });
 });
 
 test("bootstrap transaction atomically replaces and preserves an originally empty directory", (t) => {

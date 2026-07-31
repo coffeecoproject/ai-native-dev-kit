@@ -21,6 +21,7 @@ import { isGovernedWorkflowOutputPath, projectIdentity } from "../lib/evidence-a
 import {
   createBootstrapTransaction,
   executeBootstrapTransaction,
+  loadVerifiedBootstrapReceipt,
   recoverInterruptedBootstrap,
 } from "../lib/bootstrap-transaction.mjs";
 import {
@@ -345,9 +346,51 @@ function priorManagedAssetOwnership(targetPath, targetRel, currentHash) {
     const managed = String(value || "").replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, "");
     return managed && (targetRel === managed || targetRel.startsWith(`${managed}/`));
   });
-  return managedDigest === currentHash && declared
-    ? { state: "VERIFIED_PRIOR_INTENTOS_MANAGED", evidence_ref: ".intentos/version.json", managed_digest: currentHash }
-    : { state: "UNPROVEN_PROJECT_OWNED" };
+  if (managedDigest === currentHash && declared) {
+    return { state: "VERIFIED_PRIOR_INTENTOS_MANAGED", evidence_ref: ".intentos/version.json", managed_digest: currentHash };
+  }
+  if (version.projectEntryOrigin !== "NEW_PROJECT") return { state: "UNPROVEN_PROJECT_OWNED" };
+  const bootstrapOwnership = verifiedBootstrapPlanOwnership(targetPath, targetRel, currentHash);
+  return bootstrapOwnership || { state: "UNPROVEN_PROJECT_OWNED" };
+}
+
+function verifiedBootstrapPlanOwnership(targetPath, targetRel, currentHash) {
+  const bootstrap = loadVerifiedBootstrapReceipt(targetPath);
+  if (!bootstrap.ok || bootstrap.receipt?.plan_ref !== ".intentos/bootstrap-plan.json") return null;
+  const receiptMatches = (bootstrap.receipt.actions || []).filter((action) => action?.path === targetRel);
+  if (receiptMatches.length !== 1) return null;
+  const [receiptAction] = receiptMatches;
+  if (!/^A-\d+$/.test(String(receiptAction.id || ""))
+    || receiptAction.result !== "APPLIED"
+    || receiptAction.hash_after !== currentHash) return null;
+  const planFile = path.join(targetPath, bootstrap.receipt.plan_ref);
+  let plan;
+  try {
+    assertNoSymlinkInPath(targetPath, planFile, "bootstrap ownership plan");
+    if (!fs.lstatSync(planFile).isFile()) return null;
+    plan = JSON.parse(fs.readFileSync(planFile, "utf8"));
+  } catch {
+    return null;
+  }
+  const canonicalRoot = fs.realpathSync(targetPath);
+  if (plan.operation !== "INIT_PROJECT"
+    || plan.receiptPath !== bootstrap.ref
+    || path.resolve(String(plan.targetRoot || "")) !== canonicalRoot
+    || planDigest(plan) !== bootstrap.receipt.plan_digest) return null;
+  const planMatches = (plan.actions || []).filter((action) => action?.path === targetRel);
+  if (planMatches.length !== 1) return null;
+  const [planAction] = planMatches;
+  if (planAction.id !== receiptAction.id
+    || planAction.type !== "CREATE"
+    || planAction.willWrite !== true
+    || planAction.executionSupported !== true
+    || planAction.sourceHash !== currentHash
+    || planAction.expectedHashAfter !== currentHash) return null;
+  return {
+    state: "VERIFIED_PRIOR_INTENTOS_MANAGED",
+    evidence_ref: `${bootstrap.ref}#actions:${receiptAction.id}`,
+    managed_digest: currentHash,
+  };
 }
 
 function addDirectoryPlanActions(actions, targetPath, sourceDir, targetRel, options = {}) {
@@ -1120,5 +1163,6 @@ export {
   createTargetFingerprint,
   gitFingerprint,
   isForbiddenControlledApplyAction,
-  planDigest
+  planDigest,
+  priorManagedAssetOwnership,
 };
