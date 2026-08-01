@@ -5,7 +5,9 @@ npm package, hosted service, dashboard, or global installer contract.
 
 ## Before You Start
 
-The source checkout requires Node.js `>=22`, npm, and git.
+The source checkout requires Node.js `22.x` (supported engine range
+`>=22 <23`), npm, and git. Newer Node majors are not part of the current
+formal verification boundary.
 
 ```bash
 node --version

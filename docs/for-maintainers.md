@@ -4,6 +4,13 @@ This page is for people maintaining IntentOS itself, CI, release evidence, or ad
 
 Most users should start with [Start Here](start-here.md).
 
+## Supported Verification Runtime
+
+Run maintainer checks with Node.js `22.x` (supported engine range
+`>=22 <23`). The first-party PR and release workflows use Node 22. A newer
+Node major may be investigated separately, but it is not a formally supported
+verification runtime until its full source check has closed successfully.
+
 ## Primary Public Entry
 
 ```bash

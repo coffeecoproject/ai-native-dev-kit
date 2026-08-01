@@ -18,7 +18,7 @@ It is not a prompt collection, code template, framework starter, or deploy tool.
 
 ## Start In 30 Seconds
 
-Prerequisite: Node.js `>=22`.
+Prerequisite: Node.js `22.x` (supported engine range `>=22 <23`).
 
 Most users should start with natural language:
 

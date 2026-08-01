@@ -1544,8 +1544,8 @@ function checkCliFrontDoor() {
   if (pkg.bin?.["intentos"] === "./scripts/cli.mjs") pass("package.json exposes intentos bin");
   else fail("package.json must expose intentos bin at ./scripts/cli.mjs");
 
-  if (pkg.engines?.node === ">=22") pass("package.json declares Node >=22 engine");
-  else fail("package.json must declare Node >=22 engine");
+  if (pkg.engines?.node === ">=22 <23") pass("package.json declares supported Node 22.x engine");
+  else fail("package.json must declare supported Node 22.x engine as >=22 <23");
 
   for (const scriptName of ["check", "verify", "self-check", "fixtures", "smoke:init"]) {
     if (typeof pkg.scripts?.[scriptName] === "string" && pkg.scripts[scriptName].length > 0) {

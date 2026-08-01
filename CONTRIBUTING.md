@@ -4,6 +4,10 @@
 
 Changes to this repository should keep IntentOS installable, checkable, and safe for real project adoption. Small documentation fixes can stay lightweight. Productization, workflow, checker, CI, or template changes need workflow evidence and local verification.
 
+Use Node.js `22.x` (supported engine range `>=22 <23`) for repository checks.
+The supported maintainer runtime must match the Node 22 first-party CI jobs;
+testing on a newer major does not expand the formal support boundary.
+
 ## Required Checks
 
 Run the core checks before opening a pull request:
