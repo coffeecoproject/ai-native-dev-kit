@@ -232,8 +232,6 @@ function validBootstrapReceipt(receipt, canonicalRoot, workflowAssets = []) {
 
 function validManagedIdentityAssets(canonicalRoot, workflowAssets, actionByPath) {
   const identityAssets = [
-    ".intentos",
-    "scripts",
     "AGENTS.md",
     ".intentos/version.json",
     ...workflowAssets.filter(isIdentityManagedAsset),

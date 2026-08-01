@@ -477,6 +477,10 @@ test("a generated project remains trusted during and after an exact controlled w
   assert.equal(initialized.status, 0, combined(initialized));
   prepareTaskReadyProjectSetup(target);
 
+  const retiredVerifyPath = path.join(target, "scripts", "verify.sh");
+  fs.appendFileSync(retiredVerifyPath, "\n# project-owned verification extension\n");
+  const retiredVerifyContent = fs.readFileSync(retiredVerifyPath, "utf8");
+
   const planPath = path.join(target, "apply-execution-plans", "workflow-update.json");
   const planned = spawnSync(process.execPath, [
     path.join(kitRoot, "scripts/init-project.mjs"),
@@ -493,6 +497,7 @@ test("a generated project remains trusted during and after an exact controlled w
   assert.equal(planned.status, 0, combined(planned));
   const evidence = controlledUpdateEvidence(planPath);
   assert.equal(evidence.plan.operation, "UPDATE_WORKFLOW_ASSETS");
+  assert.equal(evidence.plan.actions.some((action) => action.path === "scripts/verify.sh"), false);
 
   const applied = spawnSync(process.execPath, [
     path.join(kitRoot, "scripts/init-project.mjs"),
@@ -505,6 +510,7 @@ test("a generated project remains trusted during and after an exact controlled w
     maxBuffer: 100 * 1024 * 1024,
   });
   assert.equal(applied.status, 0, combined(applied));
+  assert.equal(fs.readFileSync(retiredVerifyPath, "utf8"), retiredVerifyContent);
   const receipt = fs.readFileSync(path.join(target, evidence.plan.receiptPath), "utf8");
   assert.match(receipt, /APPLY_VERIFIED/);
   const trust = resolveProjectEntryTrust({
