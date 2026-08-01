@@ -23,7 +23,66 @@ export function isWorkflowActivationAction(value) {
 
 export function isWorkflowActivationState(state, plan = null) {
   if (isWorkflowActivationAction(state?.nextAction)) return true;
-  return false;
+  return state?.nextAction === "REVIEW_DIRTY_WORKTREE"
+    && isBoundZeroOverlapDirtyControlledUpdate(plan);
+}
+
+function isBoundZeroOverlapDirtyControlledUpdate(plan) {
+  if (!plan || typeof plan !== "object") return false;
+  if (plan.operation !== "UPDATE_WORKFLOW_ASSETS" || plan.operationKind !== "CONTROLLED_UPDATE") return false;
+  if (plan.arguments?.updateWorkflowAssets !== true || plan.arguments?.controlledAdoption !== true) return false;
+  if (!Array.isArray(plan.ownershipConflicts) || plan.ownershipConflicts.length > 0) return false;
+  if (!Array.isArray(plan.actions)) return false;
+
+  const fingerprint = plan.targetFingerprint;
+  if (!fingerprint || fingerprint.targetExists !== true || fingerprint.isGitRepository !== true || fingerprint.isDirty !== true) return false;
+  if (!Number.isInteger(fingerprint.changedFileCount) || fingerprint.changedFileCount <= 0) return false;
+  if (!Array.isArray(fingerprint.changedFiles) || fingerprint.changedFiles.length !== fingerprint.changedFileCount) return false;
+
+  const dirtyPaths = [];
+  for (const row of fingerprint.changedFiles) {
+    const parsed = parseShortGitStatusPaths(row);
+    if (parsed.length === 0) return false;
+    dirtyPaths.push(...parsed);
+  }
+  if (dirtyPaths.length === 0) return false;
+
+  const writePaths = [];
+  for (const action of plan.actions) {
+    if (action?.willWrite !== true) continue;
+    if (action.executionSupported !== true) return false;
+    const safe = safePlanPath(action.path);
+    if (!safe) return false;
+    writePaths.push(safe);
+  }
+  if (writePaths.length === 0) return false;
+  return !dirtyPaths.some((dirtyPath) => writePaths.some((writePath) => pathsOverlap(dirtyPath, writePath)));
+}
+
+function parseShortGitStatusPaths(value) {
+  const row = typeof value === "string" ? value.trim() : "";
+  const separator = row.search(/\s/);
+  if (separator <= 0) return [];
+  const status = row.slice(0, separator);
+  if (!/^(?:\?\?|[MADRCU]{1,2})$/.test(status)) return [];
+  const rawPath = row.slice(separator).trim();
+  if (!rawPath || rawPath.startsWith("\"") || rawPath.includes("\\")) return [];
+  const candidates = rawPath.includes(" -> ") ? rawPath.split(" -> ") : [rawPath];
+  if (candidates.length < 1 || candidates.length > 2) return [];
+  const paths = candidates.map((candidate) => safePlanPath(candidate.replace(/\/$/, "")));
+  return paths.every(Boolean) ? paths : [];
+}
+
+function safePlanPath(value) {
+  const candidate = typeof value === "string" ? value.trim() : "";
+  if (!candidate || candidate.includes("\0") || candidate.includes("\\") || path.posix.isAbsolute(candidate)) return null;
+  const normalized = path.posix.normalize(candidate);
+  if (normalized !== candidate || normalized === "." || normalized === ".." || normalized.startsWith("../")) return null;
+  return normalized;
+}
+
+function pathsOverlap(left, right) {
+  return left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
 }
 
 export function evaluateVerifiedAdoptionApplyChain(projectRoot, options = {}) {

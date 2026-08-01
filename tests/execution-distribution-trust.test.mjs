@@ -927,6 +927,45 @@ test("deferred agent authority cannot count as verified workflow activation", as
   assert.equal(isWorkflowActivationState({ nextAction: "READY_FOR_FIRST_REQUEST" }, {}), true);
 });
 
+test("dirty-worktree activation requires one exact zero-overlap controlled update plan", async () => {
+  const moduleUrl = `${pathToFileURL(path.join(kitRoot, "scripts/lib/adoption-apply-chain.mjs")).href}?test=${Date.now()}`;
+  const { isWorkflowActivationState } = await import(moduleUrl);
+  const state = { nextAction: "REVIEW_DIRTY_WORKTREE" };
+  const exactPlan = {
+    operation: "UPDATE_WORKFLOW_ASSETS",
+    operationKind: "CONTROLLED_UPDATE",
+    arguments: { updateWorkflowAssets: true, controlledAdoption: true },
+    ownershipConflicts: [],
+    targetFingerprint: {
+      targetExists: true,
+      isGitRepository: true,
+      isDirty: true,
+      changedFileCount: 2,
+      changedFiles: ["M docs/product.md", "?? apps/"],
+    },
+    actions: [
+      { type: "UPDATE_MANAGED", path: "scripts/workflow-next.mjs", willWrite: true, executionSupported: true },
+      { type: "WRITE_APPLY_RECEIPT", path: "apply-receipts/current.md", willWrite: true, executionSupported: true },
+    ],
+  };
+  assert.equal(isWorkflowActivationState(state, exactPlan), true);
+  assert.equal(isWorkflowActivationState({ nextAction: "RUN_WORKFLOW_ASSET_UPDATE" }, exactPlan), false);
+
+  const rejected = [
+    { ...exactPlan, operationKind: "NATIVE_ADOPTION" },
+    { ...exactPlan, ownershipConflicts: [{ path: "scripts/workflow-next.mjs" }] },
+    { ...exactPlan, targetFingerprint: { ...exactPlan.targetFingerprint, isDirty: false } },
+    { ...exactPlan, targetFingerprint: { ...exactPlan.targetFingerprint, changedFileCount: 3 } },
+    { ...exactPlan, targetFingerprint: { ...exactPlan.targetFingerprint, changedFiles: ["malformed", "?? apps/"] } },
+    { ...exactPlan, targetFingerprint: { ...exactPlan.targetFingerprint, changedFileCount: 1, changedFiles: ["M scripts/workflow-next.mjs"] } },
+    { ...exactPlan, targetFingerprint: { ...exactPlan.targetFingerprint, changedFileCount: 1, changedFiles: ["?? scripts/"] } },
+    { ...exactPlan, actions: [{ type: "UPDATE_MANAGED", path: "../workflow-next.mjs", willWrite: true, executionSupported: true }] },
+    { ...exactPlan, actions: [{ type: "UPDATE_MANAGED", path: "scripts/workflow-next.mjs", willWrite: true, executionSupported: false }] },
+    { ...exactPlan, actions: [] },
+  ];
+  for (const plan of rejected) assert.equal(isWorkflowActivationState(state, plan), false);
+});
+
 test("controlled plan output rejects absolute and protected paths", () => {
   const root = tempRoot("intentos-198-plan-");
   const absolute = run("scripts/init-project.mjs", [
