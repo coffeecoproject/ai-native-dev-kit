@@ -927,7 +927,7 @@ test("deferred agent authority cannot count as verified workflow activation", as
   assert.equal(isWorkflowActivationState({ nextAction: "READY_FOR_FIRST_REQUEST" }, {}), true);
 });
 
-test("dirty-worktree activation requires one exact zero-overlap controlled update plan", async () => {
+test("dirty-worktree activation requires exact zero-overlap or one verified prior-transaction overlap", async () => {
   const moduleUrl = `${pathToFileURL(path.join(kitRoot, "scripts/lib/adoption-apply-chain.mjs")).href}?test=${Date.now()}`;
   const { isWorkflowActivationState } = await import(moduleUrl);
   const state = { nextAction: "REVIEW_DIRTY_WORKTREE" };
@@ -950,6 +950,64 @@ test("dirty-worktree activation requires one exact zero-overlap controlled updat
   };
   assert.equal(isWorkflowActivationState(state, exactPlan), true);
   assert.equal(isWorkflowActivationState({ nextAction: "RUN_WORKFLOW_ASSET_UPDATE" }, exactPlan), false);
+
+  const priorHash = `sha256:${"a".repeat(64)}`;
+  const overlapPlan = {
+    ...exactPlan,
+    receiptPath: "apply-receipts/current.md",
+    targetFingerprint: {
+      ...exactPlan.targetFingerprint,
+      changedFiles: ["M .intentos/version.json", "M docs/product.md"],
+      fileHashes: { ".intentos/version.json": priorHash },
+      verifiedPriorApplyOverlap: {
+        state: "VERIFIED_PRIOR_APPLY_OVERLAP",
+        receiptRef: "artifact:apply-receipts/prior.md",
+        receiptFileDigest: `sha256:${"b".repeat(64)}`,
+        executionPlanRef: "artifact:apply-execution-plans/prior.json",
+        executionPlanDigest: `sha256:${"c".repeat(64)}`,
+        paths: [{ path: ".intentos/version.json", priorActionId: "A-9", hashAfter: priorHash }],
+      },
+    },
+    actions: [
+      {
+        type: "UPDATE_MANAGED",
+        path: ".intentos/version.json",
+        willWrite: true,
+        executionSupported: true,
+        hashBefore: priorHash,
+        ownership: {
+          state: "VERIFIED_PRIOR_INTENTOS_MANAGED",
+          managed_digest: priorHash,
+        },
+      },
+      { type: "UPDATE_MANAGED", path: "scripts/workflow-next.mjs", willWrite: true, executionSupported: true },
+      { type: "WRITE_APPLY_RECEIPT", path: "apply-receipts/current.md", willWrite: true, executionSupported: true },
+    ],
+  };
+  assert.equal(isWorkflowActivationState(state, overlapPlan), true);
+
+  const changed = (change) => {
+    const candidate = structuredClone(overlapPlan);
+    change(candidate);
+    return candidate;
+  };
+  const rejectedOverlap = [
+    changed((candidate) => { candidate.targetFingerprint.verifiedPriorApplyOverlap = null; }),
+    changed((candidate) => { candidate.targetFingerprint.verifiedPriorApplyOverlap.state = "RECORDED"; }),
+    changed((candidate) => { candidate.targetFingerprint.verifiedPriorApplyOverlap.receiptRef = "artifact:apply-receipts/current.md"; }),
+    changed((candidate) => { candidate.targetFingerprint.verifiedPriorApplyOverlap.receiptRef = "artifact:../prior.md"; }),
+    changed((candidate) => { candidate.targetFingerprint.verifiedPriorApplyOverlap.receiptFileDigest = "sha256:bad"; }),
+    changed((candidate) => { candidate.targetFingerprint.verifiedPriorApplyOverlap.executionPlanRef = "artifact:plans/prior.json"; }),
+    changed((candidate) => { candidate.targetFingerprint.verifiedPriorApplyOverlap.paths[0].priorActionId = "bad"; }),
+    changed((candidate) => { candidate.targetFingerprint.verifiedPriorApplyOverlap.paths[0].hashAfter = `sha256:${"d".repeat(64)}`; }),
+    changed((candidate) => { candidate.targetFingerprint.verifiedPriorApplyOverlap.paths.push({ path: "scripts/workflow-next.mjs", priorActionId: "A-10", hashAfter: priorHash }); }),
+    changed((candidate) => { candidate.targetFingerprint.fileHashes[".intentos/version.json"] = `sha256:${"d".repeat(64)}`; }),
+    changed((candidate) => { candidate.actions[0].type = "RECONCILE_PRESERVE"; }),
+    changed((candidate) => { candidate.actions[0].ownership.state = "UNPROVEN_PROJECT_OWNED"; }),
+    changed((candidate) => { candidate.actions[0].ownership.managed_digest = `sha256:${"d".repeat(64)}`; }),
+    changed((candidate) => { candidate.targetFingerprint.changedFileCount = 1; candidate.targetFingerprint.changedFiles = ["?? .intentos/"]; }),
+  ];
+  for (const plan of rejectedOverlap) assert.equal(isWorkflowActivationState(state, plan), false);
 
   const rejected = [
     { ...exactPlan, operationKind: "NATIVE_ADOPTION" },

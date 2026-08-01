@@ -24,10 +24,10 @@ export function isWorkflowActivationAction(value) {
 export function isWorkflowActivationState(state, plan = null) {
   if (isWorkflowActivationAction(state?.nextAction)) return true;
   return state?.nextAction === "REVIEW_DIRTY_WORKTREE"
-    && isBoundZeroOverlapDirtyControlledUpdate(plan);
+    && isBoundDirtyControlledUpdate(plan);
 }
 
-function isBoundZeroOverlapDirtyControlledUpdate(plan) {
+function isBoundDirtyControlledUpdate(plan) {
   if (!plan || typeof plan !== "object") return false;
   if (plan.operation !== "UPDATE_WORKFLOW_ASSETS" || plan.operationKind !== "CONTROLLED_UPDATE") return false;
   if (plan.arguments?.updateWorkflowAssets !== true || plan.arguments?.controlledAdoption !== true) return false;
@@ -36,27 +36,92 @@ function isBoundZeroOverlapDirtyControlledUpdate(plan) {
 
   const fingerprint = plan.targetFingerprint;
   if (!fingerprint || fingerprint.targetExists !== true || fingerprint.isGitRepository !== true || fingerprint.isDirty !== true) return false;
-  if (!Number.isInteger(fingerprint.changedFileCount) || fingerprint.changedFileCount <= 0) return false;
-  if (!Array.isArray(fingerprint.changedFiles) || fingerprint.changedFiles.length !== fingerprint.changedFileCount) return false;
+  const overlap = controlledUpdateDirtyWriteOverlap(fingerprint, plan.actions);
+  if (!overlap.ok) return false;
+  if (overlap.paths.length === 0) return fingerprint.verifiedPriorApplyOverlap == null;
+  return validatesVerifiedPriorApplyOverlap(plan, overlap);
+}
+
+export function controlledUpdateDirtyWriteOverlap(fingerprint, actions) {
+  const invalid = () => ({ ok: false, paths: [], writeActions: [] });
+  if (!fingerprint || typeof fingerprint !== "object") return invalid();
+  if (!Number.isInteger(fingerprint.changedFileCount) || fingerprint.changedFileCount <= 0) return invalid();
+  if (!Array.isArray(fingerprint.changedFiles) || fingerprint.changedFiles.length !== fingerprint.changedFileCount) return invalid();
+  if (!Array.isArray(actions)) return invalid();
 
   const dirtyPaths = [];
   for (const row of fingerprint.changedFiles) {
     const parsed = parseShortGitStatusPaths(row);
-    if (parsed.length === 0) return false;
+    if (parsed.length === 0) return invalid();
     dirtyPaths.push(...parsed);
   }
-  if (dirtyPaths.length === 0) return false;
+  if (dirtyPaths.length === 0 || new Set(dirtyPaths).size !== dirtyPaths.length) return invalid();
 
-  const writePaths = [];
-  for (const action of plan.actions) {
+  const writeActions = [];
+  for (const action of actions) {
     if (action?.willWrite !== true) continue;
-    if (action.executionSupported !== true) return false;
+    if (action.executionSupported !== true) return invalid();
     const safe = safePlanPath(action.path);
-    if (!safe) return false;
-    writePaths.push(safe);
+    if (!safe) return invalid();
+    writeActions.push({ action, path: safe });
   }
-  if (writePaths.length === 0) return false;
-  return !dirtyPaths.some((dirtyPath) => writePaths.some((writePath) => pathsOverlap(dirtyPath, writePath)));
+  if (writeActions.length === 0 || new Set(writeActions.map((item) => item.path)).size !== writeActions.length) return invalid();
+
+  const exact = new Set();
+  for (const dirtyPath of dirtyPaths) {
+    for (const write of writeActions) {
+      if (!pathsOverlap(dirtyPath, write.path)) continue;
+      if (dirtyPath !== write.path) return invalid();
+      exact.add(dirtyPath);
+    }
+  }
+  return { ok: true, paths: [...exact].sort(), writeActions };
+}
+
+function validatesVerifiedPriorApplyOverlap(plan, overlap) {
+  const proof = plan.targetFingerprint?.verifiedPriorApplyOverlap;
+  if (!proof || typeof proof !== "object" || Array.isArray(proof)) return false;
+  if (proof.state !== "VERIFIED_PRIOR_APPLY_OVERLAP") return false;
+  const receiptPath = exactEvidencePath(proof.receiptRef, "apply-receipts", ".md");
+  const executionPlanPath = exactEvidencePath(proof.executionPlanRef, "apply-execution-plans", ".json");
+  if (!receiptPath || !executionPlanPath || receiptPath === plan.receiptPath) return false;
+  if (!isSha256(proof.receiptFileDigest) || !isSha256(proof.executionPlanDigest)) return false;
+  if (!Array.isArray(proof.paths) || proof.paths.length !== overlap.paths.length) return false;
+
+  const rows = [];
+  for (const item of proof.paths) {
+    const safe = safePlanPath(item?.path);
+    if (!safe || !/^A-[0-9]+$/.test(String(item?.priorActionId || "")) || !isSha256(item?.hashAfter)) return false;
+    rows.push({ path: safe, priorActionId: item.priorActionId, hashAfter: item.hashAfter });
+  }
+  if (new Set(rows.map((item) => item.path)).size !== rows.length) return false;
+  if (JSON.stringify(rows.map((item) => item.path)) !== JSON.stringify([...rows.map((item) => item.path)].sort())) return false;
+  if (JSON.stringify(rows.map((item) => item.path)) !== JSON.stringify(overlap.paths)) return false;
+
+  const writeByPath = new Map(overlap.writeActions.map((item) => [item.path, item.action]));
+  for (const item of rows) {
+    const action = writeByPath.get(item.path);
+    const hashBefore = String(action?.hashBefore || "");
+    if (!["UPDATE_MANAGED", "BACKUP_THEN_UPDATE"].includes(action?.type)
+      || hashBefore !== item.hashAfter
+      || plan.targetFingerprint?.fileHashes?.[item.path] !== hashBefore
+      || action?.ownership?.state !== "VERIFIED_PRIOR_INTENTOS_MANAGED"
+      || action?.ownership?.managed_digest !== hashBefore) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function exactEvidencePath(value, directory, extension) {
+  const raw = String(value || "");
+  if (!raw.startsWith("artifact:")) return null;
+  const safe = safePlanPath(raw.slice("artifact:".length));
+  return safe && safe.startsWith(`${directory}/`) && safe.endsWith(extension) ? safe : null;
+}
+
+function isSha256(value) {
+  return /^sha256:[a-f0-9]{64}$/.test(String(value || ""));
 }
 
 function parseShortGitStatusPaths(value) {

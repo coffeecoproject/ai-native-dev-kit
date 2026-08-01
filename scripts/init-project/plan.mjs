@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "../lib/manifest.mjs";
 import { evidenceDigest, extractMachineReadableEvidence, loadSchema, validateSchema } from "../lib/artifact-schema.mjs";
 import {
+  controlledUpdateDirtyWriteOverlap,
   controlledApplyImpactFlags,
   formatActionId,
   initExecutableActions,
@@ -866,12 +867,100 @@ function createTargetFingerprint(targetPath, actions) {
       fileHashes[rel] = sha256File(full);
     }
   }
+  const gitState = gitFingerprint(targetPath);
   return {
     targetExists: fs.existsSync(targetPath),
-    ...gitFingerprint(targetPath),
+    ...gitState,
+    verifiedPriorApplyOverlap: verifiedPriorApplyOverlap(targetPath, actions, gitState, fileHashes),
     sourceStateDigest: targetSourceStateDigest(targetPath),
     fileHashes,
   };
+}
+
+function verifiedPriorApplyOverlap(targetPath, actions, gitState, fileHashes) {
+  if (!gitState.isGitRepository || !gitState.isDirty) return null;
+  const overlap = controlledUpdateDirtyWriteOverlap(gitState, actions);
+  if (!overlap.ok || overlap.paths.length === 0) return null;
+
+  const receiptsDir = path.join(targetPath, "apply-receipts");
+  let receiptNames;
+  try {
+    const stat = fs.lstatSync(receiptsDir);
+    if (stat.isSymbolicLink() || !stat.isDirectory()) return null;
+    receiptNames = fs.readdirSync(receiptsDir, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+      .map((entry) => entry.name)
+      .sort()
+      .reverse();
+  } catch {
+    return null;
+  }
+  for (const name of receiptNames) {
+    const receiptRelative = assertSafeRelativePath(`apply-receipts/${name}`, "prior apply receipt path");
+    const validated = validateVerifiedApplyReceiptFile(targetPath, receiptRelative, { schemasRoot: kitRoot });
+    if (!validated.ok) continue;
+    let planRelative;
+    let planFile;
+    let priorPlan;
+    try {
+      planRelative = assertSafeRelativePath(
+        String(validated.value?.execution_plan?.path || ""),
+        "prior apply execution plan path",
+      );
+      planFile = assertSafeWritePath(targetPath, planRelative, "prior apply execution plan path");
+      const stat = fs.lstatSync(planFile);
+      if (stat.isSymbolicLink() || !stat.isFile()) continue;
+      priorPlan = JSON.parse(fs.readFileSync(planFile, "utf8"));
+    } catch {
+      return null;
+    }
+    if (validated.value?.execution_plan?.plan_digest !== priorPlan.planDigest) return null;
+
+    const receiptById = new Map((validated.value.actions || []).map((action) => [action.id, action]));
+    const priorByPath = new Map();
+    for (const action of priorPlan.actions || []) {
+      if (action?.willWrite !== true || action.id === priorPlan.receiptActionId) continue;
+      let relative;
+      try {
+        relative = assertSafeRelativePath(action.path, "prior applied action path");
+      } catch {
+        return null;
+      }
+      if (priorByPath.has(relative)) return null;
+      priorByPath.set(relative, action);
+    }
+
+    const paths = [];
+    for (const relative of overlap.paths) {
+      const action = priorByPath.get(relative);
+      const observed = action ? receiptById.get(action.id) : null;
+      if (!action
+        || !/^A-[0-9]+$/.test(String(action.id || ""))
+        || observed?.result !== "APPLIED"
+        || observed.hash_after !== action.expectedHashAfter
+        || fileHashes[relative] !== observed.hash_after) {
+        return null;
+      }
+      const current = assertSafeWritePath(targetPath, relative, "prior applied overlap path");
+      let stat;
+      try {
+        stat = fs.lstatSync(current);
+      } catch {
+        return null;
+      }
+      if (stat.isSymbolicLink() || !stat.isFile() || sha256File(current) !== observed.hash_after) return null;
+      paths.push({ path: relative, priorActionId: action.id, hashAfter: observed.hash_after });
+    }
+    return {
+      state: "VERIFIED_PRIOR_APPLY_OVERLAP",
+      receiptRef: `artifact:${receiptRelative}`,
+      receiptFileDigest: sha256File(path.join(targetPath, receiptRelative)),
+      executionPlanRef: `artifact:${planRelative}`,
+      executionPlanDigest: priorPlan.planDigest,
+      paths,
+    };
+  }
+  return null;
 }
 
 function targetSourceStateDigest(targetPath) {

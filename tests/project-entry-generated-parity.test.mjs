@@ -26,6 +26,7 @@ import {
 } from "../scripts/lib/baseline-selection.mjs";
 import { resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
 import { validateRequestBoundLocalActionGraph } from "../scripts/lib/request-bound-apply-authority.mjs";
+import { planDigest } from "../scripts/init-project/plan.mjs";
 
 const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -190,16 +191,16 @@ test("optional GitHub adapter binds the full PR range and fails closed without a
   assert.equal(fs.readFileSync(output, "utf8"), "");
 });
 
-function controlledUpdateEvidence(planPath) {
+function controlledUpdateEvidence(planPath, evidenceId = "workflow-update") {
   const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
   const actions = executableActions(plan);
   const planRef = path.relative(plan.targetRoot, planPath).replaceAll(path.sep, "/");
-  const approvalPath = path.join(plan.targetRoot, "approval-records", "workflow-update.approval.md");
-  const readinessPath = path.join(plan.targetRoot, "apply-readiness-reports", "workflow-update.readiness.md");
+  const approvalPath = path.join(plan.targetRoot, "approval-records", `${evidenceId}.approval.md`);
+  const readinessPath = path.join(plan.targetRoot, "apply-readiness-reports", `${evidenceId}.readiness.md`);
   writeEvidenceDocument(approvalPath, "Approval Record: controlled workflow update", {
     schema_version: "1.41.0",
     artifact_type: "approval_record",
-    artifact_id: "workflow-update-approval",
+    artifact_id: `${evidenceId}-approval`,
     approval_status: "APPROVED",
     approved_by: "IntentOS project-entry regression fixture",
     approval_owner_type: "HUMAN",
@@ -224,7 +225,7 @@ function controlledUpdateEvidence(planPath) {
   writeEvidenceDocument(readinessPath, "Controlled Apply Readiness: workflow update", {
     schema_version: "1.41.0",
     artifact_type: "controlled_apply_readiness",
-    artifact_id: "workflow-update-readiness",
+    artifact_id: `${evidenceId}-readiness`,
     readiness_state: "READY_FOR_HUMAN_APPROVED_APPLY",
     can_codex_apply_now: false,
     requires_explicit_human_approval: true,
@@ -519,6 +520,157 @@ test("a generated project remains trusted during and after an exact controlled w
     goal: "continue the appointment app",
   });
   assert.equal(trust.entry_state, "READY_FOR_INTENTOS_OPERATION", JSON.stringify(trust, null, 2));
+});
+
+test("a dirty generated project preserves business work across two verified controlled updates", { timeout: 420_000 }, (t) => {
+  const parent = fixture(t);
+  const target = path.join(parent, "consecutive-controlled-update-project");
+  const initialized = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/init-project.mjs"),
+    "--target", target,
+    "--starter", "generic-project",
+    "--goal", "build an appointment app with repeatable governed updates",
+  ], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    timeout: 180_000,
+    maxBuffer: 100 * 1024 * 1024,
+  });
+  assert.equal(initialized.status, 0, combined(initialized));
+  prepareTaskReadyProjectSetup(target);
+
+  const businessPath = path.join(target, "src", "business.js");
+  fs.mkdirSync(path.dirname(businessPath), { recursive: true });
+  fs.writeFileSync(businessPath, "export const currentBehavior = 'preserve-me';\n");
+  const git = (...args) => {
+    const result = spawnSync("git", args, { cwd: target, encoding: "utf8" });
+    assert.equal(result.status, 0, combined(result));
+    return result.stdout.trim();
+  };
+  git("init");
+  git("config", "user.email", "test@example.invalid");
+  git("config", "user.name", "IntentOS Test");
+  git("add", ".");
+  git("commit", "-m", "baseline generated project");
+
+  const dirtyBusinessContent = "export const currentBehavior = 'preserve-me';\nexport const localDraft = 'must-survive-both-updates';\n";
+  fs.writeFileSync(businessPath, dirtyBusinessContent);
+  const businessDigestBefore = fileDigest(businessPath);
+
+  const firstGoal = "perform the first controlled workflow refresh without changing business work";
+  const firstPlanPath = path.join(target, "apply-execution-plans", "consecutive-first.json");
+  const firstPlanned = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/init-project.mjs"),
+    "--target", target,
+    "--update-workflow-assets",
+    "--goal", firstGoal,
+    "--write-plan", "apply-execution-plans/consecutive-first.json",
+  ], {
+    cwd: target,
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 100 * 1024 * 1024,
+  });
+  assert.equal(firstPlanned.status, 0, combined(firstPlanned));
+  const firstEvidence = controlledUpdateEvidence(firstPlanPath, "consecutive-first");
+  assert.equal(firstEvidence.plan.targetFingerprint.verifiedPriorApplyOverlap, null);
+
+  const firstApplied = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/init-project.mjs"),
+    "--apply-plan", firstPlanPath,
+    "--goal", firstGoal,
+  ], {
+    cwd: target,
+    encoding: "utf8",
+    timeout: 180_000,
+    maxBuffer: 100 * 1024 * 1024,
+  });
+  assert.equal(firstApplied.status, 0, combined(firstApplied));
+  assert.match(fs.readFileSync(path.join(target, firstEvidence.plan.receiptPath), "utf8"), /APPLY_VERIFIED/);
+  assert.equal(fileDigest(businessPath), businessDigestBefore, "the first update changed dirty business work");
+
+  const secondGoal = "perform the second controlled workflow refresh without changing business work";
+  const secondPlanPath = path.join(target, "apply-execution-plans", "consecutive-second.json");
+  const secondPlanned = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/init-project.mjs"),
+    "--target", target,
+    "--update-workflow-assets",
+    "--goal", secondGoal,
+    "--write-plan", "apply-execution-plans/consecutive-second.json",
+  ], {
+    cwd: target,
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 100 * 1024 * 1024,
+  });
+  assert.equal(secondPlanned.status, 0, combined(secondPlanned));
+  const secondEvidence = controlledUpdateEvidence(secondPlanPath, "consecutive-second");
+  const priorOverlap = secondEvidence.plan.targetFingerprint.verifiedPriorApplyOverlap;
+  assert.equal(priorOverlap?.state, "VERIFIED_PRIOR_APPLY_OVERLAP");
+  assert.equal(priorOverlap?.receiptRef, `artifact:${firstEvidence.plan.receiptPath}`);
+  assert.deepEqual(priorOverlap?.paths.map((item) => item.path), [".intentos/version.json"]);
+  assert.deepEqual(
+    secondEvidence.plan.actions
+      .filter((action) => action.willWrite && action.path !== secondEvidence.plan.receiptPath)
+      .map((action) => action.path),
+    [".intentos/version.json"],
+  );
+
+  const tamperedPlanPath = path.join(target, "apply-execution-plans", "consecutive-second-tampered.json");
+  const tamperedPlan = structuredClone(secondEvidence.plan);
+  tamperedPlan.targetFingerprint.verifiedPriorApplyOverlap.receiptFileDigest = `sha256:${"f".repeat(64)}`;
+  tamperedPlan.planDigest = planDigest(tamperedPlan);
+  fs.writeFileSync(tamperedPlanPath, `${JSON.stringify(tamperedPlan, null, 2)}\n`);
+  controlledUpdateEvidence(tamperedPlanPath, "consecutive-second-tampered");
+  const tamperedApplied = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/init-project.mjs"),
+    "--apply-plan", tamperedPlanPath,
+    "--goal", secondGoal,
+  ], {
+    cwd: target,
+    encoding: "utf8",
+    timeout: 180_000,
+    maxBuffer: 100 * 1024 * 1024,
+  });
+  assert.equal(tamperedApplied.status, 2, combined(tamperedApplied));
+  assert.match(combined(tamperedApplied), /action graph cannot be reproduced/);
+  assert.equal(fs.existsSync(path.join(target, secondEvidence.plan.receiptPath)), false);
+  assert.equal(fs.readFileSync(businessPath, "utf8"), dirtyBusinessContent);
+  assert.equal(fileDigest(businessPath), businessDigestBefore, "the rejected tampered plan changed dirty business work");
+
+  const secondApplied = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/init-project.mjs"),
+    "--apply-plan", secondPlanPath,
+    "--goal", secondGoal,
+  ], {
+    cwd: target,
+    encoding: "utf8",
+    timeout: 180_000,
+    maxBuffer: 100 * 1024 * 1024,
+  });
+  assert.equal(secondApplied.status, 0, combined(secondApplied));
+  assert.match(fs.readFileSync(path.join(target, secondEvidence.plan.receiptPath), "utf8"), /APPLY_VERIFIED/);
+  assert.equal(fs.readFileSync(businessPath, "utf8"), dirtyBusinessContent);
+  assert.equal(fileDigest(businessPath), businessDigestBefore, "the second update changed dirty business work");
+
+  const chain = evaluateVerifiedAdoptionApplyChain(target, { schemasRoot: kitRoot });
+  assert.equal(chain.status, "VERIFIED", chain.errors.join("; "));
+  const trust = resolveProjectEntryTrust({
+    projectRoot: target,
+    sourceRoot: target,
+    goal: "continue the appointment app after two controlled updates",
+  });
+  assert.equal(trust.entry_state, "READY_FOR_INTENTOS_OPERATION", JSON.stringify(trust, null, 2));
+
+  const nextSession = runProject(target, "scripts/cli.mjs", [
+    "work",
+    target,
+    "--intent", "continue the appointment app after two controlled updates",
+    "--json",
+  ]);
+  assert.equal(nextSession.status, 0, combined(nextSession));
+  assert.equal(JSON.parse(nextSession.stdout).projectIdentityProjection?.intentosPosture?.operatingMode, "ACTIVE");
+  assert.equal(fs.readFileSync(businessPath, "utf8"), dirtyBusinessContent);
 });
 
 test("an existing project enters IntentOS behavior in a fresh project-local session after controlled adoption", { timeout: 480_000 }, (t) => {
