@@ -41,9 +41,23 @@ facts consistent without asking the user to interpret them. The projection
 also records current worktree, IntentOS, baseline, selected-profile, and
 Evidence Authority identity state.
 
+`projectEntryOrigin` is historical provenance: it records whether IntentOS was
+first installed while creating a new project or adopting an existing one. It
+does not permanently define the current project kind. A freshly initialized
+target with only IntentOS scaffolding remains a new project; once current
+project-owned product content is observed, the current projection treats that
+target as an existing project while preserving its original entry provenance.
+
 The default human response renders the same facts as one `Project reading` or
 `项目识别` line. A statement that no production evidence was observed is not a
 claim that the project is not live.
+
+Status requests keep project information separate from current-task evidence.
+A `PROJECT_INFORMATION` request reads project identity and queue posture without
+starting the User Delivery Console or revalidating task-completion records. A
+`CURRENT_TASK` request starts the task delivery view only after one current Work
+Queue item is available; otherwise the Operating Model reports the missing task
+identity first.
 
 The entry decision is derived and read-only. An action such as
 `PREPARE_BUSINESS_RULE_CLOSURE` means that business-rule clarification is the

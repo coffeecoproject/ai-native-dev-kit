@@ -216,6 +216,7 @@ function buildOperatingState() {
     workflowNext,
     guidance,
     projectEntry,
+    projectEntryOrigin,
     projectState,
     projectStateTags,
     sourceFailure,

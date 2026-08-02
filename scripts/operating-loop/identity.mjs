@@ -5,6 +5,8 @@ export function buildProjectIdentityProjection(context) {
   const facts = workflow.projectFactProjection || {};
   const evidenceIdentity = facts.project_identity || { kind: "UNKNOWN", fingerprint: "", revision: "" };
   const projectKind = projectKindForEntry(context.projectEntry);
+  const projectEntryOrigin = String(context.projectEntryOrigin || "UNKNOWN_PROJECT_ORIGIN");
+  const projectContentState = String(facts.project_content?.state || "NOT_OBSERVED");
   const behavioralAdoptionState = String(facts.behavioral_adoption?.state || "UNKNOWN");
   const governanceState = String(facts.governance_authority_posture?.state || "UNKNOWN");
   const governancePosture = behavioralAdoptionState === "VERIFIED_ACTIVE"
@@ -69,6 +71,10 @@ export function buildProjectIdentityProjection(context) {
     contractVersion: "1.109.0",
     projectKind,
     entryState: context.projectEntry,
+    projectEntryOrigin,
+    projectEntryOriginRole: "HISTORICAL_PROVENANCE",
+    projectKindBasis: "CURRENT_RECONCILED_PROJECT_ENTRY",
+    projectContentState,
     governancePosture,
     behavioralAdoptionState,
     productionPosture,
@@ -89,6 +95,10 @@ export function buildProjectIdentityProjection(context) {
     writesProjectFiles: "No",
     projectKind,
     entryState: context.projectEntry,
+    projectEntryOrigin,
+    projectEntryOriginRole: "HISTORICAL_PROVENANCE",
+    projectKindBasis: "CURRENT_RECONCILED_PROJECT_ENTRY",
+    projectContentState,
     governancePosture,
     behavioralAdoptionState,
     productionPosture,
@@ -105,6 +115,7 @@ export function buildProjectIdentityProjection(context) {
     invalidationConditions: [
       "project root or Git revision changes",
       "project entry or observed governance signals change",
+      "project-owned content appears, disappears, or changes",
       "worktree cleanliness changes",
       "selected platform or baseline state changes",
       "a source input digest changes or source read fails",

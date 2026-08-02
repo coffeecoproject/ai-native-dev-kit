@@ -15,6 +15,7 @@ export function addOperationSources(sources, operation, context = {}) {
   let initialTaskIntake = null;
   let strictRouteRequired = false;
   let resumeDecision = null;
+  let currentStatusTask = null;
   if (context.baselineConsumptionRequired) {
     sources.push(runGateSource("BASELINE_ENFORCEMENT_CHECK", "scripts/check-baseline-enforcement.mjs", [
       projectRoot,
@@ -102,6 +103,7 @@ export function addOperationSources(sources, operation, context = {}) {
     const currentQueueTask = workQueue?.currentTaskCount === 1
       ? workQueue.currentTaskCandidates?.[0] || null
       : null;
+    currentStatusTask = currentQueueTask;
     if (currentQueueTask) {
       const governedIntent = String(workQueue.canonicalCurrentTaskIdentity?.intent || currentQueueTask.title || intent);
       const governanceArgs = [projectRoot, "--intent", governedIntent, "--json"];
@@ -116,7 +118,9 @@ export function addOperationSources(sources, operation, context = {}) {
       sources.push(runSource("PLANNING_CLOSURE", "scripts/resolve-planning-closure.mjs", planningArgs));
     }
   }
-  if (["CHECK_STATUS", "FINISH_TASK", "PREPARE_RELEASE"].includes(operation)) {
+  const deliveryConsoleRequired = ["FINISH_TASK", "PREPARE_RELEASE"].includes(operation)
+    || (operation === "CHECK_STATUS" && context.taskStatusRequired && currentStatusTask);
+  if (deliveryConsoleRequired) {
     sources.push(runSource("USER_DELIVERY_CONSOLE", "scripts/resolve-user-delivery-console.mjs", [projectRoot, "--intent", intent, "--json"]));
   }
   if (operation === "FINISH_TASK") {

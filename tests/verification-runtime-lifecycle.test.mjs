@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import test from "node:test";
+import test, { after } from "node:test";
 import { fileURLToPath } from "node:url";
 import { evidenceDigest, extractMachineReadableEvidence } from "../scripts/lib/artifact-schema.mjs";
 import { canonicalFileDigest } from "../scripts/lib/evidence-authority.mjs";
@@ -16,6 +16,34 @@ import {
 } from "../scripts/lib/verification-runtime-lifecycle.mjs";
 
 const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const fixtureRootPrefixes = new Set([
+  "intentos-runtime-lifecycle-",
+  "intentos-runtime-preflight-path-",
+]);
+const ownedFixtureRoots = new Set();
+
+function fixtureRoot(prefix) {
+  assert.equal(fixtureRootPrefixes.has(prefix), true, `unsupported fixture root prefix: ${prefix}`);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  ownedFixtureRoots.add(root);
+  return root;
+}
+
+after(() => {
+  for (const root of ownedFixtureRoots) {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+  ownedFixtureRoots.clear();
+});
+
+async function waitForFixtureFile(filePath, timeoutMs = 5_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (fs.existsSync(filePath)) return;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error(`timed out after ${timeoutMs}ms waiting for fixture readiness file: ${filePath}`);
+}
 
 function run(script, args, options = {}) {
   return spawnSync(process.execPath, [path.join(kitRoot, script), ...args], {
@@ -27,7 +55,7 @@ function run(script, args, options = {}) {
 }
 
 function project() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-runtime-lifecycle-"));
+  const root = fixtureRoot("intentos-runtime-lifecycle-");
   fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ name: "lifecycle-fixture", private: true }, null, 2));
   fs.writeFileSync(path.join(root, "verify.mjs"), `
 import fs from "node:fs";
@@ -495,7 +523,7 @@ test("1.113 failed runtime preflight is projected as BLOCKED in the emitted mani
     .map((directory) => path.join(directory, gitName))
     .find((candidate) => fs.existsSync(candidate));
   assert.ok(gitExecutable, "git must be available for the runtime identity fixture");
-  const preflightPath = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-runtime-preflight-path-"));
+  const preflightPath = fixtureRoot("intentos-runtime-preflight-path-");
   fs.symlinkSync(gitExecutable, path.join(preflightPath, gitName));
   const runtime = run("scripts/resolve-verification-runtime-plan.mjs", [root, "--intent", "change home page copy wording", "--task-ref", "tasks/local.md", "--task-tier", "LOW", "--out", "verification-runtime-plans/local.md"]);
   assert.equal(runtime.status, 0, `${runtime.stdout}\n${runtime.stderr}`);
@@ -550,9 +578,23 @@ setInterval(() => {}, 1000);
     resources: [{ resource_id: "session", resource_type: "SESSION_NAMESPACE", relative_path: "resources/session", environment_name: "TEST_SESSION_PATH", created_by_action: "executor:preflight", cleanup_strategy: "REMOVE_OWNED_PATH", production_instance: "No", shared_resource: "No", owner_marker_required: "Yes", role: "user", migration_revision: "not-recorded" }],
   };
   const controller = new AbortController();
-  setTimeout(() => controller.abort(), 700);
+  const descendantPidFile = path.join(root, "descendant.pid");
   const started = Date.now();
-  const result = await executeLifecyclePlan(root, plan, { signal: controller.signal });
+  const execution = executeLifecyclePlan(root, plan, { signal: controller.signal }).then(
+    (result) => ({ result, error: null }),
+    (error) => ({ result: null, error }),
+  );
+  let readinessError = null;
+  try {
+    await waitForFixtureFile(descendantPidFile);
+  } catch (error) {
+    readinessError = error;
+  }
+  controller.abort();
+  const executionOutcome = await execution;
+  if (executionOutcome.error) throw executionOutcome.error;
+  if (readinessError) throw readinessError;
+  const result = executionOutcome.result;
   assert.ok(Date.now() - started < 5000, "an interrupted command that ignores SIGTERM must be killed promptly");
   assert.equal(result.ok, false);
   assert.equal(result.interrupted, true);
@@ -568,7 +610,7 @@ setInterval(() => {}, 1000);
   assert.match(serviceOutput, /process_state=exited/);
   assert.match(serviceOutput, /process_signal=SIGTERM|process_exit_code=\d+/);
   if (process.platform !== "win32") {
-    const descendantPid = Number(fs.readFileSync(path.join(root, "descendant.pid"), "utf8"));
+    const descendantPid = Number(fs.readFileSync(descendantPidFile, "utf8"));
     assert.throws(() => process.kill(descendantPid, 0), /ESRCH/, "interrupt cleanup must stop command descendants in the owned process group");
   }
 });

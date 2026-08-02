@@ -88,8 +88,13 @@ export function maskNegatedReleaseActions(value) {
 export function projectEntryFor(projectState, root, tags = [], projectEntryOrigin = "UNKNOWN_PROJECT_ORIGIN", projectFacts = null) {
   const lifecycleState = String(projectFacts?.lifecycle?.state || "UNKNOWN");
   const hasCurrentLifecycleProjection = lifecycleState !== "UNKNOWN";
+  const projectContentState = String(projectFacts?.project_content?.state || "NOT_OBSERVED");
   if (lifecycleState === "PRODUCTION_ACTIVE") return "PRODUCTION_SENSITIVE_ENTRY";
-  if (projectEntryOrigin === "NEW_PROJECT") return "NEW_PROJECT_ENTRY";
+  if (projectEntryOrigin === "NEW_PROJECT") {
+    return projectState === "BOOTSTRAPPED_PROJECT" && projectContentState === "PROJECT_OWNED_CONTENT_PRESENT"
+      ? "EXISTING_PROJECT_ENTRY"
+      : "NEW_PROJECT_ENTRY";
+  }
   if (projectEntryOrigin === "EXISTING_PROJECT") {
     if (tags.includes("GOVERNED_EXISTING_PROJECT")) return "GOVERNED_PROJECT_ENTRY";
     return "EXISTING_PROJECT_ENTRY";
@@ -100,7 +105,7 @@ export function projectEntryFor(projectState, root, tags = [], projectEntryOrigi
   const mapping = {
     NEW_PROJECT: "NEW_PROJECT_ENTRY",
     NEW_PROJECT_TARGET: "NEW_PROJECT_ENTRY",
-    BOOTSTRAPPED_PROJECT: "NEW_PROJECT_ENTRY",
+    BOOTSTRAPPED_PROJECT: "EXISTING_PROJECT_ENTRY",
     PARTIALLY_BOOTSTRAPPED_PROJECT: "EXISTING_PROJECT_ENTRY",
     EXISTING_PROJECT: "EXISTING_PROJECT_ENTRY",
     EXISTING_LIGHT_PROJECT: "EXISTING_PROJECT_ENTRY",

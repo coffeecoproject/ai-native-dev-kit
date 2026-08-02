@@ -7,6 +7,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { evidenceDigest } from "../scripts/lib/artifact-schema.mjs";
+import { resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
 import {
   buildCurrentTrustFixture,
   prepareCurrentTrustFixtureSource,
@@ -83,6 +84,12 @@ test.after(() => {
 });
 
 function makeTrustedProject(root) {
+  makeScaffoldOnlyProject(root);
+  fs.mkdirSync(path.join(root, "src"), { recursive: true });
+  fs.writeFileSync(path.join(root, "src/index.js"), "export const ready = true;\n");
+}
+
+function makeScaffoldOnlyProject(root) {
   if (!trustedProjectTemplate) {
     trustedProjectTemplate = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-operating-trusted-template-"));
     const initialized = spawnSync(process.execPath, [
@@ -107,8 +114,6 @@ function makeTrustedProject(root) {
   const { receipt_digest: _digest, receipt_ref: _ref, ...base } = receipt;
   receipt.receipt_digest = evidenceDigest(base, []);
   fs.writeFileSync(receiptFile, `${JSON.stringify(receipt, null, 2)}\n`);
-  fs.mkdirSync(path.join(root, "src"), { recursive: true });
-  fs.writeFileSync(path.join(root, "src/index.js"), "export const ready = true;\n");
 }
 
 function confirmGeneratedProjectReadiness(root) {
@@ -201,8 +206,12 @@ test("trusted initialized project normal task completes Planning Closure before 
   makeTrustedProject(root);
   makeCurrentWorkQueue(root, "TASK-001", "修改首页按钮文案");
   const report = runWork(root, "修改首页按钮文案");
-  assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
-  assert.equal(report.projectIdentityProjection.projectKind, "NEW_PROJECT");
+  assert.equal(report.projectEntry.state, "EXISTING_PROJECT_ENTRY");
+  assert.equal(report.projectEntry.projectEntryOrigin, "NEW_PROJECT");
+  assert.equal(report.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
+  assert.equal(report.projectIdentityProjection.projectEntryOrigin, "NEW_PROJECT");
+  assert.equal(report.projectIdentityProjection.projectEntryOriginRole, "HISTORICAL_PROVENANCE");
+  assert.equal(report.projectIdentityProjection.projectContentState, "PROJECT_OWNED_CONTENT_PRESENT");
   assert.equal(report.projectIdentityProjection.governancePosture, "INTENTOS_ACTIVE_GOVERNANCE");
   assert.equal(report.projectIdentityProjection.evidenceIdentity.kind, "NON_GIT");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
@@ -220,6 +229,52 @@ test("trusted initialized project normal task completes Planning Closure before 
   assert.ok(report.evidenceTrace.dependencies.every((item) => item.to === "OPERATING_STATE" && item.relation === "INPUT_TO_DERIVED_VIEW"));
   assert.equal(report.decisionResponsibility.userResponsibilityClass, "NO_USER_ACTION");
   assert.equal(report.operatingDecision.routineEngineeringMayProceedAfterInternalGates, "Yes");
+}));
+
+test("new-project origin remains provenance when current project-owned content appears", () => withRoot("intentos-operating-origin-provenance-", (root) => {
+  makeScaffoldOnlyProject(root);
+  const scaffold = runWork(root, "检查当前项目状态");
+  assert.equal(scaffold.projectEntry.projectEntryOrigin, "NEW_PROJECT");
+  assert.equal(scaffold.projectEntry.state, "NEW_PROJECT_ENTRY");
+  assert.equal(scaffold.projectIdentityProjection.projectKind, "NEW_PROJECT");
+  assert.equal(scaffold.projectIdentityProjection.projectContentState, "INTENTOS_SCAFFOLD_ONLY");
+
+  fs.mkdirSync(path.join(root, "src"), { recursive: true });
+  fs.writeFileSync(path.join(root, "src/product.js"), "export const productReady = true;\n");
+
+  const established = runWork(root, "检查当前项目状态");
+  assert.equal(established.projectEntry.projectEntryOrigin, "NEW_PROJECT");
+  assert.equal(established.projectEntry.state, "EXISTING_PROJECT_ENTRY");
+  assert.equal(established.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
+  assert.equal(established.projectIdentityProjection.projectEntryOrigin, "NEW_PROJECT");
+  assert.equal(established.projectIdentityProjection.projectContentState, "PROJECT_OWNED_CONTENT_PRESENT");
+  assert.doesNotMatch(established.humanSummary.projectIdentity, /这是一个新项目/);
+  assert.notEqual(established.projectIdentityProjection.projectionDigest, scaffold.projectIdentityProjection.projectionDigest);
+}));
+
+test("source-only workflow evidence does not invalidate current project facts", () => withRoot("intentos-operating-source-only-evidence-", (root) => {
+  makeExistingProject(root);
+  fs.writeFileSync(path.join(root, ".gitignore"), "native-migration-plans/\n");
+  runGit(root, ["init", "-q"]);
+  runGit(root, ["add", "."]);
+  runGit(root, ["-c", "user.name=IntentOS Test", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"]);
+
+  const goal = "Adopt this existing project while preserving all extracted rules";
+  const before = resolveProjectEntryTrust({ projectRoot: root, sourceRoot: kitRoot, goal }).project_fact_projection;
+  assert.equal(before.project_content.state, "PROJECT_OWNED_CONTENT_PRESENT");
+  assert.equal(before.project_content.workflow_records_excluded, "Yes");
+  assert.ok(before.project_content.excluded_workflow_root_count > 0);
+
+  fs.mkdirSync(path.join(root, "native-migration-plans"), { recursive: true });
+  fs.writeFileSync(path.join(root, "native-migration-plans", "001-current.md"), "# Current Native Migration Evidence\n");
+  const afterEvidence = resolveProjectEntryTrust({ projectRoot: root, sourceRoot: kitRoot, goal }).project_fact_projection;
+  assert.equal(afterEvidence.project_content.content_inventory_digest, before.project_content.content_inventory_digest);
+  assert.equal(afterEvidence.project_content.project_owned_entry_count, before.project_content.project_owned_entry_count);
+  assert.equal(afterEvidence.projection_digest, before.projection_digest);
+
+  fs.writeFileSync(path.join(root, "src", "product.js"), "export const productReady = true;\n");
+  const afterProduct = resolveProjectEntryTrust({ projectRoot: root, sourceRoot: kitRoot, goal }).project_fact_projection;
+  assert.notEqual(afterProduct.project_content.content_inventory_digest, before.project_content.content_inventory_digest);
 }));
 
 test("VERIFIED_ACTIVE work blocks missing, stale, and incomplete platform installation baselines", () => {
@@ -440,11 +495,12 @@ test("incomplete BL2 selection blocks work without inflating a genuinely LOW tas
   assert.equal(report.operatingLoop.stricterApplicableProjectRuleVerifiedByThisView, "No");
 }));
 
-test("initialized new project continues later tasks instead of restarting project entry", () => withRoot("intentos-operating-initialized-", (root) => {
+test("initialized established project continues later tasks instead of restarting project entry", () => withRoot("intentos-operating-initialized-", (root) => {
   makeTrustedProject(root);
   makeCurrentWorkQueue(root, "TASK-001", "继续完成预约规则");
   const report = runWork(root, "继续完成预约规则");
-  assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
+  assert.equal(report.projectEntry.state, "EXISTING_PROJECT_ENTRY");
+  assert.equal(report.projectEntry.projectEntryOrigin, "NEW_PROJECT");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingDecision.actionCode, "INSPECT_TASK_RISK");
 }));
@@ -476,6 +532,9 @@ test("dirty worktree stops before task continuation", () => withRoot("intentos-o
   assert.equal(report.operatingDecision.requiresHumanDecisionNow, "No");
   assert.equal(report.decisionResponsibility.userResponsibilityClass, "NO_USER_ACTION");
   assert.equal(report.projectIdentityProjection.worktreePosture, "DIRTY");
+  assert.equal(report.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
+  assert.equal(report.projectIdentityProjection.projectEntryOrigin, "NEW_PROJECT");
+  assert.doesNotMatch(report.humanSummary.projectIdentity, /这是一个新项目/);
   assert.doesNotMatch(JSON.stringify(report.projectIdentityProjection), /src\/index\.js/);
 }));
 
@@ -503,6 +562,7 @@ test("English intent receives an English human summary", () => withRoot("intento
   assert.equal(projectStatus.operatingLoop.operation, "CHECK_STATUS");
   assert.equal(projectStatus.operatingLoop.statusScope, "PROJECT_INFORMATION");
   assert.equal(projectStatus.operatingDecision.actionCode, "SUMMARIZE_CURRENT_STATUS");
+  assert.ok(!projectStatus.sourceSystemTrace.some((source) => source.sourceSystem === "USER_DELIVERY_CONSOLE"));
   const result = runNode(["scripts/resolve-operating-loop.mjs", root, "--intent", "check current task progress"]);
   assert.equal(result.status, 1, `${result.stdout}\n${result.stderr}`);
   assert.match(result.stdout, /IntentOS Current Operating State/);
@@ -520,11 +580,13 @@ test("task status consumes one CURRENT Work Queue while project information rema
   const projectStatus = runWork(root, "查看当前项目状态");
   assert.equal(projectStatus.operatingLoop.statusScope, "PROJECT_INFORMATION");
   assert.equal(projectStatus.operatingLoop.state, "STATUS_AVAILABLE");
+  assert.ok(!projectStatus.sourceSystemTrace.some((source) => source.sourceSystem === "USER_DELIVERY_CONSOLE"));
 
   const missingTask = runWork(root, "查看当前任务进度", [], { expectedStatus: 1 });
   assert.equal(missingTask.operatingLoop.statusScope, "CURRENT_TASK");
   assert.equal(missingTask.operatingLoop.state, "NEEDS_WORK_QUEUE");
   assert.equal(missingTask.operatingDecision.actionCode, "PREPARE_WORK_QUEUE");
+  assert.ok(!missingTask.sourceSystemTrace.some((source) => source.sourceSystem === "USER_DELIVERY_CONSOLE"));
 
   const cliMissing = runNode(["scripts/cli.mjs", "work", root, "--intent", "查看当前任务进度", "--json"]);
   assert.equal(cliMissing.status, 1, `${cliMissing.stdout}\n${cliMissing.stderr}`);
@@ -536,9 +598,10 @@ test("task status consumes one CURRENT Work Queue while project information rema
   assert.equal(currentTask.operatingLoop.state, "STATUS_AVAILABLE");
   assert.match(currentTask.taskRef, /^task:[a-f0-9]{64}$/);
   assert.ok(currentTask.sourceSystemTrace.some((source) => source.sourceSystem === "WORK_QUEUE" && source.readStatus === "CURRENT_RUN"));
+  assert.ok(currentTask.sourceSystemTrace.some((source) => source.sourceSystem === "USER_DELIVERY_CONSOLE" && source.readStatus === "CURRENT_RUN"));
 }));
 
-test("production vocabulary does not override original new-project entry or task impact", () => withRoot("intentos-operating-production-origin-", (root) => {
+test("production vocabulary does not invent production posture or task impact", () => withRoot("intentos-operating-production-origin-", (root) => {
   makeTrustedProject(root);
   fs.mkdirSync(path.join(root, ".github", "workflows"), { recursive: true });
   fs.mkdirSync(path.join(root, "docs", "runbooks"), { recursive: true });
@@ -547,10 +610,11 @@ test("production vocabulary does not override original new-project entry or task
   fs.writeFileSync(path.join(root, "Dockerfile"), "FROM scratch\n");
   makeCurrentWorkQueue(root, "TASK-001", "修正文档中的一个错别字");
   const report = runWork(root, "修正文档中的一个错别字");
-  assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
-  assert.equal(report.projectIdentityProjection.projectKind, "NEW_PROJECT");
+  assert.equal(report.projectEntry.state, "EXISTING_PROJECT_ENTRY");
+  assert.equal(report.projectEntry.projectEntryOrigin, "NEW_PROJECT");
+  assert.equal(report.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
   assert.equal(report.projectIdentityProjection.governancePosture, "INTENTOS_ACTIVE_GOVERNANCE");
-  assert.equal(report.projectIdentityProjection.productionPosture, "NOT_ESTABLISHED");
+  assert.equal(report.projectIdentityProjection.productionPosture, "NOT_ASSESSED");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
   assert.equal(report.operatingLoop.state, "NEEDS_PLANNING_EVIDENCE");
   assert.equal(report.operatingDecision.actionCode, "COMPLETE_PLANNING_CLOSURE");
@@ -839,6 +903,7 @@ test("IntentOS source repository has a source-specific identity projection", () 
   assert.equal(report.projectIdentityProjection.governancePosture, "INTENTOS_SOURCE_GOVERNANCE");
   assert.equal(report.projectIdentityProjection.productionPosture, "NOT_APPLICABLE");
   assert.equal(report.projectIdentityProjection.evidenceIdentity.kind, "GIT");
+  assert.ok(!report.sourceSystemTrace.some((source) => source.sourceSystem === "USER_DELIVERY_CONSOLE"));
 });
 
 test("selected platform profiles are projected from structured Workflow Next output", () => withRoot("intentos-operating-profile-", (root) => {

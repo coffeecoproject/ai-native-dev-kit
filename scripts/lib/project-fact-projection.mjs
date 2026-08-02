@@ -5,6 +5,7 @@ import { evidenceDigest } from "./artifact-schema.mjs";
 import { projectIdentity } from "./evidence-authority.mjs";
 import { collectCurrentWorkContinuity } from "./current-work-continuity.mjs";
 import { loadVerifiedBootstrapReceipt } from "./bootstrap-transaction.mjs";
+import { isIntentOSSourceCheckout, kitRoot, loadManifestOrNull } from "./manifest.mjs";
 import { filterIntentOSManagedPaths, walkRelativePaths } from "./project-signals.mjs";
 
 export function projectGoalProjection(goal, options = {}) {
@@ -36,6 +37,11 @@ export function collectProjectFactProjection(projectRoot, options = {}) {
     : [];
   const identity = targetExists ? safeIdentity(root) : absentIdentity(topology);
   const installedVersion = targetExists ? readJson(path.join(root, ".intentos", "version.json")) : null;
+  const installedManifest = targetExists ? readJson(path.join(root, ".intentos", "intentos-manifest.json")) : null;
+  const sourceManifest = targetExists ? authoritativeSourceManifest(options.sourceRoot) : null;
+  const projectContent = targetExists
+    ? projectContentProjection(paths, installedVersion, installedManifest || sourceManifest)
+    : absentProjectContent();
   const entryFiles = targetExists ? detectEntryFiles(root) : [];
   const authorityInventory = targetExists ? collectAuthorityInventory(root, paths, entryFiles) : emptyAuthorityInventory();
   const lifecycle = lifecycleProjection(root, installedVersion);
@@ -49,6 +55,7 @@ export function collectProjectFactProjection(projectRoot, options = {}) {
     target_topology_digest: topology?.topology_digest || "N/A",
     goal_projection: goal,
     project_identity: identity,
+    project_content: projectContent,
     lifecycle,
     authority_inventory: authorityInventory,
     governance_authority_posture: governance,
@@ -61,6 +68,54 @@ export function collectProjectFactProjection(projectRoot, options = {}) {
     conflicts,
   };
   return { ...base, projection_digest: evidenceDigest(base, []) };
+}
+
+function projectContentProjection(paths, installedVersion, installedManifest) {
+  const workflowRoots = new Set((installedManifest?.groups?.workflowDirs || [])
+    .map(normalizePath)
+    .filter(Boolean));
+  const projectContent = [];
+  const nonSubstantiveRootFiles = new Set([".editorconfig", ".gitattributes", ".gitignore"]);
+
+  for (const relativePath of [...new Set(paths)].sort()) {
+    if ([...workflowRoots].some((root) => relativePath === root || relativePath.startsWith(`${root}/`))) continue;
+    if (nonSubstantiveRootFiles.has(relativePath)) continue;
+    projectContent.push(relativePath);
+  }
+
+  const inventoryReadable = !installedVersion || workflowRoots.size > 0;
+  const state = !inventoryReadable
+    ? "NOT_OBSERVED"
+    : projectContent.length > 0
+      ? "PROJECT_OWNED_CONTENT_PRESENT"
+      : "INTENTOS_SCAFFOLD_ONLY";
+  const base = {
+    state,
+    project_owned_entry_count: projectContent.length,
+    excluded_workflow_root_count: workflowRoots.size,
+    workflow_records_excluded: workflowRoots.size > 0 ? "Yes" : "No",
+    content_inventory_digest: inventoryReadable ? evidenceDigest(projectContent, []) : "N/A",
+    disclosure: "COUNTS_AND_DIGEST_ONLY",
+  };
+  return { ...base, projection_digest: evidenceDigest(base, []) };
+}
+
+function absentProjectContent() {
+  const base = {
+    state: "NOT_OBSERVED",
+    project_owned_entry_count: 0,
+    excluded_workflow_root_count: 0,
+    workflow_records_excluded: "No",
+    content_inventory_digest: "N/A",
+    disclosure: "COUNTS_AND_DIGEST_ONLY",
+  };
+  return { ...base, projection_digest: evidenceDigest(base, []) };
+}
+
+function authoritativeSourceManifest(sourceRoot) {
+  const root = path.resolve(sourceRoot || kitRoot);
+  if (!isIntentOSSourceCheckout(root)) return null;
+  return loadManifestOrNull(root);
 }
 
 export function hasGlobalTrustConflict(projection) {
