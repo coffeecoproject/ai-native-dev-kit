@@ -23,9 +23,13 @@ Use these rules:
   production-data rules are project-owned constraints.
 - `MERGE` means future wording proposal, not file change.
 - `GAP_SUGGESTION` means missing documentation or evidence only, not approval.
-- Use `schema_version: 1.69.2` and
-  `evidence_profile: existing-rule-reconciliation-1.69.2` for strict
+- Use `schema_version: 1.113.0` and
+  `evidence_profile: existing-rule-reconciliation-1.113.0` for new strict
   machine-readable evidence.
+- Record `rule_reconciliation_coverage.scan_state`. Recommend selected native
+  adoption only for `COMPLETE_NO_ACTIONABLE_RULES` or
+  `COMPLETE_ACTIONABLE_RULES`; every missing or inconsistent coverage state
+  remains blocked even when `omitted_rules` is zero.
 - Every reconciliation item must resolve its `existing_rule_ref` to
   `existing_rule_source[].rule_ref` and its `intentos_reference_ref` to
   `intentos_reference_source[].reference_ref`.

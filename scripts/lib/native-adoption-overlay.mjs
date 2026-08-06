@@ -5,7 +5,6 @@ import { kitRoot, loadManifest, normalizePath, sortedUnique } from "./manifest.m
 export const nativeAdoptionMigrationDepths = Object.freeze([
   "ADAPTER_ONLY",
   "SELECTED_ASSETS",
-  "FULL_NATIVE",
 ]);
 
 export const selectedNativeOperationalProfile = "SELECTED_EXISTING_PROJECT";

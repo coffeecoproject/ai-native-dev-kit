@@ -125,8 +125,8 @@ approved governance-file edits only
 
 ```json
 {
-  "schema_version": "1.69.2",
-  "evidence_profile": "existing-rule-reconciliation-1.69.2",
+  "schema_version": "1.113.0",
+  "evidence_profile": "existing-rule-reconciliation-1.113.0",
   "artifact_type": "existing_rule_reconciliation_report",
   "report_type": "EXISTING_RULE_RECONCILIATION",
   "project_state": "EXISTING_GOVERNED_PROJECT",
@@ -155,6 +155,7 @@ approved governance-file edits only
     }
   ],
   "rule_reconciliation_coverage": {
+    "scan_state": "COMPLETE_ACTIONABLE_RULES",
     "total_extracted_rules": 1,
     "reconciled_rules": 1,
     "omitted_rules": 0,
@@ -178,7 +179,9 @@ approved governance-file edits only
       "human_decision_required": "Yes",
       "requires_apply_chain": "Yes",
       "can_replace_existing_rule": "No",
-      "target_action": "prepare apply-plan after approval"
+      "target_action": "prepare apply-plan after approval",
+      "control_effectiveness_required": "No",
+      "control_claim_refs": []
     }
   ],
   "protected_constraints": [],

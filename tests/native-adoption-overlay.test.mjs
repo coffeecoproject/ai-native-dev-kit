@@ -166,8 +166,20 @@ test("selected baseline mapping keeps incomplete project evidence explicit and t
 test("native adoption migration depth is explicit and fails closed", () => {
   assert.equal(normalizeNativeAdoptionMigrationDepth(), "SELECTED_ASSETS");
   assert.equal(normalizeNativeAdoptionMigrationDepth("adapter_only"), "ADAPTER_ONLY");
-  assert.equal(normalizeNativeAdoptionMigrationDepth("FULL_NATIVE"), "FULL_NATIVE");
+  assert.throws(() => normalizeNativeAdoptionMigrationDepth("FULL_NATIVE"), /must be one of/);
   assert.throws(() => normalizeNativeAdoptionMigrationDepth("full-with-history"), /must be one of/);
+});
+
+test("existing-project full-native adoption is rejected before an action graph is built", (t) => {
+  const root = projectFixture(t, { governed: false });
+  assert.throws(() => buildPlan(root, {
+    starter: "generic-project",
+    goal: "adopt this existing project with IntentOS",
+    migrationDepth: "FULL_NATIVE",
+    profiles: "web-app",
+    baselineLevel: "BL1_STANDARD",
+  }), /must be one of: ADAPTER_ONLY, SELECTED_ASSETS/);
+  assert.equal(fs.existsSync(path.join(root, ".intentos")), false);
 });
 
 test("selected adoption writes have a capability classification", () => {
@@ -272,6 +284,75 @@ test("blocked selected adoption emits a compact zero-write diagnostic graph", (t
   assert.equal(plan.actions.some((action) => action.willWrite), false);
   assert.equal(JSON.stringify(plan).includes("work_queue_takeover"), false);
   assert.equal(JSON.stringify(plan).includes("Task001"), false);
+});
+
+test("profileless selected adoption stops at technical discovery before apply", (t) => {
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "intentos-profile-discovery-")));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const legacyAuthority = "# Existing project authority\n\nKeep the project-native verification gate.\n";
+  fs.writeFileSync(path.join(root, ".agent.md"), legacyAuthority);
+
+  const plan = buildPlan(root, {
+    starter: "generic-project",
+    goal: "adopt this existing project with IntentOS",
+  });
+  assert.equal(plan.adoptionAssessment.rule_reconciliation.coverage.scanState, "COMPLETE_NO_ACTIONABLE_RULES");
+  assert.equal(plan.adoptionAssessment.profile_mapping.state, "TECHNICAL_DISCOVERY_REQUIRED");
+  assert.equal(plan.adoptionAssessment.profile_mapping.next_action, "RUN_TECHNICAL_DISCOVERY");
+  assert.match(plan.adoptionAssessment.blockers.join("\n"), /derives? a project profile and baseline level/);
+  assert.equal(plan.executionState, "DIAGNOSTIC_ONLY");
+  assert.equal(plan.actions.some((action) => action.willWrite), false);
+
+  const planDir = path.join(root, "apply-execution-plans");
+  fs.mkdirSync(planDir);
+  const planFile = path.join(planDir, "profileless.json");
+  fs.writeFileSync(planFile, `${JSON.stringify(plan, null, 2)}\n`);
+  const applied = spawnSync(process.execPath, [
+    "scripts/init-project.mjs",
+    "--apply-plan", planFile,
+    "--goal", plan.arguments.goal,
+  ], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    timeout: 30_000,
+    maxBuffer: 32 * 1024 * 1024,
+  });
+  assert.notEqual(applied.status, 0, applied.stdout);
+  assert.match(`${applied.stdout}\n${applied.stderr}`, /diagnostic plan cannot be applied/);
+  assert.equal(fs.readFileSync(path.join(root, ".agent.md"), "utf8"), legacyAuthority);
+  assert.equal(fs.existsSync(path.join(root, "AGENTS.md")), false);
+  assert.equal(fs.existsSync(path.join(root, ".intentos")), false);
+});
+
+test("structured reconciliation blocker becomes a diagnostic plan instead of a source failure", (t) => {
+  const root = projectFixture(t, { governed: false });
+  fs.writeFileSync(path.join(root, "AGENTS.md"), "# Agent Rules\n\nRun tests before review.\n");
+  fs.mkdirSync(path.join(root, "docs"));
+  fs.writeFileSync(path.join(root, "docs", "Governance.md"), [
+    "# Governance",
+    "",
+    "This descriptive context has no classified authority yet.",
+    "",
+    "```text",
+    "node scripts/workflow-next.mjs .",
+    "```",
+    "",
+    "Run tests before review.",
+    "",
+  ].join("\n"));
+
+  const plan = buildPlan(root, {
+    starter: "generic-project",
+    goal: "adopt this project under IntentOS",
+    profiles: "web-app",
+    baselineLevel: "BL1_STANDARD",
+    createdAt: "2030-01-01T00:00:00.000Z",
+  });
+  assert.equal(plan.adoptionAssessment.assessment_state, "BLOCKED");
+  assert.equal(plan.adoptionAssessment.rule_reconciliation.coverage.scanState, "INCOMPLETE_RULE_SCAN");
+  assert.match(plan.adoptionAssessment.blockers.join("\n"), /Rule Reconciliation outcome is BLOCKED/);
+  assert.equal(plan.executionState, "DIAGNOSTIC_ONLY");
+  assert.equal(plan.actions.some((action) => action.willWrite), false);
 });
 
 test("selected overlay controlled apply verifies without changing historical task files", (t) => {

@@ -21,7 +21,7 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/eval.schema.json": "sha256:fb926d3be8f7ad2d3ac2a646bdcf5ca2af26f7cd80461513bf8a860ae2b75416",
   "schemas/artifacts/execution-assurance.schema.json": "sha256:59cd891e633b187e206eb5efb2da3a3cebf9ef1a88b2f886302c5b32e278d05b",
   "schemas/artifacts/existing-project-adoption-autopilot.schema.json": "sha256:a8d535d4a84b0d97ca1f8a73ea0e4a8db9ab80d226a1616e544dfaab235d17af",
-  "schemas/artifacts/existing-rule-reconciliation.schema.json": "sha256:1b08df51b3115fae2202da43501c72899e9634ff85863828604e4a29298e3112",
+  "schemas/artifacts/existing-rule-reconciliation.schema.json": "sha256:69c58f8c7bd6f70da174f52c20873cd9ef522c581a3b80775e52810c7b65c2c7",
   "schemas/artifacts/goal-card.schema.json": "sha256:1ff608263461e0c4939c410441537edd0bcaeb0841857e6234dcd4963f55d4dd",
   "schemas/artifacts/governance-convergence.schema.json": "sha256:1dc688406b62b4bcf7882e5bd9df0a2f868b648ed4dde39e88a303cad69765a8",
   "schemas/artifacts/low-risk-apply-candidate.schema.json": "sha256:6c6f64f687995bad99311732bceed926d2810b19f868fb9c4b0f8b53f5562b9f",

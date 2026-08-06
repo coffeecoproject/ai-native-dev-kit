@@ -2450,13 +2450,23 @@ test("starter verification fails when no project verification path exists", () =
   }
 });
 
-test("existing agent.md is preserved while planning a canonical AGENTS.md bridge", () => {
+test("existing agent.md is preserved while planning a request-bound canonical AGENTS.md bridge", () => {
   const root = tempRoot("intentos-198-agent-entry-");
   const existingAuthority = "# Existing project authority\n\nKeep the project-native release gate.\n";
   fs.writeFileSync(path.join(root, "agent.md"), existingAuthority);
-  const result = run("scripts/init-project.mjs", ["--target", root, "--write-plan", "apply-execution-plans/agent.json"]);
+  const result = run("scripts/init-project.mjs", [
+    "--target", root,
+    "--goal", "adopt this existing project with IntentOS",
+    "--migration-depth", "SELECTED_ASSETS",
+    "--profiles", "web-app",
+    "--baseline-level", "BL1_STANDARD",
+    "--write-plan", "apply-execution-plans/agent.json",
+  ]);
   assert.equal(result.status, 0, combined(result));
   const plan = JSON.parse(fs.readFileSync(path.join(root, "apply-execution-plans/agent.json"), "utf8"));
+  assert.equal(plan.executionState, "EXECUTABLE");
+  assert.equal(plan.adoptionAssessment.assessment_state, "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION");
+  assert.equal(plan.adoptionAssessment.profile_mapping.state, "PROFILE_MAPPING_READY");
   const bridge = plan.actions.find((action) => action.path === "AGENTS.md" && action.willWrite);
   assert.ok(bridge, "canonical AGENTS.md bridge must be planned");
   assert.match(bridge.reason, /preserving agent\.md/);
@@ -2466,13 +2476,24 @@ test("existing agent.md is preserved while planning a canonical AGENTS.md bridge
   assert.equal(fs.existsSync(path.join(root, "AGENTS.md")), false, "planning must not apply the bridge");
 });
 
-test("existing .agent.md is preserved while planning a canonical AGENTS.md bridge", () => {
+test("low-signal .agent.md is preserved after a complete zero-actionable-rule scan", () => {
   const root = tempRoot("intentos-198-dot-agent-entry-");
   const existingAuthority = "# Existing project authority\n\nKeep the project-native verification gate.\n";
   fs.writeFileSync(path.join(root, ".agent.md"), existingAuthority);
-  const result = run("scripts/init-project.mjs", ["--target", root, "--write-plan", "apply-execution-plans/agent.json"]);
+  const result = run("scripts/init-project.mjs", [
+    "--target", root,
+    "--goal", "adopt this existing project with IntentOS",
+    "--migration-depth", "SELECTED_ASSETS",
+    "--profiles", "web-app",
+    "--baseline-level", "BL1_STANDARD",
+    "--write-plan", "apply-execution-plans/agent.json",
+  ]);
   assert.equal(result.status, 0, combined(result));
   const plan = JSON.parse(fs.readFileSync(path.join(root, "apply-execution-plans/agent.json"), "utf8"));
+  assert.equal(plan.executionState, "EXECUTABLE");
+  assert.equal(plan.adoptionAssessment.assessment_state, "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION");
+  assert.equal(plan.adoptionAssessment.profile_mapping.state, "PROFILE_MAPPING_READY");
+  assert.equal(plan.adoptionAssessment.rule_reconciliation.coverage.scanState, "COMPLETE_NO_ACTIONABLE_RULES");
   const bridge = plan.actions.find((action) => action.path === "AGENTS.md" && action.willWrite);
   assert.ok(bridge, "canonical AGENTS.md bridge must be planned");
   assert.match(bridge.reason, /preserving \.agent\.md/);

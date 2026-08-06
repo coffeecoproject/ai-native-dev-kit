@@ -10,7 +10,9 @@ import { fileURLToPath } from "node:url";
 import {
   evidenceDigest,
   extractMachineReadableEvidence,
+  loadSchema,
   stringifyJsonForMarkdownFence,
+  validateSchema,
 } from "../scripts/lib/artifact-schema.mjs";
 import {
   inspectGovernedWorkQueueTakeover,
@@ -19,6 +21,7 @@ import {
 import { extractNativeRulesFromMarkdown } from "../scripts/lib/native-rule-extraction.mjs";
 import { partitionNativeAuthorityPaths } from "../scripts/lib/project-signals.mjs";
 import { collectProjectAgentAuthority, resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
+import { sameRunBindingFromTrust } from "../scripts/lib/same-run-evidence-envelope.mjs";
 import {
   createTaskResumeDecision,
   taskIntentDigest,
@@ -292,6 +295,7 @@ test("sentinel-only declarations remain visible without blocking reconciliation 
     "--json", "--auto-native", "--intent", "Adopt this project under IntentOS",
   ]);
   const coverage = report.structuredEvidence.rule_reconciliation_coverage;
+  assert.equal(coverage.scan_state, "COMPLETE_ACTIONABLE_RULES");
   assert.equal(coverage.omitted_rules, 0, JSON.stringify(coverage, null, 2));
   assert.equal(coverage.blocks_selected_native_adoption, "No");
   assert.match(coverage.truncation_warning, /sentinel-only declaration/);
@@ -374,6 +378,7 @@ test("incomplete reconciliation coverage outranks dirty-worktree routing and fai
   write(root, "existing-rule-reconciliations/current.md", resolved.stdout);
   const evidence = extractMachineReadableEvidence(resolved.stdout);
   assert.equal(evidence.ok, true, `${resolved.stdout}\n${resolved.stderr}`);
+  assert.equal(evidence.value.rule_reconciliation_coverage.scan_state, "INCOMPLETE_RULE_SCAN");
   assert.ok(evidence.value.rule_reconciliation_coverage.omitted_rules > 0);
   assert.equal(evidence.value.rule_reconciliation_coverage.blocks_selected_native_adoption, "Yes");
   assert.equal(evidence.value.native_adoption_decision.recommendation, "BLOCKED_NEEDS_OWNER");
@@ -392,6 +397,95 @@ test("incomplete reconciliation coverage outranks dirty-worktree routing and fai
     maxBuffer: 64 * 1024 * 1024,
   });
   assert.equal(checked.status, 0, `${checked.stdout}\n${checked.stderr}`);
+});
+
+test("missing extraction coverage blocks even when omitted-rule count is zero", (t) => {
+  const root = fixture(t, "intentos-reconciliation-missing-coverage-");
+  const intent = "Adopt this project under IntentOS";
+  write(root, "README.md", "# Existing project\n");
+  write(root, "AGENTS.md", "# Agent Rules\n\nRun tests before review.\n");
+  git(root, ["init", "-q"]);
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"]);
+
+  const native = runOk("scripts/resolve-native-migration.mjs", root, ["--intent", intent]);
+  const extracted = extractMachineReadableEvidence(native.stdout);
+  assert.equal(extracted.ok, true, native.stdout);
+  assert.ok(extracted.value.rule_classifications.length > 0);
+  extracted.value.rule_extraction_coverage = [];
+  writeEvidence(root, "native-migration-plans/current.md", "Native Migration Plan", extracted.value);
+  const currentBinding = sameRunBindingFromTrust(resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: kitRoot,
+    goal: intent,
+  }));
+  Object.assign(extracted.value, {
+    project_binding: currentBinding.projectBinding,
+    goal_digest: currentBinding.goalDigest,
+    project_fact_digest: currentBinding.projectFactDigest,
+    guidance_digest: currentBinding.guidanceDigest,
+    authority_inventory_digest: currentBinding.authorityInventoryDigest,
+    source_revision: currentBinding.sourceRevision,
+  });
+  writeEvidence(root, "native-migration-plans/current.md", "Native Migration Plan", extracted.value);
+
+  const resolved = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/resolve-existing-rule-reconciliation.mjs"),
+    root,
+    "--json",
+    "--intent", intent,
+  ], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  assert.equal(resolved.status, 1, `${resolved.stdout}\n${resolved.stderr}`);
+  const report = JSON.parse(resolved.stdout);
+  assert.equal(report.ruleReconciliationCoverage.scanState, "INCOMPLETE_RULE_SCAN");
+  assert.equal(report.ruleReconciliationCoverage.omittedRules, 0);
+  assert.equal(report.ruleReconciliationCoverage.blocksSelectedNativeAdoption, "Yes");
+  assert.equal(report.nativeAdoptionDecision.recommendation, "BLOCKED_NEEDS_OWNER");
+  assert.equal(report.canRecommendApplyPlanNow, "No");
+  assert.equal(report.outcome, "BLOCKED");
+});
+
+test("versioned reconciliation schema preserves legacy contracts and binds the 1.113 identity", (t) => {
+  const schema = loadSchema(kitRoot, "schemas/artifacts/existing-rule-reconciliation.schema.json");
+  assert.ok(schema);
+  const legacyFile = path.join(
+    kitRoot,
+    "examples/1.66-existing-rule-reconciliation/governed-web-admin/existing-rule-reconciliations/001-governed-web-admin.md",
+  );
+  const legacy = extractMachineReadableEvidence(fs.readFileSync(legacyFile, "utf8"));
+  assert.equal(legacy.ok, true);
+  assert.equal(validateSchema(legacy.value, schema, { label: "legacy reconciliation" }).ok, true);
+
+  const root = fixture(t, "intentos-reconciliation-schema-");
+  write(root, ".agent.md", "# Existing project authority\n\nKeep the project-native verification gate.\n");
+  const current = runJson("scripts/resolve-existing-rule-reconciliation.mjs", root, [
+    "--json",
+    "--auto-native",
+    "--intent", "Adopt this project under IntentOS",
+  ]).structuredEvidence;
+  assert.equal(current.schema_version, "1.113.0");
+  assert.equal(validateSchema(current, schema, { label: "current reconciliation" }).ok, true);
+
+  const compatible110 = structuredClone(current);
+  compatible110.schema_version = "1.110.0";
+  compatible110.evidence_profile = "existing-rule-reconciliation-1.110.0";
+  delete compatible110.rule_reconciliation_coverage.scan_state;
+  assert.equal(validateSchema(compatible110, schema, { label: "1.110 reconciliation" }).ok, true);
+
+  const missingScanState = structuredClone(current);
+  delete missingScanState.rule_reconciliation_coverage.scan_state;
+  const missingValidation = validateSchema(missingScanState, schema, { label: "current reconciliation" });
+  assert.equal(missingValidation.ok, false);
+  assert.ok(missingValidation.errors.some((error) => /scan_state is required/.test(error)));
+
+  const mismatchedProfile = structuredClone(current);
+  mismatchedProfile.evidence_profile = "existing-rule-reconciliation-1.110.0";
+  assert.equal(validateSchema(mismatchedProfile, schema, { label: "mismatched reconciliation" }).ok, false);
 });
 
 test("adoption assurance consumes checker-valid blocked reconciliation as same-run evidence", (t) => {

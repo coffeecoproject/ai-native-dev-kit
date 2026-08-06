@@ -120,6 +120,7 @@ import {
 } from "./plan.mjs";
 
 import {
+  assertPlanEligibleForControlledRecovery,
   createAutomaticRequestBoundApplyContext,
   deriveControlledApplyRecoveryBinding,
   replayApprovedNewProjectPlan,
@@ -427,6 +428,12 @@ if (applyPlanPath) {
   });
   if (!activeRequestValidation.ok) {
     console.error(`Current request cannot authorize this apply plan: ${activeRequestValidation.errors.join("; ")}`);
+    process.exit(2);
+  }
+  try {
+    assertPlanEligibleForControlledRecovery(plan);
+  } catch (error) {
+    console.error(error.message);
     process.exit(2);
   }
   let recoveryBinding = null;

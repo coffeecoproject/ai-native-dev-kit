@@ -11,8 +11,12 @@
   terms, added terms, human decision, and apply-plan target action.
 - Protected constraints have owner / authority / human decision.
 - `GAP_SUGGESTION` does not imply release approval.
-- Machine-readable evidence uses `schema_version: 1.69.2` and
-  `evidence_profile: existing-rule-reconciliation-1.69.2`.
+- New machine-readable evidence uses `schema_version: 1.113.0` and
+  `evidence_profile: existing-rule-reconciliation-1.113.0`; historical
+  `1.69.2` and `1.110.0` evidence uses its matching profile.
+- `rule_reconciliation_coverage.scan_state` is present for 1.113 evidence.
+- Selected native adoption is unblocked only for
+  `COMPLETE_NO_ACTIONABLE_RULES` or `COMPLETE_ACTIONABLE_RULES`.
 - Every `reconciliation_items[].existing_rule_ref` resolves to
   `existing_rule_source[].rule_ref`.
 - Every `reconciliation_items[].intentos_reference_ref` resolves to

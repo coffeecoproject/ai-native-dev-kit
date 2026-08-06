@@ -155,9 +155,10 @@ Existing Rule Reconciliation must record coverage for extracted rules.
 Machine-readable evidence must include:
 
 ```text
-schema_version: 1.69.2
-evidence_profile: existing-rule-reconciliation-1.69.2
+schema_version: 1.113.0
+evidence_profile: existing-rule-reconciliation-1.113.0
 rule_reconciliation_coverage
+rule_reconciliation_coverage.scan_state
 existing_rule_source
 intentos_reference_source
 native_adoption_decision
@@ -180,9 +181,21 @@ The human-readable report must also include an
 - Human Confirmation
 - Preserve / Merge / Replace After Approval / Blocked
 
-If only part of the extracted rule set is reconciled, the report must say so.
+The scan state must be one of:
 
-When omitted rules exist:
+```text
+MISSING_NATIVE_MIGRATION_EVIDENCE
+INCOMPLETE_RULE_SCAN
+COMPLETE_NO_ACTIONABLE_RULES
+COMPLETE_ACTIONABLE_RULES
+```
+
+Only the two `COMPLETE_*` states may set
+`blocks_selected_native_adoption: No`. Missing coverage, count mismatches,
+unclassified blocks, skipped blocks, unresolved low-signal blocks, or omitted
+rules keep the scan incomplete even when `omitted_rules` happens to be zero.
+
+When the scan is incomplete:
 
 ```text
 blocks_selected_native_adoption: Yes
@@ -190,7 +203,12 @@ native_adoption_decision.recommendation: BLOCKED_NEEDS_OWNER
 outcome: BLOCKED
 ```
 
-Selected native adoption is not allowed until omitted rules are reviewed.
+Selected native adoption is not allowed until Codex completes and validates the
+scan. Owner input is required only when the remaining blocker is genuinely
+project-owned or otherwise unavailable to Codex.
+
+Historical `1.69.2` and `1.110.0` evidence remains readable under its original
+versioned contract; new reports must use the current `1.113.0` profile.
 
 If native adoption is blocked, `can_recommend_apply_plan_now` must be `No`.
 Codex may only recommend an apply plan after the block is resolved and the

@@ -767,7 +767,7 @@ function buildPlan(targetPath, options = {}) {
     : "FULL_NATIVE";
   const goal = String(options.goal || "").trim();
   const adoptionAssessment = operationKind === "NATIVE_ADOPTION"
-    ? buildNativeAdoptionAssessment(targetPath, goal, { migrationDepth })
+    ? buildNativeAdoptionAssessment(targetPath, goal, { migrationDepth, baselineConfig })
     : null;
   const executableNativeAdoption = operationKind !== "NATIVE_ADOPTION"
     || (migrationDepth !== "ADAPTER_ONLY"
@@ -907,6 +907,7 @@ function assertRequestBoundNativeAdoptionActions(plan) {
 
 function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
   const migrationDepth = normalizeNativeAdoptionMigrationDepth(options.migrationDepth);
+  const profileMapping = nativeAdoptionProfileMapping(options.baselineConfig, migrationDepth);
   if (!goal) {
     const base = {
       schema_version: "1.113.0",
@@ -916,6 +917,7 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
         state: "NOT_REQUESTED",
         reason: "Historical task migration is a separate explicit plan and is not part of native adoption.",
       },
+      profile_mapping: profileMapping,
       blockers: ["The original natural-language adoption request is required."],
     };
     return {
@@ -936,6 +938,9 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
   const coverage = reconciliation.ruleReconciliationCoverage || {};
   const decision = reconciliation.nativeAdoptionDecision || {};
   const blockers = [];
+  if (profileMapping.state === "TECHNICAL_DISCOVERY_REQUIRED") {
+    blockers.push(profileMapping.reason);
+  }
   if (sourceBefore !== sourceAfter) blockers.push("Read-only adoption assessment changed the target source state.");
   if (native.outcome !== "NATIVE_MIGRATION_PLAN_RECORDED") blockers.push(`Native Migration outcome is ${native.outcome || "missing"}.`);
   if (reconciliation.outcome !== "RECONCILIATION_RECORDED") blockers.push(`Rule Reconciliation outcome is ${reconciliation.outcome || "missing"}.`);
@@ -977,6 +982,7 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
       intent_digest: projectGoalProjection(goal).goal_digest,
       scope: "CURRENT_NATURAL_LANGUAGE_REQUEST_ONLY",
     },
+    profile_mapping: profileMapping,
     historical_task_migration: {
       state: "NOT_REQUESTED",
       scans_existing_task_history: "No",
@@ -991,6 +997,38 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
   return { ...base, assessment_digest: evidenceDigest(base, []) };
 }
 
+function nativeAdoptionProfileMapping(baselineConfig, migrationDepth) {
+  if (migrationDepth !== "SELECTED_ASSETS") {
+    return {
+      state: "NOT_APPLICABLE",
+      selected_profiles: [],
+      baseline_level: null,
+      next_action: "N/A",
+      reason: "Selected profile mapping is required only for selected-assets adoption.",
+    };
+  }
+  const selectedProfiles = [...new Set(Array.isArray(baselineConfig?.profiles)
+    ? baselineConfig.profiles.map((value) => String(value || "").trim()).filter(Boolean)
+    : [])].sort();
+  const baselineLevel = normalizeBaselineLevel(baselineConfig?.baselineLevel);
+  if (selectedProfiles.length === 0 || !baselineLevel) {
+    return {
+      state: "TECHNICAL_DISCOVERY_REQUIRED",
+      selected_profiles: selectedProfiles,
+      baseline_level: baselineLevel,
+      next_action: "RUN_TECHNICAL_DISCOVERY",
+      reason: "Selected native adoption cannot activate until Codex derives a project profile and baseline level from project evidence.",
+    };
+  }
+  return {
+    state: "PROFILE_MAPPING_READY",
+    selected_profiles: selectedProfiles,
+    baseline_level: baselineLevel,
+    next_action: "N/A",
+    reason: "Project profile and baseline level are bound to the selected adoption plan.",
+  };
+}
+
 function runReadOnlyAdoptionResolver(scriptName, resolverArgs) {
   const result = runStructuredJsonChildSync({
     command: process.execPath,
@@ -998,10 +1036,30 @@ function runReadOnlyAdoptionResolver(scriptName, resolverArgs) {
     cwd: targetPathForResolver(resolverArgs[0]),
     timeout: 120000,
   });
-  if (result.state !== "CURRENT_RUN" || result.exitStatus !== 0 || !result.value) {
-    throw new Error(`${scriptName} failed during native-adoption assessment: ${result.state}: ${normalizeOutput(result.error || result.stderrPreview)}`);
+  const acceptedExitStatuses = scriptName === "resolve-existing-rule-reconciliation.mjs"
+    ? [0, 1]
+    : [0];
+  if (result.state !== "CURRENT_RUN"
+    || !acceptedExitStatuses.includes(result.exitStatus)
+    || !result.value) {
+    throw new Error(`${scriptName} failed during native-adoption assessment: ${result.state}: ${structuredResolverFailureReason(result)}`);
   }
   return result.value;
+}
+
+function structuredResolverFailureReason(result) {
+  const value = result.value && typeof result.value === "object" ? result.value : {};
+  const blockers = Array.isArray(value.blockers) ? value.blockers : [];
+  const reason = [
+    ...blockers,
+    value.reason,
+    value.nativeAdoptionDecision?.defaultPath,
+    value.outcome ? `outcome ${value.outcome}` : "",
+    result.error,
+    result.stderrPreview,
+    result.exitStatus !== null ? `exit ${result.exitStatus}` : "",
+  ].map(normalizeOutput).find(Boolean);
+  return reason || "structured resolver returned no diagnostic reason";
 }
 
 function targetPathForResolver(value) {

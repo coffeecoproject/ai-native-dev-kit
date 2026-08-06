@@ -95,6 +95,7 @@ Reconciliation must say how many extracted rules were reviewed.
 If more rules exist than the report can compare, the report must show:
 
 ```text
+scan_state
 total_extracted_rules
 reconciled_rules
 omitted_rules
@@ -102,9 +103,12 @@ truncation_warning
 blocks_selected_native_adoption
 ```
 
-If any rules are omitted, Codex must not recommend `SELECTED_NATIVE_ADOPTION`.
-The safe result is to stop, explain that the rule set was truncated, and ask
-for owner review before any apply plan is prepared.
+`scan_state` must be `COMPLETE_NO_ACTIONABLE_RULES` or
+`COMPLETE_ACTIONABLE_RULES` before Codex may recommend
+`SELECTED_NATIVE_ADOPTION`. Missing coverage, count mismatches, unclassified or
+skipped blocks, unresolved low-signal blocks, and omitted rules all keep the
+scan incomplete. Codex completes technical inventory itself; it asks the owner
+only when the remaining fact or authority is genuinely unavailable.
 
 ## Native Adoption Decision Evidence
 
@@ -113,9 +117,13 @@ Strict structured evidence must include `native_adoption_decision`.
 For current strict reports, the structured evidence must use:
 
 ```text
-schema_version: 1.69.2
-evidence_profile: existing-rule-reconciliation-1.69.2
+schema_version: 1.113.0
+evidence_profile: existing-rule-reconciliation-1.113.0
 ```
+
+Historical `1.69.2` and `1.110.0` reports remain readable with their matching
+evidence profiles. They are compatibility inputs, not templates for new
+reports.
 
 Every reconciliation item must be traceable:
 

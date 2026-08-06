@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 
@@ -320,6 +321,12 @@ function checkStructuredEvidence(content, label) {
     fail(`${label} Machine-Readable Evidence JSON invalid: ${error.message}`);
     return null;
   }
+  const schema = loadSchema(projectRoot, "schemas/artifacts/existing-rule-reconciliation.schema.json");
+  const schemaValidation = schema
+    ? validateSchema(parsed, schema, { label })
+    : { ok: false, errors: [`${label} schema is unavailable or untrusted`] };
+  if (schemaValidation.ok) pass(`${label} Machine-Readable Evidence matches the versioned schema`);
+  else for (const error of schemaValidation.errors) fail(error);
   const required = [
     "schema_version",
     "evidence_profile",
@@ -350,9 +357,9 @@ function checkStructuredEvidence(content, label) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} structured evidence includes ${field}`);
     else fail(`${label} structured evidence missing ${field}`);
   }
-  if (["1.69.2", "1.110.0"].includes(parsed.schema_version)) pass(`${label} structured evidence schema version is readable`);
-  else fail(`${label} structured evidence schema version must be 1.69.2 or 1.110.0`);
-  if (["existing-rule-reconciliation-1.69.2", "existing-rule-reconciliation-1.110.0"].includes(parsed.evidence_profile)) pass(`${label} structured evidence profile is readable`);
+  if (["1.69.2", "1.110.0", "1.113.0"].includes(parsed.schema_version)) pass(`${label} structured evidence schema version is readable`);
+  else fail(`${label} structured evidence schema version must be 1.69.2, 1.110.0, or 1.113.0`);
+  if (["existing-rule-reconciliation-1.69.2", "existing-rule-reconciliation-1.110.0", "existing-rule-reconciliation-1.113.0"].includes(parsed.evidence_profile)) pass(`${label} structured evidence profile is readable`);
   else fail(`${label} structured evidence profile is not supported`);
   if (parsed.artifact_type === "existing_rule_reconciliation_report") pass(`${label} structured artifact type is valid`);
   else fail(`${label} structured artifact type invalid`);

@@ -63,7 +63,7 @@ function buildReport(root, options) {
   }
   const rules = nativePlans.flatMap((plan) => plan.rules.map((rule) => ({ ...rule, planPath: plan.path })));
   const ruleReconciliationCoverage = buildRuleReconciliationCoverage(rules, nativePlans);
-  const items = buildReconciliationItems(rules);
+  const items = buildReconciliationItems(rules, ruleReconciliationCoverage.scanState);
   const protectedConstraints = buildProtectedConstraints(items);
   const releaseProductionGaps = buildReleaseProductionGaps(items);
   const conflicts = buildConflicts(items);
@@ -108,7 +108,7 @@ function buildReport(root, options) {
     : conflicts.length > 0 ? "NEEDS_HUMAN_DECISION" : "RECONCILIATION_RECORDED";
   const report = {
     reportType: "EXISTING_RULE_RECONCILIATION",
-    schemaVersion: "1.110.0",
+    schemaVersion: "1.113.0",
     generatedBy: "scripts/resolve-existing-rule-reconciliation.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -293,17 +293,17 @@ function nativeAdoptionDecisionFor(nativePlans, rules, items, coverage) {
     .filter((rule) => surfaceForRule(rule) === "UNKNOWN_AUTHORITY")
     .some((rule) => !isLowSignalGeneratedUnknown(rule));
 
-  if (coverage.omittedRules > 0) {
+  if (!["COMPLETE_NO_ACTIONABLE_RULES", "COMPLETE_ACTIONABLE_RULES"].includes(coverage.scanState)) {
     return nativeDecision({
       recommendation: "BLOCKED_NEEDS_OWNER",
       migrationDepth: "READ_ONLY_DIAGNOSIS",
       confidence: "HIGH",
-      defaultPath: "review omitted extracted rules before selected native adoption",
-      preserve: ["all omitted existing project rules", "existing release / production and protected constraints"],
+      defaultPath: "complete and validate the Native Migration rule scan before selected native adoption",
+      preserve: ["all unresolved existing project rules", "existing release / production and protected constraints"],
       merge: [],
       replace: [],
-      blocked: ["selected native adoption", "governance apply plan until omitted rules are reviewed"],
-      humanConfirmation: "NO_USER_ACTION: Codex continues bounded inventory pages until every extracted rule is reconciled.",
+      blocked: ["selected native adoption", "governance apply plan until the complete scan is reconciled"],
+      humanConfirmation: "NO_USER_ACTION: Codex completes the bounded rule scan and reconciliation before preparing writes.",
     });
   }
 
@@ -322,6 +322,19 @@ function nativeAdoptionDecisionFor(nativePlans, rules, items, coverage) {
   }
 
   if (rules.length === 0) {
+    if (coverage.scanState === "COMPLETE_NO_ACTIONABLE_RULES") {
+      return nativeDecision({
+        recommendation: "SELECTED_NATIVE_ADOPTION",
+        migrationDepth: "SELECTED_ASSETS",
+        confidence: "HIGH",
+        defaultPath: "preserve the fully scanned project context and prepare the selected reversible operating overlay",
+        preserve: ["all scanned project context", "existing project files and authority"],
+        merge: [],
+        replace: [],
+        blocked: ["production execution", "external effects", "writes outside the exact selected apply graph"],
+        humanConfirmation: "NO_USER_ACTION: the complete zero-rule scan allows Codex to prepare the exact reversible project-local plan; real-world effects remain separately consented.",
+      });
+    }
     return nativeDecision({
       recommendation: nativePlans.length > 0 ? "BLOCKED_NEEDS_OWNER" : "READ_ONLY_DIAGNOSIS",
       migrationDepth: "READ_ONLY_DIAGNOSIS",
@@ -423,14 +436,32 @@ function buildRuleReconciliationCoverage(rules, nativePlans) {
   const unresolvedBlocks = unclassifiedBlocks + skippedBlocks + unresolvedLowSignalBlocks;
   const omittedRules = Math.max(0, extractedBySource - rules.length) + unresolvedBlocks;
   const totalExtractedRules = rules.length + omittedRules;
+  const everyPlanHasCoverage = nativePlans.length > 0 && nativePlans.every((plan) => (
+    Array.isArray(plan.evidence?.rule_extraction_coverage)
+    && plan.evidence.rule_extraction_coverage.length > 0
+  ));
+  const extractionCountMatches = extractedBySource === rules.length;
+  const scanState = nativePlans.length === 0
+    ? "MISSING_NATIVE_MIGRATION_EVIDENCE"
+    : !everyPlanHasCoverage || !extractionCountMatches || omittedRules > 0
+      ? "INCOMPLETE_RULE_SCAN"
+      : rules.length === 0
+        ? "COMPLETE_NO_ACTIONABLE_RULES"
+        : "COMPLETE_ACTIONABLE_RULES";
+  const scanComplete = ["COMPLETE_NO_ACTIONABLE_RULES", "COMPLETE_ACTIONABLE_RULES"].includes(scanState);
   return {
+    scanState,
     totalExtractedRules,
     reconciledRules,
     omittedRules,
-    truncationWarning: omittedRules > 0
-      ? `Only first ${reconciledRules} of ${totalExtractedRules} extracted rules were reconciled; ${unclassifiedBlocks} unclassified, ${skippedBlocks} skipped, and ${unresolvedLowSignalBlocks} low-signal blocks remain unresolved.`
-      : `None; every extracted rule and unresolved parser block is represented in this reconciliation${resolvedNonRuleBlocks > 0 ? `; ${resolvedNonRuleBlocks} sentinel-only declaration(s) were retained as resolved non-rules` : ""}.`,
-    blocksSelectedNativeAdoption: omittedRules > 0 ? "Yes" : "No",
+    truncationWarning: !everyPlanHasCoverage
+      ? "Native Migration evidence is missing rule-extraction coverage."
+      : !extractionCountMatches
+        ? `Native Migration reports ${extractedBySource} extracted rule(s), but provides ${rules.length} classification(s).`
+        : omittedRules > 0
+          ? `Only first ${reconciledRules} of ${totalExtractedRules} extracted rules were reconciled; ${unclassifiedBlocks} unclassified, ${skippedBlocks} skipped, and ${unresolvedLowSignalBlocks} low-signal blocks remain unresolved.`
+          : `None; every extracted rule and unresolved parser block is represented in this reconciliation${resolvedNonRuleBlocks > 0 ? `; ${resolvedNonRuleBlocks} sentinel-only declaration(s) were retained as resolved non-rules` : ""}.`,
+    blocksSelectedNativeAdoption: scanComplete ? "No" : "Yes",
   };
 }
 
@@ -438,23 +469,30 @@ function isResolvedNonRuleBlock(block) {
   return block?.disposition === "RESOLVED_NON_RULE";
 }
 
-function buildReconciliationItems(rules) {
+function buildReconciliationItems(rules, scanState) {
   if (rules.length === 0) {
+    const completeNoActionableRules = scanState === "COMPLETE_NO_ACTIONABLE_RULES";
     return [
       {
         itemId: "RR-001",
-        existingRuleRef: "native-migration:missing",
+        existingRuleRef: completeNoActionableRules
+          ? "native-migration:complete-no-actionable-rules"
+          : "native-migration:missing",
         intentOsReferenceRef: "native-migration-plan",
         surface: "UNKNOWN_AUTHORITY",
         surfaceAuthority: "PROJECT_OWNED",
         allowedOutcomes: ["NO_EXISTING_RULE", "UNKNOWN_AUTHORITY"],
         outcome: "NO_EXISTING_RULE",
-        reason: "No Native Migration rule classifications were found; Codex must generate and validate classified existing rules first.",
+        reason: completeNoActionableRules
+          ? "Native Migration scanned every detected governance source without omitted or unresolved blocks and found no actionable rule to reconcile. Project context remains preserved."
+          : "No complete Native Migration rule scan was found; Codex must generate and validate the source coverage first.",
         riskSurfaces: ["workflow"],
         humanDecisionRequired: "No",
         requiresApplyChain: "Yes",
         canReplaceExistingRule: "No",
-        targetAction: "Codex prepares Native Migration Plan before reconciliation",
+        targetAction: completeNoActionableRules
+          ? "preserve the scanned project context and continue only through the selected reversible apply graph"
+          : "Codex prepares Native Migration Plan before reconciliation",
         controlEffectivenessRequired: "No",
         controlClaimRefs: [],
       },
@@ -641,8 +679,8 @@ function referenceSummary(item) {
 
 function structuredEvidenceFor(report) {
   return {
-    schema_version: "1.110.0",
-    evidence_profile: "existing-rule-reconciliation-1.110.0",
+    schema_version: "1.113.0",
+    evidence_profile: "existing-rule-reconciliation-1.113.0",
     artifact_type: "existing_rule_reconciliation_report",
     report_type: report.reportType,
     project_state: report.projectState,
@@ -667,6 +705,7 @@ function structuredEvidenceFor(report) {
       authority: item.authority,
     })),
     rule_reconciliation_coverage: {
+      scan_state: report.ruleReconciliationCoverage.scanState,
       total_extracted_rules: report.ruleReconciliationCoverage.totalExtractedRules,
       reconciled_rules: report.ruleReconciliationCoverage.reconciledRules,
       omitted_rules: report.ruleReconciliationCoverage.omittedRules,

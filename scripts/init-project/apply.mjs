@@ -176,11 +176,13 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     if (!goal || projectGoalProjection(goal).goal_digest !== plan.arguments.goalDigest) {
       throw new Error("Native-adoption apply requires the original natural-language request and its exact digest");
     }
-    if (plan.executionState !== "EXECUTABLE" || plan.arguments?.migrationDepth === "ADAPTER_ONLY") {
-      throw new Error("Native-adoption diagnostic plan cannot be applied");
-    }
+    assertPlanEligibleForControlledRecovery(plan);
     const currentAssessment = buildNativeAdoptionAssessment(plan.targetRoot, goal, {
       migrationDepth: plan.arguments?.migrationDepth,
+      baselineConfig: {
+        profiles: plan.arguments?.profiles,
+        baselineLevel: plan.arguments?.baselineLevel,
+      },
     });
     if (currentAssessment.assessment_state !== "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION") {
       throw new Error(`Native-adoption assessment is blocked: ${(currentAssessment.blockers || []).join("; ")}`);
@@ -273,6 +275,13 @@ function validatePlanForApply(plan, backupDirOverride = null) {
   return backupDir;
 }
 
+function assertPlanEligibleForControlledRecovery(plan) {
+  if (plan?.operationKind === "NATIVE_ADOPTION"
+    && (plan.executionState !== "EXECUTABLE" || plan.arguments?.migrationDepth === "ADAPTER_ONLY")) {
+    throw new Error("Native-adoption diagnostic plan cannot be applied");
+  }
+}
+
 function validateCanonicalApplyPlan(plan) {
   const expected = buildPlan(plan.targetRoot, {
     starter: plan.arguments.starter,
@@ -286,6 +295,7 @@ function validateCanonicalApplyPlan(plan) {
     standardPacks: (plan.arguments.standardPacks || []).join(","),
     backupDir: plan.arguments.backupDir || "",
     goal: plan.arguments.goal || "",
+    migrationDepth: plan.arguments.migrationDepth,
     projectEntryOrigin: plan.arguments.projectEntryOrigin,
     createdAt: plan.createdAt,
   });
@@ -1278,6 +1288,7 @@ function writeApplyReceipt(plan, receipt, transaction = null, phase = "final") {
 
 
 export {
+  assertPlanEligibleForControlledRecovery,
   createAutomaticRequestBoundApplyContext,
   deriveControlledApplyRecoveryBinding,
   replayApprovedNewProjectPlan,
