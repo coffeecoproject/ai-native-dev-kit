@@ -9,6 +9,10 @@ import { gitWorktreeState } from "./lib/git.mjs";
 import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
 import { workflowRequiredPaths as manifestWorkflowRequiredPaths } from "./lib/manifest.mjs";
 import {
+  nativeAdoptionOperationalPolicy,
+  selectedNativeBaselineReadiness,
+} from "./lib/native-adoption-overlay.mjs";
+import {
   defaultIgnoredDirs,
   filterIntentOSManagedPaths,
   hasProjectSignals as hasProjectSignalsForRoot,
@@ -744,20 +748,26 @@ function platformBaselineState() {
     const resolved = resolvePlatformBaseline(projectRoot);
     return {
       state: resolved.strictState,
+      rawState: resolved.strictState,
       selectedProfiles: resolved.selectedProfiles,
       missingProfiles: resolved.missingProfiles.map((item) => item.profileId),
       missingRequiredDocs: resolved.missingRequiredDocs,
       incompatibleStarters: resolved.incompatibleStarters,
+      baselineInstallationState: resolved.baselineInstallation.state,
+      standardPackEvidenceState: resolved.standardPackEvidence.state,
       environmentBaseline: resolved.environmentBaseline,
       blockingReasons: resolved.strictStatus.blockingReasons,
     };
   } catch (error) {
     return {
       state: "BASELINE_RESOLUTION_FAILED",
+      rawState: "BASELINE_RESOLUTION_FAILED",
       selectedProfiles: [],
       missingProfiles: [],
       missingRequiredDocs: [],
       incompatibleStarters: [],
+      baselineInstallationState: "UNAVAILABLE",
+      standardPackEvidenceState: "UNAVAILABLE",
       environmentBaseline: null,
       blockingReasons: [error.message],
     };
@@ -783,6 +793,9 @@ function commandFor(action, kitRoot, context = {}) {
     return "Use .intentos/prompts/project-onboarding-agent.md, draft docs/engineering-baseline.md when structural decisions are needed, then run node scripts/check-project-onboarding.mjs . and node scripts/check-engineering-baseline.mjs .";
   }
   if (action === "RUN_PLATFORM_BASELINE_SETUP") {
+    if (context.operationalProfile === "SELECTED_EXISTING_PROJECT") {
+      return "Codex repairs the selected project profile and baseline mapping from existing project evidence through a bounded controlled plan, then runs node scripts/check-baseline-installation.mjs . --require-selection --allow-pending-receipt.";
+    }
     return "Codex derives project profiles in docs/project-profile.md from project evidence, then runs node scripts/check-platform-baseline.mjs .";
   }
   if (action === "RUN_INDUSTRIAL_BASELINE_SETUP") {
@@ -898,8 +911,28 @@ function buildResult() {
   const missingWorkflowAssets = workflowRequiredPaths.filter((rel) => !exists(rel));
   const pendingReports = pendingMigrationReports();
   const agentMissing = missingAgentSections();
-  const onboarding = onboardingState();
-  const platformBaseline = platformBaselineState();
+  const operationalPolicy = nativeAdoptionOperationalPolicy(version);
+  const rawOnboarding = onboardingState();
+  const rawPlatformBaseline = platformBaselineState();
+  const selectedBaseline = operationalPolicy.selected
+    ? selectedNativeBaselineReadiness(operationalPolicy, rawPlatformBaseline)
+    : null;
+  const onboarding = operationalPolicy.selected
+    ? {
+      state: selectedBaseline.ready ? "SELECTED_PROJECT_MAPPING_READY" : "SELECTED_PROJECT_MAPPING_INCOMPLETE",
+      missing: rawOnboarding.missing,
+      pending: rawOnboarding.pending,
+    }
+    : rawOnboarding;
+  const platformBaseline = operationalPolicy.selected
+    ? {
+      ...rawPlatformBaseline,
+      state: selectedBaseline.state,
+      blockingReasons: selectedBaseline.reasons,
+      deferredRequiredDocs: rawPlatformBaseline.missingRequiredDocs,
+      deferredEvidence: selectedBaseline.deferredEvidence,
+    }
+    : rawPlatformBaseline;
   const industrialBaseline = industrialBaselineState();
   const artifactCount = workflowArtifactCount();
   const signals = governanceSignals();
@@ -932,7 +965,7 @@ function buildResult() {
     workflowState = "PARTIAL_BOOTSTRAP";
   } else if (pendingReports.length > 0) {
     workflowState = "BOOTSTRAPPED_WITH_PENDING_MIGRATION";
-  } else if (missingWorkflowAssets.length > 0 || agentMissing.length > 0) {
+  } else if (missingWorkflowAssets.length > 0 || agentMissing.length > 0 || !operationalPolicy.valid) {
     workflowState = "BOOTSTRAPPED_WITH_MISSING_ASSETS";
   } else {
     workflowState = "BOOTSTRAPPED";
@@ -952,15 +985,17 @@ function buildResult() {
   let nextAction;
   if (projectState === "NEW_PROJECT") {
     nextAction = "INIT_WITH_STARTER";
-  } else if (!version || missingWorkflowAssets.length > 0 || versionState === "MISMATCH") {
+  } else if (!version || missingWorkflowAssets.length > 0 || versionState === "MISMATCH" || !operationalPolicy.valid) {
     nextAction = "RUN_WORKFLOW_ASSET_UPDATE";
   } else if (pendingReports.length > 0) {
     nextAction = "REVIEW_GOVERNANCE_MIGRATION";
   } else if (agentMissing.length > 0) {
     nextAction = "RUN_WORKFLOW_ASSET_UPDATE";
-  } else if (onboarding.state !== "READY") {
+  } else if (operationalPolicy.selected && !selectedBaseline.ready) {
+    nextAction = "RUN_PLATFORM_BASELINE_SETUP";
+  } else if (!operationalPolicy.selected && onboarding.state !== "READY") {
     nextAction = "RUN_PROJECT_ONBOARDING";
-  } else if (platformBaseline.state !== "BASELINE_READY") {
+  } else if (!operationalPolicy.selected && platformBaseline.state !== "BASELINE_READY") {
     nextAction = "RUN_PLATFORM_BASELINE_SETUP";
   } else if ([
     "PACK_INDEX_MISSING",
@@ -1000,7 +1035,9 @@ function buildResult() {
   const projectAssetMigrationDepth = nextAction === "RUN_ADOPTION_ASSESSMENT"
     ? "ADAPTER_ONLY"
     : nextAction === "REVIEW_DIRTY_WORKTREE" ? "PLAN_REQUIRED"
-      : version ? "PROJECT_SELECTED" : projectState === "NEW_PROJECT" ? "FULL_INTENTOS_NATIVE_CANDIDATE" : "RECOMMEND_ONLY";
+      : operationalPolicy.selected ? "SELECTED_ASSETS"
+        : version ? version.assetMigrationDepth || "PROJECT_SELECTED"
+          : projectState === "NEW_PROJECT" ? "FULL_INTENTOS_NATIVE_CANDIDATE" : "RECOMMEND_ONLY";
   const existingRuleComparisonRequired = !nativeNewProject
     && (signals.isGovernedExisting || signals.isProductionGoverned || signals.isDirtyWorktree);
 
@@ -1008,10 +1045,14 @@ function buildResult() {
   if (version?.intentOSVersion) notes.push(`Project intentos version: ${version.intentOSVersion}`);
   if (localVersion) notes.push(`Local intentos version: ${localVersion}`);
   if (missingWorkflowAssets.length > 0) notes.push(`${missingWorkflowAssets.length} workflow asset(s) are missing.`);
+  if (!operationalPolicy.valid) notes.push(`Selected operational identity is missing required declared asset(s): ${operationalPolicy.missingRequiredAssets.join(", ")}.`);
   if (agentMissing.length > 0) notes.push(`${agentMissing.length} AGENTS.md governance section(s) are missing.`);
   if (pendingReports.length > 0) notes.push(`${pendingReports.length} migration report(s) need controlled apply review.`);
-  if (onboarding.state === "NEEDS_HUMAN_CONFIRMATION") notes.push(`${onboarding.pending.length} onboarding doc(s) still have pending decisions.`);
-  if (onboarding.state === "MISSING") notes.push(`${onboarding.missing.length} onboarding doc(s) are missing.`);
+  if (!operationalPolicy.selected && onboarding.state === "NEEDS_HUMAN_CONFIRMATION") notes.push(`${onboarding.pending.length} onboarding doc(s) still have pending decisions.`);
+  if (!operationalPolicy.selected && onboarding.state === "MISSING") notes.push(`${onboarding.missing.length} onboarding doc(s) are missing.`);
+  if (operationalPolicy.selected && selectedBaseline.ready) notes.push("Selected existing-project mapping is ready; full project onboarding remains task-bound and is not claimed by this installation.");
+  if (operationalPolicy.selected && platformBaseline.deferredRequiredDocs.length > 0) notes.push(`${platformBaseline.deferredRequiredDocs.length} full-native profile document(s) are deferred to task-bound governance.`);
+  if (operationalPolicy.selected && platformBaseline.deferredEvidence.length > 0) notes.push(`Full baseline satisfaction remains task-bound: ${platformBaseline.deferredEvidence.join("; ")}.`);
   if (platformBaseline.state === "MISSING_PROFILE") notes.push("Project profile has not selected platform profiles.");
   if (platformBaseline.state === "PROFILE_INVALID") notes.push(`${platformBaseline.missingProfiles.length} selected platform profile(s) are missing.`);
   if (platformBaseline.state === "BASELINE_DOCS_MISSING") notes.push(`${platformBaseline.missingRequiredDocs.length} platform baseline doc(s) are missing.`);
@@ -1057,6 +1098,9 @@ function buildResult() {
     adoptionMode,
     intentosOperatingMode,
     projectAssetMigrationDepth,
+    operationalProfile: operationalPolicy.profile,
+    deferredProjectDocs: platformBaseline.deferredRequiredDocs || [],
+    deferredBaselineEvidence: platformBaseline.deferredEvidence || [],
     existingRuleComparisonRequired: existingRuleComparisonRequired ? "yes" : "no",
     governanceSignals: signals,
     nextAction,
@@ -1073,6 +1117,7 @@ function buildResult() {
       versionState,
       existingRuleComparisonRequired: existingRuleComparisonRequired ? "yes" : "no",
       governanceSignals: signals,
+      operationalProfile: operationalPolicy.profile,
     }),
   };
 }
@@ -1177,7 +1222,9 @@ function attachProjectEntryTrust(value, precomputedTrust = null) {
       next.nextAction = "REPAIR_PROJECT_ENTRY_TRUST";
       next.canWriteWorkflowAssets = "no";
       next.mustStopForHuman = "no";
-      next.suggestedCommand = `node scripts/cli.mjs doctor ${JSON.stringify(projectRoot)}`;
+      next.suggestedCommand = value.operationalProfile === "SELECTED_EXISTING_PROJECT"
+        ? "Codex inspects the project-local identity and receipt read-only, then prepares any repair from the authoritative IntentOS source through a new bounded controlled plan."
+        : `node scripts/cli.mjs doctor ${JSON.stringify(projectRoot)}`;
       next.notes = [...(value.notes || []), `Project entry trust is blocked: ${trust.blockers.join(", ")}. Codex must repair or continue read-only.`];
     }
     return next;
@@ -1484,30 +1531,44 @@ function buildHumanOutput(result) {
   }
 
   if (action === "READY_FOR_FIRST_REQUEST") {
+    const selected = result.operationalProfile === "SELECTED_EXISTING_PROJECT";
     return {
-      summary: "The project workflow is ready enough to start the first request card.",
+      summary: selected
+        ? "The selected IntentOS operating route is active. Full project onboarding and baseline satisfaction stay bound to the first task that needs them."
+        : "The project workflow is ready enough to start the first request card.",
       status: "Can continue",
-      reason: "No blocking setup issue was detected, but no workflow artifact exists yet.",
+      reason: selected
+        ? "The installed capability map is verified and no current request exists yet; deferred project evidence is not being claimed as complete."
+        : "No blocking setup issue was detected, but no workflow artifact exists yet.",
       riskLevel: "low",
       canAiContinue: "yes",
       decisions: ["State the first business goal in ordinary language if it is not already present; Codex derives the vertical slice."],
       nextStep: "Create the first request card and continue through preflight, spec, eval, and task.",
       aiCanDo: ["Create the first request card.", "Draft preflight, spec, eval, and task after the request is clear."],
-      aiMustNotDo: ["Do not skip spec/eval/task for non-trivial implementation."],
+      aiMustNotDo: selected
+        ? ["Do not treat deferred onboarding or baseline evidence as complete; resolve it when the task touches that surface.", "Do not skip spec/eval/task for non-trivial implementation."]
+        : ["Do not skip spec/eval/task for non-trivial implementation."],
     };
   }
 
   if (action === "READY_FOR_TASK_EXECUTION") {
+    const selected = result.operationalProfile === "SELECTED_EXISTING_PROJECT";
     return {
-      summary: "Workflow setup is ready and task artifacts exist. AI can proceed only through an approved task card and required verification.",
+      summary: selected
+        ? "The selected IntentOS operating route and current task bridge are active. AI can proceed through task governance while resolving deferred project evidence only when that task requires it."
+        : "Workflow setup is ready and task artifacts exist. AI can proceed only through an approved task card and required verification.",
       status: "Can continue",
-      reason: "No blocking workflow setup issue was detected.",
+      reason: selected
+        ? "The selected capability map, current request route, and project-local activation receipt are verified; this does not claim full onboarding or baseline satisfaction."
+        : "No blocking workflow setup issue was detected.",
       riskLevel: "medium",
       canAiContinue: "yes",
       decisions: ["No technical user choice. Codex uses the single current Work Queue item and resolves queue conflicts before execution."],
       nextStep: "Use the current Work Queue task, run artifact checks, implement within scope, verify, and record the result.",
       aiCanDo: ["Execute one approved task card.", "Run verification.", "Create AI task log and review assets when required."],
-      aiMustNotDo: ["Do not widen scope, bypass Risk Gate, or self-approve high-risk decisions."],
+      aiMustNotDo: selected
+        ? ["Do not treat deferred onboarding or baseline evidence as complete.", "Do not widen scope, bypass Risk Gate, or self-approve high-risk decisions."]
+        : ["Do not widen scope, bypass Risk Gate, or self-approve high-risk decisions."],
     };
   }
 

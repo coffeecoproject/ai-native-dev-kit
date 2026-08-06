@@ -1,6 +1,7 @@
 {
   "id": "web-app",
   "name": "Web App",
+  "profileRole": "primary-platform",
   "defaultTaskLevel": "L1",
   "escalationRules": [
     {

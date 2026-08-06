@@ -368,3 +368,40 @@ test("a self-asserted boss identity cannot bypass the real release path", () => 
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("selected installation Guidance follows exact workflow assets and preserves project guidance", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-selected-guidance-"));
+  try {
+    fs.mkdirSync(path.join(root, ".intentos", "core"), { recursive: true });
+    fs.mkdirSync(path.join(root, "docs"), { recursive: true });
+    fs.writeFileSync(path.join(root, ".intentos", "version.json"), `${JSON.stringify({
+      assetMigrationDepth: "SELECTED_ASSETS",
+      workflowAssets: [".intentos/core/assumption-register.md", ".intentos/version.json"],
+    }, null, 2)}\n`);
+    fs.writeFileSync(path.join(root, ".intentos", "core", "assumption-register.md"), [
+      "# Selected Guidance",
+      "",
+      "Project release facts remain in `docs/release.md`.",
+      "An unselected managed reference is `.intentos/core/not-selected.md`.",
+      "",
+    ].join("\n"));
+    fs.writeFileSync(path.join(root, ".intentos", "core", "not-selected.md"), "# Stale managed file\n");
+    fs.writeFileSync(path.join(root, "docs", "release.md"), "# Project Release Authority\n");
+    const selectedAuthority = {
+      ...authority,
+      activeGuidance: [
+        { source: "core/assumption-register.md", installed: ".intentos/core/assumption-register.md" },
+        { source: "core/not-selected.md", installed: ".intentos/core/not-selected.md" },
+      ],
+      activeGuidanceFamilies: [],
+      activeGuidanceProducers: [],
+    };
+    const graph = effectiveGuidanceGraph(selectedAuthority, true, root);
+    assert.ok(graph.activePaths.includes(".intentos/core/assumption-register.md"));
+    assert.ok(graph.activePaths.includes("docs/release.md"));
+    assert.equal(graph.activePaths.includes(".intentos/core/not-selected.md"), false);
+    assert.equal(graph.nodes.some((node) => node.file_state !== "CURRENT"), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

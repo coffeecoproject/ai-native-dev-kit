@@ -1,6 +1,7 @@
 {
   "id": "wechat-miniprogram",
   "name": "WeChat Mini Program",
+  "profileRole": "primary-platform",
   "defaultTaskLevel": "L1",
   "escalationRules": [
     {

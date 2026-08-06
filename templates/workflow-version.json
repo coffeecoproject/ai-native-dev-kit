@@ -654,6 +654,8 @@
     "scripts/lib/path-safety.mjs",
     "scripts/lib/plan-review-binding.mjs",
     "scripts/lib/planning-closure.mjs",
+    "scripts/lib/native-adoption-overlay.mjs",
+    "scripts/lib/structured-child-process.mjs",
     "scripts/lib/report-authority.mjs",
     "scripts/lib/project-entry-trust.mjs",
     "scripts/lib/project-fact-projection.mjs",

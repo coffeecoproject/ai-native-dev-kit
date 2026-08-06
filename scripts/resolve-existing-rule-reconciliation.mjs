@@ -2,7 +2,6 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
@@ -12,6 +11,7 @@ import {
   sameRunBindingFromTrust,
 } from "./lib/same-run-evidence-envelope.mjs";
 import { loadSchema, stringifyJsonForMarkdownFence, validateSchema } from "./lib/artifact-schema.mjs";
+import { runStructuredJsonChildSync } from "./lib/structured-child-process.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "intent", "auto-native"]);
@@ -55,8 +55,11 @@ function buildReport(root, options) {
     : readNativeMigrationPlans(root, entryTrust);
   const persistedNativePlanCount = sameRunNative ? 0 : nativeMigrationPlanCount(root);
   const stalePersistedNativeEvidence = persistedNativePlanCount > 0 && nativePlans.length === 0;
+  let nativeMigrationGeneration = { attempted: false, state: "NOT_REQUESTED" };
   if (nativePlans.length === 0 && options.autoNative) {
-    nativePlans = generateNativeMigrationPlans(root, options.intent);
+    const generated = generateNativeMigrationPlans(root, options.intent);
+    nativePlans = generated.plans;
+    nativeMigrationGeneration = generated.execution;
   }
   const rules = nativePlans.flatMap((plan) => plan.rules.map((rule) => ({ ...rule, planPath: plan.path })));
   const ruleReconciliationCoverage = buildRuleReconciliationCoverage(rules, nativePlans);
@@ -71,7 +74,19 @@ function buildReport(root, options) {
     "Record Approval Record from the original adoption request or exact real-world consent when required",
     "Apply only the bounded governance-file actions represented by the reviewed plan",
   ];
-  const nativeAdoptionDecision = stalePersistedNativeEvidence && !options.autoNative
+  const nativeAdoptionDecision = nativeMigrationGeneration.attempted && nativeMigrationGeneration.state !== "CURRENT_RUN"
+    ? nativeDecision({
+      recommendation: "BLOCKED_NEEDS_OWNER",
+      migrationDepth: "READ_ONLY_DIAGNOSIS",
+      confidence: "HIGH",
+      defaultPath: "repair and rerun the Native Migration structured source before reconciliation",
+      preserve: ["existing project rules", "current project files"],
+      merge: [],
+      replace: [],
+      blocked: ["rule reconciliation completion", "selected native adoption", "apply-plan recommendation"],
+      humanConfirmation: "NO_USER_ACTION: Codex repairs the failed structured source and reruns read-only reconciliation.",
+    })
+    : stalePersistedNativeEvidence && !options.autoNative
     ? nativeDecision({
       recommendation: "BLOCKED_NEEDS_OWNER",
       migrationDepth: "READ_ONLY_DIAGNOSIS",
@@ -113,6 +128,7 @@ function buildReport(root, options) {
       path: plan.path,
       status: plan.generated ? "generated read-only input" : "read-only input",
     })),
+    nativeMigrationGeneration,
     existingRuleSet: rules.map((rule) => ({
       ruleRef: `native-migration:${rule.rule_id}`,
       surface: surfaceForRule(rule),
@@ -214,35 +230,49 @@ function persistedNativeBindingMatches(evidence, binding) {
 }
 
 function generateNativeMigrationPlans(root, intent = "") {
-  const result = spawnSync(process.execPath, [
-    path.join(__dirname, "resolve-native-migration.mjs"),
-    root,
-    "--json",
-    "--intent",
-    intent || "reconcile existing project rules",
-  ], {
+  const result = runStructuredJsonChildSync({
+    args: [
+      path.join(__dirname, "resolve-native-migration.mjs"),
+      root,
+      "--json",
+      "--intent",
+      intent || "reconcile existing project rules",
+    ],
     cwd: path.resolve(__dirname, ".."),
-    encoding: "utf8",
+    timeout: 120_000,
   });
-  if (result.status !== 0) return [];
-  const parsed = parseJson(result.stdout);
-  const evidence = parsed?.structuredEvidence;
-  if (!evidence) return [];
-  return [{
-    path: "generated:native-migration",
-    generated: true,
-    evidence,
-    nativeReport: parsed,
-    rules: Array.isArray(evidence.rule_classifications) ? evidence.rule_classifications : [],
-  }];
-}
-
-function parseJson(content) {
-  try {
-    return JSON.parse(content);
-  } catch {
-    return null;
+  const execution = {
+    attempted: true,
+    state: result.state === "CURRENT_RUN" && result.exitStatus !== 0
+      ? "CHILD_EXIT_REJECTED"
+      : result.state,
+    exitStatus: result.exitStatus,
+    signal: result.signal,
+    errorCode: result.errorCode,
+    stdoutBytes: result.stdoutBytes,
+    stdoutDigest: result.stdoutDigest,
+    error: result.state === "CURRENT_RUN" && result.exitStatus !== 0
+      ? result.stderrPreview || `Native Migration exited ${result.exitStatus}`
+      : result.error,
+  };
+  const evidence = result.value?.structuredEvidence;
+  if (execution.state !== "CURRENT_RUN" || !evidence) {
+    if (execution.state === "CURRENT_RUN") {
+      execution.state = "INVALID_STRUCTURED_EVIDENCE";
+      execution.error = "Native Migration JSON omitted structuredEvidence";
+    }
+    return { plans: [], execution };
   }
+  return {
+    plans: [{
+      path: "generated:native-migration",
+      generated: true,
+      evidence,
+      nativeReport: result.value,
+      rules: Array.isArray(evidence.rule_classifications) ? evidence.rule_classifications : [],
+    }],
+    execution,
+  };
 }
 
 function projectStateFor(nativePlans, rules) {
@@ -642,6 +672,16 @@ function structuredEvidenceFor(report) {
       omitted_rules: report.ruleReconciliationCoverage.omittedRules,
       truncation_warning: report.ruleReconciliationCoverage.truncationWarning,
       blocks_selected_native_adoption: report.ruleReconciliationCoverage.blocksSelectedNativeAdoption,
+    },
+    native_migration_generation: {
+      attempted: report.nativeMigrationGeneration.attempted ? "Yes" : "No",
+      state: report.nativeMigrationGeneration.state,
+      exit_status: report.nativeMigrationGeneration.exitStatus ?? null,
+      signal: report.nativeMigrationGeneration.signal || "",
+      error_code: report.nativeMigrationGeneration.errorCode || "",
+      stdout_bytes: report.nativeMigrationGeneration.stdoutBytes || 0,
+      stdout_digest: report.nativeMigrationGeneration.stdoutDigest || "",
+      error: report.nativeMigrationGeneration.error || "",
     },
     reconciliation_items: report.reconciliationItems.map((item) => ({
       item_id: item.itemId,

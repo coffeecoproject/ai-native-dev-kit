@@ -105,6 +105,7 @@ export function buildOperatingDecision(context) {
 
 function selectOperatingAction(context) {
   if (context.sourceFailure) return action("REPAIR_SOURCE_READ", "BLOCKED_RECOVERY", "BLOCKED", "SOURCE_READ_FAILED", false);
+  if (context.operatingState === "NEEDS_PROJECT_ENTRY_REPAIR") return action("REPAIR_PROJECT_ENTRY_TRUST", "BLOCKED_RECOVERY", "BLOCKED", "PROJECT_ENTRY_TRUST_BLOCKED", true);
   if (context.operatingState === "NEEDS_PROJECT_SETUP") return action("COMPLETE_PROJECT_SETUP", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", context.projectSetupAction, true);
   if (context.operation === "FINISH_TASK") {
     return context.operatingState === "READY_TO_REPORT_DONE"
@@ -171,6 +172,11 @@ function decisionBlockers(context) {
       .filter((source) => source.readStatus === "FAILED")
       .map((source) => `${source.sourceSystem}: ${source.error || "source read failed"}`);
   }
+  if (context.operatingState === "NEEDS_PROJECT_ENTRY_REPAIR") {
+    return arrayValue(context.projectEntryTrust?.blockers).length > 0
+      ? arrayValue(context.projectEntryTrust.blockers)
+      : ["project entry trust does not allow this operation"];
+  }
   if (context.gateFailure) {
     return context.sourceSystemTrace
       .filter((source) => source.sourceKind === "GATE" && source.readStatus === "FAILED")
@@ -210,6 +216,7 @@ function reasonFor(actionCode, blockers) {
   const firstBlocker = blockers[0] || "no blocking source input";
   const values = {
     REPAIR_SOURCE_READ: `A required source failed: ${firstBlocker}.`,
+    REPAIR_PROJECT_ENTRY_TRUST: `Project entry trust blocks this operation: ${firstBlocker}.`,
     REQUEST_GOAL: "The Operating Model cannot select a safe route without a goal.",
     REVIEW_CURRENT_WORK: "The worktree contains uncommitted work that must be mapped before continuation.",
     COMPLETE_PROJECT_SETUP: `Project setup is incomplete: ${firstBlocker}.`,

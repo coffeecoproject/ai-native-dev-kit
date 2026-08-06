@@ -12,7 +12,12 @@ import {
   prepareLowTrustFixtureSource,
   prepareCurrentTrustFixtureSource,
 } from "../scripts/lib/current-trust-fixture.mjs";
-import { extractMachineReadableEvidence, validateSchema } from "../scripts/lib/artifact-schema.mjs";
+import {
+  extractMachineReadableEvidence,
+  loadSchema,
+  trustedArtifactSchemaRefs,
+  validateSchema,
+} from "../scripts/lib/artifact-schema.mjs";
 import { canonicalFileDigest, projectIdentity } from "../scripts/lib/evidence-authority.mjs";
 import {
   classifyUnexpectedExecutionFiles,
@@ -702,6 +707,12 @@ test("installed artifact schema replacement fails trusted loading", async () => 
   const moduleUrl = `${pathToFileURL(path.join(root, "scripts/lib/artifact-schema.mjs")).href}?test=${Date.now()}`;
   const { loadSchema } = await import(moduleUrl);
   assert.equal(loadSchema(root, schemaRel), null);
+});
+
+test("every source artifact schema trust anchor matches its current content", () => {
+  for (const schemaRef of trustedArtifactSchemaRefs()) {
+    assert.notEqual(loadSchema(kitRoot, schemaRef), null, schemaRef);
+  }
 });
 
 test("non-Git authority identity ignores generated evidence, release records, and target schema shadows", async () => {

@@ -1,6 +1,7 @@
 {
   "id": "android-app",
   "name": "Android App",
+  "profileRole": "primary-platform",
   "defaultTaskLevel": "L1",
   "escalationRules": [
     {

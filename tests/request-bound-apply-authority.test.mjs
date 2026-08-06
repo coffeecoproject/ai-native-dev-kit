@@ -33,6 +33,8 @@ function fixture(t) {
 
 function planFor(root, legacyAgent) {
   const goal = "adopt this existing project into IntentOS without changing business behavior";
+  const separator = legacyAgent.endsWith("\n") ? "\n" : "\n\n";
+  const proposedAgent = `${legacyAgent}${separator}## IntentOS\n\n## Zero-Experience Solo Developer\n`;
   return {
     operationKind: "NATIVE_ADOPTION",
     createdAt: "2030-01-01T00:00:00.000Z",
@@ -56,7 +58,16 @@ function planFor(root, legacyAgent) {
         type: "CREATE",
         path: "AGENTS.md",
         source: null,
-        inlineContentBase64: Buffer.from(`${legacyAgent.trimEnd()}\n\n## IntentOS\n\n## Zero-Experience Solo Developer\n`).toString("base64"),
+        inlineContentBase64: Buffer.from(proposedAgent).toString("base64"),
+        preservation: {
+          mode: "EXACT_PREFIX_APPEND",
+          sourcePath: "agent.md",
+          sourceDigest: sha(legacyAgent),
+          sourceBytes: Buffer.byteLength(legacyAgent),
+          separator,
+        },
+        sourceHash: sha(proposedAgent),
+        expectedHashAfter: sha(proposedAgent),
         willWrite: true,
       },
       {
@@ -167,6 +178,97 @@ test("request-bound local authority accepts an exact reversible existing-project
   const readiness = validateRequestBoundReadiness(context.readiness, context);
   assert.equal(authority.ok, true, authority.errors.join("; "));
   assert.equal(readiness.ok, true, readiness.errors.join("; "));
+});
+
+test("request-bound authority validates a legacy agent bridge before and after exact apply", (t) => {
+  const context = authorityContext(t);
+  const preApply = validateRequestBoundApplyAuthority(context.authority, {
+    plan: context.plan,
+    planRelativePath: context.planRelativePath,
+    now: Date.parse("2030-01-01T00:05:00.000Z"),
+    validationPhase: "PRE_APPLY",
+  });
+  assert.equal(preApply.ok, true, preApply.errors.join("; "));
+
+  const proposed = Buffer.from(context.plan.actions[0].inlineContentBase64, "base64");
+  fs.writeFileSync(path.join(context.root, "AGENTS.md"), proposed);
+  const postApply = validateRequestBoundApplyAuthority(context.authority, {
+    plan: context.plan,
+    planRelativePath: context.planRelativePath,
+    now: Date.parse("2030-01-01T00:05:00.000Z"),
+    validationPhase: "POST_APPLY",
+  });
+  assert.equal(postApply.ok, true, postApply.errors.join("; "));
+
+  fs.writeFileSync(path.join(context.root, "AGENTS.md"), "# changed after apply\n");
+  const stale = validateRequestBoundApplyAuthority(context.authority, {
+    plan: context.plan,
+    planRelativePath: context.planRelativePath,
+    now: Date.parse("2030-01-01T00:05:00.000Z"),
+    validationPhase: "POST_APPLY",
+  });
+  assert.equal(stale.ok, false);
+  assert.match(stale.errors.join("\n"), /outside request-bound local authority/);
+});
+
+test("request-bound AGENTS reconcile has distinct pre-apply and post-apply invariants", (t) => {
+  const context = authorityContext(t);
+  const original = "# Existing AGENTS\n\nPreserve release and rollback rules.\n";
+  fs.writeFileSync(path.join(context.root, "AGENTS.md"), original);
+  const separator = "\n";
+  const proposed = `${original}${separator}## IntentOS\n\n## Zero-Experience Solo Developer\n`;
+  const action = {
+    ...context.plan.actions[0],
+    type: "RECONCILE_PRESERVE",
+    hashBefore: sha(original),
+    backupPath: ".intentos/backups/test/AGENTS.md",
+    inlineContentBase64: Buffer.from(proposed).toString("base64"),
+    preservation: {
+      mode: "EXACT_PREFIX_APPEND",
+      sourcePath: "AGENTS.md",
+      sourceDigest: sha(original),
+      sourceBytes: Buffer.byteLength(original),
+      separator,
+    },
+    sourceHash: sha(proposed),
+    expectedHashAfter: sha(proposed),
+  };
+  const plan = { ...context.plan, actions: [action, context.plan.actions[1]] };
+  const authority = createRequestBoundApplyAuthority({
+    plan,
+    planRelativePath: context.planRelativePath,
+    issuedAt: "2030-01-01T00:00:00.000Z",
+    expiresAt: "2030-01-01T00:15:00.000Z",
+  });
+  const preApply = validateRequestBoundApplyAuthority(authority, {
+    plan,
+    planRelativePath: context.planRelativePath,
+    now: Date.parse("2030-01-01T00:05:00.000Z"),
+    validationPhase: "PRE_APPLY",
+  });
+  assert.equal(preApply.ok, true, preApply.errors.join("; "));
+
+  fs.writeFileSync(path.join(context.root, "AGENTS.md"), proposed);
+  const postApply = validateRequestBoundApplyAuthority(authority, {
+    plan,
+    planRelativePath: context.planRelativePath,
+    now: Date.parse("2030-01-01T00:05:00.000Z"),
+    validationPhase: "POST_APPLY",
+  });
+  assert.equal(postApply.ok, true, postApply.errors.join("; "));
+  assert.equal(isRequestBoundLocalActionAllowed(action, plan, { validationPhase: "PRE_APPLY" }), false);
+});
+
+test("request-bound AGENTS preservation rejects a fabricated prefix proof", (t) => {
+  const context = authorityContext(t);
+  const fabricated = structuredClone(context.plan.actions[0]);
+  const replacement = "# Replacement Agent\n\n## IntentOS\n\n## Zero-Experience Solo Developer\n";
+  fabricated.inlineContentBase64 = Buffer.from(replacement).toString("base64");
+  fabricated.sourceHash = sha(replacement);
+  fabricated.expectedHashAfter = sha(replacement);
+  const plan = { ...context.plan, actions: [fabricated, context.plan.actions[1]] };
+  assert.equal(isRequestBoundLocalActionAllowed(fabricated, plan, { validationPhase: "PRE_APPLY" }), false);
+  assert.equal(isRequestBoundLocalActionAllowed(fabricated, plan, { validationPhase: "RECOVERY_BINDING" }), false);
 });
 
 test("request-bound authority fails closed on request, project, plan, expiry, and reuse mismatches", (t) => {

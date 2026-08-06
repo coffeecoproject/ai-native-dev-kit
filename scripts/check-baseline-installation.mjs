@@ -7,7 +7,12 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { loadVerifiedBootstrapReceipt } from "./lib/bootstrap-transaction.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
-import { normalizeBaselineLevel } from "./lib/baseline-selection.mjs";
+import {
+  normalizeBaselineLevel,
+  profileRequiresPackCoverage,
+  profileRoleFor,
+  uncoveredProfilesForBaselineLayer,
+} from "./lib/baseline-selection.mjs";
 import { assertInsideRoot, assertNoSymlinkInPath } from "./lib/path-safety.mjs";
 import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 
@@ -277,12 +282,14 @@ if (selection === null) {
     const selectedEntries = standardPacks.map((packId) => standardById.get(packId)).filter(Boolean);
     if (selectedEntries.some((entry) => entry.type === "environment")) pass("standard baseline includes an environment pack");
     else fail(`${baselineLevel} requires an environment standard pack`);
+    const uncovered = new Set(uncoveredProfilesForBaselineLayer(path.join(projectRoot, ".intentos"), profiles, selectedEntries, "standard"));
     for (const profile of profiles) {
-      if (selectedEntries.some((entry) => (entry.appliesToProfiles || []).includes(profile) && entry.type !== "environment")) {
-        pass(`standard baseline covers selected profile: ${profile}`);
-      } else {
-        fail(`standard baseline has no platform/capability pack for selected profile: ${profile}`);
-      }
+      const role = profileRoleFor(path.join(projectRoot, ".intentos"), profile);
+      if (!role) fail(`selected profile has no valid profileRole: ${profile}`);
+      else if (!profileRequiresPackCoverage(path.join(projectRoot, ".intentos"), profile, "standard")) {
+        pass(`standard baseline preserves risk-overlay profile without requiring a platform pack: ${profile}`);
+      } else if (!uncovered.has(profile)) pass(`standard baseline covers selected profile: ${profile}`);
+      else fail(`standard baseline has no platform/capability pack for selected profile: ${profile}`);
     }
   }
 
@@ -298,9 +305,11 @@ if (selection === null) {
   for (const packId of industrialPacks) ensureInstalledRegistryPack("industrial-packs", packId, industrialById);
   if (baselineLevel === "BL2_INDUSTRIAL") {
     const selectedEntries = industrialPacks.map((packId) => industrialById.get(packId)).filter(Boolean);
+    const uncovered = new Set(uncoveredProfilesForBaselineLayer(path.join(projectRoot, ".intentos"), profiles, selectedEntries, "industrial"));
     for (const profile of profiles) {
-      if (selectedEntries.some((entry) => (entry.appliesToProfiles || []).includes(profile))) pass(`industrial baseline covers selected profile: ${profile}`);
-      else fail(`industrial baseline has no platform/capability pack for selected profile: ${profile}`);
+      if (!profileRoleFor(path.join(projectRoot, ".intentos"), profile)) fail(`selected profile has no valid profileRole: ${profile}`);
+      else if (!uncovered.has(profile)) pass(`industrial baseline covers selected profile: ${profile}`);
+      else fail(`industrial baseline has no role-compatible pack for selected profile: ${profile}`);
     }
   }
 

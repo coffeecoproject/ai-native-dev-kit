@@ -91,6 +91,7 @@ function checkProfiles() {
     }
     for (const key of [
       "id",
+      "profileRole",
       "defaultTaskLevel",
       "escalationRules",
       "requiredDocs",
@@ -134,6 +135,9 @@ function checkProfiles() {
     }
     if (baseline.id !== entry.name) {
       fail(`profiles/${entry.name}/baseline.json id must match directory name`);
+    }
+    if (!["primary-platform", "capability", "risk-overlay"].includes(baseline.profileRole)) {
+      fail(`profiles/${entry.name}/baseline.json profileRole must be primary-platform, capability, or risk-overlay`);
     }
     pass(`profile structure checked: ${entry.name}`);
   }

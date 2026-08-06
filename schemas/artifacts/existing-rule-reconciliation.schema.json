@@ -84,6 +84,29 @@
         "blocks_selected_native_adoption": { "type": "string", "enum": ["Yes", "No"] }
       }
     },
+    "native_migration_generation": {
+      "type": "object",
+      "required": [
+        "attempted",
+        "state",
+        "exit_status",
+        "signal",
+        "error_code",
+        "stdout_bytes",
+        "stdout_digest",
+        "error"
+      ],
+      "properties": {
+        "attempted": { "type": "string", "enum": ["Yes", "No"] },
+        "state": { "type": "string" },
+        "exit_status": { "type": ["integer", "null"] },
+        "signal": { "type": "string" },
+        "error_code": { "type": "string" },
+        "stdout_bytes": { "type": "integer" },
+        "stdout_digest": { "type": "string" },
+        "error": { "type": "string" }
+      }
+    },
     "reconciliation_items": {
       "type": "array",
       "items": {

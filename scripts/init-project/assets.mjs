@@ -6,6 +6,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "../lib/manifest.mjs";
+import { selectedAgentGovernanceAppendix } from "../lib/native-adoption-overlay.mjs";
 import { evidenceDigest, extractMachineReadableEvidence, loadSchema, validateSchema } from "../lib/artifact-schema.mjs";
 import {
   controlledApplyImpactFlags,
@@ -1761,6 +1762,7 @@ function buildVersionRecord(targetPath, starter, options = {}, now = new Date().
     intentOSVersion: currentIntentOSVersion,
     starter: existing.starter || starter,
     projectEntryOrigin: existing.projectEntryOrigin || options.projectEntryOrigin || "UNKNOWN_PROJECT_ORIGIN",
+    assetMigrationDepth: options.assetMigrationDepth || existing.assetMigrationDepth || "FULL_NATIVE",
     baselineSelection: options.baselineConfig?.configured ? {
       level: options.baselineConfig.baselineLevel,
       profiles: options.baselineConfig.profiles,
@@ -1769,7 +1771,9 @@ function buildVersionRecord(targetPath, starter, options = {}, now = new Date().
     } : existing.baselineSelection || null,
     initializedAt: existing.initializedAt || now,
     lastWorkflowAssetUpdateAt: options.update ? now : existing.lastWorkflowAssetUpdateAt || now,
-    workflowAssets: workflowVersionAssets(kitRoot, { fallback: [
+    workflowAssets: Array.isArray(options.workflowAssetsOverride)
+      ? [...new Set(options.workflowAssetsOverride)].sort()
+      : workflowVersionAssets(kitRoot, { fallback: [
       ".intentos/core",
       ".intentos/templates",
       ".intentos/prompts",
@@ -2066,6 +2070,7 @@ function assertExistingTargetRootIsSafe(targetPath) {
 
 export {
   agentGovernanceAppendix,
+  selectedAgentGovernanceAppendix,
   agentsGovernanceMigrationReportPath,
   assertExistingTargetRootIsSafe,
   baselineConfigurationForPlan,

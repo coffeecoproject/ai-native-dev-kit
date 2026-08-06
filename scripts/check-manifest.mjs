@@ -9,6 +9,7 @@ import {
   currentIntentOSVersion,
   diffLists,
   kitRoot,
+  manifestAdoptionPolicyNames,
   manifestGroupNames,
   readJson,
   readText,
@@ -124,6 +125,35 @@ function validateManifestDomain(manifest) {
 
   validateRuleList(manifest.copyRules.directories, "manifest domain validation: copyRules.directories");
   validateRuleList(manifest.copyRules.files, "manifest domain validation: copyRules.files");
+
+  const policyNames = Object.keys(manifest.adoptionPolicies || {});
+  for (const name of manifestAdoptionPolicyNames) {
+    if (!policyNames.includes(name)) fail(`manifest domain validation: adoption policy ${name} is missing`);
+  }
+  for (const name of policyNames) {
+    if (!manifestAdoptionPolicyNames.includes(name)) fail(`manifest domain validation: adoption policy ${name} is unsupported`);
+  }
+  const selected = manifest.adoptionPolicies?.selectedAssets || {};
+  if (!manifestGroupNames.includes(selected.targetGroup)) {
+    fail(`manifest domain validation: selectedAssets targetGroup is unknown: ${selected.targetGroup || "<missing>"}`);
+  }
+  for (const groupName of selected.includeGroups || []) {
+    if (!manifestGroupNames.includes(groupName)) fail(`manifest domain validation: selectedAssets includeGroup is unknown: ${groupName}`);
+    if (!selected.capabilities?.[groupName]) fail(`manifest domain validation: selectedAssets capability is missing for ${groupName}`);
+  }
+  for (const capabilityGroup of Object.keys(selected.capabilities || {})) {
+    if (!(selected.includeGroups || []).includes(capabilityGroup)) {
+      fail(`manifest domain validation: selectedAssets capability has no includeGroup: ${capabilityGroup}`);
+    }
+  }
+  const targetGroup = new Set(manifest.groups?.[selected.targetGroup] || []);
+  const scriptGroup = new Set(manifest.groups?.scripts || []);
+  for (const entrypoint of selected.runtimeEntrypoints || []) {
+    if (!targetGroup.has(entrypoint)) fail(`manifest domain validation: selectedAssets runtime entry is outside ${selected.targetGroup}: ${entrypoint}`);
+    if (!scriptGroup.has(entrypoint)) fail(`manifest domain validation: selectedAssets runtime entry is outside scripts: ${entrypoint}`);
+  }
+  validatePathList(selected.runtimeEntrypoints || [], "manifest domain validation: adoptionPolicies.selectedAssets.runtimeEntrypoints");
+  validatePathList(selected.requiredTargets || [], "manifest domain validation: adoptionPolicies.selectedAssets.requiredTargets");
 }
 
 function validatePathList(group, label) {

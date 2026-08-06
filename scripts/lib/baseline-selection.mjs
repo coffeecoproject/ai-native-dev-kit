@@ -7,6 +7,18 @@ export const canonicalBaselineLevels = [
   "BL2_INDUSTRIAL",
 ];
 
+export const canonicalProfileRoles = [
+  "primary-platform",
+  "capability",
+  "risk-overlay",
+];
+
+const coveragePackTypesByProfileRole = {
+  "primary-platform": new Set(["primary-platform", "capability"]),
+  capability: new Set(["primary-platform", "capability"]),
+  "risk-overlay": new Set(["risk-overlay"]),
+};
+
 const starterProfiles = {
   "codex-web-app": ["web-app"],
   "codex-ios-app": ["ios-app"],
@@ -837,6 +849,33 @@ function loadProfileBaseline(kitRoot, profileId) {
   }
 }
 
+export function profileRoleFor(kitRoot, profileId) {
+  const role = String(loadProfileBaseline(kitRoot, profileId)?.profileRole || "").trim();
+  return canonicalProfileRoles.includes(role) ? role : null;
+}
+
+export function profileRequiresPackCoverage(kitRoot, profileId, layer) {
+  const role = profileRoleFor(kitRoot, profileId);
+  if (!role) return true;
+  return !(layer === "standard" && role === "risk-overlay");
+}
+
+export function packCoversProfile(kitRoot, entry, profileId, layer) {
+  const role = profileRoleFor(kitRoot, profileId);
+  if (!role || !profileRequiresPackCoverage(kitRoot, profileId, layer)) return false;
+  const allowedTypes = coveragePackTypesByProfileRole[role];
+  return allowedTypes.has(entry?.type)
+    && Array.isArray(entry?.appliesToProfiles)
+    && entry.appliesToProfiles.includes(profileId);
+}
+
+export function uncoveredProfilesForBaselineLayer(kitRoot, profiles, selectedEntries, layer) {
+  return profiles.filter((profileId) => (
+    profileRequiresPackCoverage(kitRoot, profileId, layer)
+    && !selectedEntries.some((entry) => packCoversProfile(kitRoot, entry, profileId, layer))
+  ));
+}
+
 export function incompatibleProfilesForStarter(kitRoot, profiles, starter) {
   const selectedStarter = String(starter || "").trim();
   if (!selectedStarter) return [];
@@ -1099,6 +1138,14 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
   if (unknownProfiles.length > 0) {
     throw new Error(`Unknown profile(s): ${unknownProfiles.join(", ")}`);
   }
+  const invalidProfileRoles = profiles.filter((profile) => !profileRoleFor(kitRoot, profile));
+  if (invalidProfileRoles.length > 0) {
+    throw selectionError(
+      "PROFILE_ROLE_INVALID",
+      `Selected profile(s) have no valid profileRole: ${invalidProfileRoles.join(", ")}`,
+      { selectedProfiles: profiles, allowedProfileRoles: canonicalProfileRoles },
+    );
+  }
   if (starterDefaults.length > 0 && !starterDefaults.every((profile) => profiles.includes(profile))) {
     throw selectionError(
       "STARTER_PROFILE_REQUIREMENT_MISMATCH",
@@ -1140,7 +1187,9 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
     throw new Error(`Standard baseline pack(s) incompatible with ${baselineLevel}: ${incompatibleStandard.join(", ")}`);
   }
   const profileIncompatibleStandard = standardPacks.filter((id) => {
-    const applies = standardById.get(id)?.appliesToProfiles;
+    const entry = standardById.get(id);
+    if (!new Set(["primary-platform", "capability"]).has(entry?.type)) return false;
+    const applies = entry?.appliesToProfiles;
     return Array.isArray(applies) && applies.length > 0 && !applies.some((profile) => profiles.includes(profile));
   });
   if (profileIncompatibleStandard.length > 0) {
@@ -1151,9 +1200,7 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
     if (!selectedStandardEntries.some((entry) => entry.type === "environment")) {
       throw new Error(`${baselineLevel} requires an environment standard pack`);
     }
-    const uncovered = profiles.filter((profile) => !selectedStandardEntries.some((entry) => {
-      return entry.type !== "environment" && (entry.appliesToProfiles || []).includes(profile);
-    }));
+    const uncovered = uncoveredProfilesForBaselineLayer(kitRoot, profiles, selectedStandardEntries, "standard");
     if (uncovered.length > 0) {
       throw new Error(`Standard baseline has no platform/capability pack for selected profile(s): ${uncovered.join(", ")}`);
     }
@@ -1199,9 +1246,7 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
   }
   if (baselineLevel === "BL2_INDUSTRIAL") {
     const selectedIndustrialEntries = industrialPacks.map((id) => industrialById.get(id)).filter(Boolean);
-    const uncovered = profiles.filter((profile) => !selectedIndustrialEntries.some((entry) => {
-      return (entry.appliesToProfiles || []).includes(profile);
-    }));
+    const uncovered = uncoveredProfilesForBaselineLayer(kitRoot, profiles, selectedIndustrialEntries, "industrial");
     if (uncovered.length > 0) {
       throw new Error(`Industrial baseline has no platform/capability pack for selected profile(s): ${uncovered.join(", ")}`);
     }

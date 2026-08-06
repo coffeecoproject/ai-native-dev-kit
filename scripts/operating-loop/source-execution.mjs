@@ -2,6 +2,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { requireAcceptedOutcome } from "../lib/check-result.mjs";
 import { validateBaselineEnforcementConsumption } from "../lib/planning-closure.mjs";
+import { runStructuredJsonChildSync } from "../lib/structured-child-process.mjs";
 import { firstUsefulLine, sha256 } from "./shared.mjs";
 
 function runFinalDecision(kitRoot, name, script, childArgs) {
@@ -22,12 +23,12 @@ export function normalizeProjectRef(value) {
 }
 
 function runSource(kitRoot, name, script, childArgs) {
-  const result = spawnSync(process.execPath, [path.join(kitRoot, script), ...childArgs], {
+  const result = runStructuredJsonChildSync({
+    args: [path.join(kitRoot, script), ...childArgs],
     cwd: kitRoot,
-    encoding: "utf8",
-    maxBuffer: 1024 * 1024 * 32,
+    timeout: 120_000,
   });
-  if (result.status !== 0) {
+  if (result.state !== "CURRENT_RUN") {
     return {
       name,
       script,
@@ -35,44 +36,51 @@ function runSource(kitRoot, name, script, childArgs) {
       readStatus: "FAILED",
       outcome: "BLOCKED_BY_SOURCE_FAILURE",
       ref: `generated:${script}`,
-      semanticDigest: `sha256:${sha256(result.stderr || result.stdout || "source resolver failed")}`,
+      sourceContract: result.state,
+      semanticDigest: result.stdoutDigest,
       value: null,
-      error: firstUsefulLine(result.stderr || result.stdout || "source resolver failed"),
+      error: firstUsefulLine(result.error || result.stderrPreview || "source resolver failed"),
     };
   }
-  try {
-    const value = JSON.parse(result.stdout);
-    const nestedFailures = name === "WORKFLOW_GUIDANCE"
-      ? (value.deepOrchestration?.failures || [])
-      : [];
-    const semanticValue = { ...value };
-    delete semanticValue.generatedAt;
-    return {
-      name,
-      script,
-      sourceKind: "RESOLVER",
-      readStatus: nestedFailures.length > 0 ? "FAILED" : "CURRENT_RUN",
-      outcome: nestedFailures.length > 0 ? "BLOCKED_BY_NESTED_SOURCE_FAILURE" : sourceOutcome(value),
-      ref: sourceRef(value, script),
-      semanticDigest: `sha256:${sha256(JSON.stringify(semanticValue))}`,
-      value,
-      error: nestedFailures.length > 0
-        ? nestedFailures.map((item) => `${item.id}: ${item.reason}`).join("; ")
-        : "",
-    };
-  } catch (error) {
+  const value = result.value;
+  const acceptedExitStatuses = resolverAcceptedExitStatuses(name);
+  if (!acceptedExitStatuses.includes(result.exitStatus)) {
     return {
       name,
       script,
       sourceKind: "RESOLVER",
       readStatus: "FAILED",
-      outcome: "BLOCKED_BY_INVALID_SOURCE",
+      sourceContract: "UNACCEPTED_RESOLVER_EXIT",
+      outcome: "BLOCKED_BY_SOURCE_FAILURE",
       ref: `generated:${script}`,
-      semanticDigest: `sha256:${sha256(result.stdout || error.message)}`,
-      value: null,
-      error: `invalid JSON: ${error.message}`,
+      semanticDigest: result.stdoutDigest,
+      value,
+      error: firstUsefulLine(result.stderrPreview || `source resolver exited ${result.exitStatus}`),
     };
   }
+  const nestedFailures = name === "WORKFLOW_GUIDANCE"
+    ? (value.deepOrchestration?.failures || [])
+    : [];
+  const semanticValue = { ...value };
+  delete semanticValue.generatedAt;
+  return {
+    name,
+    script,
+    sourceKind: "RESOLVER",
+    sourceContract: result.exitStatus === 0 ? "RESOLVER_OUTPUT" : "SEMANTIC_BLOCKER_OUTPUT",
+    readStatus: nestedFailures.length > 0 ? "FAILED" : "CURRENT_RUN",
+    outcome: nestedFailures.length > 0 ? "BLOCKED_BY_NESTED_SOURCE_FAILURE" : sourceOutcome(value),
+    ref: sourceRef(value, script),
+    semanticDigest: `sha256:${sha256(JSON.stringify(semanticValue))}`,
+    value,
+    error: nestedFailures.length > 0
+      ? nestedFailures.map((item) => `${item.id}: ${item.reason}`).join("; ")
+      : "",
+  };
+}
+
+function resolverAcceptedExitStatuses(name) {
+  return name === "WORKFLOW_NEXT" ? [0, 2] : [0];
 }
 
 function runGateSource(kitRoot, name, script, childArgs) {
@@ -202,21 +210,38 @@ function firstFailedGateMessage(value) {
   return gateChecks(value).find((item) => item.status === "FAIL" || item.ok === false)?.message || "";
 }
 
-export function operatingExitCode(report) {
-  if (report.outcome === "BLOCKED_BY_SOURCE_FAILURE") return 2;
+const OPERATING_EXIT_CODES = Object.freeze({
+  SUCCESS: 0,
+  ACTION_REQUIRED: 1,
+  SOURCE_FAILURE: 2,
+});
+
+export function operatingExitClassFor(report) {
+  if (report.outcome === "BLOCKED_BY_SOURCE_FAILURE") return "SOURCE_FAILURE";
+  if (report.operatingLoop?.state === "NEEDS_PROJECT_ENTRY_REPAIR") return "ACTION_REQUIRED";
   const strictGateBlocked = report.sourceSystemTrace?.some(
     (source) => source.sourceKind === "GATE" && source.readStatus === "FAILED",
   );
   const baselineBlocked = report.sourceSystemTrace?.some(
     (source) => source.sourceSystem === "BASELINE_ENFORCEMENT_CHECK" && source.readStatus === "FAILED",
   );
-  if (baselineBlocked && ["CONTINUE_TASK", "RESUME_TASK"].includes(report.operatingLoop?.operation)) return 1;
+  if (baselineBlocked && ["CONTINUE_TASK", "RESUME_TASK"].includes(report.operatingLoop?.operation)) return "ACTION_REQUIRED";
   if (report.operatingLoop?.operation === "FINISH_TASK"
-    && (strictGateBlocked || report.operatingLoop.state !== "READY_TO_REPORT_DONE")) return 1;
+    && (strictGateBlocked || report.operatingLoop.state !== "READY_TO_REPORT_DONE")) return "ACTION_REQUIRED";
   if (report.operatingLoop?.operation === "CHECK_STATUS"
     && report.operatingLoop.statusScope === "CURRENT_TASK"
-    && report.operatingLoop.state !== "STATUS_AVAILABLE") return 1;
-  return 0;
+    && report.operatingLoop.state !== "STATUS_AVAILABLE") return "ACTION_REQUIRED";
+  const controlledSetupBlocksTaskStatus = report.operatingLoop?.operation === "CHECK_STATUS"
+    && report.operatingLoop?.state !== "STATUS_AVAILABLE"
+    && report.sourceSystemTrace?.some(
+      (source) => source.sourceSystem === "WORKFLOW_NEXT" && source.outcome === "PREPARE_CONTROLLED_SETUP",
+    );
+  if (controlledSetupBlocksTaskStatus) return "ACTION_REQUIRED";
+  return "SUCCESS";
+}
+
+export function operatingExitCode(report) {
+  return OPERATING_EXIT_CODES[operatingExitClassFor(report)];
 }
 
 function sourceOutcome(value) {

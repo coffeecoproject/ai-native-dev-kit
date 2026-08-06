@@ -26,6 +26,8 @@ export const manifestGroupNames = [
   "workflowVersionAssets",
 ];
 
+export const manifestAdoptionPolicyNames = ["selectedAssets"];
+
 export function normalizePath(value) {
   return String(value || "").replaceAll(path.sep, "/").replace(/^\.\//, "");
 }
@@ -103,6 +105,20 @@ export function targetRequiredPaths(root, mode = "full", options = {}) {
 }
 
 export function workflowRequiredPaths(root, options = {}) {
+  const installedVersion = path.join(root, ".intentos", "version.json");
+  if (fs.existsSync(installedVersion)) {
+    try {
+      const version = readJsonFile(installedVersion);
+      if (version.assetMigrationDepth === "SELECTED_ASSETS"
+        && Array.isArray(version.workflowAssets)
+        && version.workflowAssets.length > 0) {
+        return sortedUnique(version.workflowAssets);
+      }
+    } catch {
+      // Project-entry trust reports invalid installed identity; retain the full
+      // manifest readiness surface so malformed identity cannot reduce checks.
+    }
+  }
   return manifestGroup(root, "workflowReadiness", options);
 }
 

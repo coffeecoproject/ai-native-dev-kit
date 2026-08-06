@@ -113,7 +113,7 @@ function installedIdentity(root, sourceRoot, topology, facts, agentAuthority) {
     }
     const recordedRoot = version.projectRoot ? path.resolve(root, version.projectRoot) : topology.canonical_target;
     if (recordedRoot !== topology.canonical_target) return { state: "CONFLICTED", form: "INSTALLED", canonical_root: topology.canonical_target, source_version: version.intentOSVersion || "UNKNOWN", identity_ref: ".intentos/version.json", reason: "Installed identity root does not match the canonical project root." };
-    const pendingUpdateActivation = validPendingControlledUpdateIdentity(root, topology.canonical_target);
+    const pendingApplyActivation = validPendingControlledApplyIdentity(root, topology.canonical_target);
     if (version.projectEntryOrigin === "NEW_PROJECT") {
       const receiptRef = ".intentos/bootstrap-receipt.json";
       const receiptFile = path.join(root, receiptRef);
@@ -131,26 +131,29 @@ function installedIdentity(root, sourceRoot, topology, facts, agentAuthority) {
       if (!currentBootstrap
         && !currentUpdatedIdentity.ok
         && !pendingActivation.ok
-        && !pendingUpdateActivation.ok) {
+        && !pendingApplyActivation.ok) {
         return {
           state: "CONFLICTED",
           form: "INSTALLED",
           canonical_root: topology.canonical_target,
           source_version: version.intentOSVersion || "UNKNOWN",
           identity_ref: ".intentos/version.json",
-          reason: receiptIssue || currentUpdatedIdentity.reason || pendingUpdateActivation.reason || pendingActivation.reason || "New-project identity has no valid APPLY_VERIFIED behavioral activation receipt.",
+          reason: receiptIssue || currentUpdatedIdentity.reason || pendingApplyActivation.reason || pendingActivation.reason || "New-project identity has no valid APPLY_VERIFIED behavioral activation receipt.",
         };
       }
     } else {
       const applyChain = evaluateVerifiedAdoptionApplyChain(root, { schemasRoot: sourceRoot });
-      if (applyChain.status !== "VERIFIED" && !pendingUpdateActivation.ok) {
+      if (applyChain.status !== "VERIFIED" && !pendingApplyActivation.ok) {
         return {
           state: "CONFLICTED",
           form: "INSTALLED",
           canonical_root: topology.canonical_target,
           source_version: version.intentOSVersion || "UNKNOWN",
           identity_ref: ".intentos/version.json",
-          reason: "Existing-project identity has no verified project-bound apply and activation receipt.",
+          reason: [
+            "Existing-project identity has no verified project-bound apply and activation receipt.",
+            pendingApplyActivation.reason,
+          ].filter(Boolean).join(" "),
           evidence_refs: applyChain.refs || [],
         };
       }
@@ -164,8 +167,8 @@ function installedIdentity(root, sourceRoot, topology, facts, agentAuthority) {
       repository_identity: facts.project_identity,
       agent_authority_digest: agentAuthority.agent_authority_digest,
       agent_authority_refs: agentAuthority.sources.map((item) => item.path),
-      temporary_activation_paths: pendingUpdateActivation.ok
-        ? pendingUpdateActivation.temporaryActivationPaths
+      temporary_activation_paths: pendingApplyActivation.ok
+        ? pendingApplyActivation.temporaryActivationPaths
         : [],
     };
   }
@@ -298,37 +301,52 @@ function validPendingActivationIdentity(root, canonicalRoot) {
   return { ok: true, reason: "" };
 }
 
-function validPendingControlledUpdateIdentity(root, canonicalRoot) {
-  const receiptRef = String(process.env.INTENTOS_CONTROLLED_UPDATE_ACTIVATION_RECEIPT || "");
-  const capability = String(process.env.INTENTOS_CONTROLLED_UPDATE_ACTIVATION_CAPABILITY || "");
-  const expectedRecordDigest = String(process.env.INTENTOS_CONTROLLED_UPDATE_ACTIVATION_RECORD_DIGEST || "");
+function validPendingControlledApplyIdentity(root, canonicalRoot) {
+  const receiptRef = String(
+    process.env.INTENTOS_CONTROLLED_APPLY_ACTIVATION_RECEIPT
+    || process.env.INTENTOS_CONTROLLED_UPDATE_ACTIVATION_RECEIPT
+    || "",
+  );
+  const capability = String(
+    process.env.INTENTOS_CONTROLLED_APPLY_ACTIVATION_CAPABILITY
+    || process.env.INTENTOS_CONTROLLED_UPDATE_ACTIVATION_CAPABILITY
+    || "",
+  );
+  const expectedRecordDigest = String(
+    process.env.INTENTOS_CONTROLLED_APPLY_ACTIVATION_RECORD_DIGEST
+    || process.env.INTENTOS_CONTROLLED_UPDATE_ACTIVATION_RECORD_DIGEST
+    || "",
+  );
   if (!receiptRef || !capability || !/^sha256:[a-f0-9]{64}$/.test(expectedRecordDigest)) {
-    return { ok: false, reason: "No bounded controlled-update activation context is active." };
+    return { ok: false, reason: "No bounded controlled-apply activation context is active." };
   }
-  if (!safeProjectRelativePath(receiptRef)) return { ok: false, reason: "Controlled-update activation receipt path is unsafe." };
+  if (!safeProjectRelativePath(receiptRef)) return { ok: false, reason: "Controlled-apply activation receipt path is unsafe." };
   const receiptFile = path.join(root, receiptRef);
-  if (!fs.existsSync(receiptFile)) return { ok: false, reason: "Controlled-update activation receipt is unavailable." };
+  if (!fs.existsSync(receiptFile)) return { ok: false, reason: "Controlled-apply activation receipt is unavailable." };
   const issue = identityPathIssue(root, receiptFile);
   const record = issue ? null : readJson(receiptFile);
-  if (issue || !record) return { ok: false, reason: issue || "Controlled-update activation receipt is invalid." };
+  if (issue || !record) return { ok: false, reason: issue || "Controlled-apply activation receipt is invalid." };
   const { record_digest: _digest, ...base } = record;
   if (record.record_digest !== expectedRecordDigest || record.record_digest !== evidenceDigest(base, [])) {
-    return { ok: false, reason: "Controlled-update activation receipt digest is invalid." };
+    return { ok: false, reason: "Controlled-apply activation receipt digest is invalid." };
   }
-  if (record.schema_version !== "1.109.0"
-    || record.artifact_type !== "pending_controlled_update_activation"
+  const legacyUpdateRecord = record.schema_version === "1.109.0"
+    && record.artifact_type === "pending_controlled_update_activation";
+  const currentApplyRecord = record.schema_version === "1.113.0"
+    && record.artifact_type === "pending_controlled_apply_activation";
+  if ((!legacyUpdateRecord && !currentApplyRecord)
     || path.resolve(String(record.canonical_root || "")) !== canonicalRoot
     || record.receipt_ref !== receiptRef
     || record.capability_digest !== rawSha256(capability)
     || record.boundary?.temporary_identity_only !== true
     || record.boundary?.authorizes_additional_writes !== false
     || record.boundary?.authorizes_release_or_production !== false) {
-    return { ok: false, reason: "Controlled-update activation receipt is not bound to this target and capability." };
+    return { ok: false, reason: "Controlled-apply activation receipt is not bound to this target and capability." };
   }
-  if (!processAlive(record.owner_pid)) return { ok: false, reason: "Controlled-update activation owner process is no longer active." };
+  if (!processAlive(record.owner_pid)) return { ok: false, reason: "Controlled-apply activation owner process is no longer active." };
   const expiresAt = Date.parse(String(record.expires_at || ""));
   if (!Number.isFinite(expiresAt) || expiresAt <= Date.now() || expiresAt - Date.now() > 5 * 60 * 1000) {
-    return { ok: false, reason: "Controlled-update activation receipt is expired or has an invalid lifetime." };
+    return { ok: false, reason: "Controlled-apply activation receipt is expired or has an invalid lifetime." };
   }
   const planBound = exactBoundJson(root, record.plan_ref, record.plan_file_digest);
   const authorityBound = exactBoundJson(root, record.apply_authority_ref, record.apply_authority_file_digest);
@@ -341,12 +359,24 @@ function validPendingControlledUpdateIdentity(root, canonicalRoot) {
   const readiness = readinessBound.value;
   let planCanonicalRoot = "";
   try { planCanonicalRoot = fs.realpathSync(String(plan.targetRoot || "")); } catch { planCanonicalRoot = ""; }
-  if (plan.operation !== "UPDATE_WORKFLOW_ASSETS") return { ok: false, reason: "Controlled-update activation plan operation is invalid." };
+  const controlledUpdate = plan.operation === "UPDATE_WORKFLOW_ASSETS"
+    && plan.operationKind === "CONTROLLED_UPDATE";
+  const nativeAdoption = plan.operation === "INIT_PROJECT"
+    && plan.operationKind === "NATIVE_ADOPTION"
+    && plan.arguments?.projectEntryOrigin === "EXISTING_PROJECT";
+  if ((legacyUpdateRecord && !controlledUpdate)
+    || (currentApplyRecord && !controlledUpdate && !nativeAdoption)) {
+    return { ok: false, reason: "Controlled-apply activation plan operation is invalid." };
+  }
+  if (currentApplyRecord
+    && (record.operation !== plan.operation || record.operation_kind !== plan.operationKind)) {
+    return { ok: false, reason: "Controlled-apply activation operation binding is invalid." };
+  }
   if (!["NEW_PROJECT", "EXISTING_PROJECT"].includes(plan.arguments?.projectEntryOrigin)) return { ok: false, reason: "Controlled-update activation plan origin is invalid." };
-  if (planCanonicalRoot !== canonicalRoot) return { ok: false, reason: "Controlled-update activation plan target is invalid." };
-  if (plan.receiptPath !== receiptRef) return { ok: false, reason: "Controlled-update activation receipt does not match the plan." };
-  if (plan.planDigest !== record.plan_digest) return { ok: false, reason: "Controlled-update activation record does not match the plan digest." };
-  if (plan.planDigest !== stablePlanDigest(plan)) return { ok: false, reason: "Controlled-update activation plan digest is invalid." };
+  if (planCanonicalRoot !== canonicalRoot) return { ok: false, reason: "Controlled-apply activation plan target is invalid." };
+  if (plan.receiptPath !== receiptRef) return { ok: false, reason: "Controlled-apply activation receipt does not match the plan." };
+  if (plan.planDigest !== record.plan_digest) return { ok: false, reason: "Controlled-apply activation record does not match the plan digest." };
+  if (plan.planDigest !== stablePlanDigest(plan)) return { ok: false, reason: "Controlled-apply activation plan digest is invalid." };
   const executable = (plan.actions || []).filter((action) => action?.willWrite === true);
   const executableIds = executable.map((action) => action.id).sort();
   const expectedActions = executable
@@ -360,7 +390,7 @@ function validPendingControlledUpdateIdentity(root, canonicalRoot) {
     if (!safeProjectRelativePath(action.path)) return { ok: false, reason: `Controlled-update action path is unsafe: ${action.path}` };
     const file = path.join(root, action.path);
     if (!fs.existsSync(file) || identityPathIssue(root, file) || canonicalFileDigest(file) !== action.hash_after) {
-      return { ok: false, reason: `Controlled-update action is not applied exactly: ${action.id} ${action.path}` };
+      return { ok: false, reason: `Controlled-apply action is not applied exactly: ${action.id} ${action.path}` };
     }
   }
   if (record.apply_authority_mode === "REQUEST_BOUND_LOCAL") {
@@ -378,7 +408,7 @@ function validPendingControlledUpdateIdentity(root, canonicalRoot) {
     if (!authorityValidation.ok
       || !readinessValidation.ok
       || authority.authority_digest !== record.apply_authority_digest) {
-      return { ok: false, reason: `Controlled-update request authority or readiness binding is invalid: ${[...authorityValidation.errors, ...readinessValidation.errors].join("; ")}` };
+      return { ok: false, reason: `Controlled-apply request authority or readiness binding is invalid: ${[...authorityValidation.errors, ...readinessValidation.errors].join("; ")}` };
     }
   } else if (record.apply_authority_mode === "HUMAN_APPROVAL") {
     if (authority.approval_status !== "APPROVED"
@@ -386,10 +416,10 @@ function validPendingControlledUpdateIdentity(root, canonicalRoot) {
       || JSON.stringify([...(authority.approved_action_ids || [])].sort()) !== JSON.stringify(executableIds)
       || readiness.readiness_state !== "READY_FOR_HUMAN_APPROVED_APPLY"
       || readiness.apply_plan?.plan_digest !== plan.planDigest) {
-      return { ok: false, reason: "Controlled-update human approval or readiness binding is invalid." };
+      return { ok: false, reason: "Controlled-apply human approval or readiness binding is invalid." };
     }
   } else {
-    return { ok: false, reason: "Controlled-update apply authority mode is invalid." };
+    return { ok: false, reason: "Controlled-apply authority mode is invalid." };
   }
   return {
     ok: true,

@@ -4,6 +4,7 @@ import path from "node:path";
 import { evidenceDigest } from "./artifact-schema.mjs";
 import { normalizePathList, sameSet } from "./approval-record-validation.mjs";
 import { verifiedBootstrapManagedOwnership } from "./bootstrap-transaction.mjs";
+import { isTrustedSelectedAgentCreateAction } from "./native-adoption-overlay.mjs";
 
 const REQUEST_AUTHORITY_VERSION = "1.113.0";
 const REQUEST_AUTHORITY_MODE = "REQUEST_BOUND_LOCAL";
@@ -143,57 +144,107 @@ export function isRequestBoundLocalActionAllowed(action, plan, options = {}) {
   if (!action?.willWrite) return true;
   const target = normalizePath(action.path);
   const source = normalizePath(action.source);
+  const phase = requestBoundActionValidationPhase(options);
   if (!target || forbiddenPathPatterns.some((pattern) => pattern.test(target))) return false;
   if (action.hashBefore
-    && options.skipCurrentOwnershipCheck !== true
+    && phase === "PRE_APPLY"
     && !hasVerifiedPriorOwnership(action, plan)) return false;
+  let authorized = false;
   if (action.type === "WRITE_APPLY_RECEIPT") {
-    return target === normalizePath(plan?.receiptPath)
+    authorized = target === normalizePath(plan?.receiptPath)
       && (target.startsWith("apply-receipts/") || target === ".intentos/bootstrap-receipt.json");
-  }
-  if (target.startsWith(".intentos/")) return true;
-  if (target.endsWith("/.gitkeep")) return !target.startsWith("src/") && !target.startsWith("app/");
-  if (target.startsWith("scripts/") || target.startsWith("release-recipes/")) {
-    return Boolean(source) && source === target;
-  }
-  if (generatedProjectDocs.has(target)) {
-    return !source || source === `templates/${path.posix.basename(target)}`;
-  }
-  if (/^(?:requests|work-queue)\/[A-Za-z0-9._-]+\.md$/.test(target)) {
-    return action.type === "CREATE"
+  } else if (target.startsWith(".intentos/")) {
+    authorized = true;
+  } else if (target.endsWith("/.gitkeep")) {
+    authorized = !target.startsWith("src/") && !target.startsWith("app/");
+  } else if (target.startsWith("scripts/") || target.startsWith("release-recipes/")) {
+    authorized = Boolean(source) && source === target;
+  } else if (generatedProjectDocs.has(target)) {
+    authorized = !source || source === `templates/${path.posix.basename(target)}`;
+  } else if (target === "baseline-gap-reports/intentos-baseline-reconciliation.md") {
+    authorized = ["CREATE", "RECONCILE_PRESERVE", "BACKUP_THEN_RECONCILE"].includes(action.type)
+      && !source
+      && typeof action.inlineContentBase64 === "string"
+      && action.inlineContentBase64.length > 0;
+  } else if (/^(?:requests|work-queue)\/[A-Za-z0-9._-]+\.md$/.test(target)) {
+    authorized = action.type === "CREATE"
       && !source
       && !action.hashBefore
       && typeof action.inlineContentBase64 === "string"
       && action.inlineContentBase64.length > 0;
-  }
-  if (["AGENTS.md", "agent.md", ".agent.md"].includes(target)) {
+  } else if (["AGENTS.md", "agent.md", ".agent.md"].includes(target)) {
     if (action.type === "CREATE") {
       if (target !== "AGENTS.md") return false;
-      if (/^((starters\/[^/]+)|platforms\/codex)\/AGENTS(?:\.template)?\.md$/.test(source)) return true;
-      if (source || !action.inlineContentBase64) return false;
-      const proposed = Buffer.from(action.inlineContentBase64, "base64").toString("utf8");
-      const legacyEntry = ["agent.md", ".agent.md"]
-        .map((relative) => readProjectRegularFile(plan?.targetRoot, relative))
-        .find(Boolean);
-      if (!legacyEntry) return false;
-      const current = legacyEntry.content.trimEnd();
-      return proposed.startsWith(`${current}\n\n`)
-        && proposed.includes("IntentOS")
-        && proposed.includes("Zero-Experience Solo Developer");
+      authorized = /^((starters\/[^/]+)|platforms\/codex)\/AGENTS(?:\.template)?\.md$/.test(source)
+        || (!source && validExactAgentPrefixPreservation(action, target, { requireTargetPreimage: false }))
+        || isTrustedSelectedAgentCreateAction(action, plan);
+    } else {
+      authorized = ["RECONCILE_PRESERVE", "BACKUP_THEN_RECONCILE"].includes(action.type)
+        && !source
+        && Boolean(action.hashBefore)
+        && validExactAgentPrefixPreservation(action, target, { requireTargetPreimage: true });
     }
-    if (!["RECONCILE_PRESERVE", "BACKUP_THEN_RECONCILE"].includes(action.type)
-      || source
-      || !action.inlineContentBase64
-      || !action.hashBefore) return false;
-    const currentEntry = readProjectRegularFile(plan?.targetRoot, target);
-    if (!currentEntry) return false;
-    const current = currentEntry.content.trimEnd();
-    const proposed = Buffer.from(action.inlineContentBase64, "base64").toString("utf8");
-    return proposed.startsWith(`${current}\n\n`)
-      && proposed.includes("IntentOS")
-      && proposed.includes("Zero-Experience Solo Developer");
   }
-  return false;
+  if (!authorized) return false;
+  if (phase === "PRE_APPLY") return validateRequestBoundActionPreconditions(action, plan);
+  if (phase === "POST_APPLY") return validateRequestBoundActionPostconditions(action, plan);
+  return true;
+}
+
+function requestBoundActionValidationPhase(options = {}) {
+  const explicit = String(options.validationPhase || "").toUpperCase();
+  if (["PRE_APPLY", "POST_APPLY", "RECOVERY_BINDING"].includes(explicit)) return explicit;
+  if (options.postApplyExactGraph === true) return "POST_APPLY";
+  return "PRE_APPLY";
+}
+
+function validateRequestBoundActionPreconditions(action, plan) {
+  if (!action?.preservation) return true;
+  const preservation = action.preservation;
+  const current = readProjectRegularFile(plan?.targetRoot, preservation.sourcePath);
+  return Boolean(current
+    && digestContent(current.content) === preservation.sourceDigest
+    && Buffer.byteLength(current.content) === preservation.sourceBytes);
+}
+
+function validateRequestBoundActionPostconditions(action, plan) {
+  if (action.type === "WRITE_APPLY_RECEIPT" && !action.expectedHashAfter) return true;
+  if (!/^sha256:[a-f0-9]{64}$/.test(String(action.expectedHashAfter || ""))) return false;
+  if (typeof action.inlineContentBase64 === "string") {
+    const proposed = Buffer.from(action.inlineContentBase64, "base64");
+    if (digestBuffer(proposed) !== action.sourceHash || action.sourceHash !== action.expectedHashAfter) return false;
+  } else if (action.sourceHash && action.sourceHash !== action.expectedHashAfter) {
+    return false;
+  }
+  const current = readProjectRegularFile(plan?.targetRoot, action.path);
+  return Boolean(current && digestContent(current.content) === action.expectedHashAfter);
+}
+
+function validExactAgentPrefixPreservation(action, target, options = {}) {
+  const preservation = action?.preservation;
+  if (!preservation
+    || preservation.mode !== "EXACT_PREFIX_APPEND"
+    || !["AGENTS.md", "agent.md", ".agent.md"].includes(normalizePath(preservation.sourcePath))
+    || !/^sha256:[a-f0-9]{64}$/.test(String(preservation.sourceDigest || ""))
+    || !Number.isSafeInteger(preservation.sourceBytes)
+    || preservation.sourceBytes <= 0
+    || !["\n", "\n\n"].includes(preservation.separator)) return false;
+  const sourcePath = normalizePath(preservation.sourcePath);
+  if (options.requireTargetPreimage === true) {
+    if (sourcePath !== target || preservation.sourceDigest !== action.hashBefore) return false;
+  } else if (sourcePath === target || action.hashBefore) {
+    return false;
+  }
+  if (action.source || typeof action.inlineContentBase64 !== "string") return false;
+  const proposed = Buffer.from(action.inlineContentBase64, "base64");
+  if (proposed.length <= preservation.sourceBytes) return false;
+  const prefix = proposed.subarray(0, preservation.sourceBytes);
+  const suffix = proposed.subarray(preservation.sourceBytes).toString("utf8");
+  const content = proposed.toString("utf8");
+  return digestBuffer(prefix) === preservation.sourceDigest
+    && suffix.startsWith(preservation.separator)
+    && content.includes("IntentOS")
+    && content.includes("Zero-Experience Solo Developer");
 }
 
 export function validateRequestBoundLocalActionGraph(plan, options = {}) {
@@ -201,8 +252,9 @@ export function validateRequestBoundLocalActionGraph(plan, options = {}) {
   for (const action of plan?.actions || []) {
     if (!action?.willWrite) continue;
     if (!isRequestBoundLocalActionAllowed(action, plan, options)) {
+      const phase = requestBoundActionValidationPhase(options);
       const ownership = action?.hashBefore
-        && options.skipCurrentOwnershipCheck !== true
+        && phase === "PRE_APPLY"
         && !hasVerifiedPriorOwnership(action, plan)
         ? " (existing target has no verified prior IntentOS ownership digest or explicit preserving reconcile action)"
         : "";
@@ -301,7 +353,8 @@ export function validateRequestBoundApplyAuthority(authority, options = {}) {
     } else if (value !== false) errors.push(`authority boundary expands ${field}`);
   }
   errors.push(...validateRequestBoundLocalActionGraph(plan, {
-    skipCurrentOwnershipCheck: options.postApplyExactGraph === true,
+    validationPhase: options.validationPhase
+      || (options.postApplyExactGraph === true ? "POST_APPLY" : "PRE_APPLY"),
   }));
   const expected = executableActions(plan);
   const observed = Array.isArray(authority?.actions) ? authority.actions : [];
@@ -575,15 +628,8 @@ function isExplicitPreservingReconcile(action, plan) {
   if (!["RECONCILE_PRESERVE", "BACKUP_THEN_RECONCILE"].includes(String(action?.type || ""))) return false;
   const target = normalizePath(action.path);
   if (!["AGENTS.md", "agent.md", ".agent.md"].includes(target)
-    || action.source
-    || !action.inlineContentBase64
-    || !action.hashBefore) return false;
-  const current = readProjectRegularFile(plan?.targetRoot, target);
-  if (!current || digestContent(current.content) !== action.hashBefore) return false;
-  const proposed = Buffer.from(action.inlineContentBase64, "base64").toString("utf8");
-  return proposed.startsWith(`${current.content.trimEnd()}\n\n`)
-    && proposed.includes("IntentOS")
-    && proposed.includes("Zero-Experience Solo Developer");
+    || !validExactAgentPrefixPreservation(action, target, { requireTargetPreimage: true })) return false;
+  return validateRequestBoundActionPreconditions(action, plan);
 }
 
 function normalizePath(value) {
@@ -596,6 +642,10 @@ function normalizeRequest(value) {
 
 function digestContent(value) {
   return `sha256:${createHash("sha256").update(String(value || "")).digest("hex")}`;
+}
+
+function digestBuffer(value) {
+  return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
 
 function readProjectRegularFile(projectRoot, relativePath) {

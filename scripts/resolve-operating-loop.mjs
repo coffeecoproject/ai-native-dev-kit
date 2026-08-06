@@ -25,7 +25,11 @@ import {
   projectIdentitySummaryFor,
 } from "./operating-loop/presentation.mjs";
 import { arrayValue, sha256, unique } from "./operating-loop/shared.mjs";
-import { lifecyclePhaseFor, operatingStateFor } from "./operating-loop/state.mjs";
+import {
+  lifecyclePhaseFor,
+  operatingStateFor,
+  projectSetupActionFor,
+} from "./operating-loop/state.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import {
   requiresOperatingBaselineConsumption,
@@ -57,12 +61,6 @@ const forcedOperation = String(args.operation || "").trim();
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const outputLanguage = /[\u3400-\u9fff]/.test(intent) ? "zh" : "en";
 const { runFinalDecision, runGateSource, runSource } = createSourceExecution(kitRoot);
-const projectSetupActions = new Set([
-  "RUN_PROJECT_ONBOARDING",
-  "RUN_PLATFORM_BASELINE_SETUP",
-  "RUN_INDUSTRIAL_BASELINE_SETUP",
-]);
-
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
   process.exit(1);
@@ -164,11 +162,11 @@ function buildOperatingState() {
   const resumeDecision = taskRouteContext?.resumeDecision || null;
   const currentGit = gitWorktreeState(projectRoot);
   const projectEntryTrust = workflowNext.value?.projectEntryTrust || null;
-  const projectEntryTrustBlocked = Boolean(projectEntryTrust?.blockers?.length)
-    || !entryAllowsOperation(projectEntryTrust, operation);
+  const projectEntryTrustBlocked = projectEntryTrust?.entry_state === "BLOCKED_REPAIR_REQUIRED"
+    || Boolean(projectEntryTrust?.blockers?.length);
+  const projectEntryOperationBlocked = !entryAllowsOperation(projectEntryTrust, operation);
   const sourceFailure = sources.some((item) => ["RESOLVER", "FINAL_DECISION"].includes(item.sourceKind) && item.readStatus === "FAILED")
-    || currentGit.observationStatus === "FAILED"
-    || projectEntryTrustBlocked;
+    || currentGit.observationStatus === "FAILED";
   const gateFailure = sources.some((item) => item.sourceKind === "GATE" && item.readStatus === "FAILED");
   const dirtyWorktree = currentGit.isDirty
     || projectState === "DIRTY_WORKTREE_PROJECT"
@@ -183,15 +181,19 @@ function buildOperatingState() {
   const baselineSetupAction = baselineConsumptionRequired && baselineEnforcement?.readStatus === "FAILED"
     ? baselineEnforcement.remediationAction || "RUN_PLATFORM_BASELINE_SETUP"
     : null;
-  const projectSetupAction = baselineSetupAction || (behavioralAdoptionState !== "VERIFIED_ACTIVE"
-    && projectSetupActions.has(workflowNext.value?.nextAction)
-    ? workflowNext.value.nextAction
-    : null);
+  const projectSetupAction = projectSetupActionFor({
+    operation,
+    baselineSetupAction,
+    workflowNextAction: workflowNext.value?.nextAction,
+    projectEntryOperationBlocked,
+    behavioralAdoptionState,
+  });
   const operatingState = operatingStateFor({
     intent,
     requestedTaskRef,
     operation,
     sourceFailure,
+    projectEntryTrustBlocked,
     gateFailure,
     dirtyWorktree,
     productionSensitive: projectEntry === "PRODUCTION_SENSITIVE_ENTRY",

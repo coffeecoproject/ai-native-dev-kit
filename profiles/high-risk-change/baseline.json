@@ -1,6 +1,7 @@
 {
   "id": "high-risk-change",
   "name": "High-risk Change",
+  "profileRole": "risk-overlay",
   "defaultTaskLevel": "L3",
   "escalationRules": [
     {

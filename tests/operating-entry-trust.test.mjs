@@ -43,10 +43,10 @@ test("compatibility finish entry derives the current task and fails closed witho
   fs.mkdirSync(project);
 
   const result = run(root, ["finish", "./project", "--json"]);
-  assert.equal(result.status, 2, `${result.stdout}\n${result.stderr}`);
+  assert.equal(result.status, 1, `${result.stdout}\n${result.stderr}`);
   const report = JSON.parse(result.stdout);
   assert.equal(report.operatingLoop.operation, "FINISH_TASK");
-  assert.match(report.operatingLoop.state, /NOT_DONE|BLOCKED_BY_SOURCE_FAILURE/);
+  assert.match(report.operatingLoop.state, /NOT_DONE|BLOCKED_BY_SOURCE_FAILURE|NEEDS_PROJECT_SETUP/);
   assert.notEqual(report.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
   assert.equal(report.operatingDecision.materialActionAuthorized, "No");
 });
@@ -58,7 +58,7 @@ test("human public output leads with the user goal and result rather than intern
   const goal = "检查当前任务做到哪里了";
 
   const result = run(root, ["work", "./project", goal]);
-  assert.ok([0, 2].includes(result.status), `${result.stdout}\n${result.stderr}`);
+  assert.equal(result.status, 1, `${result.stdout}\n${result.stderr}`);
   const goalIndex = result.stdout.indexOf(`我理解的是: ${goal}`);
   const resultIndex = result.stdout.indexOf("结论:");
   const nextIndex = result.stdout.indexOf("下一步:");

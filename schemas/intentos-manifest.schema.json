@@ -10,6 +10,7 @@
     "mode",
     "compatibilityPolicy",
     "groups",
+    "adoptionPolicies",
     "copyRules"
   ],
   "properties": {
@@ -120,6 +121,54 @@
         },
         "workflowVersionAssets": {
           "$ref": "#/$defs/pathList"
+        }
+      }
+    },
+    "adoptionPolicies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selectedAssets"
+      ],
+      "properties": {
+        "selectedAssets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "targetGroup",
+            "includeGroups",
+            "runtimeEntrypoints",
+            "requiredTargets",
+            "capabilities"
+          ],
+          "properties": {
+            "targetGroup": {
+              "type": "string",
+              "minLength": 1
+            },
+            "includeGroups": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "runtimeEntrypoints": {
+              "$ref": "#/$defs/pathList"
+            },
+            "requiredTargets": {
+              "$ref": "#/$defs/pathList"
+            },
+            "capabilities": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              }
+            }
+          }
         }
       }
     },

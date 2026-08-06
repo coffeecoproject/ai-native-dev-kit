@@ -1,6 +1,7 @@
 {
   "id": "backend-api",
   "name": "Backend API",
+  "profileRole": "capability",
   "defaultTaskLevel": "L1",
   "escalationRules": [
     {

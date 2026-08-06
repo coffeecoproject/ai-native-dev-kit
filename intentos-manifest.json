@@ -2188,6 +2188,8 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
+      "scripts/lib/native-adoption-overlay.mjs",
+      "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
       "scripts/lib/project-fact-projection.mjs",
@@ -3913,6 +3915,8 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
+      "scripts/lib/native-adoption-overlay.mjs",
+      "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
       "scripts/lib/project-fact-projection.mjs",
@@ -4792,6 +4796,8 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
+      "scripts/lib/native-adoption-overlay.mjs",
+      "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
       "scripts/lib/project-fact-projection.mjs",
@@ -5677,6 +5683,8 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
+      "scripts/lib/native-adoption-overlay.mjs",
+      "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
       "scripts/lib/project-fact-projection.mjs",
@@ -7283,6 +7291,8 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
+      "scripts/lib/native-adoption-overlay.mjs",
+      "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
       "scripts/lib/project-fact-projection.mjs",
@@ -7989,6 +7999,8 @@
       "scripts/lib/controlled-apply-transaction.mjs",
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/planning-closure.mjs",
+      "scripts/lib/native-adoption-overlay.mjs",
+      "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
       "scripts/lib/project-fact-projection.mjs",
@@ -8084,6 +8096,37 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards"
     ]
+  },
+  "adoptionPolicies": {
+    "selectedAssets": {
+      "targetGroup": "targetFull",
+      "includeGroups": [
+        "intentOSCore"
+      ],
+      "runtimeEntrypoints": [
+        "scripts/check-baseline-installation.mjs",
+        "scripts/check-environment-baseline.mjs",
+        "scripts/check-industrial-baseline.mjs",
+        "scripts/resolve-closure-decision.mjs",
+        "scripts/resolve-planning-closure.mjs",
+        "scripts/resolve-review-surface.mjs",
+        "scripts/resolve-task-governance.mjs",
+        "scripts/resolve-verification-plan.mjs",
+        "scripts/resolve-work-queue.mjs",
+        "scripts/workflow-next.mjs"
+      ],
+      "requiredTargets": [
+        ".intentos/intentos-manifest.json",
+        ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
+        ".intentos/schemas/artifacts/approval-record.schema.json",
+        ".intentos/schemas/artifacts/controlled-apply-readiness.schema.json",
+        ".intentos/schemas/artifacts/request-bound-apply-authority.schema.json",
+        ".intentos/schemas/artifacts/unified-apply-plan.schema.json"
+      ],
+      "capabilities": {
+        "intentOSCore": "GOVERNANCE_CORE"
+      }
+    }
   },
   "copyRules": {
     "directories": [
@@ -9176,6 +9219,14 @@
       {
         "source": "scripts/lib/planning-closure.mjs",
         "target": "scripts/lib/planning-closure.mjs"
+      },
+      {
+        "source": "scripts/lib/native-adoption-overlay.mjs",
+        "target": "scripts/lib/native-adoption-overlay.mjs"
+      },
+      {
+        "source": "scripts/lib/structured-child-process.mjs",
+        "target": "scripts/lib/structured-child-process.mjs"
       },
       {
         "source": "scripts/lib/report-authority.mjs",

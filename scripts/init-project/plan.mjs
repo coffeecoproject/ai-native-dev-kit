@@ -59,6 +59,12 @@ import { resolveProjectEntryTrust, requireTrustedProjectEntry } from "../lib/pro
 import { projectGoalProjection } from "../lib/project-fact-projection.mjs";
 import { inspectTargetTopology } from "../lib/target-topology.mjs";
 import {
+  nativeAdoptionActionCapability,
+  normalizeNativeAdoptionMigrationDepth,
+  selectedNativeOverlayAssets,
+} from "../lib/native-adoption-overlay.mjs";
+import { runStructuredJsonChildSync } from "../lib/structured-child-process.mjs";
+import {
   normalizeBaselineLevel,
   parseSelectionIds,
   renderBaselineEvidence,
@@ -78,6 +84,7 @@ import {
 
 import {
   agentGovernanceAppendix,
+  selectedAgentGovernanceAppendix,
   agentsGovernanceMigrationReportPath,
   assertExistingTargetRootIsSafe,
   baselineConfigurationForPlan,
@@ -152,6 +159,8 @@ function enrichExecutionActions(actions, targetPath, options, createdAt, receipt
         update: options.update,
         baselineConfig: options.baselineConfig,
         projectEntryOrigin: options.projectEntryOrigin,
+        assetMigrationDepth: options.assetMigrationDepth,
+        workflowAssetsOverride: options.workflowAssetsOverride,
         actions,
       }, createdAt);
       const content = `${JSON.stringify(record, null, 2)}\n`;
@@ -429,6 +438,51 @@ function addBaselineConfigurationPlanActions(actions, targetPath, config, option
   }
 }
 
+function addSelectedBaselineAssetPlanActions(actions, targetPath, config, options = {}) {
+  for (const profileId of config.profiles || []) {
+    addDirectoryPlanActions(
+      actions,
+      targetPath,
+      path.join(kitRoot, "profiles", profileId),
+      `.intentos/profiles/${profileId}`,
+      { overwrite: false, backupDir: options.backupDir, reason: `selected profile baseline: ${profileId}` },
+    );
+  }
+
+  const standardIndex = readJsonIfExists(path.join(kitRoot, "standard-baseline-packs", "index.json"));
+  const standardById = new Map((standardIndex?.packs || []).map((entry) => [entry.id, entry]));
+  for (const packId of config.standardPacks || []) {
+    const entry = standardById.get(packId);
+    if (!entry?.path) throw new Error(`Selected standard pack has no distributable path: ${packId}`);
+    addDirectoryPlanActions(
+      actions,
+      targetPath,
+      path.join(kitRoot, "standard-baseline-packs", entry.path),
+      `.intentos/standard-baseline-packs/${entry.path}`,
+      { overwrite: false, backupDir: options.backupDir, reason: `selected standard baseline pack: ${packId}` },
+    );
+  }
+
+  if ((config.standardPacks || []).length > 0) {
+    for (const relative of ["README.md", "selection-guide.md", "index.json"]) {
+      addFilePlanAction(
+        actions,
+        targetPath,
+        path.join(kitRoot, "standard-baseline-packs", relative),
+        `.intentos/standard-baseline-packs/${relative}`,
+        { overwrite: false, backupDir: options.backupDir, reason: "selected standard baseline registry" },
+      );
+    }
+    addDirectoryPlanActions(
+      actions,
+      targetPath,
+      path.join(kitRoot, "standard-baseline-packs", "schema"),
+      ".intentos/standard-baseline-packs/schema",
+      { overwrite: false, backupDir: options.backupDir, reason: "selected standard baseline schema" },
+    );
+  }
+}
+
 function renderBaselineReconciliation(config) {
   const reconciliation = config.reconciliation;
   return [
@@ -524,25 +578,43 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
   }
   const agentsPath = path.join(targetPath, agentEntry);
   if (!fs.existsSync(agentsPath)) {
-    const starterAgent = path.join(kitRoot, "starters", starter, "AGENTS.md");
-    const agentSource = !options.update && fs.existsSync(starterAgent)
-      ? starterAgent
-      : path.join(kitRoot, "platforms", "codex", "AGENTS.template.md");
-    addFilePlanAction(actions, targetPath, agentSource, "AGENTS.md", {
-      overwrite: false,
-      reason: !options.update && agentSource === starterAgent
-        ? "starter-owned AGENTS.md governance entry"
-        : "missing AGENTS.md governance file",
-    });
+    if (options.selectedNativeOverlay) {
+      const content = `${selectedAgentGovernanceAppendix().trim()}\n`;
+      actions.push({
+        type: "CREATE",
+        path: "AGENTS.md",
+        source: null,
+        inlineContentBase64: Buffer.from(content).toString("base64"),
+        reason: "selected native overlay AGENTS.md governance entry",
+        willWrite: true,
+        hashBefore: null,
+      });
+    } else {
+      const starterAgent = path.join(kitRoot, "starters", starter, "AGENTS.md");
+      const agentSource = !options.update && fs.existsSync(starterAgent)
+        ? starterAgent
+        : path.join(kitRoot, "platforms", "codex", "AGENTS.template.md");
+      addFilePlanAction(actions, targetPath, agentSource, "AGENTS.md", {
+        overwrite: false,
+        reason: !options.update && agentSource === starterAgent
+          ? "starter-owned AGENTS.md governance entry"
+          : "missing AGENTS.md governance file",
+      });
+    }
   } else {
     const content = fs.readFileSync(agentsPath, "utf8");
     const missingMarkers = requiredAgentGovernanceMarkers.filter((marker) => !content.includes(marker));
     if (missingMarkers.length === 0) {
       actions.push({ type: "SKIP_EXISTING", path: agentEntry, source: null, reason: `${agentEntry} already has required governance markers`, willWrite: false, hashBefore: sha256File(agentsPath) });
     } else if (options.applyAgentGovernance) {
-      const merged = `${content.trimEnd()}\n\n${agentGovernanceAppendix(missingMarkers).trim()}\n`;
+      const appendix = options.selectedNativeOverlay
+        ? selectedAgentGovernanceAppendix(missingMarkers)
+        : agentGovernanceAppendix(missingMarkers);
+      const separator = content.endsWith("\n") ? "\n" : "\n\n";
+      const merged = `${content}${separator}${appendix.trim()}\n`;
       const targetEntry = agentEntry === "AGENTS.md" ? agentEntry : "AGENTS.md";
       const agentTargetPath = path.join(targetPath, targetEntry);
+      const sourceDigest = sha256Content(Buffer.from(content));
       actions.push({
         type: fs.existsSync(agentTargetPath)
           ? (options.backupDir ? "BACKUP_THEN_RECONCILE" : "RECONCILE_PRESERVE")
@@ -550,6 +622,13 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
         path: targetEntry,
         source: null,
         inlineContentBase64: Buffer.from(merged).toString("base64"),
+        preservation: {
+          mode: "EXACT_PREFIX_APPEND",
+          sourcePath: agentEntry,
+          sourceDigest,
+          sourceBytes: Buffer.byteLength(content),
+          separator,
+        },
         reason: agentEntry === "AGENTS.md"
           ? "request-bound AGENTS.md governance convergence"
           : `request-bound AGENTS.md bridge preserving ${agentEntry}`,
@@ -561,6 +640,8 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
       actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".intentos/migration-reports/agents-governance.md", source: null, reason: `${agentEntry} governance migration report`, willWrite: true, hashBefore: sha256File(agentsGovernanceMigrationReportPath(targetPath)) });
     }
   }
+
+  if (options.includePullRequestGovernance === false) return;
 
   const prPath = path.join(targetPath, ".github", "pull_request_template.md");
   if (!fs.existsSync(prPath)) {
@@ -583,61 +664,41 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
 }
 
 
-function buildPlan(targetPath, options = {}) {
-  if (options.backupDir) resolveBackupRoot(targetPath, controlledBackupRunRoot(options.backupDir));
-  const operation = options.update ? "UPDATE_WORKFLOW_ASSETS" : "INIT_PROJECT";
-  const actions = [];
-  const baselineConfig = baselineConfigurationForPlan(targetPath, options);
-  const detectedProjectEntryOrigin = fs.existsSync(targetPath)
-    && fs.statSync(targetPath).isDirectory()
-    && fs.readdirSync(targetPath).some((entry) => !isIgnorableNewProjectEntry(entry))
-    ? "EXISTING_PROJECT"
-    : "NEW_PROJECT";
-  const projectEntryOrigin = options.projectEntryOrigin || detectedProjectEntryOrigin;
-  const operationKind = projectEntryOrigin === "NEW_PROJECT"
-    ? "NEW_BOOTSTRAP"
-    : fs.existsSync(path.join(targetPath, ".intentos", "version.json"))
-      ? "CONTROLLED_UPDATE"
-      : "NATIVE_ADOPTION";
-  options = {
-    ...options,
-    baselineConfig,
-    projectEntryOrigin,
-    applyAgentGovernance: Boolean(
-      options.applyAgentGovernance
-      || operationKind === "NATIVE_ADOPTION"
-      || operationKind === "CONTROLLED_UPDATE"
-    ),
-  };
-  addOnboardingDocPlanActions(actions, targetPath);
-  if (!options.update) {
-    addDirectoryPlanActions(actions, targetPath, path.join(kitRoot, "starters", options.starter), ".", {
-      overwrite: false,
-      reason: "starter asset",
-    });
-  }
+function addFullDistributionPlanActions(actions, targetPath, options) {
   const copyRules = manifestCopyRules(kitRoot, { fallback: fallbackCopyRules() });
   for (const rule of copyRules.directories || []) {
     addDirectoryPlanActions(actions, targetPath, path.join(kitRoot, rule.source), rule.target, {
       overwrite: options.update,
       backupDir: options.backupDir,
-      reason: "manifest directory copy rule",
+      reason: "manifest full-distribution directory rule",
     });
   }
   for (const rule of copyRules.files || []) {
     addFilePlanAction(actions, targetPath, path.join(kitRoot, rule.source), rule.target, {
       overwrite: options.update,
       backupDir: options.backupDir,
-      reason: "manifest file copy rule",
+      reason: "manifest full-distribution file rule",
     });
   }
-  addIndustrialPlanActions(actions, targetPath, {
-    ...options,
-    industrialPacks: baselineConfig.industrialPacks.join(","),
-  });
-  addBaselineConfigurationPlanActions(actions, targetPath, baselineConfig, options);
-  addGovernancePlanActions(actions, targetPath, options.starter, options);
-  addWorkflowDirPlanActions(actions, targetPath);
+}
+
+function addSelectedDistributionPlanActions(actions, targetPath, options) {
+  for (const asset of selectedNativeOverlayAssets()) {
+    addFilePlanAction(actions, targetPath, path.join(kitRoot, asset.source), asset.target, {
+      overwrite: false,
+      backupDir: options.backupDir,
+      reason: `selected native overlay: ${asset.capabilities.join("+")}`,
+    });
+    const action = actions.at(-1);
+    action.capability = asset.capabilities[0];
+    action.selectedBy = {
+      policy: "adoptionPolicies.selectedAssets",
+      source_groups: asset.sourceGroups,
+    };
+  }
+}
+
+function addVersionPlanAction(actions, targetPath, options = {}) {
   const versionTarget = path.join(targetPath, ".intentos", "version.json");
   const versionHash = sha256File(versionTarget);
   const versionOwnership = versionHash
@@ -657,18 +718,122 @@ function buildPlan(targetPath, options = {}) {
     hashBefore: versionHash,
     ownership: versionOwnership,
   });
+}
+
+function decorateNativeAdoptionActions(actions, assessment) {
+  for (const action of actions) {
+    action.capability ||= nativeAdoptionActionCapability(action.path);
+    action.selectionEvidence = assessment?.assessment_digest || "N/A";
+    if (action.willWrite && action.capability === "UNCLASSIFIED") {
+      throw new Error(`Native adoption write has no selected capability: ${action.path || action.type}`);
+    }
+  }
+}
+
+function blockedNativeAdoptionActions(assessment, migrationDepth) {
+  return [{
+    type: "BLOCKED_ADOPTION_DIAGNOSTIC",
+    path: null,
+    source: null,
+    reason: migrationDepth === "ADAPTER_ONLY"
+      ? "adapter-only diagnosis requested; no target write graph was generated"
+      : `native adoption assessment blocked: ${(assessment?.blockers || []).join("; ")}`,
+    willWrite: false,
+    hashBefore: null,
+    sourceHash: null,
+    expectedHashAfter: null,
+    executionSupported: false,
+    capability: "DIAGNOSTIC_ONLY",
+  }];
+}
+
+function buildPlan(targetPath, options = {}) {
+  if (options.backupDir) resolveBackupRoot(targetPath, controlledBackupRunRoot(options.backupDir));
+  const operation = options.update ? "UPDATE_WORKFLOW_ASSETS" : "INIT_PROJECT";
+  const baselineConfig = baselineConfigurationForPlan(targetPath, options);
+  const detectedProjectEntryOrigin = fs.existsSync(targetPath)
+    && fs.statSync(targetPath).isDirectory()
+    && fs.readdirSync(targetPath).some((entry) => !isIgnorableNewProjectEntry(entry))
+    ? "EXISTING_PROJECT"
+    : "NEW_PROJECT";
+  const projectEntryOrigin = options.projectEntryOrigin || detectedProjectEntryOrigin;
+  const operationKind = projectEntryOrigin === "NEW_PROJECT"
+    ? "NEW_BOOTSTRAP"
+    : fs.existsSync(path.join(targetPath, ".intentos", "version.json"))
+      ? "CONTROLLED_UPDATE"
+      : "NATIVE_ADOPTION";
+  const migrationDepth = operationKind === "NATIVE_ADOPTION"
+    ? normalizeNativeAdoptionMigrationDepth(options.migrationDepth)
+    : "FULL_NATIVE";
+  const goal = String(options.goal || "").trim();
+  const adoptionAssessment = operationKind === "NATIVE_ADOPTION"
+    ? buildNativeAdoptionAssessment(targetPath, goal, { migrationDepth })
+    : null;
+  const executableNativeAdoption = operationKind !== "NATIVE_ADOPTION"
+    || (migrationDepth !== "ADAPTER_ONLY"
+      && adoptionAssessment?.assessment_state === "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION");
+  options = {
+    ...options,
+    baselineConfig,
+    projectEntryOrigin,
+    migrationDepth,
+    applyAgentGovernance: Boolean(
+      options.applyAgentGovernance
+      || operationKind === "NATIVE_ADOPTION"
+      || operationKind === "CONTROLLED_UPDATE"
+    ),
+  };
+
+  const actions = executableNativeAdoption ? [] : blockedNativeAdoptionActions(adoptionAssessment, migrationDepth);
+  if (executableNativeAdoption) {
+    const selectedNativeAdoption = operationKind === "NATIVE_ADOPTION"
+      && migrationDepth === "SELECTED_ASSETS";
+    if (!selectedNativeAdoption) addOnboardingDocPlanActions(actions, targetPath);
+    if (operationKind === "NEW_BOOTSTRAP") {
+      addDirectoryPlanActions(actions, targetPath, path.join(kitRoot, "starters", options.starter), ".", {
+        overwrite: false,
+        reason: "starter asset",
+      });
+    }
+    if (selectedNativeAdoption) {
+      addSelectedDistributionPlanActions(actions, targetPath, options);
+      addSelectedBaselineAssetPlanActions(actions, targetPath, baselineConfig, options);
+    } else {
+      addFullDistributionPlanActions(actions, targetPath, options);
+    }
+    addIndustrialPlanActions(actions, targetPath, {
+      ...options,
+      industrialPacks: baselineConfig.industrialPacks.join(","),
+    });
+    addBaselineConfigurationPlanActions(actions, targetPath, baselineConfig, options);
+    addGovernancePlanActions(actions, targetPath, options.starter, {
+      ...options,
+      includePullRequestGovernance: operationKind !== "NATIVE_ADOPTION",
+      selectedNativeOverlay: selectedNativeAdoption,
+    });
+    if (!selectedNativeAdoption) {
+      addWorkflowDirPlanActions(actions, targetPath);
+    }
+    addVersionPlanAction(actions, targetPath, options);
+  }
   collapseDuplicateTargetActions(actions);
   const createdAt = options.createdAt || new Date().toISOString();
   const receiptPath = operation === "INIT_PROJECT" && projectEntryOrigin === "NEW_PROJECT"
     ? ".intentos/bootstrap-receipt.json"
     : `apply-receipts/${planRunId(createdAt)}.md`;
-  enrichExecutionActions(actions, targetPath, options, createdAt, receiptPath);
-  boundControlledAdoptionActions(actions, operation);
+  if (executableNativeAdoption) {
+    const workflowAssetsOverride = operationKind === "NATIVE_ADOPTION" && migrationDepth === "SELECTED_ASSETS"
+      ? actions.map((action) => action.path).filter(Boolean)
+      : null;
+    enrichExecutionActions(actions, targetPath, {
+      ...options,
+      workflowAssetsOverride,
+      assetMigrationDepth: migrationDepth,
+    }, createdAt, receiptPath);
+    boundControlledAdoptionActions(actions, operation);
+  }
+  if (operationKind === "NATIVE_ADOPTION") decorateNativeAdoptionActions(actions, adoptionAssessment);
   assignPlanActionIds(actions);
-
-  const adoptionAssessment = operationKind === "NATIVE_ADOPTION"
-    ? buildNativeAdoptionAssessment(targetPath, String(options.goal || "").trim())
-    : null;
   const targetFingerprint = createTargetFingerprint(targetPath, actions);
   const plan = {
     planVersion: "1.1",
@@ -695,8 +860,10 @@ function buildPlan(targetPath, options = {}) {
       backupDir: options.backupDir || null,
       controlledAdoption: true,
       projectEntryOrigin,
-      goal: String(options.goal || "").trim(),
-      goalDigest: String(options.goal || "").trim()
+      migrationDepth,
+      historicalTaskMigration: operationKind === "NATIVE_ADOPTION" ? "NOT_REQUESTED" : "NOT_APPLICABLE",
+      goal,
+      goalDigest: goal
         ? projectGoalProjection(options.goal).goal_digest
         : "N/A",
     },
@@ -710,51 +877,55 @@ function buildPlan(targetPath, options = {}) {
       .filter((action) => action.type === "PRESERVE_UNMANAGED")
       .map((action) => ({ path: action.path, hash: action.hashBefore, disposition: "PRESERVE_AND_BLOCK" })),
     adoptionAssessment,
+    adoptionSelection: operationKind === "NATIVE_ADOPTION" ? {
+      migration_depth: migrationDepth,
+      reconciliation_assessment_digest: adoptionAssessment?.assessment_digest || "N/A",
+      selected_capabilities: [...new Set(actions
+        .filter((action) => action.willWrite)
+        .map((action) => action.capability))].sort(),
+      historical_task_migration: "NOT_REQUESTED",
+    } : null,
+    executionState: executableNativeAdoption ? "EXECUTABLE" : "DIAGNOSTIC_ONLY",
   };
   plan.receiptActionId = actions.find((action) => action.type === "WRITE_APPLY_RECEIPT")?.id || null;
   plan.planDigest = planDigest(plan);
-  if (operationKind === "NATIVE_ADOPTION"
-    && adoptionAssessment?.work_queue_takeover?.recommended_action === "ESTABLISH_INTENTOS_WORK_QUEUE") {
+  if (operationKind === "NATIVE_ADOPTION" && executableNativeAdoption) {
     attachInitialGoalToPlan(plan, projectGoalProjection(options.goal), { existingAdoption: true });
+    decorateNativeAdoptionActions(plan.actions, adoptionAssessment);
+    plan.planDigest = planDigest(plan);
+    assertRequestBoundNativeAdoptionActions(plan);
   }
-  if (operationKind === "NATIVE_ADOPTION") boundRequestNativeAdoptionActions(plan);
   return plan;
 }
 
-function boundRequestNativeAdoptionActions(plan) {
-  for (const action of plan.actions || []) {
-    if (!action.willWrite || isRequestBoundLocalActionAllowed(action, plan)) continue;
-    action.originalType = action.type;
-    action.type = "HUMAN_ONLY";
-    action.willWrite = false;
-    action.executionSupported = false;
-    action.reason = `${action.reason}; excluded from request-bound local adoption authority`;
-    action.backupPath = null;
-    action.expectedHashAfter = action.hashBefore;
+function assertRequestBoundNativeAdoptionActions(plan) {
+  const errors = validateRequestBoundLocalActionGraph(plan);
+  if (errors.length > 0) {
+    throw new Error(`Selected native adoption produced an unauthorized action graph: ${errors.join("; ")}`);
   }
-  for (const action of plan.actions || []) delete action.id;
-  assignPlanActionIds(plan.actions);
-  plan.receiptActionId = plan.actions.find((action) => action.dynamicReceipt)?.id || null;
-  plan.targetFingerprint = createTargetFingerprint(plan.targetRoot, plan.actions);
-  plan.expectedPreconditions = {
-    targetExists: fs.existsSync(plan.targetRoot),
-    fileHashes: plan.targetFingerprint.fileHashes,
-  };
-  plan.planDigest = planDigest(plan);
 }
 
-function buildNativeAdoptionAssessment(targetPath, goal) {
+function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
+  const migrationDepth = normalizeNativeAdoptionMigrationDepth(options.migrationDepth);
   if (!goal) {
-    return {
+    const base = {
+      schema_version: "1.113.0",
       assessment_state: "BLOCKED_MISSING_REQUEST",
+      migration_depth: migrationDepth,
+      historical_task_migration: {
+        state: "NOT_REQUESTED",
+        reason: "Historical task migration is a separate explicit plan and is not part of native adoption.",
+      },
       blockers: ["The original natural-language adoption request is required."],
-      assessment_digest: evidenceDigest("BLOCKED_MISSING_REQUEST", []),
+    };
+    return {
+      ...base,
+      assessment_digest: evidenceDigest(base, []),
     };
   }
   const sourceBefore = targetSourceStateDigest(targetPath);
   const native = runReadOnlyAdoptionResolver("resolve-native-migration.mjs", [targetPath, "--json", "--intent", goal]);
   const reconciliation = runReadOnlyAdoptionResolver("resolve-existing-rule-reconciliation.mjs", [targetPath, "--json", "--auto-native", "--intent", goal]);
-  const queue = runReadOnlyAdoptionResolver("resolve-work-queue-takeover.mjs", [targetPath, "--json", "--intent", goal]);
   const sourceAfter = targetSourceStateDigest(targetPath);
   const nativeDecisions = Array.isArray(native.humanDecisionsNeeded) ? native.humanDecisionsNeeded : [];
   const userTechnicalDecisionRequired = nativeDecisions.some((item) => {
@@ -771,17 +942,17 @@ function buildNativeAdoptionAssessment(targetPath, goal) {
   if (Number(coverage.omittedRules || 0) !== 0 || coverage.blocksSelectedNativeAdoption !== "No") blockers.push("Existing-rule reconciliation is incomplete.");
   if (decision.recommendation !== "SELECTED_NATIVE_ADOPTION" || reconciliation.canRecommendApplyPlanNow !== "Yes") blockers.push("Selected native adoption is not technically ready.");
   if ((reconciliation.conflicts || []).length > 0) blockers.push("Rule reconciliation retains unresolved conflicts.");
-  const queueCanBeEstablishedByThisPlan = queue.recommended_action === "ESTABLISH_INTENTOS_WORK_QUEUE"
-    && queue.readiness?.takeover_review_ready === "Yes";
-  const existingQueueIsAlreadyBound = queue.recommended_action === "MAP_EXISTING_TASK_SYSTEM"
-    && queue.readiness?.takeover_ready === "Yes";
-  if (!queueCanBeEstablishedByThisPlan && !existingQueueIsAlreadyBound) {
-    blockers.push("Work Queue takeover is not ready for an executable adoption plan.");
-  }
   if (userTechnicalDecisionRequired) blockers.push("Native Migration still asks the user for a technical decision.");
+  const goalPaths = initialGoalPaths(projectGoalProjection(goal), { existingAdoption: true });
+  const pathCollisions = [goalPaths.requestPath, goalPaths.queuePath]
+    .filter((relative) => fs.existsSync(path.join(targetPath, relative)));
+  if (pathCollisions.length > 0) {
+    blockers.push(`Current request bridge paths already exist: ${pathCollisions.join(", ")}.`);
+  }
   const base = {
     schema_version: "1.113.0",
     assessment_state: blockers.length === 0 ? "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION" : "BLOCKED",
+    migration_depth: migrationDepth,
     project_state: native.projectState?.state || "UNKNOWN",
     native_migration: {
       posture: native.posture || "UNKNOWN",
@@ -799,15 +970,19 @@ function buildNativeAdoptionAssessment(targetPath, goal) {
       conflicts: reconciliation.conflicts || [],
       protected_constraints: reconciliation.protectedConstraints || [],
     },
-    work_queue_takeover: {
-      outcome: queue.outcome || "UNKNOWN",
-      project_task_system_class: queue.project_task_system_class || "UNKNOWN",
-      recommended_action: queue.recommended_action || "UNKNOWN",
-      future_task_authority: queue.future_task_authority || "UNKNOWN",
-      source_inventory: queue.source_inventory || [],
-      migration_dispositions: queue.migration_dispositions || [],
-      queue_items: queue.queue_items || [],
-      readiness: queue.readiness || {},
+    current_task_bridge: {
+      state: pathCollisions.length === 0 ? "READY" : "BLOCKED",
+      request_path: goalPaths.requestPath,
+      queue_path: goalPaths.queuePath,
+      intent_digest: projectGoalProjection(goal).goal_digest,
+      scope: "CURRENT_NATURAL_LANGUAGE_REQUEST_ONLY",
+    },
+    historical_task_migration: {
+      state: "NOT_REQUESTED",
+      scans_existing_task_history: "No",
+      archives_existing_task_history: "No",
+      changes_existing_task_authority: "No",
+      reason: "Historical task migration requires a separate explicit plan and evidence chain.",
     },
     source_state_unchanged: sourceBefore === sourceAfter,
     source_state_digest: sourceAfter,
@@ -817,20 +992,16 @@ function buildNativeAdoptionAssessment(targetPath, goal) {
 }
 
 function runReadOnlyAdoptionResolver(scriptName, resolverArgs) {
-  const result = spawnSync(process.execPath, [path.join(kitRoot, "scripts", scriptName), ...resolverArgs], {
+  const result = runStructuredJsonChildSync({
+    command: process.execPath,
+    args: [path.join(kitRoot, "scripts", scriptName), ...resolverArgs],
     cwd: targetPathForResolver(resolverArgs[0]),
-    encoding: "utf8",
-    maxBuffer: 1024 * 1024 * 40,
     timeout: 120000,
   });
-  if (result.status !== 0) {
-    throw new Error(`${scriptName} failed during native-adoption assessment: ${normalizeOutput(result.stderr || result.stdout)}`);
+  if (result.state !== "CURRENT_RUN" || result.exitStatus !== 0 || !result.value) {
+    throw new Error(`${scriptName} failed during native-adoption assessment: ${result.state}: ${normalizeOutput(result.error || result.stderrPreview)}`);
   }
-  try {
-    return JSON.parse(result.stdout);
-  } catch (error) {
-    throw new Error(`${scriptName} returned invalid JSON during native-adoption assessment: ${error.message}`);
-  }
+  return result.value;
 }
 
 function targetPathForResolver(value) {
@@ -1004,12 +1175,23 @@ function isForbiddenControlledApplyAction(action, operation = "UPDATE_WORKFLOW_A
 }
 
 
+function initialGoalPaths(goalProjection, options = {}) {
+  const existingAdoption = options.existingAdoption === true;
+  const digestSuffix = String(goalProjection?.goal_digest || "")
+    .replace(/^sha256:/, "")
+    .slice(0, 12);
+  const slug = existingAdoption ? `intentos-current-${digestSuffix}` : "initial-goal";
+  return {
+    slug,
+    requestPath: `requests/001-${slug}.md`,
+    queuePath: `work-queue/001-${slug}.md`,
+  };
+}
+
 function attachInitialGoalToPlan(plan, goalProjection, options = {}) {
   const existingAdoption = options.existingAdoption === true;
-  const slug = existingAdoption ? "intentos-adoption-goal" : "initial-goal";
+  const { slug, requestPath, queuePath } = initialGoalPaths(goalProjection, options);
   const requestTitle = existingAdoption ? "IntentOS Adoption Goal" : "Initial Product Goal";
-  const requestPath = `requests/001-${slug}.md`;
-  const queuePath = `work-queue/001-${slug}.md`;
   const title = markdownCell(goalProjection.original_goal);
   const requestContent = [
     "---",

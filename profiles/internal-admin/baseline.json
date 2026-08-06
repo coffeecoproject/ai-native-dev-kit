@@ -1,6 +1,7 @@
 {
   "id": "internal-admin",
   "name": "Internal Admin",
+  "profileRole": "capability",
   "defaultTaskLevel": "L2",
   "escalationRules": [
     {

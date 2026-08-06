@@ -176,7 +176,12 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     if (!goal || projectGoalProjection(goal).goal_digest !== plan.arguments.goalDigest) {
       throw new Error("Native-adoption apply requires the original natural-language request and its exact digest");
     }
-    const currentAssessment = buildNativeAdoptionAssessment(plan.targetRoot, goal);
+    if (plan.executionState !== "EXECUTABLE" || plan.arguments?.migrationDepth === "ADAPTER_ONLY") {
+      throw new Error("Native-adoption diagnostic plan cannot be applied");
+    }
+    const currentAssessment = buildNativeAdoptionAssessment(plan.targetRoot, goal, {
+      migrationDepth: plan.arguments?.migrationDepth,
+    });
     if (currentAssessment.assessment_state !== "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION") {
       throw new Error(`Native-adoption assessment is blocked: ${(currentAssessment.blockers || []).join("; ")}`);
     }
@@ -503,7 +508,7 @@ function deriveControlledApplyRecoveryBinding(plan, applyPlanFullPath, options =
     activeRequest: options.activeRequest,
     activeRequestDigest: options.activeRequestDigest,
     now: options.now,
-    postApplyExactGraph: true,
+    validationPhase: "RECOVERY_BINDING",
   });
   if (!validation.ok) {
     throw new Error(`Recovery refused: current request-bound apply authority is invalid: ${validation.errors.join("; ")}`);
@@ -665,7 +670,7 @@ function replayApprovedPlan(plan, context) {
     }
 
     markControlledApplyMutationComplete(transaction);
-    const pendingActivation = writePendingControlledUpdateActivation(plan, context, results, transaction);
+    const pendingActivation = writePendingControlledApplyActivation(plan, context, results, transaction);
     activation = verifyControlledAdoptionActivation(plan.targetRoot, plan, pendingActivation.environment);
     if (activation.status !== "VERIFIED") {
       throw new Error(`Installed workflow activation failed: ${activation.reason || "unknown error"}`);
@@ -776,7 +781,7 @@ function requestBoundInitialQueueFromPlan(plan) {
   };
 }
 
-function writePendingControlledUpdateActivation(plan, context, results, transaction = null) {
+function writePendingControlledApplyActivation(plan, context, results, transaction = null) {
   const capability = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
   const appliedActions = plan.actions
@@ -788,8 +793,10 @@ function writePendingControlledUpdateActivation(plan, context, results, transact
       expected_hash_after: action.expectedHashAfter || "N/A",
     }));
   const base = {
-    schema_version: "1.109.0",
-    artifact_type: "pending_controlled_update_activation",
+    schema_version: "1.113.0",
+    artifact_type: "pending_controlled_apply_activation",
+    operation: plan.operation,
+    operation_kind: plan.operationKind,
     canonical_root: fs.realpathSync(plan.targetRoot),
     owner_pid: process.pid,
     created_at: new Date().toISOString(),
@@ -824,9 +831,9 @@ function writePendingControlledUpdateActivation(plan, context, results, transact
   }
   return {
     environment: {
-      INTENTOS_CONTROLLED_UPDATE_ACTIVATION_RECEIPT: plan.receiptPath,
-      INTENTOS_CONTROLLED_UPDATE_ACTIVATION_CAPABILITY: capability,
-      INTENTOS_CONTROLLED_UPDATE_ACTIVATION_RECORD_DIGEST: record.record_digest,
+      INTENTOS_CONTROLLED_APPLY_ACTIVATION_RECEIPT: plan.receiptPath,
+      INTENTOS_CONTROLLED_APPLY_ACTIVATION_CAPABILITY: capability,
+      INTENTOS_CONTROLLED_APPLY_ACTIVATION_RECORD_DIGEST: record.record_digest,
     },
   };
 }

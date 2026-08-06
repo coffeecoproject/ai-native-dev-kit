@@ -1,6 +1,7 @@
 {
   "id": "ios-app",
   "name": "iOS App",
+  "profileRole": "primary-platform",
   "defaultTaskLevel": "L1",
   "escalationRules": [
     {

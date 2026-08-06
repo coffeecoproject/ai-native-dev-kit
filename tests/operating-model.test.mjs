@@ -8,6 +8,11 @@ import { fileURLToPath } from "node:url";
 
 import { evidenceDigest } from "../scripts/lib/artifact-schema.mjs";
 import { resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
+import { projectSetupActionFor } from "../scripts/operating-loop/state.mjs";
+import {
+  operatingExitClassFor,
+  operatingExitCode,
+} from "../scripts/operating-loop/source-execution.mjs";
 import {
   buildCurrentTrustFixture,
   prepareCurrentTrustFixtureSource,
@@ -187,6 +192,56 @@ test("new project goal enters the shared operating loop through START_PROJECT", 
   assert.equal(report.decisionResponsibility.userActionRequiredNow, "No");
   assert.equal(report.boundaries.writesTargetFiles, "No");
 }));
+
+test("project setup remediation is scoped to active task operations", () => {
+  assert.equal(projectSetupActionFor({
+    operation: "START_PROJECT",
+    baselineSetupAction: null,
+    workflowNextAction: "PREPARE_CONTROLLED_SETUP",
+    projectEntryOperationBlocked: false,
+    behavioralAdoptionState: "NOT_ADOPTED",
+  }), null);
+  assert.equal(projectSetupActionFor({
+    operation: "ADOPT_PROJECT",
+    baselineSetupAction: null,
+    workflowNextAction: "RUN_ADOPTION_ASSESSMENT",
+    projectEntryOperationBlocked: true,
+    behavioralAdoptionState: "NOT_ADOPTED",
+  }), null);
+  assert.equal(projectSetupActionFor({
+    operation: "CONTINUE_TASK",
+    baselineSetupAction: null,
+    workflowNextAction: "RUN_PLATFORM_BASELINE_SETUP",
+    projectEntryOperationBlocked: false,
+    behavioralAdoptionState: "NOT_ADOPTED",
+  }), "RUN_PLATFORM_BASELINE_SETUP");
+});
+
+test("operating exit codes distinguish semantic blockers from source failures", () => {
+  const report = (operation, state, outcome = state, sourceSystemTrace = []) => ({
+    outcome,
+    operatingLoop: { operation, state, statusScope: "NOT_APPLICABLE" },
+    sourceSystemTrace,
+  });
+  const finishSetup = report("FINISH_TASK", "NEEDS_PROJECT_SETUP");
+  assert.equal(operatingExitClassFor(finishSetup), "ACTION_REQUIRED");
+  assert.equal(operatingExitCode(finishSetup), 1);
+
+  const controlledStatus = report("CHECK_STATUS", "NEEDS_PROJECT_SETUP", "NEEDS_PROJECT_SETUP", [{
+    sourceSystem: "WORKFLOW_NEXT",
+    outcome: "PREPARE_CONTROLLED_SETUP",
+  }]);
+  assert.equal(operatingExitClassFor(controlledStatus), "ACTION_REQUIRED");
+  assert.equal(operatingExitCode(controlledStatus), 1);
+
+  const sourceFailure = report("FINISH_TASK", "BLOCKED_BY_SOURCE_FAILURE", "BLOCKED_BY_SOURCE_FAILURE");
+  assert.equal(operatingExitClassFor(sourceFailure), "SOURCE_FAILURE");
+  assert.equal(operatingExitCode(sourceFailure), 2);
+
+  const ready = report("START_PROJECT", "READY_FOR_PROJECT_PLAN");
+  assert.equal(operatingExitClassFor(ready), "SUCCESS");
+  assert.equal(operatingExitCode(ready), 0);
+});
 
 test("unbootstrapped existing project normal task enters adoption review", () => withRoot("intentos-operating-existing-", (root) => {
   makeExistingProject(root);
@@ -538,13 +593,34 @@ test("dirty worktree stops before task continuation", () => withRoot("intentos-o
   assert.doesNotMatch(JSON.stringify(report.projectIdentityProjection), /src\/index\.js/);
 }));
 
-test("controlled plan records existing-project entry origin", () => withRoot("intentos-operating-plan-origin-", (root) => {
+test("existing project without an adoption request produces a zero-write diagnostic plan", () => withRoot("intentos-operating-plan-diagnostic-", (root) => {
   makeExistingProject(root);
-  const planPath = path.join(root, "apply-execution-plans", "init.json");
+  const planPath = path.join(root, "apply-execution-plans", "diagnostic.json");
   fs.mkdirSync(path.dirname(planPath), { recursive: true });
   const result = runNode(["scripts/init-project.mjs", "--target", root, "--write-plan", path.relative(root, planPath)]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+  assert.equal(plan.operationKind, "NATIVE_ADOPTION");
+  assert.equal(plan.arguments.projectEntryOrigin, "EXISTING_PROJECT");
+  assert.equal(plan.adoptionAssessment.assessment_state, "BLOCKED_MISSING_REQUEST");
+  assert.equal(plan.executionState, "DIAGNOSTIC_ONLY");
+  assert.equal(plan.actions.some((action) => action.willWrite), false);
+  assert.equal(plan.actions.some((action) => action.path === ".intentos/version.json"), false);
+}));
+
+test("controlled executable plan records existing-project entry origin", () => withRoot("intentos-operating-plan-origin-", (root) => {
+  makeExistingProject(root);
+  const planPath = path.join(root, "apply-execution-plans", "init.json");
+  fs.mkdirSync(path.dirname(planPath), { recursive: true });
+  const result = runNode([
+    "scripts/init-project.mjs",
+    "--target", root,
+    "--goal", "adopt this lightweight existing project under IntentOS",
+    "--write-plan", path.relative(root, planPath),
+  ]);
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+  assert.equal(plan.executionState, "EXECUTABLE");
   const versionAction = plan.actions.find((item) => item.path === ".intentos/version.json");
   assert.ok(versionAction?.inlineContentBase64);
   const version = JSON.parse(Buffer.from(versionAction.inlineContentBase64, "base64").toString("utf8"));

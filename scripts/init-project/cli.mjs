@@ -373,6 +373,7 @@ const approvalRecordPath = args["approval-record"];
 const readinessReportPath = args["readiness-report"];
 const backupDir = args["backup-dir"] || "";
 const goal = args.goal || "";
+const migrationDepth = args["migration-depth"] || "";
 
 if (!target && !applyPlanPath) {
   console.error("Usage: node scripts/init-project.mjs --starter generic-project --target ../my-project");
@@ -387,6 +388,7 @@ if (!target && !applyPlanPath) {
   console.error("       node scripts/init-project.mjs --target ../my-project --with-industrial-packs");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-agent-governance");
+  console.error("       node scripts/init-project.mjs --target ../existing-project --goal \"adopt this project\" --migration-depth SELECTED_ASSETS --dry-run");
   process.exit(1);
 }
 
@@ -523,6 +525,7 @@ const commonOptions = {
   standardPacks,
   backupDir,
   goal,
+  migrationDepth,
 };
 
 if (dryRun || writePlanPath) {

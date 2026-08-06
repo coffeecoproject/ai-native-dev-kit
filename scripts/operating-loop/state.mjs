@@ -1,6 +1,29 @@
+const PROJECT_SETUP_ACTIONS = new Set([
+  "RUN_PROJECT_ONBOARDING",
+  "RUN_PLATFORM_BASELINE_SETUP",
+  "RUN_INDUSTRIAL_BASELINE_SETUP",
+]);
+
+const PROJECT_SETUP_ACTIONS_BY_OPERATION = new Map([
+  ["CONTINUE_TASK", PROJECT_SETUP_ACTIONS],
+  ["RESUME_TASK", PROJECT_SETUP_ACTIONS],
+  ["FINISH_TASK", PROJECT_SETUP_ACTIONS],
+]);
+
+export function projectSetupActionFor(context) {
+  const allowedActions = PROJECT_SETUP_ACTIONS_BY_OPERATION.get(context.operation);
+  if (!allowedActions) return null;
+  if (context.baselineSetupAction) return context.baselineSetupAction;
+  if (!allowedActions.has(context.workflowNextAction)) return null;
+  return context.projectEntryOperationBlocked || context.behavioralAdoptionState !== "VERIFIED_ACTIVE"
+    ? context.workflowNextAction
+    : null;
+}
+
 export function operatingStateFor(context) {
   if (!context.intent) return "NEEDS_GOAL";
   if (context.sourceFailure) return "BLOCKED_BY_SOURCE_FAILURE";
+  if (context.projectEntryTrustBlocked) return "NEEDS_PROJECT_ENTRY_REPAIR";
   if (context.operation === "FINISH_TASK" && context.projectSetupAction) return "NEEDS_PROJECT_SETUP";
   if (context.operation === "FINISH_TASK") {
     return context.gateFailure !== true

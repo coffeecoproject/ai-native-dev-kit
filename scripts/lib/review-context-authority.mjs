@@ -83,6 +83,23 @@ function isIntentOSSourceCheckout(root) {
   }
 }
 
+function selectedInstalledAssetSet(root, installedLayout) {
+  if (!installedLayout) return null;
+  const versionPath = path.join(root, ".intentos", "version.json");
+  try {
+    const version = JSON.parse(fs.readFileSync(versionPath, "utf8"));
+    if (version.assetMigrationDepth !== "SELECTED_ASSETS"
+      || !Array.isArray(version.workflowAssets)
+      || version.workflowAssets.length === 0) return null;
+    const selected = version.workflowAssets.map(normalizeReviewContextPath).filter(Boolean);
+    return selected.length === version.workflowAssets.length ? new Set(selected) : null;
+  } catch {
+    // Invalid installation identity must not be allowed to shrink the Guidance
+    // surface. Project-entry trust will report the malformed version record.
+    return null;
+  }
+}
+
 function activeGuidanceRows(authority, root = defaultRoot, installedLayout = false) {
   let rows = Array.isArray(authority.activeGuidance) ? [...authority.activeGuidance] : [];
   for (const family of authority.activeGuidanceFamilies || []) {
@@ -101,6 +118,7 @@ function activeGuidanceRows(authority, root = defaultRoot, installedLayout = fal
     }
   }
   if (installedLayout) {
+    const selectedAssets = selectedInstalledAssetSet(root, installedLayout);
     const versionPath = path.join(root, ".intentos", "version.json");
     let installedStarter = "";
     let projectEntryOrigin = "";
@@ -113,6 +131,8 @@ function activeGuidanceRows(authority, root = defaultRoot, installedLayout = fal
       projectEntryOrigin = "";
     }
     rows = rows.filter((row) => {
+      const installed = normalizeReviewContextPath(row.installed);
+      if (selectedAssets && installed && !selectedAssets.has(installed)) return false;
       const match = normalizeReviewContextPath(row.source).match(/^starters\/([^/]+)\//);
       if (!match) return true;
       // Existing-project adoption installs the managed IntentOS layer, not a
@@ -120,7 +140,6 @@ function activeGuidanceRows(authority, root = defaultRoot, installedLayout = fal
       // turn absent, never-selected assets into false project authority.
       if (projectEntryOrigin === "EXISTING_PROJECT") return false;
       if (installedStarter) return match[1] === installedStarter;
-      const installed = normalizeReviewContextPath(row.installed);
       return Boolean(installed && fs.existsSync(path.join(root, installed)));
     });
   }
@@ -213,13 +232,17 @@ function distributedRuntimeGuidanceRows(root, installedLayout) {
   } catch {
     return [];
   }
+  const selectedAssets = selectedInstalledAssetSet(root, installedLayout);
   return (manifest.copyRules?.files || [])
     .filter((item) => /^scripts\/[A-Za-z0-9._/-]+\.mjs$/.test(String(item.source || "")))
     .map((item) => ({
       source: normalizeReviewContextPath(item.source),
       file: normalizeReviewContextPath(installedLayout ? item.target : item.source),
     }))
-    .filter((item) => item.source && item.file && fs.existsSync(path.join(root, item.file)))
+    .filter((item) => item.source
+      && item.file
+      && (!selectedAssets || selectedAssets.has(item.file))
+      && fs.existsSync(path.join(root, item.file)))
     .map((item) => ({
       ...item,
       registration: STRICT_EXECUTION_CONSUMERS.has(item.source) ? "WORKFLOW_CONSUMER" : "DISTRIBUTED_RUNTIME",
@@ -246,6 +269,7 @@ function workflowGuidanceRows(root, installedLayout) {
   }
 
   const rows = [];
+  const selectedAssets = selectedInstalledAssetSet(root, installedLayout);
   if (!installedLayout) {
     for (const source of manifest.groups?.sourceRequired || []) {
       const normalized = normalizeReviewContextPath(source);
@@ -265,6 +289,7 @@ function workflowGuidanceRows(root, installedLayout) {
     if (!/^platforms\/github\/[A-Za-z0-9._/-]+\.ya?ml$/.test(source)
       || !/^\.github\/workflows\/[A-Za-z0-9._/-]+\.ya?ml$/.test(target)) continue;
     const file = installedLayout ? target : source;
+    if (selectedAssets && !selectedAssets.has(file)) continue;
     if (!fs.existsSync(path.join(root, file))) continue;
     rows.push({
       source,
@@ -282,6 +307,7 @@ export function effectiveGuidanceGraph(
   root = defaultRoot,
 ) {
   const resolvedRoot = path.resolve(root);
+  const selectedAssets = selectedInstalledAssetSet(resolvedRoot, installedLayout);
   const prefixes = (authority.effectiveGuidanceReferencePrefixes || [])
     .map(normalizeReviewContextPath)
     .filter(Boolean);
@@ -386,6 +412,10 @@ export function effectiveGuidanceGraph(
       const targetPath = installedLayout
         ? installedPathForGuidanceReference(reference, source, resolvedRoot)
         : source;
+      const selectedManagedTarget = targetPath.startsWith(".intentos/")
+        || targetPath.startsWith("scripts/")
+        || targetPath.startsWith(".github/workflows/");
+      if (selectedAssets && selectedManagedTarget && !selectedAssets.has(targetPath)) continue;
       const referenceIsManaged = reference.startsWith(".intentos/");
       const targetExists = fs.existsSync(path.join(resolvedRoot, targetPath));
       if (!referenceIsManaged && !targetExists) continue;
