@@ -303,7 +303,37 @@ export function validateVerifiedApplyReceiptFile(projectRoot, receiptReference, 
     { require: true },
   );
   if (!validated.ok) return { ok: false, value: validated.value, relativePath: resolved.relativePath, errors: validated.errors };
-  const errors = validateReceiptAgainstProject(projectRoot, resolved.file, validated.value, schemas);
+  const errors = validateReceiptAgainstProject(projectRoot, resolved.file, validated.value, schemas, {
+    requireCurrentTargets: true,
+  });
+  return {
+    ok: errors.length === 0,
+    value: validated.value,
+    relativePath: resolved.relativePath,
+    errors,
+  };
+}
+
+export function validateHistoricalVerifiedApplyReceiptFile(projectRoot, receiptReference, options = {}) {
+  const schemasRoot = options.schemasRoot || projectRoot;
+  const schemas = {
+    receiptSchema: options.receiptSchema || loadSchema(schemasRoot, "schemas/artifacts/apply-execution-receipt.schema.json"),
+    approvalSchema: options.approvalSchema || loadSchema(schemasRoot, "schemas/artifacts/approval-record.schema.json"),
+    requestAuthoritySchema: options.requestAuthoritySchema || loadSchema(schemasRoot, "schemas/artifacts/request-bound-apply-authority.schema.json"),
+    readinessSchema: options.readinessSchema || loadSchema(schemasRoot, "schemas/artifacts/controlled-apply-readiness.schema.json"),
+  };
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, options.fromFile || "", receiptReference);
+  if (!resolved.ok) return { ok: false, value: null, relativePath: "", errors: [`apply receipt unresolved: ${resolved.error}`] };
+  const validated = validateEvidenceBlock(
+    fs.readFileSync(resolved.file, "utf8"),
+    schemas.receiptSchema,
+    resolved.relativePath,
+    { require: true },
+  );
+  if (!validated.ok) return { ok: false, value: validated.value, relativePath: resolved.relativePath, errors: validated.errors };
+  const errors = validateReceiptAgainstProject(projectRoot, resolved.file, validated.value, schemas, {
+    requireCurrentTargets: false,
+  });
   return {
     ok: errors.length === 0,
     value: validated.value,
@@ -347,8 +377,9 @@ function receiptChainRefs(receiptPath, receipt) {
   ];
 }
 
-function validateReceiptAgainstProject(projectRoot, receiptFile, receipt, schemas) {
+function validateReceiptAgainstProject(projectRoot, receiptFile, receipt, schemas, options = {}) {
   const errors = [];
+  const requireCurrentTargets = options.requireCurrentTargets !== false;
   const currentReceipt = receipt.schema_version === "1.113.0";
   if (receipt.receipt_state !== "APPLY_VERIFIED" || receipt.outcome !== "APPLY_VERIFIED") errors.push("receipt state is not APPLY_VERIFIED");
   if (receipt.project_identity?.root_digest !== projectIdentity(projectRoot).fingerprint) errors.push("receipt project identity mismatch");
@@ -407,7 +438,7 @@ function validateReceiptAgainstProject(projectRoot, receiptFile, receipt, schema
       plan,
       planRelativePath: planRef.relativePath,
       allowExpired: true,
-      postApplyExactGraph: true,
+      validationPhase: requireCurrentTargets ? "POST_APPLY" : "RECOVERY_BINDING",
     });
     errors.push(...authorityValidation.errors);
     errors.push(...validateRequestBoundReadiness(readiness, {
@@ -442,9 +473,14 @@ function validateReceiptAgainstProject(projectRoot, receiptFile, receipt, schema
       errors.push(`receipt action ${action.id} is not APPLIED`);
       continue;
     }
+    if (observed.hash_after !== action.expectedHashAfter) {
+      errors.push(`receipt action ${action.id} does not match its planned post-apply digest`);
+      continue;
+    }
+    if (!requireCurrentTargets) continue;
     const target = resolveAuthoritativeEvidenceReference(projectRoot, receiptFile, action.path);
     if (!target.ok) errors.push(`applied target ${action.path} is missing or unsafe`);
-    else if (canonicalFileDigest(target.file) !== observed.hash_after || observed.hash_after !== action.expectedHashAfter) {
+    else if (canonicalFileDigest(target.file) !== observed.hash_after) {
       errors.push(`applied target ${action.path} is stale or mismatched`);
     }
   }

@@ -779,8 +779,14 @@ function verifyControlledAdoptionActivation(targetRoot, plan, activationEnvironm
     allowProjectLocalExecution: true,
     activationEnvironment,
     requestBoundInitialQueue,
+    activationMode: plan.operationKind === "CONTROLLED_UPDATE"
+      ? "CONTROLLED_UPDATE_MAINTENANCE"
+      : "ADOPTION_ACTIVATION",
   });
-  const verified = entry.status === "VERIFIED" && behavioral.ok && behavioral.state === "VERIFIED_ACTIVE";
+  const expectedBehavioralState = plan.operationKind === "CONTROLLED_UPDATE"
+    ? "MAINTENANCE_VERIFIED"
+    : "VERIFIED_ACTIVE";
+  const verified = entry.status === "VERIFIED" && behavioral.ok && behavioral.state === expectedBehavioralState;
   return {
     ...entry,
     status: verified ? "VERIFIED" : "FAILED",

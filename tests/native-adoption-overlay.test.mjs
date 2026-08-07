@@ -18,8 +18,25 @@ import {
   requiredAgentGovernanceMarkers,
   selectedAgentGovernanceAppendix,
 } from "../scripts/init-project/assets.mjs";
-import { buildCandidateStaticActivationPreflight, buildPlan } from "../scripts/init-project/plan.mjs";
-import { resolveVerifiedInitialTaskIntakeProof } from "../scripts/lib/behavioral-adoption-activation.mjs";
+import {
+  addSelectedBaselineAssetPlanActions,
+  addSelectedDistributionPlanActions,
+  buildCandidateStaticActivationPreflight,
+  buildPlan,
+} from "../scripts/init-project/plan.mjs";
+import {
+  validateHistoricalVerifiedApplyReceiptFile,
+  validateVerifiedApplyReceiptFile,
+} from "../scripts/lib/adoption-apply-chain.mjs";
+import {
+  resolveVerifiedInitialTaskIntakeProof,
+  verifyProjectLocalBehavioralRoute,
+} from "../scripts/lib/behavioral-adoption-activation.mjs";
+import {
+  controlledApplyProtocolArtifactRoots,
+  isControlledApplyProtocolArtifactPath,
+} from "../scripts/lib/evidence-authority.mjs";
+import { gitWorktreeState } from "../scripts/lib/git.mjs";
 import { validateRequestBoundLocalActionGraph } from "../scripts/lib/request-bound-apply-authority.mjs";
 
 function projectFixture(t, { governed = true, historicalTasks = 0 } = {}) {
@@ -70,6 +87,88 @@ test("selected native overlay is a strict capability-derived subset of the full 
     assert.ok(asset.sourceGroups.length > 0);
     assert.ok(asset.capabilities.length > 0);
   }
+});
+
+test("controlled apply protocol artifacts have one exact project-source boundary", () => {
+  assert.deepEqual(controlledApplyProtocolArtifactRoots, [
+    "apply-execution-plans",
+    "approval-records",
+    "release-approval-records",
+    "apply-readiness-reports",
+    "apply-receipts",
+    ".intentos/apply-plans",
+    ".intentos/apply-authorities",
+    ".intentos/backups",
+  ]);
+  for (const root of controlledApplyProtocolArtifactRoots) {
+    assert.equal(isControlledApplyProtocolArtifactPath(root), true, root);
+    assert.equal(isControlledApplyProtocolArtifactPath(`${root}/retained-failure.json`), true, root);
+  }
+  for (const projectPath of [
+    "src/apply-receipts/retained-failure.md",
+    "apply-receipts-user/retained-failure.md",
+    ".intentos/version.json",
+    "requests/current.md",
+  ]) {
+    assert.equal(isControlledApplyProtocolArtifactPath(projectPath), false, projectPath);
+  }
+});
+
+test("selected controlled updates replace only verified managed source drift", (t) => {
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "intentos-selected-update-drift-")));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const runtimePath = "scripts/workflow-next.mjs";
+  const baselinePath = ".intentos/profiles/web-app/profile.md";
+  const oldRuntime = "// prior managed workflow runtime\n";
+  const oldBaseline = "# Prior managed Web profile\n";
+  fs.mkdirSync(path.join(root, "scripts"), { recursive: true });
+  fs.mkdirSync(path.join(root, ".intentos", "profiles", "web-app"), { recursive: true });
+  fs.writeFileSync(path.join(root, runtimePath), oldRuntime);
+  fs.writeFileSync(path.join(root, baselinePath), oldBaseline);
+  const digest = (content) => `sha256:${createHash("sha256").update(content).digest("hex")}`;
+  const versionPath = path.join(root, ".intentos", "version.json");
+  const version = {
+    intentOSVersion: "1.112.0",
+    workflowAssets: [runtimePath, baselinePath],
+    managedAssetDigests: {
+      [runtimePath]: digest(oldRuntime),
+      [baselinePath]: digest(oldBaseline),
+    },
+  };
+  fs.writeFileSync(versionPath, `${JSON.stringify(version, null, 2)}\n`);
+
+  const updateActions = [];
+  addSelectedDistributionPlanActions(updateActions, root, { update: true });
+  addSelectedBaselineAssetPlanActions(updateActions, root, {
+    profiles: ["web-app"],
+    standardPacks: [],
+  }, { update: true });
+  for (const target of [runtimePath, baselinePath]) {
+    const action = updateActions.find((candidate) => candidate.path === target);
+    assert.equal(action.type, "UPDATE_MANAGED", target);
+    assert.equal(action.willWrite, true, target);
+    assert.equal(action.ownership.state, "VERIFIED_PRIOR_INTENTOS_MANAGED", target);
+  }
+
+  const adoptionActions = [];
+  addSelectedDistributionPlanActions(adoptionActions, root, { update: false });
+  addSelectedBaselineAssetPlanActions(adoptionActions, root, {
+    profiles: ["web-app"],
+    standardPacks: [],
+  }, { update: false });
+  for (const target of [runtimePath, baselinePath]) {
+    const action = adoptionActions.find((candidate) => candidate.path === target);
+    assert.equal(action.type, "SKIP_EXISTING", target);
+    assert.equal(action.willWrite, false, target);
+  }
+
+  delete version.managedAssetDigests[runtimePath];
+  fs.writeFileSync(versionPath, `${JSON.stringify(version, null, 2)}\n`);
+  const unownedActions = [];
+  addSelectedDistributionPlanActions(unownedActions, root, { update: true });
+  const unownedRuntime = unownedActions.find((candidate) => candidate.path === runtimePath);
+  assert.equal(unownedRuntime.type, "PRESERVE_UNMANAGED");
+  assert.equal(unownedRuntime.willWrite, false);
 });
 
 test("selected operational policy is explicit and fails closed on an incomplete declared closure", () => {
@@ -526,9 +625,28 @@ test("selected overlay controlled apply verifies without changing historical tas
   const version = JSON.parse(fs.readFileSync(path.join(root, ".intentos", "version.json"), "utf8"));
   assert.equal(version.assetMigrationDepth, "SELECTED_ASSETS");
   assert.ok(version.workflowAssets.length > 0 && version.workflowAssets.length < 500);
+  assert.equal(version.initialTaskIntake.state, "REQUEST_BOUND_INITIAL_TASK");
+  assert.equal(version.initialTaskIntake.intent, goal);
   const initialIntake = resolveVerifiedInitialTaskIntakeProof({ targetRoot: root });
   assert.equal(initialIntake.state, "VERIFIED");
   assert.equal(initialIntake.request_bound_proof.intent, goal);
+  const strictWithoutIntake = verifyProjectLocalBehavioralRoute({
+    targetRoot: root,
+    sourceRoot: process.cwd(),
+    goal: "refresh installed IntentOS assets",
+    allowProjectLocalExecution: true,
+  });
+  assert.equal(strictWithoutIntake.state, "BLOCKED");
+  const maintenanceWithoutIntake = verifyProjectLocalBehavioralRoute({
+    targetRoot: root,
+    sourceRoot: process.cwd(),
+    goal: "refresh installed IntentOS assets",
+    allowProjectLocalExecution: true,
+    activationMode: "CONTROLLED_UPDATE_MAINTENANCE",
+  });
+  assert.equal(maintenanceWithoutIntake.state, "MAINTENANCE_VERIFIED");
+  assert.equal(maintenanceWithoutIntake.routeCalibration.state, "ROUTE_VERIFIED");
+  assert.equal(maintenanceWithoutIntake.workQueueTakeover.state, "BLOCKED");
   const firstReceiptFile = path.join(root, plan.receiptPath);
   const firstReceiptContent = fs.readFileSync(firstReceiptFile, "utf8");
   fs.writeFileSync(firstReceiptFile, firstReceiptContent.replaceAll("APPLY_VERIFIED", "APPLY_FAILED_NO_WRITE"));
@@ -552,6 +670,11 @@ test("selected overlay controlled apply verifies without changing historical tas
   const updateVersion = JSON.parse(Buffer.from(updateVersionAction.inlineContentBase64, "base64").toString("utf8"));
   assert.equal(updateVersion.assetMigrationDepth, "SELECTED_ASSETS");
   assert.ok(updateVersion.workflowAssets.length > 0 && updateVersion.workflowAssets.length < 500);
+  assert.equal(updatePlan.actions.some((action) => action.path === ".github/pull_request_template.md"), false);
+  assert.equal(updateVersion.workflowAssets.includes(".github/pull_request_template.md"), false);
+  for (const action of updatePlan.actions.filter((entry) => entry.type === "HUMAN_ONLY")) {
+    assert.equal(updateVersion.workflowAssets.includes(action.path), false, action.path);
+  }
   for (const deferred of [
     "docs/project-onboarding.md",
     "docs/tech-stack-strategy.md",
@@ -612,10 +735,191 @@ test("selected overlay controlled apply verifies without changing historical tas
   });
   assert.equal(updated.status, 0, updated.stderr || updated.stdout);
   assert.equal(fs.readdirSync(path.join(root, "apply-receipts")).filter((name) => name.endsWith(".md")).length, 2);
+  assert.equal(validateVerifiedApplyReceiptFile(root, plan.receiptPath).ok, false);
+  assert.equal(validateHistoricalVerifiedApplyReceiptFile(root, plan.receiptPath).ok, true);
+  const persistedInitialIntake = resolveVerifiedInitialTaskIntakeProof({ targetRoot: root });
+  assert.equal(persistedInitialIntake.state, "VERIFIED");
+  assert.equal(persistedInitialIntake.request_bound_proof.intent, goal);
+  assert.equal(persistedInitialIntake.receipt_ref, updatePlan.receiptPath);
+  const postUpdateNext = spawnSync(process.execPath, [path.join(root, "scripts", "workflow-next.mjs"), root, "--json"], {
+    cwd: root,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 120_000,
+  });
+  assert.equal(postUpdateNext.status, 0, postUpdateNext.stderr || postUpdateNext.stdout);
+  const postUpdateState = JSON.parse(postUpdateNext.stdout);
+  assert.equal(postUpdateState.versionState, "CURRENT");
+  assert.equal(postUpdateState.workflowState, "BOOTSTRAPPED");
+  assert.equal(postUpdateState.missingWorkflowAssets.includes(".github/pull_request_template.md"), false);
+  assert.equal(postUpdateState.nextAction, "REVIEW_DIRTY_WORKTREE");
+
+  const secondUpdatePlan = buildPlan(root, {
+    starter: "generic-project",
+    update: true,
+    goal: "perform another controlled workflow refresh without changing project work",
+    profiles: "web-app",
+    baselineLevel: "BL1_STANDARD",
+  });
+  assert.equal(secondUpdatePlan.operationKind, "CONTROLLED_UPDATE");
+  const secondUpdatePlanRelative = "apply-execution-plans/selected-update-second.json";
+  fs.writeFileSync(path.join(root, secondUpdatePlanRelative), `${JSON.stringify(secondUpdatePlan, null, 2)}\n`);
+  const secondUpdated = spawnSync(process.execPath, [
+    "scripts/init-project.mjs",
+    "--apply-plan", path.join(root, secondUpdatePlanRelative),
+    "--goal", secondUpdatePlan.arguments.goal,
+  ], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    maxBuffer: 256 * 1024 * 1024,
+    timeout: 300_000,
+  });
+  assert.equal(secondUpdated.status, 0, secondUpdated.stderr || secondUpdated.stdout);
+  assert.equal(fs.readdirSync(path.join(root, "apply-receipts")).filter((name) => name.endsWith(".md")).length, 3);
+  const twiceUpdatedInitialIntake = resolveVerifiedInitialTaskIntakeProof({ targetRoot: root });
+  assert.equal(twiceUpdatedInitialIntake.state, "VERIFIED");
+  assert.equal(twiceUpdatedInitialIntake.receipt_ref, secondUpdatePlan.receiptPath);
   for (const [relative, content] of historical) {
     assert.equal(fs.readFileSync(path.join(root, relative), "utf8"), content, relative);
   }
   for (const [relative, content] of dirtyBusiness) {
     assert.equal(fs.readFileSync(path.join(root, relative), "utf8"), content, relative);
   }
+});
+
+test("a clean selected project can update with retained failed apply protocol evidence", { timeout: 420_000 }, (t) => {
+  const outer = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "intentos-clean-protocol-retry-")));
+  const root = path.join(outer, "project");
+  fs.mkdirSync(root);
+  t.after(() => fs.rmSync(outer, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
+    name: "clean-protocol-retry-fixture",
+    scripts: { test: "node --test", build: "node build.mjs" },
+  }, null, 2)}\n`);
+  fs.writeFileSync(path.join(root, "AGENTS.md"), [
+    "# Project Rules",
+    "",
+    "- Run tests before completion.",
+    "- Preserve release and rollback procedures.",
+    "- Do not change production credentials.",
+    "",
+  ].join("\n"));
+  fs.mkdirSync(path.join(root, "docs"));
+  fs.writeFileSync(path.join(root, "docs", "release.md"), "# Release and rollback\n\nPreserve release, rollback, and production controls.\n");
+  fs.mkdirSync(path.join(root, "src"));
+  const businessPath = path.join(root, "src", "business.ts");
+  const businessContent = "export const stableBusinessBehavior = true;\n";
+  fs.writeFileSync(businessPath, businessContent);
+
+  const git = (...args) => {
+    const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+  };
+  git("init", "-q");
+  git("add", ".");
+  git("-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "business baseline");
+
+  const adoptionGoal = "adopt this clean project while preserving its business behavior";
+  const adoptionPlan = buildPlan(root, {
+    starter: "generic-project",
+    goal: adoptionGoal,
+    migrationDepth: "SELECTED_ASSETS",
+    profiles: "web-app",
+    baselineLevel: "BL1_STANDARD",
+  });
+  assert.equal(adoptionPlan.executionState, "EXECUTABLE");
+  assert.equal(adoptionPlan.targetFingerprint.isDirty, false);
+  const adoptionPlanRelative = "apply-execution-plans/clean-adoption.json";
+  fs.mkdirSync(path.join(root, "apply-execution-plans"));
+  fs.writeFileSync(path.join(root, adoptionPlanRelative), `${JSON.stringify(adoptionPlan, null, 2)}\n`);
+  const adopted = spawnSync(process.execPath, [
+    "scripts/init-project.mjs",
+    "--apply-plan", path.join(root, adoptionPlanRelative),
+    "--goal", adoptionGoal,
+  ], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    maxBuffer: 256 * 1024 * 1024,
+    timeout: 300_000,
+  });
+  assert.equal(adopted.status, 0, adopted.stderr || adopted.stdout);
+  assert.match(fs.readFileSync(path.join(root, adoptionPlan.receiptPath), "utf8"), /APPLY_VERIFIED/);
+  assert.equal(fs.readFileSync(businessPath, "utf8"), businessContent);
+
+  git("add", ".");
+  git("-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "verified IntentOS adoption");
+  assert.equal(gitWorktreeState(root).isDirty, false);
+
+  const retainedPlanRelative = "apply-execution-plans/retained-failed-attempt.json";
+  const retainedReceiptRelative = "apply-receipts/retained-failed-attempt.md";
+  const retainedPlan = `${JSON.stringify({ outcome: "APPLY_FAILED_ROLLED_BACK", retained_for_diagnosis: true }, null, 2)}\n`;
+  const retainedReceipt = [
+    "# Retained Failed Apply Receipt",
+    "",
+    "Outcome: `APPLY_FAILED_ROLLED_BACK`",
+    "",
+    "This diagnostic evidence must survive a later controlled update.",
+    "",
+  ].join("\n");
+  fs.writeFileSync(path.join(root, retainedPlanRelative), retainedPlan);
+  fs.writeFileSync(path.join(root, retainedReceiptRelative), retainedReceipt);
+
+  const rawBefore = gitWorktreeState(root);
+  const sourceBefore = gitWorktreeState(root, { excludeControlledApplyProtocolArtifacts: true });
+  assert.equal(rawBefore.isDirty, true);
+  assert.deepEqual(rawBefore.changedPaths, [retainedPlanRelative, retainedReceiptRelative]);
+  assert.equal(sourceBefore.isDirty, false);
+  assert.deepEqual(sourceBefore.changedPaths, []);
+  assert.deepEqual(sourceBefore.ignoredChangedPaths, [retainedPlanRelative, retainedReceiptRelative]);
+
+  const updateGoal = "refresh IntentOS while retaining failed apply diagnostics";
+  const updatePlan = buildPlan(root, {
+    starter: "generic-project",
+    update: true,
+    goal: updateGoal,
+    profiles: "web-app",
+    baselineLevel: "BL1_STANDARD",
+  });
+  assert.equal(updatePlan.operationKind, "CONTROLLED_UPDATE");
+  assert.equal(updatePlan.targetFingerprint.isDirty, false);
+  assert.equal(updatePlan.candidateStaticActivationPreflight.state, "READY");
+  const updatePlanRelative = "apply-execution-plans/clean-update-after-failure.json";
+  fs.writeFileSync(path.join(root, updatePlanRelative), `${JSON.stringify(updatePlan, null, 2)}\n`);
+  const updated = spawnSync(process.execPath, [
+    "scripts/init-project.mjs",
+    "--apply-plan", path.join(root, updatePlanRelative),
+    "--goal", updateGoal,
+  ], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    maxBuffer: 256 * 1024 * 1024,
+    timeout: 300_000,
+  });
+  assert.equal(updated.status, 0, updated.stderr || updated.stdout);
+  assert.match(fs.readFileSync(path.join(root, updatePlan.receiptPath), "utf8"), /APPLY_VERIFIED/);
+  assert.equal(fs.readFileSync(path.join(root, retainedPlanRelative), "utf8"), retainedPlan);
+  assert.equal(fs.readFileSync(path.join(root, retainedReceiptRelative), "utf8"), retainedReceipt);
+  assert.equal(fs.readFileSync(businessPath, "utf8"), businessContent);
+
+  const ordinaryNext = spawnSync(process.execPath, [path.join(root, "scripts", "workflow-next.mjs"), root, "--json"], {
+    cwd: root,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 120_000,
+  });
+  assert.equal(ordinaryNext.status, 0, ordinaryNext.stderr || ordinaryNext.stdout);
+  const ordinaryState = JSON.parse(ordinaryNext.stdout);
+  assert.equal(ordinaryState.nextAction, "REVIEW_DIRTY_WORKTREE");
+  assert.equal(ordinaryState.governanceSignals.git.observedIsDirty, true);
+  assert.ok(ordinaryState.governanceSignals.git.observedChangedPaths.includes(retainedPlanRelative));
+  assert.ok(ordinaryState.governanceSignals.git.observedChangedPaths.includes(retainedReceiptRelative));
+  assert.deepEqual(ordinaryState.governanceSignals.git.retainedProtocolArtifactChangedPaths, []);
+
+  const sourceAfter = gitWorktreeState(root, { excludeControlledApplyProtocolArtifacts: true });
+  assert.equal(sourceAfter.isDirty, true);
+  assert.deepEqual(sourceAfter.changedPaths, [".intentos/version.json"]);
+  fs.writeFileSync(businessPath, `${businessContent}export const userDraft = true;\n`);
+  const sourceWithBusinessChange = gitWorktreeState(root, { excludeControlledApplyProtocolArtifacts: true });
+  assert.equal(sourceWithBusinessChange.isDirty, true);
+  assert.deepEqual(sourceWithBusinessChange.changedPaths, [".intentos/version.json", "src/business.ts"]);
 });

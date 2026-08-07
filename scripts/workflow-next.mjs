@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { parseArgs } from "./lib/args.mjs";
+import { isControlledApplyProtocolArtifactPath } from "./lib/evidence-authority.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
 import { workflowRequiredPaths as manifestWorkflowRequiredPaths } from "./lib/manifest.mjs";
@@ -492,25 +493,45 @@ function governanceSignals() {
 }
 
 function activationScopedGitState(git) {
-  const allowed = new Set((initialEntryTrust?.project_identity?.temporary_activation_paths || [])
+  const temporaryActivationPaths = (initialEntryTrust?.project_identity?.temporary_activation_paths || [])
     .map((value) => String(value || "").replaceAll("\\", "/"))
-    .filter(Boolean));
+    .filter(Boolean);
+  const allowed = new Set(temporaryActivationPaths);
   const changedPaths = Array.isArray(git.changedPaths) ? git.changedPaths : [];
   if (git.observationStatus !== "CURRENT" || allowed.size === 0 || changedPaths.length === 0) {
     return {
       ...git,
+      observedIsDirty: git.isDirty,
+      observedChangedFileCount: git.changedFileCount,
+      observedChangedPaths: changedPaths,
+      observedChangedFilesDigest: git.changedFilesDigest,
       transactionOwnedChangedPaths: [],
+      retainedProtocolArtifactChangedPaths: [],
       unownedChangedPaths: changedPaths,
     };
   }
   const transactionOwnedChangedPaths = changedPaths.filter((item) => allowed.has(item));
-  const unownedChangedPaths = changedPaths.filter((item) => !allowed.has(item));
+  const retainedProtocolArtifactChangedPaths = changedPaths
+    .filter((item) => !allowed.has(item) && isControlledApplyProtocolArtifactPath(item));
+  const ignored = new Set([...transactionOwnedChangedPaths, ...retainedProtocolArtifactChangedPaths]);
+  const unownedChangedPaths = changedPaths.filter((item) => !ignored.has(item));
   return {
     ...git,
+    observedIsDirty: git.isDirty,
+    observedChangedFileCount: git.changedFileCount,
+    observedChangedPaths: changedPaths,
+    observedChangedFilesDigest: git.changedFilesDigest,
     isDirty: unownedChangedPaths.length > 0,
     changedFileCount: unownedChangedPaths.length,
     changedFilesSample: unownedChangedPaths.slice(0, 12),
+    changedPaths: unownedChangedPaths,
+    ignoredChangedPaths: [...new Set([
+      ...(git.ignoredChangedPaths || []),
+      ...transactionOwnedChangedPaths,
+      ...retainedProtocolArtifactChangedPaths,
+    ])].sort(),
     transactionOwnedChangedPaths,
+    retainedProtocolArtifactChangedPaths,
     unownedChangedPaths,
   };
 }

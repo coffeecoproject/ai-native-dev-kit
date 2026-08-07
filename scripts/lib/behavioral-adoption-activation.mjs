@@ -4,7 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { evidenceDigest, extractMachineReadableEvidence } from "./artifact-schema.mjs";
-import { validateVerifiedApplyReceiptFile } from "./adoption-apply-chain.mjs";
+import {
+  validateHistoricalVerifiedApplyReceiptFile,
+  validateVerifiedApplyReceiptFile,
+} from "./adoption-apply-chain.mjs";
 import { projectGoalProjection } from "./project-fact-projection.mjs";
 import {
   normalizeTaskIntent,
@@ -180,6 +183,7 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
   const sourceRoot = options.sourceRoot ? path.resolve(options.sourceRoot) : "";
   const sourceInventory = Array.isArray(options.sourceInventory) ? options.sourceInventory : [];
   const allowProjectLocalExecution = options.allowProjectLocalExecution === true;
+  const maintenanceCalibration = options.activationMode === "CONTROLLED_UPDATE_MAINTENANCE";
   const executionRoot = allowProjectLocalExecution ? targetRoot : sourceRoot;
   const goal = String(options.goal || "start the first ordinary product task").trim();
   const expectedGoalDigest = String(options.expectedGoalDigest || projectGoalProjection(goal).goal_digest);
@@ -263,7 +267,7 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
             "--json",
             "--intent", routedIntent,
           ])
-      : strictRequired
+      : strictRequired && !maintenanceCalibration
         ? unavailable("task-governance", `strict current-task route is unavailable: ${strictRoute.blockers.join("; ")}`)
         : run("task-governance", "scripts/resolve-task-governance.mjs", [targetRoot, "--json", "--intent", routedIntent]);
     const planningArgs = [targetRoot, "--json", "--intent", routedIntent];
@@ -308,7 +312,7 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
   const workflowReady = workflow?.exit_code === 0
     && workflow?.parsed?.projectEntryTrust?.entry_state === "READY_FOR_INTENTOS_OPERATION"
     && ["INSTALLED_CURRENT", "BRIDGE_CURRENT"].includes(workflow?.parsed?.projectEntryTrust?.project_identity?.state);
-  const routeReady = queue?.exit_code === 0
+  const resolverRouteReady = queue?.exit_code === 0
     && governance?.exit_code === 0
     && planning?.exit_code === 0
     && review?.exit_code === 0
@@ -320,8 +324,9 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
     && planning.parsed?.reportType === "PLANNING_CLOSURE"
     && review.parsed?.reportType === "REVIEW_SURFACE_CARD"
     && verification.parsed?.reportType === "VERIFICATION_PLAN"
-    && finish.parsed?.closureDecision?.canCountAsDone === "No"
-    && workQueueTakeover.state === "VERIFIED"
+    && finish.parsed?.closureDecision?.canCountAsDone === "No";
+  const routeReady = resolverRouteReady
+    && (maintenanceCalibration || workQueueTakeover.state === "VERIFIED")
     && projectRevisionBindingState === "VERIFIED"
     && workflowTrust?.guidance_authority?.agent_authority_state === "CURRENT";
   const errors = [];
@@ -412,7 +417,11 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
   const routeCalibration = { ...routeBase, digest: evidenceDigest(routeBase, []) };
   return {
     ok: errors.length === 0,
-    state: errors.length === 0 ? projectLocalRoute ? "VERIFIED_ACTIVE" : "READ_ONLY_SIMULATION_PASSED" : "BLOCKED",
+    state: errors.length === 0
+      ? maintenanceCalibration
+        ? "MAINTENANCE_VERIFIED"
+        : projectLocalRoute ? "VERIFIED_ACTIVE" : "READ_ONLY_SIMULATION_PASSED"
+      : "BLOCKED",
     coldStart,
     routeCalibration,
     workQueueTakeover,
@@ -600,69 +609,42 @@ export function resolveVerifiedInitialTaskIntakeProof(options = {}) {
   const receipts = durableMarkdownFiles(targetRoot, "apply-receipts");
   const matches = new Map();
   const blockers = [];
-  for (const receiptRef of receipts) {
-    let validation;
-    try {
-      validation = validateVerifiedApplyReceiptFile(targetRoot, receiptRef);
-    } catch {
-      continue;
+  const currentState = initialTaskIntakeFromCurrentVersion(targetRoot);
+  if (currentState.state === "INVALID") {
+    blockers.push(...currentState.blockers);
+  } else if (currentState.state === "VERIFIED") {
+    for (const receiptRef of receipts) {
+      let validation;
+      try { validation = validateVerifiedApplyReceiptFile(targetRoot, receiptRef); } catch { continue; }
+      if (!validation.ok) continue;
+      const versionAction = (validation.value?.actions || []).find((action) => action.result === "APPLIED"
+        && (action.target_paths || []).includes(".intentos/version.json"));
+      if (!versionAction || versionAction.hash_after !== currentState.version_digest) continue;
+      matches.set(
+        initialTaskIntakeKey(currentState.proof),
+        verifiedInitialTaskIntakeResult(currentState.proof, receiptRef, targetRoot),
+      );
     }
-    if (!validation.ok || validation.value?.execution_plan?.operation_kind !== "NATIVE_ADOPTION") continue;
-    const receipt = validation.value;
-    const planFile = readDurableProjectFile(targetRoot, receipt.execution_plan.path, {
-      requiredPrefix: "apply-execution-plans/",
-      label: "initial intake apply plan",
-    });
-    if (!planFile.ok) continue;
-    let plan;
-    try { plan = JSON.parse(planFile.content); } catch { continue; }
-    if (plan.planDigest !== receipt.execution_plan.plan_digest
-      || plan.arguments?.projectEntryOrigin !== "EXISTING_PROJECT"
-      || !normalizeIntent(plan.arguments?.goal)
-      || !/^sha256:[a-f0-9]{64}$/.test(String(plan.arguments?.goalDigest || ""))) continue;
-    const applied = (receipt.actions || []).filter((action) => action.result === "APPLIED");
-    const requestActions = applied.filter((action) => (action.target_paths || [])
-      .some((value) => /^requests\/[A-Za-z0-9._-]+\.md$/.test(String(value))));
-    const queueActions = applied.filter((action) => (action.target_paths || [])
-      .some((value) => /^work-queue\/[A-Za-z0-9._-]+\.md$/.test(String(value))));
-    if (requestActions.length !== 1 || queueActions.length !== 1) continue;
-    const requestPath = requestActions[0].target_paths.find((value) => /^requests\/[A-Za-z0-9._-]+\.md$/.test(String(value)));
-    const queuePath = queueActions[0].target_paths.find((value) => /^work-queue\/[A-Za-z0-9._-]+\.md$/.test(String(value)));
-    const proof = {
-      intent: plan.arguments.goal,
-      intent_digest: plan.arguments.goalDigest,
-      request_path: requestPath,
-      request_digest: requestActions[0].hash_after,
-      queue_path: queuePath,
-      queue_digest: queueActions[0].hash_after,
-    };
-    const requestFile = readDurableProjectFile(targetRoot, requestPath, {
-      requiredPrefix: "requests/",
-      label: "request-bound task request",
-    });
-    const queueFile = readDurableProjectFile(targetRoot, queuePath, {
-      requiredPrefix: "work-queue/",
-      label: "request-bound Work Queue",
-    });
-    if (!requestFile.ok
-      || !queueFile.ok
-      || rawSha256(requestFile.content) !== proof.request_digest
-      || rawSha256(queueFile.content) !== proof.queue_digest) continue;
-    const key = [queuePath, proof.queue_digest, requestPath, proof.request_digest, proof.intent_digest].join("\n");
-    matches.set(key, {
-      state: "VERIFIED",
-      intent: normalizeIntent(proof.intent),
-      intent_digest: proof.intent_digest,
-      request_bound_proof: proof,
-      receipt_ref: receiptRef,
-      receipt_digest: rawSha256(fs.readFileSync(path.join(targetRoot, receiptRef), "utf8")),
-      blockers: [],
-    });
+    if (matches.size === 0) blockers.push("CURRENT_INSTALLATION_RECEIPT_MISSING");
+  } else {
+    for (const receiptRef of receipts) {
+      let validation;
+      try { validation = validateHistoricalVerifiedApplyReceiptFile(targetRoot, receiptRef); } catch { continue; }
+      if (!validation.ok || validation.value?.execution_plan?.operation_kind !== "NATIVE_ADOPTION") continue;
+      const extracted = initialTaskIntakeFromReceipt(targetRoot, receiptRef, validation.value);
+      if (!extracted) continue;
+      matches.set(
+        initialTaskIntakeKey(extracted),
+        verifiedInitialTaskIntakeResult(extracted, receiptRef, targetRoot),
+      );
+    }
   }
   const selected = [...matches.values()];
-  if (selected.length !== 1) blockers.push(selected.length === 0
-    ? "VERIFIED_INITIAL_TASK_INTAKE_MISSING"
-    : "VERIFIED_INITIAL_TASK_INTAKE_AMBIGUOUS");
+  if (selected.length !== 1 && blockers.length === 0) {
+    blockers.push(selected.length === 0
+      ? "VERIFIED_INITIAL_TASK_INTAKE_MISSING"
+      : "VERIFIED_INITIAL_TASK_INTAKE_AMBIGUOUS");
+  }
   const base = selected[0] || {
     state: "BLOCKED",
     intent: "",
@@ -673,6 +655,120 @@ export function resolveVerifiedInitialTaskIntakeProof(options = {}) {
     blockers,
   };
   return { ...base, proof_digest: evidenceDigest(base, []) };
+}
+
+export function createInitialTaskIntakeState(proof = {}) {
+  const base = {
+    state: "REQUEST_BOUND_INITIAL_TASK",
+    intent: normalizeIntent(proof.intent),
+    intent_digest: String(proof.intent_digest || ""),
+    request_path: normalizeProjectRelativePath(proof.request_path),
+    request_digest: String(proof.request_digest || ""),
+    queue_path: normalizeProjectRelativePath(proof.queue_path),
+    queue_digest: String(proof.queue_digest || ""),
+  };
+  return { ...base, intake_digest: evidenceDigest(base, []) };
+}
+
+function initialTaskIntakeFromCurrentVersion(targetRoot) {
+  const versionFile = readDurableProjectFile(targetRoot, ".intentos/version.json", {
+    requiredPrefix: ".intentos/",
+    label: "current IntentOS version record",
+  });
+  if (!versionFile.ok) return { state: "ABSENT", blockers: [] };
+  let version;
+  try { version = JSON.parse(versionFile.content); } catch {
+    return { state: "INVALID", blockers: ["CURRENT_INITIAL_TASK_INTAKE_VERSION_INVALID"] };
+  }
+  if (version.initialTaskIntake == null) return { state: "ABSENT", blockers: [] };
+  const intake = version.initialTaskIntake;
+  const { intake_digest: intakeDigest, ...base } = intake && typeof intake === "object" && !Array.isArray(intake) ? intake : {};
+  const proof = {
+    intent: normalizeIntent(base.intent),
+    intent_digest: String(base.intent_digest || ""),
+    request_path: normalizeProjectRelativePath(base.request_path),
+    request_digest: String(base.request_digest || ""),
+    queue_path: normalizeProjectRelativePath(base.queue_path),
+    queue_digest: String(base.queue_digest || ""),
+  };
+  const request = readDurableProjectFile(targetRoot, proof.request_path, {
+    requiredPrefix: "requests/",
+    label: "request-bound task request",
+  });
+  const queue = readDurableProjectFile(targetRoot, proof.queue_path, {
+    requiredPrefix: "work-queue/",
+    label: "request-bound Work Queue",
+  });
+  const valid = base.state === "REQUEST_BOUND_INITIAL_TASK"
+    && intakeDigest === evidenceDigest(base, [])
+    && /^sha256:[a-f0-9]{64}$/.test(proof.intent_digest)
+    && /^sha256:[a-f0-9]{64}$/.test(proof.request_digest)
+    && /^sha256:[a-f0-9]{64}$/.test(proof.queue_digest)
+    && request.ok
+    && queue.ok
+    && rawSha256(request.content) === proof.request_digest
+    && rawSha256(queue.content) === proof.queue_digest;
+  return valid
+    ? { state: "VERIFIED", proof, version_digest: versionFile.digest, blockers: [] }
+    : { state: "INVALID", blockers: ["CURRENT_INITIAL_TASK_INTAKE_INVALID"] };
+}
+
+function initialTaskIntakeFromReceipt(targetRoot, receiptRef, receipt) {
+  const planFile = readDurableProjectFile(targetRoot, receipt.execution_plan.path, {
+    requiredPrefix: "apply-execution-plans/",
+    label: "initial intake apply plan",
+  });
+  if (!planFile.ok) return null;
+  let plan;
+  try { plan = JSON.parse(planFile.content); } catch { return null; }
+  if (plan.planDigest !== receipt.execution_plan.plan_digest
+    || plan.arguments?.projectEntryOrigin !== "EXISTING_PROJECT"
+    || !normalizeIntent(plan.arguments?.goal)
+    || !/^sha256:[a-f0-9]{64}$/.test(String(plan.arguments?.goalDigest || ""))) return null;
+  const applied = (receipt.actions || []).filter((action) => action.result === "APPLIED");
+  const requestActions = applied.filter((action) => (action.target_paths || [])
+    .some((value) => /^requests\/[A-Za-z0-9._-]+\.md$/.test(String(value))));
+  const queueActions = applied.filter((action) => (action.target_paths || [])
+    .some((value) => /^work-queue\/[A-Za-z0-9._-]+\.md$/.test(String(value))));
+  if (requestActions.length !== 1 || queueActions.length !== 1) return null;
+  const proof = {
+    intent: plan.arguments.goal,
+    intent_digest: plan.arguments.goalDigest,
+    request_path: requestActions[0].target_paths.find((value) => /^requests\/[A-Za-z0-9._-]+\.md$/.test(String(value))),
+    request_digest: requestActions[0].hash_after,
+    queue_path: queueActions[0].target_paths.find((value) => /^work-queue\/[A-Za-z0-9._-]+\.md$/.test(String(value))),
+    queue_digest: queueActions[0].hash_after,
+  };
+  const requestFile = readDurableProjectFile(targetRoot, proof.request_path, {
+    requiredPrefix: "requests/",
+    label: "request-bound task request",
+  });
+  const queueFile = readDurableProjectFile(targetRoot, proof.queue_path, {
+    requiredPrefix: "work-queue/",
+    label: "request-bound Work Queue",
+  });
+  return requestFile.ok
+    && queueFile.ok
+    && rawSha256(requestFile.content) === proof.request_digest
+    && rawSha256(queueFile.content) === proof.queue_digest
+    ? proof
+    : null;
+}
+
+function initialTaskIntakeKey(proof) {
+  return [proof.queue_path, proof.queue_digest, proof.request_path, proof.request_digest, proof.intent_digest].join("\n");
+}
+
+function verifiedInitialTaskIntakeResult(proof, receiptRef, targetRoot) {
+  return {
+    state: "VERIFIED",
+    intent: normalizeIntent(proof.intent),
+    intent_digest: proof.intent_digest,
+    request_bound_proof: proof,
+    receipt_ref: receiptRef,
+    receipt_digest: rawSha256(fs.readFileSync(path.join(targetRoot, receiptRef), "utf8")),
+    blockers: [],
+  };
 }
 
 export function resolveVerifiedInitialTaskIntake(options = {}) {

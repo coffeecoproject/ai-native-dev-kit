@@ -55,15 +55,24 @@ export function isGovernedWorkflowOutputPath(relativePath) {
   return top === ".intentos" || workflowOutputDirectories.has(top);
 }
 
-// A plan-first apply writes its exact execution plan before replay. That
-// protocol artifact is durable evidence, but it is not a project-source
-// mutation and must not invalidate the project facts that the plan binds.
+// Controlled apply keeps its plans, authorities, readiness records, receipts,
+// and rollback material as durable protocol evidence. These paths remain
+// visible in the raw Git worktree, but they are not project-source mutations
+// and must not invalidate the project facts that an apply plan binds.
+export const controlledApplyProtocolArtifactRoots = Object.freeze([
+  "apply-execution-plans",
+  "approval-records",
+  "release-approval-records",
+  "apply-readiness-reports",
+  "apply-receipts",
+  ".intentos/apply-plans",
+  ".intentos/apply-authorities",
+  ".intentos/backups",
+]);
+
 export function isControlledApplyProtocolArtifactPath(relativePath) {
   const normalized = normalizePortablePath(relativePath);
-  return normalized === "apply-execution-plans"
-    || normalized.startsWith("apply-execution-plans/")
-    || normalized === ".intentos/apply-plans"
-    || normalized.startsWith(".intentos/apply-plans/");
+  return controlledApplyProtocolArtifactRoots.some((root) => normalized === root || normalized.startsWith(`${root}/`));
 }
 
 export function isFileEvidenceRef(value) {

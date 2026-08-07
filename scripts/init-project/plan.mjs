@@ -18,7 +18,12 @@ import {
   validateReadinessForInitApplyPlan,
   validateReadinessPlanReview,
 } from "../lib/adoption-apply-chain.mjs";
-import { isGovernedWorkflowOutputPath, projectIdentity } from "../lib/evidence-authority.mjs";
+import {
+  controlledApplyProtocolArtifactRoots,
+  isControlledApplyProtocolArtifactPath,
+  isGovernedWorkflowOutputPath,
+  projectIdentity,
+} from "../lib/evidence-authority.mjs";
 import { createGuidanceFileView } from "../lib/review-context-authority.mjs";
 import {
   createBootstrapTransaction,
@@ -39,7 +44,9 @@ import {
   writeControlledApplyReceipt,
 } from "../lib/controlled-apply-transaction.mjs";
 import {
+  createInitialTaskIntakeState,
   resolveBehavioralAdoptionActivation,
+  resolveVerifiedInitialTaskIntakeProof,
   validateBehavioralActivation,
   verifyProjectLocalBehavioralRoute,
 } from "../lib/behavioral-adoption-activation.mjs";
@@ -137,18 +144,36 @@ function controlledBackupRunRoot(value, label = "backupDir") {
   return relative;
 }
 
-function enrichExecutionActions(actions, targetPath, options, createdAt, receiptPath) {
+function selectedWorkflowAssetsFromBoundActions(actions, operation) {
+  return actions
+    .filter((action) => action.path
+      && !action.dynamicReceipt
+      && action.executionSupported === true
+      && (action.willWrite || action.type === "SKIP_EXISTING")
+      && !isForbiddenControlledApplyAction(action, operation))
+    .map((action) => action.path);
+}
+
+function enrichExecutionActions(actions, targetPath, options, createdAt, receiptPath, operation) {
   const backupRoot = controlledBackupRunRoot(
     options.backupDir || `.intentos/backups/${planRunId(createdAt)}`,
     "plan backup run root",
   );
+  const versionAction = actions.find((action) => action.path === ".intentos/version.json");
   for (const action of actions) {
     action.executionSupported = true;
     if (!action.willWrite) {
       action.sourceHash = action.source ? sha256File(path.join(kitRoot, action.source)) : null;
       action.expectedHashAfter = action.hashBefore;
+      if (options.update
+        && action.type === "SKIP_EXISTING"
+        && action.source
+        && action.sourceHash !== action.hashBefore) {
+        throw new Error(`Controlled update cannot skip source drift for ${action.path}`);
+      }
       continue;
     }
+    if (action === versionAction) continue;
     if (action.source) {
       const sourcePath = resolveUnderRoot(kitRoot, action.source, "plan action source");
       action.sourceHash = sha256File(sourcePath);
@@ -161,19 +186,6 @@ function enrichExecutionActions(actions, targetPath, options, createdAt, receipt
       action.inlineContentBase64 = Buffer.from("").toString("base64");
       action.sourceHash = sha256Content("");
       action.expectedHashAfter = action.sourceHash;
-    } else if (action.path === ".intentos/version.json") {
-      const record = buildVersionRecord(targetPath, options.starter, {
-        update: options.update,
-        baselineConfig: options.baselineConfig,
-        projectEntryOrigin: options.projectEntryOrigin,
-        assetMigrationDepth: options.assetMigrationDepth,
-        workflowAssetsOverride: options.workflowAssetsOverride,
-        actions,
-      }, createdAt);
-      const content = `${JSON.stringify(record, null, 2)}\n`;
-      action.inlineContentBase64 = Buffer.from(content).toString("base64");
-      action.sourceHash = sha256Content(content);
-      action.expectedHashAfter = action.sourceHash;
     } else {
       action.executionSupported = false;
       action.sourceHash = null;
@@ -181,6 +193,28 @@ function enrichExecutionActions(actions, targetPath, options, createdAt, receipt
     }
     if (action.hashBefore) {
       action.backupPath = assertSafeRelativePath(`${backupRoot}/${action.path}`, "plan action backup path");
+    }
+  }
+  boundControlledAdoptionActions(actions, operation);
+  if (versionAction?.willWrite) {
+    const workflowAssetsOverride = options.assetMigrationDepth === "SELECTED_ASSETS"
+      ? selectedWorkflowAssetsFromBoundActions(actions, operation)
+      : options.workflowAssetsOverride;
+    const record = buildVersionRecord(targetPath, options.starter, {
+      update: options.update,
+      baselineConfig: options.baselineConfig,
+      projectEntryOrigin: options.projectEntryOrigin,
+      assetMigrationDepth: options.assetMigrationDepth,
+      initialTaskIntake: options.initialTaskIntake,
+      workflowAssetsOverride,
+      actions,
+    }, createdAt);
+    const content = `${JSON.stringify(record, null, 2)}\n`;
+    versionAction.inlineContentBase64 = Buffer.from(content).toString("base64");
+    versionAction.sourceHash = sha256Content(content);
+    versionAction.expectedHashAfter = versionAction.sourceHash;
+    if (versionAction.hashBefore) {
+      versionAction.backupPath = assertSafeRelativePath(`${backupRoot}/${versionAction.path}`, "plan action backup path");
     }
   }
   actions.push({
@@ -405,14 +439,13 @@ function gitFingerprint(targetPath) {
   }
   const branch = spawnSync("git", ["-C", targetPath, "branch", "--show-current"], { encoding: "utf8" });
   const head = spawnSync("git", ["-C", targetPath, "rev-parse", "HEAD"], { encoding: "utf8" });
+  const protocolPathspecs = controlledApplyProtocolArtifactRoots.flatMap((root) => [
+    `:(exclude)${root}`,
+    `:(exclude)${root}/**`,
+  ]);
   const status = spawnSync("git", [
     "-C", targetPath, "status", "--short", "--untracked-files=all", "--", ".",
-    ":(exclude)apply-execution-plans/**",
-    ":(exclude)approval-records/**",
-    ":(exclude)release-approval-records/**",
-    ":(exclude)apply-readiness-reports/**",
-    ":(exclude)apply-receipts/**",
-    ":(exclude).intentos/backups/**",
+    ...protocolPathspecs,
   ], { encoding: "utf8" });
   const changedFiles = status.stdout.split("\n").map((line) => line.trim()).filter(Boolean);
   return {
@@ -582,13 +615,14 @@ function addBaselineConfigurationPlanActions(actions, targetPath, config, option
 }
 
 function addSelectedBaselineAssetPlanActions(actions, targetPath, config, options = {}) {
+  const overwrite = Boolean(options.update);
   for (const profileId of config.profiles || []) {
     addDirectoryPlanActions(
       actions,
       targetPath,
       path.join(kitRoot, "profiles", profileId),
       `.intentos/profiles/${profileId}`,
-      { overwrite: false, backupDir: options.backupDir, reason: `selected profile baseline: ${profileId}` },
+      { overwrite, backupDir: options.backupDir, reason: `selected profile baseline: ${profileId}` },
     );
   }
 
@@ -602,7 +636,7 @@ function addSelectedBaselineAssetPlanActions(actions, targetPath, config, option
       targetPath,
       path.join(kitRoot, "standard-baseline-packs", entry.path),
       `.intentos/standard-baseline-packs/${entry.path}`,
-      { overwrite: false, backupDir: options.backupDir, reason: `selected standard baseline pack: ${packId}` },
+      { overwrite, backupDir: options.backupDir, reason: `selected standard baseline pack: ${packId}` },
     );
   }
 
@@ -613,7 +647,7 @@ function addSelectedBaselineAssetPlanActions(actions, targetPath, config, option
         targetPath,
         path.join(kitRoot, "standard-baseline-packs", relative),
         `.intentos/standard-baseline-packs/${relative}`,
-        { overwrite: false, backupDir: options.backupDir, reason: "selected standard baseline registry" },
+        { overwrite, backupDir: options.backupDir, reason: "selected standard baseline registry" },
       );
     }
     addDirectoryPlanActions(
@@ -621,7 +655,7 @@ function addSelectedBaselineAssetPlanActions(actions, targetPath, config, option
       targetPath,
       path.join(kitRoot, "standard-baseline-packs", "schema"),
       ".intentos/standard-baseline-packs/schema",
-      { overwrite: false, backupDir: options.backupDir, reason: "selected standard baseline schema" },
+      { overwrite, backupDir: options.backupDir, reason: "selected standard baseline schema" },
     );
   }
 }
@@ -828,7 +862,7 @@ function addFullDistributionPlanActions(actions, targetPath, options) {
 function addSelectedDistributionPlanActions(actions, targetPath, options) {
   for (const asset of selectedNativeOverlayAssets()) {
     addFilePlanAction(actions, targetPath, path.join(kitRoot, asset.source), asset.target, {
-      overwrite: false,
+      overwrite: Boolean(options.update),
       backupDir: options.backupDir,
       reason: `selected native overlay: ${asset.capabilities.join("+")}`,
     });
@@ -915,6 +949,15 @@ function buildPlan(targetPath, options = {}) {
     : operationKind === "CONTROLLED_UPDATE" && installedVersion?.assetMigrationDepth === "SELECTED_ASSETS"
       ? "SELECTED_ASSETS"
       : "FULL_NATIVE";
+  let initialTaskIntake = installedVersion?.initialTaskIntake || null;
+  if (operationKind === "CONTROLLED_UPDATE"
+    && migrationDepth === "SELECTED_ASSETS"
+    && !initialTaskIntake) {
+    const legacyInitialIntake = resolveVerifiedInitialTaskIntakeProof({ targetRoot: targetPath });
+    if (legacyInitialIntake.state === "VERIFIED") {
+      initialTaskIntake = createInitialTaskIntakeState(legacyInitialIntake.request_bound_proof);
+    }
+  }
   const goal = String(options.goal || "").trim();
   const adoptionAssessment = operationKind === "NATIVE_ADOPTION"
     ? buildNativeAdoptionAssessment(targetPath, goal, {
@@ -932,6 +975,7 @@ function buildPlan(targetPath, options = {}) {
     baselineConfig,
     projectEntryOrigin,
     migrationDepth,
+    initialTaskIntake,
     applyAgentGovernance: Boolean(
       options.applyAgentGovernance
       || operationKind === "NATIVE_ADOPTION"
@@ -963,7 +1007,7 @@ function buildPlan(targetPath, options = {}) {
     addBaselineConfigurationPlanActions(actions, targetPath, baselineConfig, options);
     addGovernancePlanActions(actions, targetPath, options.starter, {
       ...options,
-      includePullRequestGovernance: operationKind !== "NATIVE_ADOPTION",
+      includePullRequestGovernance: !selectedExistingOverlay,
       selectedNativeOverlay: selectedExistingOverlay,
     });
     if (!selectedExistingOverlay) {
@@ -977,15 +1021,10 @@ function buildPlan(targetPath, options = {}) {
     ? ".intentos/bootstrap-receipt.json"
     : `apply-receipts/${planRunId(createdAt)}.md`;
   if (executableNativeAdoption) {
-    const workflowAssetsOverride = projectEntryOrigin === "EXISTING_PROJECT" && migrationDepth === "SELECTED_ASSETS"
-      ? actions.map((action) => action.path).filter(Boolean)
-      : null;
     enrichExecutionActions(actions, targetPath, {
       ...options,
-      workflowAssetsOverride,
       assetMigrationDepth: migrationDepth,
-    }, createdAt, receiptPath);
-    boundControlledAdoptionActions(actions, operation);
+    }, createdAt, receiptPath, operation);
   }
   if (operationKind === "NATIVE_ADOPTION") decorateNativeAdoptionActions(actions, adoptionAssessment);
   assignPlanActionIds(actions);
@@ -1425,22 +1464,14 @@ function verifiedPriorApplyOverlap(targetPath, actions, gitState, fileHashes) {
 
 function targetSourceStateDigest(targetPath) {
   if (!fs.existsSync(targetPath)) return sha256Content("TARGET_MISSING");
-  const ignored = [
-    ".git/",
-    "node_modules/",
-    "apply-execution-plans/",
-    "approval-records/",
-    "release-approval-records/",
-    "apply-readiness-reports/",
-    "apply-receipts/",
-    ".intentos/apply-plans/",
-    ".intentos/apply-authorities/",
-    ".intentos/backups/",
-  ];
   const rows = [];
   const ignoreRelative = (relative) => {
     const normalized = relative.replaceAll(path.sep, "/");
-    return ignored.some((prefix) => normalized === prefix.slice(0, -1) || normalized.startsWith(prefix));
+    return normalized === ".git"
+      || normalized.startsWith(".git/")
+      || normalized === "node_modules"
+      || normalized.startsWith("node_modules/")
+      || isControlledApplyProtocolArtifactPath(normalized);
   };
   for (const [relative, digest] of snapshotTargetFiles(targetPath, { ignoreRelative })) {
     const normalized = relative.replaceAll(path.sep, "/");
@@ -1620,6 +1651,22 @@ function attachInitialGoalToPlan(plan, goalProjection, options = {}) {
   ];
   const receiptIndex = plan.actions.findIndex((action) => action.dynamicReceipt);
   plan.actions.splice(receiptIndex < 0 ? plan.actions.length : receiptIndex, 0, ...additions);
+  const versionAction = plan.actions.find((action) => action.path === ".intentos/version.json" && action.willWrite);
+  if (versionAction?.inlineContentBase64) {
+    const version = JSON.parse(Buffer.from(versionAction.inlineContentBase64, "base64").toString("utf8"));
+    version.initialTaskIntake = createInitialTaskIntakeState({
+      intent: goalProjection.original_goal,
+      intent_digest: goalProjection.goal_digest,
+      request_path: requestPath,
+      request_digest: additions[0].expectedHashAfter,
+      queue_path: queuePath,
+      queue_digest: additions[1].expectedHashAfter,
+    });
+    const versionContent = `${JSON.stringify(version, null, 2)}\n`;
+    versionAction.inlineContentBase64 = Buffer.from(versionContent).toString("base64");
+    versionAction.sourceHash = sha256Content(versionContent);
+    versionAction.expectedHashAfter = versionAction.sourceHash;
+  }
   for (const action of plan.actions) delete action.id;
   assignPlanActionIds(plan.actions);
   plan.receiptActionId = plan.actions.find((action) => action.dynamicReceipt)?.id || null;
@@ -1676,6 +1723,8 @@ function bootstrapActionsFromPlan(plan) {
 }
 
 export {
+  addSelectedBaselineAssetPlanActions,
+  addSelectedDistributionPlanActions,
   assignPlanActionIds,
   attachInitialGoalToPlan,
   bootstrapActionsFromPlan,

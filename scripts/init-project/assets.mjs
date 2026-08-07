@@ -1930,6 +1930,10 @@ function buildVersionRecord(targetPath, starter, options = {}, now = new Date().
       ".github/workflows/ai-workflow-checks.yml",
     ] }),
   };
+  const initialTaskIntake = options.initialTaskIntake || existing.initialTaskIntake;
+  if (initialTaskIntake && typeof initialTaskIntake === "object" && !Array.isArray(initialTaskIntake)) {
+    version.initialTaskIntake = structuredClone(initialTaskIntake);
+  }
   version.managedAssetDigests = managedAssetDigestsForVersion(targetPath, version.workflowAssets, existing, options.actions || []);
   return version;
 }
