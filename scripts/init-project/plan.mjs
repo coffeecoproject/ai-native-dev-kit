@@ -61,6 +61,7 @@ import { inspectTargetTopology } from "../lib/target-topology.mjs";
 import {
   nativeAdoptionActionCapability,
   normalizeNativeAdoptionMigrationDepth,
+  resolveNativeAdoptionStage,
   selectedNativeOverlayAssets,
 } from "../lib/native-adoption-overlay.mjs";
 import { runStructuredJsonChildSync } from "../lib/structured-child-process.mjs";
@@ -735,8 +736,8 @@ function blockedNativeAdoptionActions(assessment, migrationDepth) {
     type: "BLOCKED_ADOPTION_DIAGNOSTIC",
     path: null,
     source: null,
-    reason: migrationDepth === "ADAPTER_ONLY"
-      ? "adapter-only diagnosis requested; no target write graph was generated"
+    reason: migrationDepth !== "SELECTED_ASSETS"
+      ? `${migrationDepth.toLowerCase()} stage requested; no target write graph was generated`
       : `native adoption assessment blocked: ${(assessment?.blockers || []).join("; ")}`,
     willWrite: false,
     hashBefore: null,
@@ -749,7 +750,6 @@ function blockedNativeAdoptionActions(assessment, migrationDepth) {
 
 function buildPlan(targetPath, options = {}) {
   if (options.backupDir) resolveBackupRoot(targetPath, controlledBackupRunRoot(options.backupDir));
-  const operation = options.update ? "UPDATE_WORKFLOW_ASSETS" : "INIT_PROJECT";
   const baselineConfig = baselineConfigurationForPlan(targetPath, options);
   const detectedProjectEntryOrigin = fs.existsSync(targetPath)
     && fs.statSync(targetPath).isDirectory()
@@ -762,18 +762,26 @@ function buildPlan(targetPath, options = {}) {
     : fs.existsSync(path.join(targetPath, ".intentos", "version.json"))
       ? "CONTROLLED_UPDATE"
       : "NATIVE_ADOPTION";
+  const operation = operationKind === "CONTROLLED_UPDATE"
+    ? "UPDATE_WORKFLOW_ASSETS"
+    : "INIT_PROJECT";
   const migrationDepth = operationKind === "NATIVE_ADOPTION"
     ? normalizeNativeAdoptionMigrationDepth(options.migrationDepth)
     : "FULL_NATIVE";
   const goal = String(options.goal || "").trim();
   const adoptionAssessment = operationKind === "NATIVE_ADOPTION"
-    ? buildNativeAdoptionAssessment(targetPath, goal, { migrationDepth, baselineConfig })
+    ? buildNativeAdoptionAssessment(targetPath, goal, {
+      migrationDepth,
+      baselineConfig,
+      nativeRuleDecisions: options.nativeRuleDecisions,
+    })
     : null;
   const executableNativeAdoption = operationKind !== "NATIVE_ADOPTION"
-    || (migrationDepth !== "ADAPTER_ONLY"
+    || (migrationDepth === "SELECTED_ASSETS"
       && adoptionAssessment?.assessment_state === "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION");
   options = {
     ...options,
+    update: operationKind === "CONTROLLED_UPDATE",
     baselineConfig,
     projectEntryOrigin,
     migrationDepth,
@@ -861,6 +869,8 @@ function buildPlan(targetPath, options = {}) {
       controlledAdoption: true,
       projectEntryOrigin,
       migrationDepth,
+      nativeRuleDecisions: options.nativeRuleDecisions || "",
+      nativeRuleDecisionDigest: adoptionAssessment?.native_migration?.block_decision_resolution?.artifact_digest || "N/A",
       historicalTaskMigration: operationKind === "NATIVE_ADOPTION" ? "NOT_REQUESTED" : "NOT_APPLICABLE",
       goal,
       goalDigest: goal
@@ -917,6 +927,23 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
         state: "NOT_REQUESTED",
         reason: "Historical task migration is a separate explicit plan and is not part of native adoption.",
       },
+      adoption_stage: {
+        requested_stage: migrationDepth,
+        reconciliation_path: "NOT_EVALUATED",
+        state: "BLOCKED_MISSING_REQUEST",
+        required_stages: ["READ_ONLY_DIAGNOSIS"],
+        completed_stages: [],
+        next_stage: null,
+        selected_assets_eligible: "No",
+        write_graph_allowed: "No",
+        transition_evidence: {
+          scan_state: "NOT_EVALUATED",
+          recommendation: "NOT_EVALUATED",
+          reconciliation_path: "NOT_EVALUATED",
+          can_recommend_apply_plan_now: "No",
+        },
+        blockers: ["The original natural-language adoption request is required."],
+      },
       profile_mapping: profileMapping,
       blockers: ["The original natural-language adoption request is required."],
     };
@@ -926,8 +953,24 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
     };
   }
   const sourceBefore = targetSourceStateDigest(targetPath);
-  const native = runReadOnlyAdoptionResolver("resolve-native-migration.mjs", [targetPath, "--json", "--intent", goal]);
-  const reconciliation = runReadOnlyAdoptionResolver("resolve-existing-rule-reconciliation.mjs", [targetPath, "--json", "--auto-native", "--intent", goal]);
+  const decisionArgs = options.nativeRuleDecisions
+    ? ["--native-rule-decisions", path.resolve(options.nativeRuleDecisions)]
+    : [];
+  const native = runReadOnlyAdoptionResolver("resolve-native-migration.mjs", [
+    targetPath,
+    "--json",
+    "--intent",
+    goal,
+    ...decisionArgs,
+  ]);
+  const reconciliation = runReadOnlyAdoptionResolver("resolve-existing-rule-reconciliation.mjs", [
+    targetPath,
+    "--json",
+    "--auto-native",
+    "--intent",
+    goal,
+    ...decisionArgs,
+  ]);
   const sourceAfter = targetSourceStateDigest(targetPath);
   const nativeDecisions = Array.isArray(native.humanDecisionsNeeded) ? native.humanDecisionsNeeded : [];
   const userTechnicalDecisionRequired = nativeDecisions.some((item) => {
@@ -937,26 +980,48 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
   });
   const coverage = reconciliation.ruleReconciliationCoverage || {};
   const decision = reconciliation.nativeAdoptionDecision || {};
+  const adoptionStage = resolveNativeAdoptionStage({
+    requestedStage: migrationDepth,
+    recommendation: decision.recommendation,
+    reconciliationPath: decision.migrationDepth,
+    canRecommendApplyPlanNow: reconciliation.canRecommendApplyPlanNow,
+    scanState: coverage.scanState,
+  });
+  adoptionStage.transition_evidence_digest = evidenceDigest(adoptionStage.transition_evidence, []);
   const blockers = [];
-  if (profileMapping.state === "TECHNICAL_DISCOVERY_REQUIRED") {
-    blockers.push(profileMapping.reason);
-  }
   if (sourceBefore !== sourceAfter) blockers.push("Read-only adoption assessment changed the target source state.");
-  if (native.outcome !== "NATIVE_MIGRATION_PLAN_RECORDED") blockers.push(`Native Migration outcome is ${native.outcome || "missing"}.`);
-  if (reconciliation.outcome !== "RECONCILIATION_RECORDED") blockers.push(`Rule Reconciliation outcome is ${reconciliation.outcome || "missing"}.`);
-  if (Number(coverage.omittedRules || 0) !== 0 || coverage.blocksSelectedNativeAdoption !== "No") blockers.push("Existing-rule reconciliation is incomplete.");
-  if (decision.recommendation !== "SELECTED_NATIVE_ADOPTION" || reconciliation.canRecommendApplyPlanNow !== "Yes") blockers.push("Selected native adoption is not technically ready.");
-  if ((reconciliation.conflicts || []).length > 0) blockers.push("Rule reconciliation retains unresolved conflicts.");
-  if (userTechnicalDecisionRequired) blockers.push("Native Migration still asks the user for a technical decision.");
+  if (!native.outcome) blockers.push("Native Migration outcome is missing.");
+  if (!reconciliation.outcome) blockers.push("Rule Reconciliation outcome is missing.");
+  if (migrationDepth === "DOCS_BRIDGE") {
+    blockers.push(...adoptionStage.blockers);
+  }
+  if (migrationDepth === "SELECTED_ASSETS") {
+    if (profileMapping.state === "TECHNICAL_DISCOVERY_REQUIRED") {
+      blockers.push(profileMapping.reason);
+    }
+    if (native.outcome !== "NATIVE_MIGRATION_PLAN_RECORDED") blockers.push(`Native Migration outcome is ${native.outcome || "missing"}.`);
+    if (reconciliation.outcome !== "RECONCILIATION_RECORDED") blockers.push(`Rule Reconciliation outcome is ${reconciliation.outcome || "missing"}.`);
+    if (Number(coverage.omittedRules || 0) !== 0 || coverage.blocksSelectedNativeAdoption !== "No") blockers.push("Existing-rule reconciliation is incomplete.");
+    if (decision.recommendation !== "SELECTED_NATIVE_ADOPTION" || reconciliation.canRecommendApplyPlanNow !== "Yes") blockers.push("Selected native adoption is not technically ready.");
+    if ((reconciliation.conflicts || []).length > 0) blockers.push("Rule reconciliation retains unresolved conflicts.");
+    if (userTechnicalDecisionRequired) blockers.push("Native Migration still asks the user for a technical decision.");
+  }
   const goalPaths = initialGoalPaths(projectGoalProjection(goal), { existingAdoption: true });
   const pathCollisions = [goalPaths.requestPath, goalPaths.queuePath]
     .filter((relative) => fs.existsSync(path.join(targetPath, relative)));
-  if (pathCollisions.length > 0) {
+  if (migrationDepth === "SELECTED_ASSETS" && pathCollisions.length > 0) {
     blockers.push(`Current request bridge paths already exist: ${pathCollisions.join(", ")}.`);
   }
+  const assessmentState = blockers.length > 0
+    ? "BLOCKED"
+    : migrationDepth === "READ_ONLY_DIAGNOSIS"
+      ? "READ_ONLY_DIAGNOSIS_COMPLETE"
+      : migrationDepth === "DOCS_BRIDGE"
+        ? adoptionStage.state
+        : "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION";
   const base = {
     schema_version: "1.113.0",
-    assessment_state: blockers.length === 0 ? "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION" : "BLOCKED",
+    assessment_state: assessmentState,
     migration_depth: migrationDepth,
     project_state: native.projectState?.state || "UNKNOWN",
     native_migration: {
@@ -965,6 +1030,14 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
       rule_extraction_coverage: native.ruleExtractionCoverage || [],
       rule_classifications: native.ruleClassifications || [],
       conflicts: native.conflicts || [],
+      block_decision_resolution: {
+        state: native.blockDecisionResolution?.state || "NOT_PROVIDED",
+        artifact_ref: native.blockDecisionResolution?.artifactRef || "N/A",
+        artifact_digest: native.blockDecisionResolution?.artifactDigest || "N/A",
+        decisions_declared: Number(native.blockDecisionResolution?.decisionsDeclared || 0),
+        decisions_applied: Number(native.blockDecisionResolution?.decisionsApplied || 0),
+        errors: native.blockDecisionResolution?.errors || [],
+      },
       user_technical_decision_required: userTechnicalDecisionRequired ? "Yes" : "No",
     },
     rule_reconciliation: {
@@ -992,6 +1065,7 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
     },
     source_state_unchanged: sourceBefore === sourceAfter,
     source_state_digest: sourceAfter,
+    adoption_stage: adoptionStage,
     blockers,
   };
   return { ...base, assessment_digest: evidenceDigest(base, []) };

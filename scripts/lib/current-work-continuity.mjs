@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { isControlledApplyProtocolArtifactPath } from "./evidence-authority.mjs";
 import { spawnSync } from "node:child_process";
 import { evidenceDigest } from "./artifact-schema.mjs";
 
@@ -25,9 +26,9 @@ const readOnlyGitConfig = [
   ["credential.helper", ""],
 ];
 
-export function collectCurrentWorkContinuity(projectRoot) {
+export function collectCurrentWorkContinuity(projectRoot, options = {}) {
   const root = path.resolve(projectRoot);
-  const git = collectGitWork(root);
+  const git = collectGitWork(root, options);
   const queueCandidates = collectQueueCandidates(root);
   const current = queueCandidates.filter((item) => item.state === "CURRENT");
   const state = current.length > 1
@@ -71,7 +72,7 @@ export function currentWorkCheckpoint(continuity) {
   };
 }
 
-function collectGitWork(root) {
+function collectGitWork(root, options = {}) {
   const top = runGit(root, ["rev-parse", "--show-toplevel"]);
   if (!top.ok) return {
     mode: fs.existsSync(path.join(root, ".git")) ? "GIT_UNAVAILABLE" : "NON_GIT",
@@ -89,12 +90,15 @@ function collectGitWork(root) {
     status_digest: digest(`git-error:${head.error}|${status.error}`),
     observation_status: "FAILED",
   };
-  const changed = parsePorcelainZ(status.stdout);
+  const projectedStatus = options.excludeControlledApplyProtocolArtifacts === true
+    ? filterPorcelainZ(status.stdout, (relative) => !isControlledApplyProtocolArtifactPath(relative))
+    : status.stdout;
+  const changed = parsePorcelainZ(projectedStatus);
   return {
     mode: "GIT",
     revision: head.stdout,
     changed_paths: changed,
-    status_digest: digest(status.stdout),
+    status_digest: digest(projectedStatus),
     observation_status: "OBSERVED",
   };
 }
@@ -115,6 +119,26 @@ function parsePorcelainZ(value) {
     }
   }
   return [...new Set(paths)].sort();
+}
+
+function filterPorcelainZ(value, includePath) {
+  const entries = String(value || "").split("\0");
+  const kept = [];
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index];
+    if (!entry) continue;
+    const status = entry.slice(0, 2);
+    const current = normalizePath(entry.slice(3));
+    const renamed = /[RC]/.test(status) && entries[index + 1]
+      ? normalizePath(entries[index + 1])
+      : "";
+    if (current && includePath(current) && (!renamed || includePath(renamed))) {
+      kept.push(entry);
+      if (renamed) kept.push(entries[index + 1]);
+    }
+    if (renamed) index += 1;
+  }
+  return kept.length > 0 ? `${kept.join("\0")}\0` : "";
 }
 
 function collectQueueCandidates(root) {

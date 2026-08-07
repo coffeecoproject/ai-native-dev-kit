@@ -143,6 +143,7 @@
             "type": "string",
             "enum": [
               "ENGINEERING_BASELINE",
+              "HISTORICAL_CONTEXT",
               "RELEASE_PRODUCTION",
               "PRODUCTION_CONTROL",
               "PROTECTED_CONSTRAINT",

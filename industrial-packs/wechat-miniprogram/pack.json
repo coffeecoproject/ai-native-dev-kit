@@ -12,6 +12,7 @@
     "wechat-miniprogram"
   ],
   "compatiblePacks": [
+    "web-app-industrial",
     "backend-api-industrial",
     "internal-admin-industrial",
     "cloudbase-industrial",

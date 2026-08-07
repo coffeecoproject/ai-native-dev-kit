@@ -21,11 +21,12 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/eval.schema.json": "sha256:fb926d3be8f7ad2d3ac2a646bdcf5ca2af26f7cd80461513bf8a860ae2b75416",
   "schemas/artifacts/execution-assurance.schema.json": "sha256:59cd891e633b187e206eb5efb2da3a3cebf9ef1a88b2f886302c5b32e278d05b",
   "schemas/artifacts/existing-project-adoption-autopilot.schema.json": "sha256:a8d535d4a84b0d97ca1f8a73ea0e4a8db9ab80d226a1616e544dfaab235d17af",
-  "schemas/artifacts/existing-rule-reconciliation.schema.json": "sha256:69c58f8c7bd6f70da174f52c20873cd9ef522c581a3b80775e52810c7b65c2c7",
+  "schemas/artifacts/existing-rule-reconciliation.schema.json": "sha256:95d774dca7f10fbcc3b7e81fb8cf5983e773990cf0350d360ba2b26b922965a3",
   "schemas/artifacts/goal-card.schema.json": "sha256:1ff608263461e0c4939c410441537edd0bcaeb0841857e6234dcd4963f55d4dd",
   "schemas/artifacts/governance-convergence.schema.json": "sha256:1dc688406b62b4bcf7882e5bd9df0a2f868b648ed4dde39e88a303cad69765a8",
   "schemas/artifacts/low-risk-apply-candidate.schema.json": "sha256:6c6f64f687995bad99311732bceed926d2810b19f868fb9c4b0f8b53f5562b9f",
-  "schemas/artifacts/native-migration-plan.schema.json": "sha256:16848409604cb6c2b8e0b53bb2e5c8332c2b73e1d18881216b99e613487fb6ac",
+  "schemas/artifacts/native-migration-plan.schema.json": "sha256:70b07f4424c4aa493f5624433a0853a50fbf061383186eb3954aebc331d6de03",
+  "schemas/artifacts/native-rule-block-decisions.schema.json": "sha256:46f04fb67d3c9c762ad66fde5421062ad1a4624ed986859439a953b5a60d54a2",
   "schemas/artifacts/plan-review.schema.json": "sha256:73037a216c73366b594f56bfe3f75644eb26effda716d8433b809e2e39e3734b",
   "schemas/artifacts/planning-closure.schema.json": "sha256:53a478864361c471318de9232475ed49dfb2cbea4ce65e74965e25e232536d1c",
   "schemas/artifacts/preflight.schema.json": "sha256:d0c928569a2d8c6a4776df78307b310a4c7420e56b5bb89964367f69a251f353",
@@ -123,6 +124,29 @@ export function validateSchema(value, schema, options = {}) {
   };
 }
 
+export function validateVersionedArtifact(value, schema, options = {}) {
+  const label = options.label || "$";
+  if (!schema || typeof schema !== "object") {
+    return {
+      ok: false,
+      errors: [`${label} schema is unavailable or untrusted`],
+      currentVersion: "",
+    };
+  }
+  const validation = validateSchema(value, schema, { label });
+  const errors = validation.errors.slice();
+  const currentVersion = String(schema.schemaVersion || "");
+  if (!currentVersion) errors.push(`${label} schema does not declare schemaVersion`);
+  if (options.requireCurrent === true && value?.schema_version !== currentVersion) {
+    errors.push(`${label}.schema_version must be current ${currentVersion || "<missing>"}`);
+  }
+  return {
+    ok: errors.length === 0,
+    errors,
+    currentVersion,
+  };
+}
+
 export function canonicalJson(value) {
   return JSON.stringify(sortForCanonicalJson(value));
 }
@@ -214,6 +238,7 @@ const supportedSchemaKeywords = new Set([
   "if",
   "then",
   "else",
+  "not",
 ]);
 
 function validateValue(value, schema, label, errors, rootSchema = schema, seenRefs = new Set()) {
@@ -252,6 +277,12 @@ function validateValue(value, schema, label, errors, rootSchema = schema, seenRe
     } else if (conditionErrors.length > 0 && schema.else && typeof schema.else === "object") {
       validateValue(value, schema.else, `${label}.else`, errors, rootSchema, seenRefs);
     }
+  }
+
+  if (schema.not && typeof schema.not === "object") {
+    const forbiddenErrors = [];
+    validateValue(value, schema.not, `${label}.not`, forbiddenErrors, rootSchema, seenRefs);
+    if (forbiddenErrors.length === 0) errors.push(`${label} must not match the forbidden schema`);
   }
 
   if (schema.type && !matchesType(value, schema.type)) {

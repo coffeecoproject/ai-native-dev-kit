@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { isControlledApplyProtocolArtifactPath } from "./evidence-authority.mjs";
 
 const READ_ONLY_GIT_CONFIG = [
   ["core.fsmonitor", "false"],
@@ -18,7 +19,7 @@ const READ_ONLY_GIT_CONFIG = [
   ["credential.interactive", "false"],
 ];
 
-export function gitWorktreeState(root) {
+export function gitWorktreeState(root, options = {}) {
   const inside = spawnReadOnlyGit(root, ["rev-parse", "--is-inside-work-tree"], {
     encoding: "utf8",
   });
@@ -42,7 +43,12 @@ export function gitWorktreeState(root) {
   const status = spawnReadOnlyGit(root, ["status", "--porcelain", "--untracked-files=all", "--", "."], {
     encoding: "utf8",
   });
-  const changedPaths = status.status === 0 ? worktreeChangedPaths(root) : [];
+  const observedChangedPaths = status.status === 0 ? worktreeChangedPaths(root) : [];
+  const ignoredChangedPaths = options.excludeControlledApplyProtocolArtifacts === true
+    ? observedChangedPaths.filter(isControlledApplyProtocolArtifactPath)
+    : [];
+  const ignoredSet = new Set(ignoredChangedPaths);
+  const changedPaths = observedChangedPaths.filter((relative) => !ignoredSet.has(relative));
 
   if (status.status !== 0) {
     return {
@@ -66,6 +72,7 @@ export function gitWorktreeState(root) {
     changedFileCount: changedPaths.length,
     changedFilesSample: changedPaths.slice(0, 12),
     changedPaths,
+    ignoredChangedPaths,
     changedFilesDigest: worktreeDigest(root),
   };
 }

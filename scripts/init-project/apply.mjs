@@ -179,6 +179,7 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     assertPlanEligibleForControlledRecovery(plan);
     const currentAssessment = buildNativeAdoptionAssessment(plan.targetRoot, goal, {
       migrationDepth: plan.arguments?.migrationDepth,
+      nativeRuleDecisions: plan.arguments?.nativeRuleDecisions || "",
       baselineConfig: {
         profiles: plan.arguments?.profiles,
         baselineLevel: plan.arguments?.baselineLevel,
@@ -277,7 +278,7 @@ function validatePlanForApply(plan, backupDirOverride = null) {
 
 function assertPlanEligibleForControlledRecovery(plan) {
   if (plan?.operationKind === "NATIVE_ADOPTION"
-    && (plan.executionState !== "EXECUTABLE" || plan.arguments?.migrationDepth === "ADAPTER_ONLY")) {
+    && (plan.executionState !== "EXECUTABLE" || plan.arguments?.migrationDepth !== "SELECTED_ASSETS")) {
     throw new Error("Native-adoption diagnostic plan cannot be applied");
   }
 }
@@ -296,6 +297,7 @@ function validateCanonicalApplyPlan(plan) {
     backupDir: plan.arguments.backupDir || "",
     goal: plan.arguments.goal || "",
     migrationDepth: plan.arguments.migrationDepth,
+    nativeRuleDecisions: plan.arguments.nativeRuleDecisions || "",
     projectEntryOrigin: plan.arguments.projectEntryOrigin,
     createdAt: plan.createdAt,
   });
@@ -792,6 +794,9 @@ function requestBoundInitialQueueFromPlan(plan) {
 }
 
 function writePendingControlledApplyActivation(plan, context, results, transaction = null) {
+  if (!transaction?.record?.transaction_id) {
+    throw new Error("Pending controlled-apply activation requires a live transaction identity");
+  }
   const capability = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
   const appliedActions = plan.actions
@@ -805,6 +810,8 @@ function writePendingControlledApplyActivation(plan, context, results, transacti
   const base = {
     schema_version: "1.113.0",
     artifact_type: "pending_controlled_apply_activation",
+    activation_contract: "TRANSACTION_BOUND_V2",
+    transaction_id: transaction.record.transaction_id,
     operation: plan.operation,
     operation_kind: plan.operationKind,
     canonical_root: fs.realpathSync(plan.targetRoot),
@@ -832,18 +839,14 @@ function writePendingControlledApplyActivation(plan, context, results, transacti
     },
   };
   const record = { ...base, record_digest: evidenceDigest(base, []) };
-  const receiptPath = assertSafeWritePath(plan.targetRoot, plan.receiptPath, "pending controlled update activation");
   const content = `${JSON.stringify(record, null, 2)}\n`;
-  if (transaction) writeControlledApplyReceipt(transaction, content, "pending-activation");
-  else {
-    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
-    atomicWriteFile(receiptPath, content);
-  }
+  writeControlledApplyReceipt(transaction, content, "pending-activation");
   return {
     environment: {
       INTENTOS_CONTROLLED_APPLY_ACTIVATION_RECEIPT: plan.receiptPath,
       INTENTOS_CONTROLLED_APPLY_ACTIVATION_CAPABILITY: capability,
       INTENTOS_CONTROLLED_APPLY_ACTIVATION_RECORD_DIGEST: record.record_digest,
+      INTENTOS_CONTROLLED_APPLY_ACTIVATION_TRANSACTION: record.transaction_id,
     },
   };
 }

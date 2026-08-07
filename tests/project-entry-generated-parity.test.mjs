@@ -690,6 +690,7 @@ test("an existing project enters IntentOS behavior in a fresh project-local sess
     "--target", target,
     "--update-workflow-assets",
     "--goal", "continue this existing product under IntentOS without changing its business behavior",
+    "--migration-depth", "SELECTED_ASSETS",
     "--write-plan", "apply-execution-plans/existing-adoption.json",
   ], {
     cwd: target,
@@ -700,6 +701,7 @@ test("an existing project enters IntentOS behavior in a fresh project-local sess
   assert.equal(planned.status, 0, combined(planned));
   const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
   assert.equal(plan.arguments.projectEntryOrigin, "EXISTING_PROJECT");
+  assert.equal(plan.operation, "INIT_PROJECT");
   assert.equal(plan.operationKind, "NATIVE_ADOPTION");
   assert.equal(plan.arguments.applyAgentGovernance, true);
   assert.deepEqual(validateRequestBoundLocalActionGraph(plan), [], "native adoption advertised an action graph that request-bound apply would reject");
@@ -740,22 +742,15 @@ test("an existing project enters IntentOS behavior in a fresh project-local sess
   });
   assert.notEqual(exactWrongChain.status, "VERIFIED", "an unrelated valid receipt satisfied the explicitly bound wrong chain");
 
-  const nextSession = runProject(target, "scripts/cli.mjs", [
-    "work",
-    target,
-    "--intent", "continue this existing product under IntentOS without changing its business behavior",
-    "--json",
-  ]);
+  const nextSession = runProject(target, "scripts/workflow-next.mjs", [target, "--json"]);
   assert.equal(nextSession.status, 0, combined(nextSession));
   const result = JSON.parse(nextSession.stdout);
-  assert.equal(result.projectEntry?.state, "EXISTING_PROJECT_ENTRY", nextSession.stdout);
-  assert.equal(result.projectIdentityProjection?.intentosPosture?.operatingMode, "ACTIVE", nextSession.stdout);
-  assert.equal(result.operatingLoop?.operation, "CONTINUE_TASK", nextSession.stdout);
-  assert.equal(result.operatingDecision?.actionCode, "INSPECT_TASK_RISK", nextSession.stdout);
-  assert.equal(result.operatingDecision?.reasonCode, "TASK_IMPACT_UNRESOLVED", nextSession.stdout);
-  assert.equal(fs.existsSync(path.join(target, "requests", "001-intentos-adoption-goal.md")), true);
-  assert.equal(fs.existsSync(path.join(target, "work-queue", "001-intentos-adoption-goal.md")), true);
-  assert.equal(result.decisionResponsibility?.technicalDecisionRequiredFromUser, "No", nextSession.stdout);
+  assert.equal(result.operationalProfile, "SELECTED_EXISTING_PROJECT", nextSession.stdout);
+  assert.equal(result.intentosOperatingMode, "ACTIVE", nextSession.stdout);
+  assert.equal(result.projectAssetMigrationDepth, "SELECTED_ASSETS", nextSession.stdout);
+  assert.equal(result.nextAction, "READY_FOR_TASK_EXECUTION", nextSession.stdout);
+  assert.equal(fs.existsSync(path.join(target, plan.adoptionAssessment.current_task_bridge.request_path)), true);
+  assert.equal(fs.existsSync(path.join(target, plan.adoptionAssessment.current_task_bridge.queue_path)), true);
   assert.equal(fileDigest(path.join(target, "src", "business.js")), businessDigestBefore, "fresh IntentOS session changed existing business code");
 });
 
@@ -773,6 +768,9 @@ test("an existing-project plan expires when any project source changes outside i
     "--target", target,
     "--update-workflow-assets",
     "--goal", "adopt this existing project without changing business behavior",
+    "--migration-depth", "SELECTED_ASSETS",
+    "--profiles", "backend-api",
+    "--baseline-level", "BL1_STANDARD",
     "--write-plan", "apply-execution-plans/stale-adoption.json",
   ], {
     cwd: target,
@@ -871,6 +869,9 @@ test("recovery of a verified older plan cannot satisfy a different current apply
     "--target", target,
     "--update-workflow-assets",
     "--goal", "prepare a different controlled workflow update",
+    "--migration-depth", "SELECTED_ASSETS",
+    "--profiles", "backend-api",
+    "--baseline-level", "BL1_STANDARD",
     "--write-plan", "apply-execution-plans/different-plan.json",
   ], {
     cwd: target,

@@ -106,3 +106,33 @@ test("BL2 resolves platform and risk-overlay profiles with separate compatible c
   assert.deepEqual(config.industrialPacks, ["high-risk-change-industrial", "web-app-industrial"]);
   assert.equal(config.industrialPackCompatibility.status, "COMPATIBLE");
 });
+
+test("BL2 resolves the documented Pawcode multi-surface pack combination", (t) => {
+  const selectedProfiles = [
+    "backend-api",
+    "high-risk-change",
+    "internal-admin",
+    "web-app",
+    "wechat-miniprogram",
+  ];
+  const selectedPacks = [
+    "backend-api-industrial",
+    "high-risk-change-industrial",
+    "internal-admin-industrial",
+    "web-app-industrial",
+    "wechat-miniprogram-industrial",
+  ];
+  const config = resolveBaselineConfiguration(kitRoot, {
+    starter: "generic-project",
+    projectRoot: projectFixture(t),
+    existingProject: false,
+    profiles: selectedProfiles.join(","),
+    baselineLevel: "BL2_INDUSTRIAL",
+    industrialPacks: selectedPacks.join(","),
+  });
+
+  assert.deepEqual(config.profiles, selectedProfiles);
+  assert.deepEqual(config.industrialPacks, selectedPacks);
+  assert.equal(config.industrialPackCompatibility.status, "COMPATIBLE");
+  assert.deepEqual(config.industrialPackCompatibility.incompatiblePairs, []);
+});

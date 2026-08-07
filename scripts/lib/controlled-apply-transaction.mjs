@@ -246,6 +246,181 @@ export function beginControlledApplyJournal(options = {}) {
   }
 }
 
+export function inspectControlledApplyActivationOwnership(targetRoot, options = {}) {
+  try {
+    return inspectControlledApplyActivationOwnershipBounded(targetRoot, options);
+  } catch (error) {
+    return activationOwnershipFailure([error.message]);
+  }
+}
+
+function inspectControlledApplyActivationOwnershipBounded(targetRoot, options = {}) {
+  const errors = [];
+  let root;
+  try {
+    root = canonicalTargetRoot(targetRoot);
+  } catch (error) {
+    return activationOwnershipFailure([error.message]);
+  }
+
+  const transactionId = String(options.transactionId || "");
+  const ownerPid = Number(options.ownerPid);
+  const planDigest = String(options.planDigest || "");
+  let receiptPath = "";
+  let pendingReceiptDigest = "";
+  let expectedActions = [];
+  let supportActionPaths = [];
+  try {
+    if (!/^apply-[A-Za-z0-9._-]+$/.test(transactionId)) {
+      throw new Error("controlled apply activation transaction id is invalid");
+    }
+    if (!Number.isInteger(ownerPid) || ownerPid < 1) {
+      throw new Error("controlled apply activation owner PID is invalid");
+    }
+    requiredDigest(planDigest, "controlled apply activation plan digest");
+    receiptPath = assertSafeRelativePath(String(options.receiptPath || ""), "controlled apply activation receipt path");
+    pendingReceiptDigest = requiredDigest(
+      options.pendingReceiptDigest,
+      "controlled apply activation pending receipt digest",
+    );
+    expectedActions = (options.expectedActions || []).map(normalizeAction);
+    supportActionPaths = (options.supportActionPaths || []).map((value) => (
+      assertSafeRelativePath(String(value || ""), "controlled apply activation support action path")
+    ));
+  } catch (error) {
+    return activationOwnershipFailure([error.message]);
+  }
+
+  if (new Set(expectedActions.map((action) => action.id)).size !== expectedActions.length) {
+    errors.push("controlled apply activation expected action ids are not unique");
+  }
+  const expectedPaths = expectedActions.map((action) => action.path);
+  const allExpectedPaths = [...expectedPaths, ...supportActionPaths];
+  if (new Set(allExpectedPaths).size !== allExpectedPaths.length) {
+    errors.push("controlled apply activation expected target paths are not unique");
+  }
+  if (supportActionPaths.some(isReservedTransactionPath)) {
+    errors.push("controlled apply activation support action uses a reserved transaction path");
+  }
+  if (errors.length > 0) return activationOwnershipFailure(errors);
+
+  const lockFile = targetLockPath(root);
+  const lock = readLock(lockFile);
+  const lockValidation = validateTargetLock(lock, root, {
+    transactionId,
+    planDigest,
+    binding: options.expectedRecoveryBinding,
+  });
+  errors.push(...lockValidation.errors);
+
+  const file = journalPath(root, transactionId);
+  const journal = readJournal(file);
+  if (!journal) {
+    errors.push("controlled apply activation journal is unavailable or invalid");
+  } else {
+    const journalValidation = validateJournal(journal, root, {
+      binding: options.expectedRecoveryBinding,
+      lock,
+    });
+    errors.push(...journalValidation.errors);
+  }
+  if (errors.length > 0) return activationOwnershipFailure(errors);
+
+  if (lock.owner_pid !== ownerPid || journal.owner_pid !== ownerPid) {
+    errors.push("controlled apply activation owner does not match the live lock and journal");
+  }
+  if (!processAlive(ownerPid)) errors.push("controlled apply activation owner process is no longer active");
+  if (journal.transaction_id !== transactionId || lock.transaction_id !== transactionId) {
+    errors.push("controlled apply activation transaction does not match the live lock and journal");
+  }
+  if (journal.plan_digest !== planDigest || lock.plan_digest !== planDigest) {
+    errors.push("controlled apply activation plan does not match the live lock and journal");
+  }
+  if (journal.receipt_path !== receiptPath) {
+    errors.push("controlled apply activation receipt does not match the live journal");
+  }
+  if (journal.state !== "RECEIPT_WRITE_IN_PROGRESS") {
+    errors.push("controlled apply activation journal is not in the activation receipt phase");
+  }
+
+  const journalExpected = journal.expected_actions || [];
+  const expectedCount = supportActionPaths.length + expectedActions.length;
+  if (journalExpected.length !== expectedCount) {
+    errors.push("controlled apply activation journal contains an unexpected action count");
+  } else {
+    const supportEntries = journalExpected.slice(0, supportActionPaths.length);
+    const planEntries = journalExpected.slice(supportActionPaths.length);
+    for (let index = 0; index < supportActionPaths.length; index += 1) {
+      const entry = supportEntries[index];
+      const supportPath = supportActionPaths[index];
+      const supportDigest = fileDigest(assertSafeWritePath(root, supportPath, "controlled apply activation support action"));
+      if (entry?.path !== supportPath
+        || entry?.hash_before !== null
+        || entry?.backup_path !== null
+        || entry?.receipt_required !== false
+        || entry?.expected_hash_after !== supportDigest) {
+        errors.push(`controlled apply activation support action is not exact: ${supportPath}`);
+      }
+    }
+    for (let index = 0; index < expectedActions.length; index += 1) {
+      if (JSON.stringify(planEntries[index]) !== JSON.stringify(expectedActions[index])) {
+        errors.push(`controlled apply activation plan action graph differs at position ${index + 1}`);
+      }
+    }
+  }
+
+  for (const action of journal.action_journal || []) {
+    if (action.state !== "APPLIED") {
+      errors.push(`controlled apply activation action is not applied: ${action.id}`);
+    }
+    const target = assertSafeWritePath(root, action.path, `controlled apply activation action ${action.id}`);
+    if (fileDigest(target) !== action.expected_hash_after) {
+      errors.push(`controlled apply activation action target changed: ${action.id}`);
+    }
+    if (pathEntryExists(assertSafeWritePath(root, action.transaction_temp_path, `controlled apply activation action ${action.id} temp`))) {
+      errors.push(`controlled apply activation action temp still exists: ${action.id}`);
+    }
+  }
+
+  const pendingPhases = (journal.receipt_journal || []).filter((entry) => entry.phase === "pending-activation");
+  if ((journal.receipt_journal || []).length !== 1
+    || pendingPhases.length !== 1
+    || pendingPhases[0].state !== "APPLIED"
+    || pendingPhases[0].expected_hash_after !== pendingReceiptDigest
+    || pendingPhases[0].observed_hash_after !== pendingReceiptDigest) {
+    errors.push("controlled apply activation pending receipt is not the exact applied journal phase");
+  }
+  const receipt = assertSafeWritePath(root, receiptPath, "controlled apply activation pending receipt");
+  if (fileDigest(receipt) !== pendingReceiptDigest) {
+    errors.push("controlled apply activation pending receipt changed after journaled write");
+  }
+  for (const entry of journal.receipt_journal || []) {
+    const temporary = assertSafeWritePath(root, entry.transaction_temp_path, `controlled apply activation receipt ${entry.phase} temp`);
+    if (pathEntryExists(temporary)) errors.push(`controlled apply activation receipt temp still exists: ${entry.phase}`);
+  }
+  if (pathEntryExists(path.join(root, ...RECOVERY_CLAIM_RELATIVE_PATH.split("/")))) {
+    errors.push("controlled apply recovery claim may not be authorized during activation");
+  }
+
+  const backups = validateOwnedBackups(journal, root);
+  errors.push(...backups.errors);
+  errors.push(...validateActivationBackupInventory(journal, root));
+  if (errors.length > 0) return activationOwnershipFailure(errors);
+
+  const transactionOwnedPaths = [
+    TARGET_LOCK_RELATIVE_PATH,
+    path.relative(root, file).replaceAll(path.sep, "/"),
+    ...(journal.action_journal || []).map((action) => action.backup_path).filter(Boolean),
+  ];
+  return {
+    ok: true,
+    state: "CONTROLLED_APPLY_ACTIVATION_OWNERSHIP_VERIFIED",
+    transactionId,
+    transactionOwnedPaths: [...new Set(transactionOwnedPaths)].sort(),
+    errors: [],
+  };
+}
+
 export function prepareControlledApplyAction(handle, action) {
   assertTransactionLock(handle);
   const entry = normalizeAction(action);
@@ -1021,6 +1196,50 @@ function validateOwnedBackups(journal, root) {
     if (!validation.ok) errors.push(`${action.id}: ${validation.error}`);
   }
   return { ok: errors.length === 0, errors };
+}
+
+function validateActivationBackupInventory(journal, root) {
+  const backupRootValidation = validateBackupRoot(journal, root);
+  if (!backupRootValidation.ok) return backupRootValidation.errors;
+  if (!journal.backup_run_root) return [];
+  const backupRoot = assertSafeWritePath(root, journal.backup_run_root, "controlled apply activation backup inventory");
+  const expected = new Set((journal.action_journal || [])
+    .map((action) => action.backup_path)
+    .filter(Boolean));
+  const observed = [];
+  const errors = [];
+  const walk = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const full = path.join(directory, entry.name);
+      const relative = path.relative(root, full).replaceAll(path.sep, "/");
+      if (entry.isSymbolicLink()) {
+        errors.push(`controlled apply activation backup inventory contains a symlink: ${relative}`);
+      } else if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.isFile()) {
+        observed.push(relative);
+      } else {
+        errors.push(`controlled apply activation backup inventory contains a non-file entry: ${relative}`);
+      }
+    }
+  };
+  walk(backupRoot);
+  const observedSet = new Set(observed);
+  const extra = observed.filter((relative) => !expected.has(relative));
+  const missing = [...expected].filter((relative) => !observedSet.has(relative));
+  if (extra.length > 0) errors.push(`controlled apply activation backup inventory has unowned paths: ${extra.join(", ")}`);
+  if (missing.length > 0) errors.push(`controlled apply activation backup inventory is missing paths: ${missing.join(", ")}`);
+  return errors;
+}
+
+function activationOwnershipFailure(errors) {
+  return {
+    ok: false,
+    state: "CONTROLLED_APPLY_ACTIVATION_OWNERSHIP_INVALID",
+    transactionId: "",
+    transactionOwnedPaths: [],
+    errors: [...new Set((errors || []).map(String).filter(Boolean))],
+  };
 }
 
 function validateExactBackup(root, entry) {

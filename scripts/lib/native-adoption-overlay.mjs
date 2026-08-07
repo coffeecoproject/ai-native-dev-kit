@@ -2,10 +2,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { kitRoot, loadManifest, normalizePath, sortedUnique } from "./manifest.mjs";
 
-export const nativeAdoptionMigrationDepths = Object.freeze([
-  "ADAPTER_ONLY",
+export const nativeAdoptionStages = Object.freeze([
+  "READ_ONLY_DIAGNOSIS",
+  "DOCS_BRIDGE",
   "SELECTED_ASSETS",
 ]);
+
+// Retain the old export name for callers that still describe this value as a
+// migration depth. New code should treat it as an adoption stage.
+export const nativeAdoptionMigrationDepths = nativeAdoptionStages;
+
+const legacyNativeAdoptionStageAliases = Object.freeze({
+  ADAPTER_ONLY: "READ_ONLY_DIAGNOSIS",
+});
 
 export const selectedNativeOperationalProfile = "SELECTED_EXISTING_PROJECT";
 
@@ -147,12 +156,96 @@ export function isTrustedSelectedAgentCreateAction(action, plan) {
   return proposed === `${selectedAgentGovernanceAppendix().trim()}\n`;
 }
 
-export function normalizeNativeAdoptionMigrationDepth(value, fallback = "SELECTED_ASSETS") {
-  const normalized = String(value || fallback).trim().toUpperCase();
-  if (!nativeAdoptionMigrationDepths.includes(normalized)) {
-    throw new Error(`Native adoption migration depth must be one of: ${nativeAdoptionMigrationDepths.join(", ")}`);
+export function normalizeNativeAdoptionMigrationDepth(value, fallback = "READ_ONLY_DIAGNOSIS") {
+  const requested = String(value || fallback).trim().toUpperCase();
+  const normalized = legacyNativeAdoptionStageAliases[requested] || requested;
+  if (!nativeAdoptionStages.includes(normalized)) {
+    throw new Error(`Native adoption stage must be one of: ${nativeAdoptionStages.join(", ")}`);
   }
   return normalized;
+}
+
+export function resolveNativeAdoptionStage(input = {}) {
+  const requestedStage = normalizeNativeAdoptionMigrationDepth(input.requestedStage);
+  const reconciliationPath = String(input.reconciliationPath || "READ_ONLY_DIAGNOSIS").trim().toUpperCase();
+  const scanState = String(input.scanState || "UNKNOWN");
+  const scanComplete = ["COMPLETE_NO_ACTIONABLE_RULES", "COMPLETE_ACTIONABLE_RULES"].includes(scanState);
+  const requiredStages = reconciliationPath === "SELECTED_ASSETS"
+    ? ["READ_ONLY_DIAGNOSIS", "SELECTED_ASSETS"]
+    : reconciliationPath === "DOCS_BRIDGE_THEN_SELECTED_ASSETS"
+      ? ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE", "SELECTED_ASSETS"]
+      : reconciliationPath === "DOCS_BRIDGE"
+        ? ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE"]
+        : ["READ_ONLY_DIAGNOSIS"];
+  const transitionEvidence = {
+    scan_state: scanState,
+    recommendation: String(input.recommendation || "UNKNOWN"),
+    reconciliation_path: reconciliationPath,
+    can_recommend_apply_plan_now: String(input.canRecommendApplyPlanNow || "No"),
+  };
+  const selectedAssetsEligible = scanComplete
+    && input.recommendation === "SELECTED_NATIVE_ADOPTION"
+    && input.canRecommendApplyPlanNow === "Yes"
+    && ["SELECTED_ASSETS", "DOCS_BRIDGE_THEN_SELECTED_ASSETS"].includes(reconciliationPath);
+  const blockers = [];
+
+  if (requestedStage === "READ_ONLY_DIAGNOSIS") {
+    return {
+      requested_stage: requestedStage,
+      reconciliation_path: reconciliationPath,
+      state: "READ_ONLY_DIAGNOSIS_COMPLETE",
+      required_stages: requiredStages,
+      completed_stages: ["READ_ONLY_DIAGNOSIS"],
+      next_stage: scanComplete
+        ? reconciliationPath === "SELECTED_ASSETS" ? "SELECTED_ASSETS" : "DOCS_BRIDGE"
+        : null,
+      selected_assets_eligible: selectedAssetsEligible ? "Yes" : "No",
+      write_graph_allowed: "No",
+      transition_evidence: transitionEvidence,
+      blockers: scanComplete ? [] : ["Complete the bounded existing-rule scan before advancing adoption."],
+    };
+  }
+
+  if (!scanComplete) blockers.push("Existing-rule scan is not complete.");
+  if (requestedStage === "DOCS_BRIDGE") {
+    if (!["DOCS_BRIDGE", "DOCS_BRIDGE_THEN_SELECTED_ASSETS", "SELECTED_ASSETS"].includes(reconciliationPath)) {
+      blockers.push(`Reconciliation path ${reconciliationPath} does not permit a docs bridge.`);
+    }
+    return {
+      requested_stage: requestedStage,
+      reconciliation_path: reconciliationPath,
+      state: blockers.length > 0
+        ? "DOCS_BRIDGE_BLOCKED"
+        : selectedAssetsEligible ? "READY_FOR_SELECTED_ASSETS" : "DOCS_BRIDGE_REVIEW_REQUIRED",
+      required_stages: requiredStages,
+      completed_stages: scanComplete
+        ? ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE"]
+        : ["READ_ONLY_DIAGNOSIS"],
+      next_stage: blockers.length === 0 && selectedAssetsEligible ? "SELECTED_ASSETS" : null,
+      selected_assets_eligible: selectedAssetsEligible ? "Yes" : "No",
+      write_graph_allowed: "No",
+      transition_evidence: transitionEvidence,
+      blockers,
+    };
+  }
+
+  if (!selectedAssetsEligible) {
+    blockers.push("Current reconciliation does not authorize selected-assets planning.");
+  }
+  return {
+    requested_stage: requestedStage,
+    reconciliation_path: reconciliationPath,
+    state: blockers.length === 0 ? "SELECTED_ASSETS_READY" : "SELECTED_ASSETS_BLOCKED",
+    required_stages: requiredStages,
+    completed_stages: blockers.length === 0
+      ? requiredStages.filter((stage) => stage !== "SELECTED_ASSETS")
+      : ["READ_ONLY_DIAGNOSIS"],
+    next_stage: null,
+    selected_assets_eligible: selectedAssetsEligible ? "Yes" : "No",
+    write_graph_allowed: blockers.length === 0 ? "Yes" : "No",
+    transition_evidence: transitionEvidence,
+    blockers,
+  };
 }
 
 export function nativeAdoptionOperationalPolicy(version) {

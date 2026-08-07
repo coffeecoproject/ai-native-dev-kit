@@ -2021,6 +2021,7 @@
       "schemas/artifacts/launch-review-view.schema.json",
       "schemas/artifacts/low-risk-apply-candidate.schema.json",
       "schemas/artifacts/native-migration-plan.schema.json",
+      "schemas/artifacts/native-rule-block-decisions.schema.json",
       "schemas/artifacts/plan-review.schema.json",
       "schemas/artifacts/planning-closure.schema.json",
       "schemas/artifacts/preflight.schema.json",
@@ -2185,6 +2186,8 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
@@ -3592,6 +3595,7 @@
       ".intentos/schemas/artifacts/launch-review-view.schema.json",
       ".intentos/schemas/artifacts/low-risk-apply-candidate.schema.json",
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
+      ".intentos/schemas/artifacts/native-rule-block-decisions.schema.json",
       ".intentos/schemas/artifacts/plan-review.schema.json",
       ".intentos/schemas/artifacts/planning-closure.schema.json",
       ".intentos/schemas/artifacts/preflight.schema.json",
@@ -3915,6 +3919,8 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
@@ -4429,6 +4435,7 @@
       ".intentos/schemas/artifacts/launch-review-view.schema.json",
       ".intentos/schemas/artifacts/low-risk-apply-candidate.schema.json",
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
+      ".intentos/schemas/artifacts/native-rule-block-decisions.schema.json",
       ".intentos/schemas/artifacts/plan-review.schema.json",
       ".intentos/schemas/artifacts/planning-closure.schema.json",
       ".intentos/schemas/artifacts/preflight.schema.json",
@@ -4796,6 +4803,8 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
@@ -5105,6 +5114,7 @@
       "schemas/artifacts/existing-rule-reconciliation.schema.json",
       "schemas/artifacts/governance-convergence.schema.json",
       "schemas/artifacts/native-migration-plan.schema.json",
+      "schemas/artifacts/native-rule-block-decisions.schema.json",
       "templates/adoption-assurance-report.md",
       "templates/existing-rule-reconciliation-report.md",
       "templates/governance-convergence-report.md",
@@ -5683,6 +5693,8 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
@@ -6985,6 +6997,7 @@
       ".intentos/schemas/artifacts/launch-review-view.schema.json",
       ".intentos/schemas/artifacts/low-risk-apply-candidate.schema.json",
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
+      ".intentos/schemas/artifacts/native-rule-block-decisions.schema.json",
       ".intentos/schemas/artifacts/plan-review.schema.json",
       ".intentos/schemas/artifacts/planning-closure.schema.json",
       ".intentos/schemas/artifacts/preflight.schema.json",
@@ -7291,6 +7304,8 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/planning-closure.mjs",
@@ -7721,6 +7736,7 @@
       ".intentos/schemas/artifacts/launch-review-view.schema.json",
       ".intentos/schemas/artifacts/low-risk-apply-candidate.schema.json",
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
+      ".intentos/schemas/artifacts/native-rule-block-decisions.schema.json",
       ".intentos/schemas/artifacts/plan-review.schema.json",
       ".intentos/schemas/artifacts/planning-closure.schema.json",
       ".intentos/schemas/artifacts/preflight.schema.json",
@@ -8624,6 +8640,10 @@
         "target": ".intentos/schemas/artifacts/native-migration-plan.schema.json"
       },
       {
+        "source": "schemas/artifacts/native-rule-block-decisions.schema.json",
+        "target": ".intentos/schemas/artifacts/native-rule-block-decisions.schema.json"
+      },
+      {
         "source": "schemas/artifacts/plan-review.schema.json",
         "target": ".intentos/schemas/artifacts/plan-review.schema.json"
       },
@@ -9210,6 +9230,14 @@
       {
         "source": "scripts/lib/native-rule-extraction.mjs",
         "target": "scripts/lib/native-rule-extraction.mjs"
+      },
+      {
+        "source": "scripts/lib/native-rule-block-decisions.mjs",
+        "target": "scripts/lib/native-rule-block-decisions.mjs"
+      },
+      {
+        "source": "scripts/lib/native-rule-block-ledger.mjs",
+        "target": "scripts/lib/native-rule-block-ledger.mjs"
       },
       {
         "source": "scripts/lib/path-safety.mjs",

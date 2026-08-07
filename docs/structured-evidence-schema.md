@@ -166,6 +166,31 @@ directly.
 - Existing Project Governance Convergence
 - Adoption Assurance Report
 
+Native Migration Plan has two explicit compatibility tiers:
+
+- `1.63.0`, `1.64.0`, and `1.65.0` remain readable for historical audit and
+  compatibility checks.
+- `1.113.0` is the current authority-bearing contract. It binds the plan to
+  the exact project identity, goal, project facts, guidance, authority-source
+  inventory, and source revision; it also records the typed block ledger,
+  optional project-bound block decisions, conflicts, and the full no-write
+  boundary.
+
+For current `1.113.0` evidence, each source coverage row must exactly own its
+rule classifications: `rules_extracted`, the sum of ledger `rule_count`
+values, and the number of source-bound classifications must agree, and each
+classification must intersect exactly one `EXTRACTED_RULE` ledger block.
+Producer observations that do not come from physical source text use the
+explicit `SYNTHETIC_OBSERVATION` block type; they are not represented by an
+empty ledger. Historical schema versions remain compatibility-readable under
+their original looser contract.
+
+A compatibility-readable Native Migration Plan cannot authorize a new
+selected-assets adoption assessment. Same-run, automatically generated, and
+persisted evidence used by that consumer must validate against the current
+`1.113.0` contract. Regenerate old evidence instead of copying current-only
+fields into an old `schema_version`.
+
 1.71.3 specifically tightens Adoption Assurance evidence refs:
 
 - every structured surface evidence ref must appear in `evidence_refs`

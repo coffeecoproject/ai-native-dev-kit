@@ -19,7 +19,11 @@ import {
   resolveGovernedCurrentTaskRoute,
 } from "../scripts/lib/behavioral-adoption-activation.mjs";
 import { extractNativeRulesFromMarkdown } from "../scripts/lib/native-rule-extraction.mjs";
-import { partitionNativeAuthorityPaths } from "../scripts/lib/project-signals.mjs";
+import { createNativeRuleBlockDecisionArtifact } from "../scripts/lib/native-rule-block-decisions.mjs";
+import {
+  buildNativeAuthoritySourceInventory,
+  partitionNativeAuthorityPaths,
+} from "../scripts/lib/project-signals.mjs";
 import { collectProjectAgentAuthority, resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
 import { sameRunBindingFromTrust } from "../scripts/lib/same-run-evidence-envelope.mjs";
 import {
@@ -183,6 +187,8 @@ test("short unpunctuated governance rules and CI YAML signals are never silently
   assert.ok(workflow.rules.some((item) => item.rule_class === "PRODUCTION_CONTROL"));
   assert.equal(workflow.coverage.rules_extracted, workflow.rules.length);
   assert.equal(workflow.coverage.unclassified_blocks.length, 0);
+  assert.ok(workflow.coverage.block_ledger.length > 0);
+  assert.ok(workflow.coverage.block_ledger.every((item) => item.block_type.startsWith("YAML_")));
 });
 
 test("agent authority filenames do not turn architecture rules into replaceable workflow guidance", () => {
@@ -251,6 +257,79 @@ test("native authority partition excludes only proven IntentOS assets and workfl
   assert.ok(partition.nativePaths.includes("docs/project-baseline.md"));
 });
 
+test("native authority inventory excludes implementation files selected only by risky filenames", (t) => {
+  const root = fixture(t, "intentos-native-authority-inventory-");
+  write(root, "AGENTS.md", "# Agent Rules\n\nRun tests before review.\n");
+  write(root, "docs/business/baselines/booking.md", "# Booking Business Baseline\n\nPreserve confirmed booking rules.\n");
+  write(root, "docs/runbooks/release.md", "# Release Runbook\n\nNever deploy without rollback evidence.\n");
+  write(root, "docs/sample-policy.md", "# Sample Policy\n\nNever use production customer data in samples.\n");
+  write(root, "docs/appointment-reminder-policy-data-structure-spec.md", "# Appointment Policy Specification\n\nThis implementation spec points to the business baseline as its authority.\n");
+  write(root, ".github/workflows/quality.yml", "name: quality\non: [push]\njobs: {}\n");
+  write(root, "services/api/.github/workflows/quality.yml", "name: api-quality\non: [push]\njobs: {}\n");
+  write(root, "services/api/docs/architecture.md", "# API Architecture\n\nUse the service boundary.\n");
+  write(root, "services/api/docs/business/baselines/booking.md", "# API Booking Baseline\n\nPreserve booking ownership.\n");
+  write(root, "services/api/docs/runbooks/release.md", "# API Release\n\nRequire rollback evidence.\n");
+  write(root, "services/api/tests/rollback-migration-gate.test.ts", "test(\"rollback migration gate\", () => {});\n");
+  write(root, "scripts/check-quality.mjs", "console.log(\"quality gate\");\n");
+
+  const paths = [
+    "AGENTS.md",
+    "docs/business/baselines/booking.md",
+    "docs/runbooks/release.md",
+    "docs/sample-policy.md",
+    "docs/appointment-reminder-policy-data-structure-spec.md",
+    ".github/workflows/quality.yml",
+    "services/api/.github/workflows/quality.yml",
+    "services/api/docs/architecture.md",
+    "services/api/docs/business/baselines/booking.md",
+    "services/api/docs/runbooks/release.md",
+    "services/api/tests/rollback-migration-gate.test.ts",
+    "scripts/check-quality.mjs",
+  ];
+  const inventory = buildNativeAuthoritySourceInventory(root, paths);
+  assert.deepEqual(inventory.map((source) => [source.path, source.role, source.format]), [
+    [".github/workflows/quality.yml", "CI_WORKFLOW", "YAML"],
+    ["AGENTS.md", "AGENT_GUIDANCE", "MARKDOWN"],
+    ["docs/business/baselines/booking.md", "GOVERNANCE_DOCUMENT", "MARKDOWN"],
+    ["docs/runbooks/release.md", "RELEASE_CONTROL", "MARKDOWN"],
+    ["docs/sample-policy.md", "GOVERNANCE_DOCUMENT", "MARKDOWN"],
+    ["services/api/.github/workflows/quality.yml", "CI_WORKFLOW", "YAML"],
+    ["services/api/docs/architecture.md", "GOVERNANCE_DOCUMENT", "MARKDOWN"],
+    ["services/api/docs/business/baselines/booking.md", "GOVERNANCE_DOCUMENT", "MARKDOWN"],
+    ["services/api/docs/runbooks/release.md", "RELEASE_CONTROL", "MARKDOWN"],
+  ]);
+  assert.deepEqual(inventory.map((source) => [source.path, source.classificationDefault]), [
+    [".github/workflows/quality.yml", "PRODUCTION_CONTROL"],
+    ["AGENTS.md", "SECTION_CONTEXT_REQUIRED"],
+    ["docs/business/baselines/booking.md", "BUSINESS_FACT"],
+    ["docs/runbooks/release.md", "PRODUCTION_CONTROL"],
+    ["docs/sample-policy.md", "ENGINEERING_BASELINE"],
+    ["services/api/.github/workflows/quality.yml", "PRODUCTION_CONTROL"],
+    ["services/api/docs/architecture.md", "ENGINEERING_BASELINE"],
+    ["services/api/docs/business/baselines/booking.md", "BUSINESS_FACT"],
+    ["services/api/docs/runbooks/release.md", "PRODUCTION_CONTROL"],
+  ]);
+
+  const report = runJson("scripts/resolve-native-migration.mjs", root, [
+    "--json",
+    "--intent", "Adopt the existing project without changing business authority",
+  ]);
+  const selectedPaths = report.authoritySourceInventory.map((source) => source.path);
+  assert.deepEqual(selectedPaths, inventory.map((source) => source.path));
+  assert.deepEqual(report.ruleExtractionCoverage.map((source) => source.sourceFile).sort(), [...selectedPaths].sort());
+  assert.equal(selectedPaths.includes("services/api/tests/rollback-migration-gate.test.ts"), false);
+  assert.equal(selectedPaths.includes("scripts/check-quality.mjs"), false);
+  assert.equal(selectedPaths.includes("docs/appointment-reminder-policy-data-structure-spec.md"), false);
+  assert.deepEqual(report.structuredEvidence.authority_source_inventory, report.authoritySourceInventory.map((source) => ({
+    path: source.path,
+    role: source.role,
+    format: source.format,
+    classification_default: source.classificationDefault,
+    disposition: source.disposition,
+    reason: source.reason,
+  })));
+});
+
 test("governance tables and substantive Chinese rules are deterministically represented", () => {
   const extracted = extractNativeRulesFromMarkdown([
     "# Pawcode UI Baseline",
@@ -278,6 +357,313 @@ test("governance tables and substantive Chinese rules are deterministically repr
   assert.deepEqual(extracted.coverage.low_signal_blocks.map((item) => item.excerpt), ["None"]);
 });
 
+test("typed authority source and section context classify lexical fallbacks without overriding explicit risk", () => {
+  const business = extractNativeRulesFromMarkdown([
+    "# Booking Business Baseline",
+    "",
+    "状态：`ACTIVE_BUSINESS_BASELINE`",
+    "",
+    "- 当前版本只处理洗澡、美容和护理服务。",
+    "",
+    "- Never deploy this baseline directly to production.",
+    "",
+    "- New rules cannot rewrite historical appointment records.",
+    "",
+  ].join("\n"), "docs/business/baselines/booking.md", {
+    authoritySource: {
+      role: "GOVERNANCE_DOCUMENT",
+      classificationDefault: "BUSINESS_FACT",
+    },
+  });
+  assert.equal(business.rules.find((item) => item.source_start_line === 3)?.rule_class, "BUSINESS_FACT");
+  assert.equal(business.rules.find((item) => item.source_start_line === 5)?.rule_class, "BUSINESS_FACT");
+  assert.equal(business.rules.find((item) => item.source_start_line === 7)?.rule_class, "PRODUCTION_CONTROL");
+  assert.equal(business.rules.find((item) => item.source_start_line === 9)?.rule_class, "BUSINESS_FACT");
+
+  const agent = extractNativeRulesFromMarkdown([
+    "# Project Working Agreement",
+    "",
+    "## Execution Rules",
+    "",
+    "- Preserve unrelated dirty-worktree changes.",
+    "",
+    "## Engineering Boundaries",
+    "",
+    "- Prefer one authoritative owner for each state transition.",
+    "",
+  ].join("\n"), "AGENTS.md", {
+    authoritySource: {
+      role: "AGENT_GUIDANCE",
+      classificationDefault: "SECTION_CONTEXT_REQUIRED",
+    },
+  });
+  assert.equal(agent.rules.find((item) => item.source_start_line === 5)?.rule_class, "WORKFLOW_RULE");
+  assert.equal(agent.rules.find((item) => item.source_start_line === 9)?.rule_class, "ENGINEERING_BASELINE");
+
+  const samplePolicy = extractNativeRulesFromMarkdown([
+    "# Sample Policy",
+    "",
+    "Draft status: CONFIRMED",
+    "",
+    "Human decision status: CONFIRMED_FOR_FAKE_DATA_ONLY",
+    "",
+    "## Rules",
+    "",
+    "- Do not promote project-specific samples into generic shared examples.",
+    "",
+  ].join("\n"), "docs/sample-policy.md", {
+    authoritySource: {
+      role: "GOVERNANCE_DOCUMENT",
+      classificationDefault: "ENGINEERING_BASELINE",
+    },
+  });
+  assert.equal(samplePolicy.rules.some((item) => [3, 5].includes(item.source_start_line)), false);
+  assert.deepEqual(samplePolicy.coverage.low_signal_blocks
+    .filter((item) => item.disposition === "RESOLVED_NON_RULE")
+    .map((item) => item.source_start_line), [3, 5]);
+  assert.equal(samplePolicy.rules.find((item) => item.source_start_line === 9)?.rule_class, "ENGINEERING_BASELINE");
+
+  const historical = extractNativeRulesFromMarkdown([
+    "# Historical Notes",
+    "",
+    "- Archive this old note after owner review.",
+    "",
+  ].join("\n"), "docs/governance.md", {
+    authoritySource: {
+      role: "GOVERNANCE_DOCUMENT",
+      classificationDefault: "SECTION_CONTEXT_REQUIRED",
+    },
+  });
+  assert.equal(historical.rules.find((item) => item.source_start_line === 3)?.rule_class, "HISTORICAL_NOTE");
+});
+
+test("typed block ledger gives rules, context, diagrams, code, and review blocks stable dispositions", () => {
+  const longUnresolved = "This descriptive narrative explains the surrounding context in ordinary prose without a deterministic directive. ".repeat(3);
+  assert.ok(longUnresolved.length > 220);
+  const content = [
+    "# Governance Rules",
+    "",
+    "Preserve the existing workflow before replacement.",
+    "",
+    "# Background",
+    "",
+    longUnresolved,
+    "",
+    "```text",
+    "Member intent",
+    "  -> trusted service",
+    "  -> canonical response",
+    "```",
+    "",
+    "```bash",
+    "Never deploy to production",
+    "```",
+    "",
+    "## 状态语言",
+    "",
+    "| 状态 | 含义 | 实现边界 |",
+    "|---|---|---|",
+    "| `READY` | 范围已确认 | 可以进入正式规格设计 |",
+    "| `BLOCKED` | 尚无真实证据 | 不得声称能力可执行 |",
+    "",
+    "None",
+    "",
+  ].join("\n");
+  const first = extractNativeRulesFromMarkdown(content, "AGENTS.md");
+  const second = extractNativeRulesFromMarkdown(content, "AGENTS.md");
+  const ledger = first.coverage.block_ledger;
+
+  assert.ok(ledger.some((item) => item.disposition === "EXTRACTED_RULE"));
+  assert.ok(ledger.some((item) => item.disposition === "PRESERVED_CONTEXT"));
+  assert.ok(ledger.some((item) => item.block_type === "TEXT_DIAGRAM" && item.disposition === "PRESERVED_CONTEXT"));
+  assert.ok(ledger.some((item) => item.block_type === "EXECUTABLE_CODE" && item.disposition === "NEEDS_REVIEW"));
+  assert.ok(ledger.some((item) => item.block_type === "TABLE" && item.disposition === "EXTRACTED_RULE" && item.rule_count === 2));
+  assert.ok(ledger.some((item) => item.disposition === "RESOLVED_NON_RULE"));
+  assert.ok(ledger.some((item) => item.block_type === "PARAGRAPH" && item.disposition === "NEEDS_REVIEW"));
+  assert.ok(ledger.every((item) => /^NB-[a-f0-9]{24}-[1-9][0-9]*$/.test(item.block_id)));
+  assert.ok(ledger.every((item) => /^sha256:[a-f0-9]{64}$/.test(item.block_digest)));
+  assert.deepEqual(
+    ledger.map((item) => [item.block_id, item.block_digest, item.disposition]),
+    second.coverage.block_ledger.map((item) => [item.block_id, item.block_digest, item.disposition]),
+  );
+  assert.equal(first.coverage.skipped_blocks.length, 1);
+  assert.equal(first.coverage.unclassified_blocks.length, 1);
+});
+
+test("project-bound block decisions resolve only exact current NEEDS_REVIEW blocks", (t) => {
+  const root = fixture(t, "intentos-native-block-decisions-");
+  const intent = "Adopt the existing project without replacing project authority";
+  const longReviewBlock = "This paragraph records architectural background and surrounding context without a deterministic directive. ".repeat(3);
+  write(root, "README.md", "# Existing project\n");
+  write(root, "AGENTS.md", [
+    "# Notes",
+    "",
+    longReviewBlock,
+    "",
+  ].join("\n"));
+  git(root, ["init", "-q"]);
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"]);
+
+  const initial = runJson("scripts/resolve-native-migration.mjs", root, ["--json", "--intent", intent]);
+  const initialCoverage = initial.ruleExtractionCoverage.find((item) => item.sourceFile === "AGENTS.md");
+  const reviewBlock = initialCoverage.blockLedger.find((item) => item.disposition === "NEEDS_REVIEW");
+  assert.ok(reviewBlock);
+  const binding = sameRunBindingFromTrust(resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: kitRoot,
+    goal: intent,
+  }));
+  const artifact = createNativeRuleBlockDecisionArtifact({
+    binding,
+    decisions: [{
+      block_id: reviewBlock.blockId,
+      block_digest: reviewBlock.blockDigest,
+      source_file: "AGENTS.md",
+      disposition: "CLASSIFY_AS_RULE",
+      reason: "The project architecture owner treats this block as an engineering baseline input.",
+      classification: {
+        rule_class: "ENGINEERING_BASELINE",
+        authority: "project architecture baseline",
+        default_handling: "map after review",
+        preserve_or_replace: "map",
+        reason: "The block records project-owned architecture context that must remain traceable during adoption.",
+        risk_surfaces: "engineering",
+        target_action: "map to the engineering baseline without replacing project authority",
+        confidence: "HIGH",
+      },
+    }],
+  });
+  const schema = loadSchema(kitRoot, "schemas/artifacts/native-rule-block-decisions.schema.json");
+  assert.equal(validateSchema(artifact, schema, { label: "native rule block decisions" }).ok, true);
+  const decisionFile = write(fixture(t, "intentos-native-decision-input-"), "decisions.json", `${JSON.stringify(artifact, null, 2)}\n`);
+
+  const resolved = runJson("scripts/resolve-native-migration.mjs", root, [
+    "--json", "--intent", intent, "--native-rule-decisions", decisionFile,
+  ]);
+  const resolvedCoverage = resolved.ruleExtractionCoverage.find((item) => item.sourceFile === "AGENTS.md");
+  assert.equal(resolved.blockDecisionResolution.state, "APPLIED");
+  assert.equal(resolved.blockDecisionResolution.decisionsApplied, 1);
+  assert.equal(resolvedCoverage.skippedBlocks.length, 0);
+  assert.equal(resolvedCoverage.unclassifiedBlocks.length, 0);
+  assert.ok(resolvedCoverage.blockLedger.some((item) => item.blockId === reviewBlock.blockId
+    && item.disposition === "EXTRACTED_RULE"
+    && item.ruleCount === 1));
+  assert.ok(resolved.ruleClassifications.some((item) => item.sourceFile === "AGENTS.md"
+    && item.sourceStartLine === reviewBlock.sourceStartLine
+    && item.ruleClass === "ENGINEERING_BASELINE"));
+  assert.equal(resolved.structuredEvidence.block_decision_resolution.state, "APPLIED");
+  assert.equal(resolved.structuredEvidence.block_decision_resolution.boundary.authorizes_apply, "No");
+
+  const reconciliation = runJson("scripts/resolve-existing-rule-reconciliation.mjs", root, [
+    "--json", "--auto-native", "--intent", intent, "--native-rule-decisions", decisionFile,
+  ]);
+  assert.equal(reconciliation.ruleReconciliationCoverage.scanState, "COMPLETE_ACTIONABLE_RULES");
+  assert.equal(reconciliation.ruleReconciliationCoverage.omittedRules, 0);
+
+  const planned = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/init-project.mjs"),
+    "--target", root,
+    "--goal", intent,
+    "--migration-depth", "SELECTED_ASSETS",
+    "--profiles", "web-app",
+    "--baseline-level", "BL1_STANDARD",
+    "--native-rule-decisions", decisionFile,
+    "--dry-run",
+  ], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  assert.equal(planned.status, 0, `${planned.stdout}\n${planned.stderr}`);
+  const plan = JSON.parse(planned.stdout);
+  assert.equal(plan.adoptionAssessment.native_migration.block_decision_resolution.state, "APPLIED");
+  assert.equal(plan.arguments.nativeRuleDecisionDigest, artifact.decision_digest);
+  assert.equal(plan.arguments.nativeRuleDecisions, decisionFile);
+
+  const unknownBlockArtifact = createNativeRuleBlockDecisionArtifact({
+    binding,
+    decisions: [{
+      ...artifact.decisions[0],
+      block_id: "NB-000000000000000000000000-1",
+    }],
+  });
+  const unknownDecisionFile = write(fixture(t, "intentos-native-decision-unknown-"), "decisions.json", `${JSON.stringify(unknownBlockArtifact, null, 2)}\n`);
+  const rejectedUnknown = runJson("scripts/resolve-native-migration.mjs", root, [
+    "--json", "--intent", intent, "--native-rule-decisions", unknownDecisionFile,
+  ]);
+  assert.equal(rejectedUnknown.blockDecisionResolution.state, "INVALID");
+  assert.equal(rejectedUnknown.blockDecisionResolution.decisionsApplied, 0);
+  assert.match(rejectedUnknown.blockDecisionResolution.errors.join("\n"), /not present in the current ledger/);
+  assert.equal(rejectedUnknown.outcome, "BLOCKED");
+
+  fs.appendFileSync(path.join(root, "AGENTS.md"), "\nChanged project state.\n");
+  const rejectedStale = runJson("scripts/resolve-native-migration.mjs", root, [
+    "--json", "--intent", intent, "--native-rule-decisions", decisionFile,
+  ]);
+  assert.equal(rejectedStale.blockDecisionResolution.state, "INVALID");
+  assert.equal(rejectedStale.blockDecisionResolution.decisionsApplied, 0);
+  assert.match(rejectedStale.blockDecisionResolution.errors.join("\n"), /does not match the current project assessment/);
+  assert.equal(rejectedStale.outcome, "BLOCKED");
+});
+
+test("project-bound block decisions cannot downgrade production controls into replaceable workflow rules", (t) => {
+  const root = fixture(t, "intentos-native-block-decision-semantics-");
+  const intent = "Adopt the project while preserving production authority";
+  write(root, "README.md", "# Existing project\n");
+  write(root, "AGENTS.md", [
+    "# Notes",
+    "",
+    "```bash",
+    "Never deploy to production without approval",
+    "```",
+    "",
+  ].join("\n"));
+  git(root, ["init", "-q"]);
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"]);
+
+  const initial = runJson("scripts/resolve-native-migration.mjs", root, ["--json", "--intent", intent]);
+  const coverage = initial.ruleExtractionCoverage.find((item) => item.sourceFile === "AGENTS.md");
+  const reviewBlock = coverage.blockLedger.find((item) => item.blockType === "EXECUTABLE_CODE");
+  assert.equal(reviewBlock.disposition, "NEEDS_REVIEW");
+  const binding = sameRunBindingFromTrust(resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: kitRoot,
+    goal: intent,
+  }));
+  const unsafe = createNativeRuleBlockDecisionArtifact({
+    binding,
+    decisions: [{
+      block_id: reviewBlock.blockId,
+      block_digest: reviewBlock.blockDigest,
+      source_file: "AGENTS.md",
+      disposition: "CLASSIFY_AS_RULE",
+      reason: "Unsafe test classification.",
+      classification: {
+        rule_class: "WORKFLOW_RULE",
+        authority: "old workflow source",
+        default_handling: "replace after review",
+        preserve_or_replace: "replace",
+        reason: "Unsafe test classification.",
+        risk_surfaces: "workflow",
+        target_action: "replace with IntentOS workflow guidance",
+        confidence: "HIGH",
+      },
+    }],
+  });
+  const decisionFile = write(fixture(t, "intentos-native-unsafe-decision-"), "decisions.json", `${JSON.stringify(unsafe, null, 2)}\n`);
+  const rejected = runJson("scripts/resolve-native-migration.mjs", root, [
+    "--json", "--intent", intent, "--native-rule-decisions", decisionFile,
+  ]);
+  assert.equal(rejected.blockDecisionResolution.state, "INVALID");
+  assert.equal(rejected.blockDecisionResolution.decisionsApplied, 0);
+  assert.match(rejected.blockDecisionResolution.errors.join("\n"), /production|misclassifies/);
+  assert.equal(rejected.outcome, "BLOCKED");
+  assert.equal(rejected.ruleExtractionCoverage.find((item) => item.sourceFile === "AGENTS.md").unclassifiedBlocks.length, 1);
+});
+
 test("sentinel-only declarations remain visible without blocking reconciliation coverage", (t) => {
   const root = fixture(t, "intentos-native-sentinel-coverage-");
   write(root, "README.md", "# Existing project\n");
@@ -299,6 +685,29 @@ test("sentinel-only declarations remain visible without blocking reconciliation 
   assert.equal(coverage.omitted_rules, 0, JSON.stringify(coverage, null, 2));
   assert.equal(coverage.blocks_selected_native_adoption, "No");
   assert.match(coverage.truncation_warning, /sentinel-only declaration/);
+});
+
+test("historical context remains known provenance instead of reopening authority classification", (t) => {
+  const root = fixture(t, "intentos-native-historical-context-");
+  write(root, "README.md", "# Existing project\n");
+  write(root, "docs/governance.md", [
+    "# Historical Notes",
+    "",
+    "- Archive this old note only after owner review.",
+    "",
+  ].join("\n"));
+  git(root, ["init", "-q"]);
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"]);
+
+  const report = runJson("scripts/resolve-existing-rule-reconciliation.mjs", root, [
+    "--json", "--auto-native", "--intent", "Adopt this project while preserving its historical context",
+  ]);
+  const historical = report.reconciliationItems.filter((item) => item.surface === "HISTORICAL_CONTEXT");
+  assert.equal(historical.length, 1);
+  assert.equal(historical[0].outcome, "KEEP_EXISTING");
+  assert.equal(report.reconciliationItems.some((item) => item.surface === "UNKNOWN_AUTHORITY"), false);
+  assert.equal(report.ruleReconciliationCoverage.scanState, "COMPLETE_ACTIONABLE_RULES");
 });
 
 test("native migration checker accepts producer-owned UNKNOWN stop and preserve fields without prose coupling", (t) => {
@@ -341,6 +750,22 @@ test("native migration checker accepts producer-owned UNKNOWN stop and preserve 
     maxBuffer: 64 * 1024 * 1024,
   });
   assert.equal(checked.status, 0, `${checked.stdout}\n${checked.stderr}`);
+
+  const tampered = resolved.stdout.replace('"rule_count": 1', '"rule_count": 2');
+  assert.notEqual(tampered, resolved.stdout, "fixture must contain one extracted-rule ledger count");
+  write(root, "native-migration-plans/current.md", tampered);
+  const rejected = spawnSync(process.execPath, [
+    path.join(kitRoot, "scripts/check-native-migration.mjs"),
+    root,
+    "--require-structured-evidence",
+  ], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    timeout: 120_000,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  assert.notEqual(rejected.status, 0, `${rejected.stdout}\n${rejected.stderr}`);
+  assert.match(`${rejected.stdout}\n${rejected.stderr}`, /exactly match|rule count/i);
 });
 
 test("incomplete reconciliation coverage outranks dirty-worktree routing and fails closed", (t) => {

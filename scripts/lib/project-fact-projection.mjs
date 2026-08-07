@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { evidenceDigest } from "./artifact-schema.mjs";
-import { projectIdentity } from "./evidence-authority.mjs";
+import { isControlledApplyProtocolArtifactPath, projectIdentity } from "./evidence-authority.mjs";
 import { collectCurrentWorkContinuity } from "./current-work-continuity.mjs";
 import { loadVerifiedBootstrapReceipt } from "./bootstrap-transaction.mjs";
 import { isIntentOSSourceCheckout, kitRoot, loadManifestOrNull } from "./manifest.mjs";
@@ -30,10 +30,14 @@ export function collectProjectFactProjection(projectRoot, options = {}) {
   const goal = options.goalProjection || projectGoalProjection(options.goal);
   const topologyAllowsRead = !topology || ["EMPTY_DIRECTORY", "NONEMPTY_DIRECTORY"].includes(topology.state);
   const targetExists = topologyAllowsRead && fs.existsSync(root) && fs.statSync(root).isDirectory();
-  const currentWork = targetExists ? collectCurrentWorkContinuity(root) : emptyCurrentWork();
+  const currentWork = targetExists ? collectCurrentWorkContinuity(root, {
+    excludeControlledApplyProtocolArtifacts: options.excludeControlledApplyProtocolArtifacts === true,
+  }) : emptyCurrentWork();
   const paths = targetExists
     ? filterIntentOSManagedPaths(root, walkRelativePaths(root, ".", { maxDepth: 1024, maxEntries: 1000000 }))
       .map(normalizePath)
+      .filter((relative) => options.excludeControlledApplyProtocolArtifacts !== true
+        || !isControlledApplyProtocolArtifactPath(relative))
     : [];
   const identity = targetExists ? safeIdentity(root) : absentIdentity(topology);
   const installedVersion = targetExists ? readJson(path.join(root, ".intentos", "version.json")) : null;

@@ -6,12 +6,15 @@ import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
+import { validateNativeRuleBlockCoverage } from "./lib/native-rule-block-ledger.mjs";
 import { validateNativeRuleClassification } from "./lib/native-rule-extraction.mjs";
+import { loadSchema, validateVersionedArtifact } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "require-structured-evidence"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const nativeMigrationSchema = loadSchema(projectRoot, "schemas/artifacts/native-migration-plan.schema.json");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -72,7 +75,7 @@ const allowedRuleClasses = new Set([
   "UNKNOWN_AUTHORITY",
 ]);
 const allowedConfidence = new Set(["HIGH", "MEDIUM", "LOW"]);
-const allowedSchemaVersions = new Set(["1.63.0", "1.64.0", "1.65.0"]);
+const allowedSchemaVersions = new Set(nativeMigrationSchema?.properties?.schema_version?.enum || []);
 const forbiddenClaims = [
   /\bfully migrated\b/i,
   /\balready fully migrated\b/i,
@@ -408,6 +411,15 @@ function checkStructuredEvidence(content, label, summary) {
     return null;
   }
 
+  const schemaValidation = validateVersionedArtifact(parsed, nativeMigrationSchema, { label });
+  if (schemaValidation.ok) {
+    pass(`${label} Machine-Readable Evidence matches the versioned Native Migration schema`);
+    if (parsed.schema_version === schemaValidation.currentVersion) pass(`${label} uses the current Native Migration contract`);
+    else pass(`${label} remains readable as compatibility Native Migration evidence`);
+  } else {
+    for (const error of schemaValidation.errors) fail(error);
+  }
+
   const required = [
     "schema_version",
     "artifact_type",
@@ -453,10 +465,19 @@ function checkStructuredEvidence(content, label, summary) {
   if (parsed.requires_human_approval_before_apply === "Yes" && parsed.requires_human_approval_before_apply === summary.approvalBeforeApply) pass(`${label} structured approval requirement matches`);
   else fail(`${label} structured evidence must require human approval before apply`);
 
+  if (Array.isArray(parsed.authority_source_inventory)) {
+    for (const source of parsed.authority_source_inventory) validateAuthoritySourceInventoryItem(source, label);
+  }
+
   if (!Array.isArray(parsed.rule_extraction_coverage) || parsed.rule_extraction_coverage.length === 0) {
     fail(`${label} structured evidence must include rule extraction coverage`);
   } else {
-    for (const item of parsed.rule_extraction_coverage) validateStructuredCoverage(item, label, parsed.schema_version);
+    for (const item of parsed.rule_extraction_coverage) {
+      const sourceRules = Array.isArray(parsed.rule_classifications)
+        ? parsed.rule_classifications.filter((rule) => rule?.source_file === item?.source_file)
+        : [];
+      validateStructuredCoverage(item, label, parsed.schema_version, sourceRules);
+    }
   }
 
   if (!Array.isArray(parsed.rule_classifications) || parsed.rule_classifications.length === 0) {
@@ -489,7 +510,21 @@ function checkStructuredEvidence(content, label, summary) {
   return parsed;
 }
 
-function validateStructuredCoverage(item, label, schemaVersion) {
+function validateAuthoritySourceInventoryItem(item, label) {
+  const rowLabel = `${label} authority source ${item?.path || "source"}`;
+  if (isConcrete(item?.path)) pass(`${rowLabel} has a path`);
+  else fail(`${rowLabel} missing path`);
+  if (["AGENT_GUIDANCE", "GOVERNANCE_DOCUMENT", "CI_WORKFLOW", "RELEASE_CONTROL"].includes(item?.role)) pass(`${rowLabel} has a valid role`);
+  else fail(`${rowLabel} has invalid role`);
+  if (["MARKDOWN", "YAML", "UNSUPPORTED"].includes(item?.format)) pass(`${rowLabel} has a valid format`);
+  else fail(`${rowLabel} has invalid format`);
+  if (["SELECTED", "REVIEW_REQUIRED"].includes(item?.disposition)) pass(`${rowLabel} has a valid disposition`);
+  else fail(`${rowLabel} has invalid disposition`);
+  if (isConcrete(item?.reason)) pass(`${rowLabel} records a selection reason`);
+  else fail(`${rowLabel} missing selection reason`);
+}
+
+function validateStructuredCoverage(item, label, schemaVersion, sourceRules = []) {
   const rowLabel = `${label} structured coverage ${item?.source_file || "source"}`;
   if (isConcrete(item?.source_file)) pass(`${rowLabel} has source file`);
   else fail(`${rowLabel} missing source file`);
@@ -505,6 +540,18 @@ function validateStructuredCoverage(item, label, schemaVersion) {
     if (Array.isArray(item?.low_signal_blocks)) pass(`${rowLabel} has low-signal block list`);
     else fail(`${rowLabel} missing low-signal block list`);
   }
+  if (Array.isArray(item?.block_ledger)) {
+    for (const block of item.block_ledger) validateNativeBlockLedgerItem(block, rowLabel);
+    if (schemaVersion === nativeMigrationSchema.schemaVersion) {
+      const coverageErrors = validateNativeRuleBlockCoverage(sourceRules, item);
+      if (coverageErrors.length === 0) pass(`${rowLabel} block ledger exactly owns every extracted rule`);
+      else for (const error of coverageErrors) fail(`${rowLabel}: ${error}`);
+    } else {
+      const ledgerRuleCount = item.block_ledger.reduce((sum, block) => sum + Number(block?.rule_count || 0), 0);
+      if (ledgerRuleCount >= Number(item?.rules_extracted || 0)) pass(`${rowLabel} legacy block ledger covers extracted rules`);
+      else fail(`${rowLabel} legacy block ledger does not cover every extracted rule`);
+    }
+  }
   if (Array.isArray(item?.parser_warnings)) pass(`${rowLabel} has parser warnings list`);
   else fail(`${rowLabel} missing parser warnings list`);
   const hasReviewBlocks = (Array.isArray(item?.unclassified_blocks) && item.unclassified_blocks.length > 0)
@@ -514,6 +561,24 @@ function validateStructuredCoverage(item, label, schemaVersion) {
     && (!Array.isArray(item?.parser_warnings) || item.parser_warnings.length === 0)) {
     fail(`${rowLabel} must include parser warnings when unclassified, skipped, or low-signal blocks exist`);
   }
+}
+
+function validateNativeBlockLedgerItem(item, label) {
+  const rowLabel = `${label} block ${item?.block_id || "unknown"}`;
+  if (/^NB-[a-f0-9]{24}-[1-9][0-9]*$/.test(item?.block_id || "")) pass(`${rowLabel} has stable block id`);
+  else fail(`${rowLabel} has invalid block id`);
+  if (/^sha256:[a-f0-9]{64}$/.test(item?.block_digest || "")) pass(`${rowLabel} has content digest`);
+  else fail(`${rowLabel} has invalid content digest`);
+  if (["HEADING", "PARAGRAPH", "LIST_ITEM", "TABLE", "TEXT_DIAGRAM", "EXECUTABLE_CODE", "CODE_FENCE", "YAML_ENTRY", "YAML_CONTEXT", "SYNTHETIC_OBSERVATION"].includes(item?.block_type)) pass(`${rowLabel} has typed content`);
+  else fail(`${rowLabel} has invalid content type`);
+  if (Number.isInteger(item?.source_start_line) && Number.isInteger(item?.source_end_line) && item.source_start_line > 0 && item.source_end_line >= item.source_start_line) pass(`${rowLabel} has valid line range`);
+  else fail(`${rowLabel} has invalid line range`);
+  if (["EXTRACTED_RULE", "PRESERVED_CONTEXT", "RESOLVED_NON_RULE", "NEEDS_REVIEW"].includes(item?.disposition)) pass(`${rowLabel} has explicit disposition`);
+  else fail(`${rowLabel} has invalid disposition`);
+  if (Number.isInteger(item?.rule_count) && item.rule_count >= 0) pass(`${rowLabel} has rule count`);
+  else fail(`${rowLabel} has invalid rule count`);
+  if (isConcrete(item?.context_heading) && isConcrete(item?.reason)) pass(`${rowLabel} records context and reason`);
+  else fail(`${rowLabel} missing context or reason`);
 }
 
 function validateStructuredRule(item, label) {
@@ -758,6 +823,9 @@ function checkSourceEvidence() {
     "docs/native-first-existing-project-migration.md",
     "templates/native-migration-plan.md",
     "schemas/artifacts/native-migration-plan.schema.json",
+    "schemas/artifacts/native-rule-block-decisions.schema.json",
+    "scripts/lib/native-rule-block-decisions.mjs",
+    "scripts/lib/native-rule-block-ledger.mjs",
     "scripts/lib/native-rule-extraction.mjs",
     "checklists/native-migration-review.md",
     "prompts/native-migration-agent.md",

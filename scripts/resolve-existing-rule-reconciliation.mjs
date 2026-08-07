@@ -10,11 +10,11 @@ import {
   readSameRunEnvelopeFromEnvironment,
   sameRunBindingFromTrust,
 } from "./lib/same-run-evidence-envelope.mjs";
-import { loadSchema, stringifyJsonForMarkdownFence, validateSchema } from "./lib/artifact-schema.mjs";
+import { loadSchema, stringifyJsonForMarkdownFence, validateVersionedArtifact } from "./lib/artifact-schema.mjs";
 import { runStructuredJsonChildSync } from "./lib/structured-child-process.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "auto-native"]);
+const knownFlags = new Set(["json", "format", "intent", "auto-native", "native-rule-decisions"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
@@ -34,6 +34,9 @@ if (!new Set(["human", "json"]).has(outputFormat)) {
 const report = buildReport(projectRoot, {
   intent: String(args.intent || ""),
   autoNative: Boolean(args["auto-native"]),
+  nativeRuleDecisions: args["native-rule-decisions"]
+    ? path.resolve(process.cwd(), String(args["native-rule-decisions"]))
+    : "",
 });
 
 if (outputFormat === "json") {
@@ -51,13 +54,13 @@ function buildReport(root, options) {
   });
   const sameRunNative = readSameRunEnvelopeFromEnvironment("native_migration");
   let nativePlans = sameRunNative
-    ? [nativePlanFromEnvelope(sameRunNative, entryTrust)]
+    ? [nativePlanFromEnvelope(sameRunNative, entryTrust, root)]
     : readNativeMigrationPlans(root, entryTrust);
   const persistedNativePlanCount = sameRunNative ? 0 : nativeMigrationPlanCount(root);
   const stalePersistedNativeEvidence = persistedNativePlanCount > 0 && nativePlans.length === 0;
   let nativeMigrationGeneration = { attempted: false, state: "NOT_REQUESTED" };
   if (nativePlans.length === 0 && options.autoNative) {
-    const generated = generateNativeMigrationPlans(root, options.intent);
+    const generated = generateNativeMigrationPlans(root, options.intent, options.nativeRuleDecisions);
     nativePlans = generated.plans;
     nativeMigrationGeneration = generated.execution;
   }
@@ -165,7 +168,7 @@ function buildReport(root, options) {
   return report;
 }
 
-function nativePlanFromEnvelope(envelope, entryTrust) {
+function nativePlanFromEnvelope(envelope, entryTrust, root) {
   const binding = sameRunBindingFromTrust(entryTrust);
   const payload = consumeSameRunEvidenceEnvelope(envelope, {
     evidenceType: "native_migration",
@@ -181,8 +184,9 @@ function nativePlanFromEnvelope(envelope, entryTrust) {
     sourceRevision: binding.sourceRevision,
   });
   const evidence = payload?.structuredEvidence;
-  if (!evidence || !Array.isArray(evidence.rule_classifications)) {
-    throw new Error("same-run native migration payload is missing strict structured evidence");
+  const validation = validateCurrentNativeMigrationEvidence(root, evidence, "same-run native migration");
+  if (!validation.ok) {
+    throw new Error(`same-run native migration payload is not current strict evidence: ${validation.errors.join("; ")}`);
   }
   return {
     path: envelope.envelope_id,
@@ -211,7 +215,10 @@ function readNativeMigrationPlans(root, entryTrust) {
       };
     })
     .filter((plan) => plan.evidence)
-    .filter((plan) => validateSchema(plan.evidence, schema, { label: plan.path }).ok)
+    .filter((plan) => validateVersionedArtifact(plan.evidence, schema, {
+      label: plan.path,
+      requireCurrent: true,
+    }).ok)
     .filter((plan) => persistedNativeBindingMatches(plan.evidence, binding));
 }
 
@@ -229,7 +236,10 @@ function persistedNativeBindingMatches(evidence, binding) {
     && evidence.source_revision === binding.sourceRevision;
 }
 
-function generateNativeMigrationPlans(root, intent = "") {
+function generateNativeMigrationPlans(root, intent = "", nativeRuleDecisions = "") {
+  const decisionArgs = nativeRuleDecisions
+    ? ["--native-rule-decisions", nativeRuleDecisions]
+    : [];
   const result = runStructuredJsonChildSync({
     args: [
       path.join(__dirname, "resolve-native-migration.mjs"),
@@ -237,6 +247,7 @@ function generateNativeMigrationPlans(root, intent = "") {
       "--json",
       "--intent",
       intent || "reconcile existing project rules",
+      ...decisionArgs,
     ],
     cwd: path.resolve(__dirname, ".."),
     timeout: 120_000,
@@ -256,10 +267,11 @@ function generateNativeMigrationPlans(root, intent = "") {
       : result.error,
   };
   const evidence = result.value?.structuredEvidence;
-  if (execution.state !== "CURRENT_RUN" || !evidence) {
+  const validation = validateCurrentNativeMigrationEvidence(root, evidence, "generated native migration");
+  if (execution.state !== "CURRENT_RUN" || !validation.ok) {
     if (execution.state === "CURRENT_RUN") {
       execution.state = "INVALID_STRUCTURED_EVIDENCE";
-      execution.error = "Native Migration JSON omitted structuredEvidence";
+      execution.error = validation.errors.join("; ") || "Native Migration JSON omitted structuredEvidence";
     }
     return { plans: [], execution };
   }
@@ -273,6 +285,11 @@ function generateNativeMigrationPlans(root, intent = "") {
     }],
     execution,
   };
+}
+
+function validateCurrentNativeMigrationEvidence(root, evidence, label) {
+  const schema = loadSchema(root, "schemas/artifacts/native-migration-plan.schema.json");
+  return validateVersionedArtifact(evidence, schema, { label, requireCurrent: true });
 }
 
 function projectStateFor(nativePlans, rules) {
@@ -425,6 +442,7 @@ function parseFencedJson(content) {
 
 function buildRuleReconciliationCoverage(rules, nativePlans) {
   const extractionRows = nativePlans.flatMap((plan) => plan.evidence?.rule_extraction_coverage || []);
+  const invalidDecisionInputs = nativePlans.filter((plan) => plan.evidence?.block_decision_resolution?.state === "INVALID");
   const unclassifiedBlocks = extractionRows.reduce((sum, item) => sum + (item.unclassified_blocks?.length || 0), 0);
   const skippedBlocks = extractionRows.reduce((sum, item) => sum + (item.skipped_blocks?.length || 0), 0);
   const lowSignalBlocks = extractionRows.reduce((sum, item) => sum + (item.low_signal_blocks?.length || 0), 0);
@@ -433,7 +451,7 @@ function buildRuleReconciliationCoverage(rules, nativePlans) {
   const unresolvedLowSignalBlocks = Math.max(0, lowSignalBlocks - resolvedNonRuleBlocks);
   const extractedBySource = extractionRows.reduce((sum, item) => sum + Number(item.rules_extracted || 0), 0);
   const reconciledRules = rules.length;
-  const unresolvedBlocks = unclassifiedBlocks + skippedBlocks + unresolvedLowSignalBlocks;
+  const unresolvedBlocks = unclassifiedBlocks + skippedBlocks + unresolvedLowSignalBlocks + invalidDecisionInputs.length;
   const omittedRules = Math.max(0, extractedBySource - rules.length) + unresolvedBlocks;
   const totalExtractedRules = rules.length + omittedRules;
   const everyPlanHasCoverage = nativePlans.length > 0 && nativePlans.every((plan) => (
@@ -443,7 +461,7 @@ function buildRuleReconciliationCoverage(rules, nativePlans) {
   const extractionCountMatches = extractedBySource === rules.length;
   const scanState = nativePlans.length === 0
     ? "MISSING_NATIVE_MIGRATION_EVIDENCE"
-    : !everyPlanHasCoverage || !extractionCountMatches || omittedRules > 0
+    : !everyPlanHasCoverage || !extractionCountMatches || omittedRules > 0 || invalidDecisionInputs.length > 0
       ? "INCOMPLETE_RULE_SCAN"
       : rules.length === 0
         ? "COMPLETE_NO_ACTIONABLE_RULES"
@@ -456,6 +474,8 @@ function buildRuleReconciliationCoverage(rules, nativePlans) {
     omittedRules,
     truncationWarning: !everyPlanHasCoverage
       ? "Native Migration evidence is missing rule-extraction coverage."
+      : invalidDecisionInputs.length > 0
+        ? "Native Migration rejected a stale or invalid native rule block decision artifact."
       : !extractionCountMatches
         ? `Native Migration reports ${extractedBySource} extracted rule(s), but provides ${rules.length} classification(s).`
         : omittedRules > 0
@@ -550,6 +570,20 @@ function buildReconciliationItems(rules, scanState) {
         surfaceAuthority: "PROJECT_OWNED",
       });
     }
+    if (surface === "HISTORICAL_CONTEXT") {
+      return item({
+        itemId,
+        rule,
+        surface,
+        intentOsReferenceRef: "project-history:preserve",
+        allowedOutcomes: ["KEEP_EXISTING"],
+        outcome: "KEEP_EXISTING",
+        reason: "Historical context remains project-owned provenance and does not become current workflow or business authority.",
+        riskSurfaces: ["documentation"],
+        targetAction: "preserve the historical context; propose archival only through a separately reviewed apply plan",
+        surfaceAuthority: "PROJECT_OWNED",
+      });
+    }
     return item({
       itemId,
       rule,
@@ -594,6 +628,7 @@ function item(input) {
 
 function surfaceForRule(rule) {
   const source = `${rule.rule_class || ""} ${rule.source_excerpt || ""} ${rule.risk_surfaces || ""}`;
+  if (rule.rule_class === "HISTORICAL_NOTE") return "HISTORICAL_CONTEXT";
   if (rule.rule_class === "WORKFLOW_RULE"
     || /\b(workflow|review loop|work queue|task governance|verification|closure|IntentOS)\b|工作流|任务队列|审查|验收/i.test(source)) {
     return "WORKFLOW_RULE";
@@ -674,6 +709,7 @@ function referenceSummary(item) {
   if (item.surface === "RELEASE_PRODUCTION") return "Release recipe / handoff expectation";
   if (item.surface === "ENGINEERING_BASELINE") return "Engineering baseline expectation";
   if (item.surface === "PROTECTED_CONSTRAINT") return "Project-owned protected constraint handling";
+  if (item.surface === "HISTORICAL_CONTEXT") return "Project-owned historical context preservation";
   return "Classification review expectation";
 }
 

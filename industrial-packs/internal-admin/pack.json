@@ -13,6 +13,7 @@
   ],
   "compatiblePacks": [
     "web-app-industrial",
+    "wechat-miniprogram-industrial",
     "backend-api-industrial",
     "auth-permission-industrial",
     "data-storage-industrial",

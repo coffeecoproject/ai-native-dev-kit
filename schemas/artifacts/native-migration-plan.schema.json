@@ -1,6 +1,7 @@
 {
-  "schemaVersion": "1.65.0",
+  "schemaVersion": "1.113.0",
   "artifactType": "native_migration_plan",
+  "type": "object",
   "required": [
     "schema_version",
     "artifact_type",
@@ -21,7 +22,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.63.0", "1.64.0", "1.65.0"] },
+    "schema_version": { "type": "string", "enum": ["1.63.0", "1.64.0", "1.65.0", "1.113.0"] },
     "artifact_type": { "type": "string", "enum": ["native_migration_plan"] },
     "report_type": { "type": "string", "enum": ["NATIVE_FIRST_EXISTING_PROJECT_MIGRATION"] },
     "project_state": { "type": "string" },
@@ -32,12 +33,99 @@
     "business_authority": { "type": "string", "enum": ["PROJECT_OWNED"] },
     "production_authority": { "type": "string", "enum": ["HUMAN_OR_EXTERNAL_SYSTEM"] },
     "requires_human_approval_before_apply": { "type": "string", "enum": ["Yes"] },
-    "project_binding": { "type": "object" },
+    "project_binding": {
+      "type": "object",
+      "required": ["canonical_root", "topology_digest", "identity_kind", "identity_fingerprint"],
+      "properties": {
+        "canonical_root": { "type": "string", "minLength": 1 },
+        "topology_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "identity_kind": { "type": "string", "minLength": 1 },
+        "identity_fingerprint": { "type": "string", "minLength": 1 }
+      }
+    },
     "goal_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "project_fact_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "guidance_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "authority_inventory_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "source_revision": { "type": "string", "minLength": 1 },
+    "authority_source_boundary": {
+      "type": "object",
+      "required": ["status", "native_path_count", "excluded_path_count", "selected_authority_source_count", "review_required_authority_source_count", "excluded_by_classification", "exclusions"],
+      "properties": {
+        "status": { "type": "string", "minLength": 1 },
+        "native_path_count": { "type": "integer" },
+        "excluded_path_count": { "type": "integer" },
+        "selected_authority_source_count": { "type": "integer" },
+        "review_required_authority_source_count": { "type": "integer" },
+        "excluded_by_classification": {
+          "type": "object",
+          "additionalProperties": { "type": "integer" }
+        },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "classification", "evidence"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "classification": { "type": "string", "minLength": 1 },
+              "evidence": { "type": "string", "minLength": 1 },
+              "source": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "authority_source_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "role", "format", "classification_default", "disposition", "reason"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "enum": ["AGENT_GUIDANCE", "GOVERNANCE_DOCUMENT", "CI_WORKFLOW", "RELEASE_CONTROL"] },
+          "format": { "type": "string", "enum": ["MARKDOWN", "YAML", "UNSUPPORTED"] },
+          "classification_default": { "type": "string", "enum": ["PRODUCTION_CONTROL", "BUSINESS_FACT", "ENGINEERING_BASELINE", "WORKFLOW_RULE", "SECTION_CONTEXT_REQUIRED"] },
+          "disposition": { "type": "string", "enum": ["SELECTED", "REVIEW_REQUIRED"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "block_decision_resolution": {
+      "type": "object",
+      "required": ["state", "artifact_ref", "artifact_digest", "decisions_declared", "decisions_applied", "errors", "applied_decisions", "boundary"],
+      "properties": {
+        "state": { "type": "string", "enum": ["NOT_PROVIDED", "CURRENT", "APPLIED", "INVALID"] },
+        "artifact_ref": { "type": "string", "minLength": 1 },
+        "artifact_digest": { "type": "string", "pattern": "^(?:N/A|sha256:[a-f0-9]{64})$" },
+        "decisions_declared": { "type": "integer" },
+        "decisions_applied": { "type": "integer" },
+        "errors": { "type": "array", "items": { "type": "string" } },
+        "applied_decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["block_id", "block_digest", "source_file", "disposition"],
+            "properties": {
+              "block_id": { "type": "string", "pattern": "^NB-[a-f0-9]{24}-[1-9][0-9]*$" },
+              "block_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+              "source_file": { "type": "string", "minLength": 1 },
+              "disposition": { "type": "string", "enum": ["PRESERVE_AS_CONTEXT", "RESOLVED_NON_RULE", "CLASSIFY_AS_RULE"] }
+            }
+          }
+        },
+        "boundary": {
+          "type": "object",
+          "required": ["writes_target_files", "authorizes_apply", "authorizes_activation", "authorizes_release_or_production"],
+          "properties": {
+            "writes_target_files": { "type": "string", "enum": ["No"] },
+            "authorizes_apply": { "type": "string", "enum": ["No"] },
+            "authorizes_activation": { "type": "string", "enum": ["No"] },
+            "authorizes_release_or_production": { "type": "string", "enum": ["No"] }
+          }
+        }
+      }
+    },
     "rule_extraction_coverage": {
       "type": "array",
       "items": {
@@ -50,7 +138,25 @@
           "unclassified_blocks": { "type": "array" },
           "skipped_blocks": { "type": "array" },
           "low_signal_blocks": { "type": "array" },
-          "parser_warnings": { "type": "array" }
+          "block_ledger": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["block_id", "block_digest", "block_type", "source_start_line", "source_end_line", "context_heading", "disposition", "rule_count", "reason"],
+              "properties": {
+                "block_id": { "type": "string", "pattern": "^NB-[a-f0-9]{24}-[1-9][0-9]*$" },
+                "block_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+                "block_type": { "type": "string", "enum": ["HEADING", "PARAGRAPH", "LIST_ITEM", "TABLE", "TEXT_DIAGRAM", "EXECUTABLE_CODE", "CODE_FENCE", "YAML_ENTRY", "YAML_CONTEXT", "SYNTHETIC_OBSERVATION"] },
+                "source_start_line": { "type": "integer" },
+                "source_end_line": { "type": "integer" },
+                "context_heading": { "type": "string" },
+                "disposition": { "type": "string", "enum": ["EXTRACTED_RULE", "PRESERVED_CONTEXT", "RESOLVED_NON_RULE", "NEEDS_REVIEW"] },
+                "rule_count": { "type": "integer" },
+                "reason": { "type": "string" }
+              }
+            }
+          },
+          "parser_warnings": { "type": "array", "items": { "type": "string" } }
         }
       }
     },
@@ -127,6 +233,42 @@
         }
       }
     },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["conflictId", "conflictType", "existingSource", "intentOsTarget", "defaultDecision", "humanDecisionRequired"],
+        "properties": {
+          "conflictId": { "type": "string", "minLength": 1 },
+          "conflictType": { "type": "string", "minLength": 1 },
+          "existingSource": { "type": "string", "minLength": 1 },
+          "intentOsTarget": { "type": "string", "minLength": 1 },
+          "defaultDecision": { "type": "string", "minLength": 1 },
+          "humanDecisionRequired": { "type": "string", "enum": ["Yes", "No"] }
+        }
+      }
+    },
+    "authority_transition": {
+      "type": "object",
+      "required": ["oldWorkflowRules", "intentOsRules", "transitionCondition"],
+      "properties": {
+        "oldWorkflowRules": { "type": "string", "minLength": 1 },
+        "intentOsRules": { "type": "string", "minLength": 1 },
+        "transitionCondition": { "type": "string", "minLength": 1 }
+      }
+    },
+    "human_decisions_needed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["decision", "owner", "status"],
+        "properties": {
+          "decision": { "type": "string", "minLength": 1 },
+          "owner": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "boundary": {
       "type": "object",
       "required": [
@@ -135,11 +277,75 @@
         "approvesImplementation",
         "approvesReleaseOrProduction",
         "modifiesCiOrHooks"
-      ]
+      ],
+      "properties": {
+        "writesTargetFiles": { "type": "string", "enum": ["No"] },
+        "authorizesTargetFileWrites": { "type": "string", "enum": ["No"] },
+        "approvesImplementation": { "type": "string", "enum": ["No"] },
+        "approvesReleaseOrProduction": { "type": "string", "enum": ["No"] },
+        "modifiesCiOrHooks": { "type": "string", "enum": ["No"] },
+        "changesHighRiskProjectBehavior": { "type": "string", "enum": ["No"] },
+        "requiresHumanApprovalBeforeGovernanceReplacement": { "type": "string", "enum": ["Yes"] },
+        "treatsIntentOsWorkflowAuthorityAsBusinessAuthority": { "type": "string", "enum": ["No"] }
+      }
     },
     "outcome": {
       "type": "string",
       "enum": ["NATIVE_MIGRATION_PLAN_RECORDED", "NEEDS_HUMAN_DECISION", "BLOCKED"]
     }
-  }
+  },
+  "$defs": {
+    "reviewBlock": {
+      "type": "object",
+      "required": ["source_file", "source_start_line", "source_end_line", "context_heading", "excerpt", "reason"],
+      "properties": {
+        "source_file": { "type": "string", "minLength": 1 },
+        "source_start_line": { "type": "integer" },
+        "source_end_line": { "type": "integer" },
+        "context_heading": { "type": "string", "minLength": 1 },
+        "excerpt": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "disposition": { "type": "string", "enum": ["RESOLVED_NON_RULE"] }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "schema_version": { "const": "1.113.0" } } },
+      "then": {
+        "required": [
+          "project_binding",
+          "goal_digest",
+          "project_fact_digest",
+          "guidance_digest",
+          "authority_inventory_digest",
+          "source_revision",
+          "authority_source_boundary",
+          "authority_source_inventory",
+          "block_decision_resolution",
+          "conflicts",
+          "human_decisions_needed"
+        ],
+        "properties": {
+          "rule_extraction_coverage": {
+            "items": {
+              "required": ["skipped_blocks", "low_signal_blocks", "block_ledger"],
+              "properties": {
+                "unclassified_blocks": { "items": { "$ref": "#/$defs/reviewBlock" } },
+                "skipped_blocks": { "items": { "$ref": "#/$defs/reviewBlock" } },
+                "low_signal_blocks": { "items": { "$ref": "#/$defs/reviewBlock" } }
+              }
+            }
+          },
+          "boundary": {
+            "required": [
+              "changesHighRiskProjectBehavior",
+              "requiresHumanApprovalBeforeGovernanceReplacement",
+              "treatsIntentOsWorkflowAuthorityAsBusinessAuthority"
+            ]
+          }
+        }
+      }
+    }
+  ]
 }

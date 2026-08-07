@@ -55,6 +55,17 @@ export function isGovernedWorkflowOutputPath(relativePath) {
   return top === ".intentos" || workflowOutputDirectories.has(top);
 }
 
+// A plan-first apply writes its exact execution plan before replay. That
+// protocol artifact is durable evidence, but it is not a project-source
+// mutation and must not invalidate the project facts that the plan binds.
+export function isControlledApplyProtocolArtifactPath(relativePath) {
+  const normalized = normalizePortablePath(relativePath);
+  return normalized === "apply-execution-plans"
+    || normalized.startsWith("apply-execution-plans/")
+    || normalized === ".intentos/apply-plans"
+    || normalized.startsWith(".intentos/apply-plans/");
+}
+
 export function isFileEvidenceRef(value) {
   return /^(artifact|file):/i.test(String(value || "").trim());
 }

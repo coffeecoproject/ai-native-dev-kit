@@ -9,6 +9,7 @@ import {
   nativeAdoptionOperationalPolicy,
   nativeAdoptionActionCapability,
   normalizeNativeAdoptionMigrationDepth,
+  resolveNativeAdoptionStage,
   selectedNativeBaselineReadiness,
   selectedNativeOverlayAssets,
 } from "../scripts/lib/native-adoption-overlay.mjs";
@@ -164,10 +165,79 @@ test("selected baseline mapping keeps incomplete project evidence explicit and t
 });
 
 test("native adoption migration depth is explicit and fails closed", () => {
-  assert.equal(normalizeNativeAdoptionMigrationDepth(), "SELECTED_ASSETS");
-  assert.equal(normalizeNativeAdoptionMigrationDepth("adapter_only"), "ADAPTER_ONLY");
+  assert.equal(normalizeNativeAdoptionMigrationDepth(), "READ_ONLY_DIAGNOSIS");
+  assert.equal(normalizeNativeAdoptionMigrationDepth("adapter_only"), "READ_ONLY_DIAGNOSIS");
+  assert.equal(normalizeNativeAdoptionMigrationDepth("docs_bridge"), "DOCS_BRIDGE");
+  assert.equal(normalizeNativeAdoptionMigrationDepth("selected_assets"), "SELECTED_ASSETS");
   assert.throws(() => normalizeNativeAdoptionMigrationDepth("FULL_NATIVE"), /must be one of/);
   assert.throws(() => normalizeNativeAdoptionMigrationDepth("full-with-history"), /must be one of/);
+});
+
+test("native adoption stages never authorize a write graph before selected assets", () => {
+  const reconciliation = {
+    recommendation: "SELECTED_NATIVE_ADOPTION",
+    reconciliationPath: "DOCS_BRIDGE_THEN_SELECTED_ASSETS",
+    canRecommendApplyPlanNow: "Yes",
+    scanState: "COMPLETE_ACTIONABLE_RULES",
+  };
+  const diagnosis = resolveNativeAdoptionStage({
+    ...reconciliation,
+    requestedStage: "READ_ONLY_DIAGNOSIS",
+  });
+  assert.equal(diagnosis.state, "READ_ONLY_DIAGNOSIS_COMPLETE");
+  assert.equal(diagnosis.next_stage, "DOCS_BRIDGE");
+  assert.equal(diagnosis.write_graph_allowed, "No");
+  assert.deepEqual(diagnosis.required_stages, ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE", "SELECTED_ASSETS"]);
+  assert.deepEqual(diagnosis.completed_stages, ["READ_ONLY_DIAGNOSIS"]);
+
+  const bridge = resolveNativeAdoptionStage({
+    ...reconciliation,
+    requestedStage: "DOCS_BRIDGE",
+  });
+  assert.equal(bridge.state, "READY_FOR_SELECTED_ASSETS");
+  assert.equal(bridge.next_stage, "SELECTED_ASSETS");
+  assert.equal(bridge.write_graph_allowed, "No");
+  assert.deepEqual(bridge.completed_stages, ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE"]);
+
+  const selected = resolveNativeAdoptionStage({
+    ...reconciliation,
+    requestedStage: "SELECTED_ASSETS",
+  });
+  assert.equal(selected.state, "SELECTED_ASSETS_READY");
+  assert.equal(selected.write_graph_allowed, "Yes");
+  assert.deepEqual(selected.completed_stages, ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE"]);
+  assert.deepEqual(selected.transition_evidence, {
+    scan_state: "COMPLETE_ACTIONABLE_RULES",
+    recommendation: "SELECTED_NATIVE_ADOPTION",
+    reconciliation_path: "DOCS_BRIDGE_THEN_SELECTED_ASSETS",
+    can_recommend_apply_plan_now: "Yes",
+  });
+});
+
+test("existing-project default and docs-bridge plans are diagnostic-only", (t) => {
+  const root = projectFixture(t);
+  const options = {
+    starter: "generic-project",
+    goal: "adopt this governed project while preserving project release authority",
+    profiles: "web-app",
+    baselineLevel: "BL1_STANDARD",
+    createdAt: "2030-01-01T00:00:00.000Z",
+  };
+  const diagnosis = buildPlan(root, options);
+  assert.equal(diagnosis.arguments.migrationDepth, "READ_ONLY_DIAGNOSIS");
+  assert.equal(diagnosis.adoptionAssessment.assessment_state, "READ_ONLY_DIAGNOSIS_COMPLETE");
+  assert.equal(diagnosis.adoptionAssessment.adoption_stage.requested_stage, "READ_ONLY_DIAGNOSIS");
+  assert.equal(diagnosis.adoptionAssessment.adoption_stage.write_graph_allowed, "No");
+  assert.equal(diagnosis.executionState, "DIAGNOSTIC_ONLY");
+  assert.equal(diagnosis.actions.some((action) => action.willWrite), false);
+
+  const bridge = buildPlan(root, { ...options, migrationDepth: "DOCS_BRIDGE" });
+  assert.equal(bridge.arguments.migrationDepth, "DOCS_BRIDGE");
+  assert.equal(bridge.adoptionAssessment.assessment_state, "READY_FOR_SELECTED_ASSETS");
+  assert.equal(bridge.adoptionAssessment.adoption_stage.requested_stage, "DOCS_BRIDGE");
+  assert.equal(bridge.adoptionAssessment.adoption_stage.write_graph_allowed, "No");
+  assert.equal(bridge.executionState, "DIAGNOSTIC_ONLY");
+  assert.equal(bridge.actions.some((action) => action.willWrite), false);
 });
 
 test("existing-project full-native adoption is rejected before an action graph is built", (t) => {
@@ -178,7 +248,7 @@ test("existing-project full-native adoption is rejected before an action graph i
     migrationDepth: "FULL_NATIVE",
     profiles: "web-app",
     baselineLevel: "BL1_STANDARD",
-  }), /must be one of: ADAPTER_ONLY, SELECTED_ASSETS/);
+  }), /must be one of: READ_ONLY_DIAGNOSIS, DOCS_BRIDGE, SELECTED_ASSETS/);
   assert.equal(fs.existsSync(path.join(root, ".intentos")), false);
 });
 
@@ -204,6 +274,7 @@ test("ready selected overlay excludes historical task takeover and binds every w
   const plan = buildPlan(root, {
     starter: "generic-project",
     goal: "adopt this governed project while preserving project release authority",
+    migrationDepth: "SELECTED_ASSETS",
     profiles: "web-app",
     baselineLevel: "BL1_STANDARD",
     createdAt: "2030-01-01T00:00:00.000Z",
@@ -247,6 +318,7 @@ test("ready selected overlay authorizes only the canonical missing AGENTS entry"
   const plan = buildPlan(root, {
     starter: "generic-project",
     goal: "adopt this lightweight existing project under IntentOS",
+    migrationDepth: "SELECTED_ASSETS",
     profiles: "web-app",
     baselineLevel: "BL1_STANDARD",
     createdAt: "2030-01-01T00:00:00.000Z",
@@ -274,6 +346,7 @@ test("blocked selected adoption emits a compact zero-write diagnostic graph", (t
   const plan = buildPlan(root, {
     starter: "generic-project",
     goal: "adopt this project without changing historical tasks",
+    migrationDepth: "SELECTED_ASSETS",
     profiles: "web-app",
     baselineLevel: "BL1_STANDARD",
     createdAt: "2030-01-01T00:00:00.000Z",
@@ -295,6 +368,7 @@ test("profileless selected adoption stops at technical discovery before apply", 
   const plan = buildPlan(root, {
     starter: "generic-project",
     goal: "adopt this existing project with IntentOS",
+    migrationDepth: "SELECTED_ASSETS",
   });
   assert.equal(plan.adoptionAssessment.rule_reconciliation.coverage.scanState, "COMPLETE_NO_ACTIONABLE_RULES");
   assert.equal(plan.adoptionAssessment.profile_mapping.state, "TECHNICAL_DISCOVERY_REQUIRED");
@@ -344,6 +418,7 @@ test("structured reconciliation blocker becomes a diagnostic plan instead of a s
   const plan = buildPlan(root, {
     starter: "generic-project",
     goal: "adopt this project under IntentOS",
+    migrationDepth: "SELECTED_ASSETS",
     profiles: "web-app",
     baselineLevel: "BL1_STANDARD",
     createdAt: "2030-01-01T00:00:00.000Z",
@@ -379,6 +454,7 @@ test("selected overlay controlled apply verifies without changing historical tas
   const plan = buildPlan(root, {
     starter: "generic-project",
     goal,
+    migrationDepth: "SELECTED_ASSETS",
     profiles: "web-app",
     baselineLevel: "BL1_STANDARD",
   });

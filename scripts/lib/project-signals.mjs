@@ -37,6 +37,94 @@ export const projectSignalFiles = [
 
 export const projectSignalDirs = ["src", "app", "pages", "components", "ios", "android", "server", "backend", "frontend", "services"];
 
+const authorityDocumentExtensionPattern = /\.(?:md|mdx|mdc|txt)$/i;
+const authorityYamlExtensionPattern = /\.ya?ml$/i;
+const archivedAuthorityPathPattern = /(^|\/)(?:archive|archived|history|historical|superseded)(\/|$)/i;
+
+export function buildNativeAuthoritySourceInventory(root, relativePaths) {
+  const paths = [...new Set(relativePaths
+    .map((value) => normalizeSignalPath(value))
+    .filter(Boolean))]
+    .sort();
+  const sources = [];
+  for (const relativePath of paths) {
+    if (!isProjectSourceFile(root, relativePath)) continue;
+    const role = authoritySourceRole(relativePath);
+    if (!role) continue;
+    const format = authoritySourceFormat(relativePath);
+    sources.push({
+      path: relativePath,
+      role,
+      format,
+      classificationDefault: authorityClassificationDefault(relativePath, role),
+      disposition: format === "UNSUPPORTED" ? "REVIEW_REQUIRED" : "SELECTED",
+      reason: authoritySourceReason(role, format),
+    });
+  }
+  return sources;
+}
+
+function authorityClassificationDefault(relativePath, role) {
+  if (role === "CI_WORKFLOW" || role === "RELEASE_CONTROL") return "PRODUCTION_CONTROL";
+  if (role === "AGENT_GUIDANCE") return "SECTION_CONTEXT_REQUIRED";
+  if (/(?:^|\/)docs\/sample-policy\.(?:md|mdx|mdc|txt)$/i.test(relativePath)) return "ENGINEERING_BASELINE";
+  if (/(?:^|\/)docs\/business\/(?:baselines?\/|.*(?:business|domain|product).*(?:baseline|foundation|index)[^/]*\.)/i.test(relativePath)
+    || /(?:^|[-_/])business-baseline\.(?:md|mdx|mdc|txt)$/i.test(relativePath)) {
+    return "BUSINESS_FACT";
+  }
+  if (/(?:^|\/)docs\/(?:architecture|adr)(?:\/|[-_.])/i.test(relativePath)
+    || /(?:^|\/)docs\/.*(?:engineering|environment|architecture|ui-baseline)[^/]*\.(?:md|mdx|mdc|txt)$/i.test(relativePath)) {
+    return "ENGINEERING_BASELINE";
+  }
+  return "SECTION_CONTEXT_REQUIRED";
+}
+
+function authoritySourceRole(relativePath) {
+  if (archivedAuthorityPathPattern.test(relativePath)) return null;
+  if (/(^|\/)(?:AGENTS?|\.agent)\.md$/i.test(relativePath)
+    || /^\.(?:codex|cursor|claude)\/.*\.(?:md|mdx|mdc|txt)$/i.test(relativePath)) {
+    return "AGENT_GUIDANCE";
+  }
+  if (/(?:^|\/)\.github\/workflows\/.*\.ya?ml$/i.test(relativePath)
+    || /(?:^|\/)(?:\.gitlab-ci|azure-pipelines|bitbucket-pipelines)\.ya?ml$/i.test(relativePath)) {
+    return "CI_WORKFLOW";
+  }
+  if (/(?:^|\/)docs\/(?:release|releases|runbooks|rollback|incident)(?:\/|[-_.])/i.test(relativePath)
+    || /(?:^|\/)docs\/.*\/(?:release|rollback|deploy|deployment|incident|runbook)[^/]*\.(?:md|mdx|mdc|txt)$/i.test(relativePath)) {
+    return "RELEASE_CONTROL";
+  }
+  if (/(?:^|\/)(?:GOVERNANCE|ARCHITECTURE|RISK|POLICY|SECURITY)\.(?:md|mdx|mdc|txt)$/i.test(relativePath)
+    || /(?:^|\/)docs\/(?:governance|baseline|baselines|architecture|adr|risk)(?:\/|[-_.])/i.test(relativePath)
+    || /(?:^|\/)docs\/business\/(?:baselines?\/|.*(?:baseline|gate|policy|governance)[^/]*\.(?:md|mdx|mdc|txt)$)/i.test(relativePath)
+    || /(?:^|\/)docs\/(?:sample-policy|[^/]+-(?:baseline|governance|architecture|risk-policy|rules))\.(?:md|mdx|mdc|txt)$/i.test(relativePath)) {
+    return "GOVERNANCE_DOCUMENT";
+  }
+  return null;
+}
+
+function authoritySourceFormat(relativePath) {
+  if (authorityDocumentExtensionPattern.test(relativePath)) return "MARKDOWN";
+  if (authorityYamlExtensionPattern.test(relativePath)) return "YAML";
+  return "UNSUPPORTED";
+}
+
+function authoritySourceReason(role, format) {
+  if (format === "UNSUPPORTED") return `${role} source uses an unsupported deterministic parser format`;
+  if (role === "AGENT_GUIDANCE") return "project-local agent guidance source";
+  if (role === "CI_WORKFLOW") return "project-local CI workflow authority source";
+  if (role === "RELEASE_CONTROL") return "project-local release or rollback authority document";
+  return "project-local governance or baseline document";
+}
+
+function isProjectSourceFile(root, relativePath) {
+  if (!isSafeRelativeSignalPath(relativePath)) return false;
+  try {
+    return !fs.lstatSync(path.join(root, relativePath)).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 export function walkFiles(dir, options = {}) {
   if (!fs.existsSync(dir)) return [];
   const extensions = Array.isArray(options.extensions) ? options.extensions : null;

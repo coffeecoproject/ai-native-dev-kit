@@ -616,6 +616,9 @@ test("controlled executable plan records existing-project entry origin", () => w
     "scripts/init-project.mjs",
     "--target", root,
     "--goal", "adopt this lightweight existing project under IntentOS",
+    "--migration-depth", "SELECTED_ASSETS",
+    "--profiles", "web-app",
+    "--baseline-level", "BL1_STANDARD",
     "--write-plan", path.relative(root, planPath),
   ]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);

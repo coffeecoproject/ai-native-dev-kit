@@ -13,6 +13,7 @@ import {
   completeControlledApplyJournal,
   markControlledApplyActionApplied,
   markControlledApplyMutationComplete,
+  inspectControlledApplyActivationOwnership,
   prepareControlledApplyAction,
   recoverInterruptedControlledApply as recoverInterruptedControlledApplyRaw,
   rollbackControlledApply,
@@ -102,6 +103,103 @@ function prepareInterruptedRollback(target, suffix) {
   markControlledApplyMutationComplete(handle);
   return { original, action, handle };
 }
+
+function prepareActivationOwnershipProjection(target, suffix) {
+  const original = `original ${suffix}\n`;
+  const replacement = `replacement ${suffix}\n`;
+  const planDigest = digest(`activation-${suffix}`);
+  const receiptPath = ".intentos/apply-receipt.md";
+  fs.writeFileSync(path.join(target, "authority.md"), original);
+  const action = {
+    id: "A-001",
+    path: "authority.md",
+    backupPath: `.intentos/backups/${suffix}/authority.md`,
+    hashBefore: digest(original),
+    expectedHashAfter: digest(replacement),
+  };
+  const handle = beginControlledApplyJournal({
+    targetRoot: target,
+    planDigest,
+    receiptPath,
+    actions: [action],
+  });
+  prepareControlledApplyAction(handle, action);
+  const observed = commitControlledApplyAction(handle, action.id, replacement);
+  markControlledApplyActionApplied(handle, action.id, observed);
+  markControlledApplyMutationComplete(handle);
+  const pendingReceipt = `pending activation ${suffix}\n`;
+  writeControlledApplyReceipt(handle, pendingReceipt, "pending-activation");
+  return { action, handle, pendingReceipt, planDigest, receiptPath };
+}
+
+test("activation ownership projects only the exact validated live transaction files", (t) => {
+  const { target } = fixture(t);
+  const prepared = prepareActivationOwnershipProjection(target, "activation-owned");
+
+  const projection = inspectControlledApplyActivationOwnership(target, {
+    transactionId: prepared.handle.record.transaction_id,
+    ownerPid: process.pid,
+    planDigest: prepared.planDigest,
+    receiptPath: prepared.receiptPath,
+    pendingReceiptDigest: digest(prepared.pendingReceipt),
+    expectedActions: [prepared.action],
+    supportActionPaths: [],
+  });
+
+  assert.equal(projection.ok, true, (projection.errors || []).join("; "));
+  assert.deepEqual(projection.transactionOwnedPaths, [
+    ".intentos-controlled-apply.lock.json",
+    path.basename(prepared.handle.file),
+    prepared.action.backupPath,
+  ].sort());
+  assert.equal(projection.transactionOwnedPaths.includes(prepared.receiptPath), false);
+});
+
+test("activation ownership rejects forged transaction identity and unowned backup inventory", (t) => {
+  const { target } = fixture(t);
+  const prepared = prepareActivationOwnershipProjection(target, "activation-extra");
+  const options = {
+    transactionId: prepared.handle.record.transaction_id,
+    ownerPid: process.pid,
+    planDigest: prepared.planDigest,
+    receiptPath: prepared.receiptPath,
+    pendingReceiptDigest: digest(prepared.pendingReceipt),
+    expectedActions: [prepared.action],
+    supportActionPaths: [],
+  };
+
+  const forged = inspectControlledApplyActivationOwnership(target, {
+    ...options,
+    transactionId: `${options.transactionId}-forged`,
+  });
+  assert.equal(forged.ok, false);
+  assert.match(forged.errors.join("; "), /transaction|journal|lock/i);
+
+  const extraBackup = path.join(target, ".intentos/backups/activation-extra/unowned.md");
+  fs.writeFileSync(extraBackup, "not owned by the transaction\n");
+  const extra = inspectControlledApplyActivationOwnership(target, options);
+  assert.equal(extra.ok, false);
+  assert.match(extra.errors.join("; "), /backup inventory/i);
+});
+
+test("activation ownership rejects a modified rollback backup", (t) => {
+  const { target } = fixture(t);
+  const prepared = prepareActivationOwnershipProjection(target, "activation-tampered");
+  fs.writeFileSync(path.join(target, prepared.action.backupPath), "tampered backup\n");
+
+  const projection = inspectControlledApplyActivationOwnership(target, {
+    transactionId: prepared.handle.record.transaction_id,
+    ownerPid: process.pid,
+    planDigest: prepared.planDigest,
+    receiptPath: prepared.receiptPath,
+    pendingReceiptDigest: digest(prepared.pendingReceipt),
+    expectedActions: [prepared.action],
+    supportActionPaths: [],
+  });
+
+  assert.equal(projection.ok, false);
+  assert.match(projection.errors.join("; "), /backup digest|rollback backup/i);
+});
 
 test("hard process interruption restores every journaled target and the prior receipt", (t) => {
   const { parent, target } = fixture(t);

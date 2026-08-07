@@ -124,7 +124,7 @@ Change Impact Coverage / Review Loop / Finish
 
 ```json
 {
-  "schema_version": "1.65.0",
+  "schema_version": "1.113.0",
   "artifact_type": "native_migration_plan",
   "report_type": "NATIVE_FIRST_EXISTING_PROJECT_MIGRATION",
   "project_state": "<state>",
@@ -135,14 +135,63 @@ Change Impact Coverage / Review Loop / Finish
   "business_authority": "PROJECT_OWNED",
   "production_authority": "HUMAN_OR_EXTERNAL_SYSTEM",
   "requires_human_approval_before_apply": "Yes",
+  "project_binding": {
+    "canonical_root": "<canonical project root>",
+    "topology_digest": "sha256:<64 lowercase hex characters>",
+    "identity_kind": "<identity kind>",
+    "identity_fingerprint": "<identity fingerprint>"
+  },
+  "goal_digest": "sha256:<64 lowercase hex characters>",
+  "project_fact_digest": "sha256:<64 lowercase hex characters>",
+  "guidance_digest": "sha256:<64 lowercase hex characters>",
+  "authority_inventory_digest": "sha256:<64 lowercase hex characters>",
+  "source_revision": "<current source revision>",
+  "authority_source_boundary": {
+    "status": "<COMPLETE / REVIEW_REQUIRED>",
+    "native_path_count": 0,
+    "excluded_path_count": 0,
+    "selected_authority_source_count": 0,
+    "review_required_authority_source_count": 0,
+    "excluded_by_classification": {},
+    "exclusions": []
+  },
+  "authority_source_inventory": [],
+  "block_decision_resolution": {
+    "state": "NOT_PROVIDED",
+    "artifact_ref": "N/A",
+    "artifact_digest": "N/A",
+    "decisions_declared": 0,
+    "decisions_applied": 0,
+    "errors": [],
+    "applied_decisions": [],
+    "boundary": {
+      "writes_target_files": "No",
+      "authorizes_apply": "No",
+      "authorizes_activation": "No",
+      "authorizes_release_or_production": "No"
+    }
+  },
   "rule_extraction_coverage": [
     {
       "source_file": "<path>",
-      "lines_scanned": 0,
-      "rules_extracted": 0,
+      "lines_scanned": 1,
+      "rules_extracted": 1,
       "unclassified_blocks": [],
       "skipped_blocks": [],
       "low_signal_blocks": [],
+      "block_ledger": [
+        {
+          "block_id": "NB-000000000000000000000000-1",
+          "block_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "block_type": "PARAGRAPH",
+          "source_start_line": 1,
+          "source_end_line": 1,
+          "context_heading": "<heading>",
+          "disposition": "EXTRACTED_RULE",
+          "rule_count": 1,
+          "reason": "<why this block contains the classified rule>"
+        }
+      ],
       "parser_warnings": []
     }
   ],
@@ -150,8 +199,8 @@ Change Impact Coverage / Review Loop / Finish
     {
       "rule_id": "R-001",
       "source_file": "<path>",
-      "source_start_line": 8,
-      "source_end_line": 8,
+      "source_start_line": 1,
+      "source_end_line": 1,
       "context_heading": "<heading>",
       "source_excerpt": "<line or excerpt>",
       "rule_class": "WORKFLOW_RULE",
@@ -165,6 +214,7 @@ Change Impact Coverage / Review Loop / Finish
       "confidence": "HIGH"
     }
   ],
+  "conflicts": [],
   "proposed_actions": [
     {
       "step": 1,
@@ -175,13 +225,21 @@ Change Impact Coverage / Review Loop / Finish
       "status": "Proposed"
     }
   ],
-  "authority_transition": {},
+  "authority_transition": {
+    "oldWorkflowRules": "preserved until the reviewed migration plan is applied",
+    "intentOsRules": "future workflow authority after controlled apply",
+    "transitionCondition": "the current request, binding, decisions, plan, and apply authority remain valid"
+  },
+  "human_decisions_needed": [],
   "boundary": {
     "writesTargetFiles": "No",
     "authorizesTargetFileWrites": "No",
     "approvesImplementation": "No",
     "approvesReleaseOrProduction": "No",
-    "modifiesCiOrHooks": "No"
+    "modifiesCiOrHooks": "No",
+    "changesHighRiskProjectBehavior": "No",
+    "requiresHumanApprovalBeforeGovernanceReplacement": "Yes",
+    "treatsIntentOsWorkflowAuthorityAsBusinessAuthority": "No"
   },
   "outcome": "NATIVE_MIGRATION_PLAN_RECORDED"
 }

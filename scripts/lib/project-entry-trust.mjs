@@ -5,6 +5,7 @@ import { evidenceDigest, extractMachineReadableEvidence } from "./artifact-schem
 import { evaluateVerifiedAdoptionApplyChain } from "./adoption-apply-chain.mjs";
 import { canonicalFileDigest } from "./evidence-authority.mjs";
 import { validateVerifiedBootstrapReceipt } from "./bootstrap-transaction.mjs";
+import { inspectControlledApplyActivationOwnership } from "./controlled-apply-transaction.mjs";
 import { validateRequestBoundApplyAuthority, validateRequestBoundReadiness } from "./request-bound-apply-authority.mjs";
 import { inspectTargetTopology } from "./target-topology.mjs";
 import { collectProjectFactProjection, hasGlobalTrustConflict, projectGoalProjection } from "./project-fact-projection.mjs";
@@ -20,7 +21,12 @@ export function resolveProjectEntryTrust(options = {}) {
   const sourceRoot = path.resolve(options.sourceRoot || targetRoot);
   const topology = inspectTargetTopology(targetRoot);
   const goalProjection = projectGoalProjection(options.goal, options.goalOptions);
-  const facts = collectProjectFactProjection(targetRoot, { topology, goalProjection, sourceRoot });
+  const facts = collectProjectFactProjection(targetRoot, {
+    topology,
+    goalProjection,
+    sourceRoot,
+    excludeControlledApplyProtocolArtifacts: options.excludeControlledApplyProtocolArtifacts === true,
+  });
   const agentAuthority = collectProjectAgentAuthority(targetRoot, { topology });
   const identity = installedIdentity(targetRoot, sourceRoot, topology, facts, agentAuthority);
   const guidance = guidanceBindingFor({ targetRoot, sourceRoot, identity, agentAuthority });
@@ -317,6 +323,9 @@ function validPendingControlledApplyIdentity(root, canonicalRoot) {
     || process.env.INTENTOS_CONTROLLED_UPDATE_ACTIVATION_RECORD_DIGEST
     || "",
   );
+  const expectedTransactionId = String(
+    process.env.INTENTOS_CONTROLLED_APPLY_ACTIVATION_TRANSACTION || "",
+  );
   if (!receiptRef || !capability || !/^sha256:[a-f0-9]{64}$/.test(expectedRecordDigest)) {
     return { ok: false, reason: "No bounded controlled-apply activation context is active." };
   }
@@ -369,7 +378,11 @@ function validPendingControlledApplyIdentity(root, canonicalRoot) {
     return { ok: false, reason: "Controlled-apply activation plan operation is invalid." };
   }
   if (currentApplyRecord
-    && (record.operation !== plan.operation || record.operation_kind !== plan.operationKind)) {
+    && (record.activation_contract !== "TRANSACTION_BOUND_V2"
+      || !/^apply-[A-Za-z0-9._-]+$/.test(String(record.transaction_id || ""))
+      || record.transaction_id !== expectedTransactionId
+      || record.operation !== plan.operation
+      || record.operation_kind !== plan.operationKind)) {
     return { ok: false, reason: "Controlled-apply activation operation binding is invalid." };
   }
   if (!["NEW_PROJECT", "EXISTING_PROJECT"].includes(plan.arguments?.projectEntryOrigin)) return { ok: false, reason: "Controlled-update activation plan origin is invalid." };
@@ -379,8 +392,9 @@ function validPendingControlledApplyIdentity(root, canonicalRoot) {
   if (plan.planDigest !== stablePlanDigest(plan)) return { ok: false, reason: "Controlled-apply activation plan digest is invalid." };
   const executable = (plan.actions || []).filter((action) => action?.willWrite === true);
   const executableIds = executable.map((action) => action.id).sort();
-  const expectedActions = executable
-    .filter((action) => action.id !== plan.receiptActionId)
+  const planMutationActions = executable
+    .filter((action) => action.id !== plan.receiptActionId);
+  const expectedActions = planMutationActions
     .map((action) => ({ id: action.id, path: action.path, hash_after: action.expectedHashAfter, expected_hash_after: action.expectedHashAfter }));
   if (record.action_graph_digest !== evidenceDigest(record.applied_actions || [], [])
     || JSON.stringify(record.applied_actions || []) !== JSON.stringify(expectedActions)) {
@@ -421,6 +435,46 @@ function validPendingControlledApplyIdentity(root, canonicalRoot) {
   } else {
     return { ok: false, reason: "Controlled-apply authority mode is invalid." };
   }
+  let transactionOwnership = { ok: true, transactionOwnedPaths: [], errors: [] };
+  if (currentApplyRecord) {
+    const authorizedPaths = [...new Set((authority.actions || [])
+      .flatMap((action) => action.target_paths || [])
+      .map((value) => String(value || "").replaceAll("\\", "/"))
+      .filter(Boolean))].sort();
+    transactionOwnership = inspectControlledApplyActivationOwnership(root, {
+      transactionId: record.transaction_id,
+      ownerPid: record.owner_pid,
+      planDigest: record.plan_digest,
+      receiptPath: receiptRef,
+      pendingReceiptDigest: canonicalFileDigest(receiptFile),
+      expectedActions: planMutationActions.map((action) => ({
+        id: action.id,
+        path: action.path,
+        backupPath: action.backupPath || null,
+        hashBefore: action.hashBefore || null,
+        expectedHashAfter: action.expectedHashAfter,
+        receiptRequired: action.receiptRequired !== false,
+      })),
+      supportActionPaths: record.apply_authority_mode === "REQUEST_BOUND_LOCAL"
+        ? [record.apply_authority_ref, record.readiness_ref]
+        : [],
+      expectedRecoveryBinding: {
+        plan_digest: record.plan_digest,
+        request_digest: authority.request?.request_digest,
+        authority_mode: record.apply_authority_mode,
+        authority_path: record.apply_authority_ref,
+        authority_digest: record.apply_authority_digest,
+        authority_scope_digest: authorizedPaths.length > 0 ? evidenceDigest(authorizedPaths, []) : undefined,
+        receipt_path: receiptRef,
+      },
+    });
+    if (!transactionOwnership.ok) {
+      return {
+        ok: false,
+        reason: `Controlled-apply activation transaction ownership is invalid: ${transactionOwnership.errors.join("; ")}`,
+      };
+    }
+  }
   return {
     ok: true,
     reason: "",
@@ -430,6 +484,7 @@ function validPendingControlledApplyIdentity(root, canonicalRoot) {
       record.apply_authority_ref,
       record.readiness_ref,
       ...expectedActions.map((action) => action.path),
+      ...transactionOwnership.transactionOwnedPaths,
     ].map((value) => String(value || "").replaceAll("\\", "/")).filter(Boolean))].sort(),
   };
 }
