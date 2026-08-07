@@ -24,22 +24,57 @@ export function isWorkflowActivationAction(value) {
 export function isWorkflowActivationState(state, plan = null) {
   if (isWorkflowActivationAction(state?.nextAction)) return true;
   return state?.nextAction === "REVIEW_DIRTY_WORKTREE"
-    && isBoundDirtyControlledUpdate(plan);
+    && candidateStaticActivationPreflightSatisfied(plan)
+    && inspectControlledDirtyActivation(plan).ok;
 }
 
-function isBoundDirtyControlledUpdate(plan) {
-  if (!plan || typeof plan !== "object") return false;
-  if (plan.operation !== "UPDATE_WORKFLOW_ASSETS" || plan.operationKind !== "CONTROLLED_UPDATE") return false;
-  if (plan.arguments?.updateWorkflowAssets !== true || plan.arguments?.controlledAdoption !== true) return false;
-  if (!Array.isArray(plan.ownershipConflicts) || plan.ownershipConflicts.length > 0) return false;
-  if (!Array.isArray(plan.actions)) return false;
+function candidateStaticActivationPreflightSatisfied(plan) {
+  const selectedExistingProject = plan?.arguments?.projectEntryOrigin === "EXISTING_PROJECT"
+    && plan?.arguments?.migrationDepth === "SELECTED_ASSETS";
+  return selectedExistingProject
+    ? plan?.candidateStaticActivationPreflight?.state === "READY"
+    : plan?.candidateStaticActivationPreflight?.state === "NOT_APPLICABLE";
+}
+
+export function inspectControlledDirtyActivation(plan) {
+  const invalid = (code, details = {}) => ({ ok: false, mode: "INVALID", code, overlapPaths: [], ...details });
+  if (!plan || typeof plan !== "object") return invalid("PLAN_MISSING");
+  if (plan.arguments?.controlledAdoption !== true) return invalid("CONTROLLED_ADOPTION_REQUIRED");
+  if (plan.executionState !== "EXECUTABLE") return invalid("EXECUTABLE_PLAN_REQUIRED");
+  if (!Array.isArray(plan.ownershipConflicts) || plan.ownershipConflicts.length > 0) {
+    return invalid("OWNERSHIP_CONFLICTS_PRESENT");
+  }
+  if (!Array.isArray(plan.actions)) return invalid("ACTION_GRAPH_MISSING");
 
   const fingerprint = plan.targetFingerprint;
-  if (!fingerprint || fingerprint.targetExists !== true || fingerprint.isGitRepository !== true || fingerprint.isDirty !== true) return false;
+  if (!fingerprint || fingerprint.targetExists !== true || fingerprint.isGitRepository !== true || fingerprint.isDirty !== true) {
+    return invalid("DIRTY_GIT_FINGERPRINT_REQUIRED");
+  }
   const overlap = controlledUpdateDirtyWriteOverlap(fingerprint, plan.actions);
-  if (!overlap.ok) return false;
-  if (overlap.paths.length === 0) return fingerprint.verifiedPriorApplyOverlap == null;
-  return validatesVerifiedPriorApplyOverlap(plan, overlap);
+  if (!overlap.ok) return invalid("DIRTY_WRITE_OVERLAP_INVALID");
+  const nativeAdoption = plan.operation === "INIT_PROJECT"
+    && plan.operationKind === "NATIVE_ADOPTION"
+    && plan.arguments?.updateWorkflowAssets === false
+    && plan.arguments?.projectEntryOrigin === "EXISTING_PROJECT"
+    && plan.arguments?.migrationDepth === "SELECTED_ASSETS"
+    && plan.adoptionAssessment?.assessment_state === "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION";
+  if (nativeAdoption) {
+    return overlap.paths.length === 0 && fingerprint.verifiedPriorApplyOverlap == null
+      ? { ok: true, mode: "NATIVE_ADOPTION_ZERO_OVERLAP", code: "READY", overlapPaths: [] }
+      : invalid("NATIVE_ADOPTION_REQUIRES_ZERO_OVERLAP", { overlapPaths: overlap.paths });
+  }
+  const controlledUpdate = plan.operation === "UPDATE_WORKFLOW_ASSETS"
+    && plan.operationKind === "CONTROLLED_UPDATE"
+    && plan.arguments?.updateWorkflowAssets === true;
+  if (!controlledUpdate) return invalid("CONTROLLED_OPERATION_INVALID");
+  if (overlap.paths.length === 0) {
+    return fingerprint.verifiedPriorApplyOverlap == null
+      ? { ok: true, mode: "CONTROLLED_UPDATE_ZERO_OVERLAP", code: "READY", overlapPaths: [] }
+      : invalid("UNBOUND_PRIOR_OVERLAP_PROOF");
+  }
+  return validatesVerifiedPriorApplyOverlap(plan, overlap)
+    ? { ok: true, mode: "CONTROLLED_UPDATE_VERIFIED_PRIOR_OVERLAP", code: "READY", overlapPaths: overlap.paths }
+    : invalid("PRIOR_OVERLAP_PROOF_INVALID", { overlapPaths: overlap.paths });
 }
 
 export function controlledUpdateDirtyWriteOverlap(fingerprint, actions) {

@@ -37,6 +37,7 @@ import {
 } from "../lib/controlled-apply-transaction.mjs";
 import {
   resolveBehavioralAdoptionActivation,
+  resolveVerifiedInitialTaskIntakeProof,
   validateBehavioralActivation,
   verifyProjectLocalBehavioralRoute,
 } from "../lib/behavioral-adoption-activation.mjs";
@@ -110,6 +111,7 @@ import {
   assignPlanActionIds,
   attachInitialGoalToPlan,
   bootstrapActionsFromPlan,
+  buildCandidateStaticActivationPreflight,
   buildNativeAdoptionAssessment,
   buildPlan,
   controlledBackupRunRoot,
@@ -191,6 +193,14 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     if (plan.adoptionAssessment?.assessment_digest !== currentAssessment.assessment_digest) {
       throw new Error("Native-adoption assessment changed; regenerate the apply plan");
     }
+  }
+  const candidatePreflight = buildCandidateStaticActivationPreflight(plan);
+  if (candidatePreflight.state === "BLOCKED") {
+    throw new Error(`Candidate activation preflight is blocked before target writes: ${candidatePreflight.reason}`);
+  }
+  if (!plan.candidateStaticActivationPreflight?.preflight_digest
+    || plan.candidateStaticActivationPreflight.preflight_digest !== candidatePreflight.preflight_digest) {
+    throw new Error("Candidate activation preflight changed; regenerate the apply plan before writing target files");
   }
   for (const action of plan.actions) {
     if (!action || typeof action !== "object") {
@@ -626,6 +636,7 @@ function replayApprovedPlan(plan, context) {
     activeRequestDigest: context.activeRequestDigest,
     now: context.authorityNow,
   });
+  const activationInitialQueue = requestBoundInitialQueueForActivation(plan);
   const beforeSnapshot = snapshotTargetFiles(plan.targetRoot);
   const transactionSupportActions = context.transactionSupportActions || [];
   const executable = initExecutableActions(plan);
@@ -683,7 +694,12 @@ function replayApprovedPlan(plan, context) {
 
     markControlledApplyMutationComplete(transaction);
     const pendingActivation = writePendingControlledApplyActivation(plan, context, results, transaction);
-    activation = verifyControlledAdoptionActivation(plan.targetRoot, plan, pendingActivation.environment);
+    activation = verifyControlledAdoptionActivation(
+      plan.targetRoot,
+      plan,
+      pendingActivation.environment,
+      activationInitialQueue,
+    );
     if (activation.status !== "VERIFIED") {
       throw new Error(`Installed workflow activation failed: ${activation.reason || "unknown error"}`);
     }
@@ -754,7 +770,7 @@ function replayApprovedPlan(plan, context) {
   return receipt;
 }
 
-function verifyControlledAdoptionActivation(targetRoot, plan, activationEnvironment) {
+function verifyControlledAdoptionActivation(targetRoot, plan, activationEnvironment, requestBoundInitialQueue) {
   const entry = verifyInstalledWorkflowActivation(targetRoot, plan, activationEnvironment);
   const behavioral = verifyProjectLocalBehavioralRoute({
     targetRoot,
@@ -762,7 +778,7 @@ function verifyControlledAdoptionActivation(targetRoot, plan, activationEnvironm
     goal: plan.arguments?.goal || "continue the current IntentOS-governed task",
     allowProjectLocalExecution: true,
     activationEnvironment,
-    requestBoundInitialQueue: requestBoundInitialQueueFromPlan(plan),
+    requestBoundInitialQueue,
   });
   const verified = entry.status === "VERIFIED" && behavioral.ok && behavioral.state === "VERIFIED_ACTIVE";
   return {
@@ -791,6 +807,14 @@ function requestBoundInitialQueueFromPlan(plan) {
     queue_path: queue.path,
     queue_digest: queue.expectedHashAfter,
   };
+}
+
+function requestBoundInitialQueueForActivation(plan) {
+  const currentPlanProof = requestBoundInitialQueueFromPlan(plan);
+  if (currentPlanProof) return currentPlanProof;
+  if (plan.operationKind !== "CONTROLLED_UPDATE" || plan.arguments?.projectEntryOrigin !== "EXISTING_PROJECT") return null;
+  const priorIntake = resolveVerifiedInitialTaskIntakeProof({ targetRoot: plan.targetRoot });
+  return priorIntake.state === "VERIFIED" ? priorIntake.request_bound_proof : null;
 }
 
 function writePendingControlledApplyActivation(plan, context, results, transaction = null) {

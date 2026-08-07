@@ -254,6 +254,93 @@ test("semantic hardcut preserves technical delegation and bounded real-world con
   for (const guidance of aligned) assert.deepEqual(analyzeActiveGuidanceConflicts(guidance), [], guidance);
 });
 
+test("semantic hardcut respects Chinese sentence boundaries without weakening real delegation", () => {
+  assert.deepEqual(analyzeActiveGuidanceConflicts(
+    "项目基线为唯一详细权威。同时保留顾客侧状态投影和自提人工备货确认。",
+  ), []);
+  assert.deepEqual(
+    analyzeActiveGuidanceConflicts("用户必须确认技术基线。")
+      .map((item) => item.code)
+      .includes("INTERNAL_TECHNICAL_ROUTE_DELEGATED_TO_USER"),
+    true,
+  );
+});
+
+test("installed Guidance records project document links without treating their cycles as managed authority cycles", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-project-context-cycle-"));
+  try {
+    fs.mkdirSync(path.join(root, ".intentos", "core"), { recursive: true });
+    fs.mkdirSync(path.join(root, "docs"), { recursive: true });
+    fs.writeFileSync(path.join(root, ".intentos", "version.json"), `${JSON.stringify({
+      assetMigrationDepth: "SELECTED_ASSETS",
+      workflowAssets: [
+        ".intentos/core/root.md",
+        ".intentos/version.json",
+        "docs/a.md",
+        "docs/b.md",
+      ],
+      managedAssetDigests: {
+        ".intentos/core/root.md": `sha256:${"a".repeat(64)}`,
+      },
+    }, null, 2)}\n`);
+    fs.writeFileSync(path.join(root, ".intentos", "core", "root.md"), "Read `docs/a.md` for project facts.\n");
+    fs.writeFileSync(path.join(root, "docs", "a.md"), "See `docs/b.md` for the detailed model.\n");
+    fs.writeFileSync(path.join(root, "docs", "b.md"), "This file is `docs/b.md`; its index is `docs/a.md`.\n");
+    const selectedAuthority = {
+      ...authority,
+      activeGuidance: [{ source: "core/root.md", installed: ".intentos/core/root.md" }],
+      activeGuidanceFamilies: [],
+      activeGuidanceProducers: [],
+    };
+
+    const graph = effectiveGuidanceGraph(selectedAuthority, true, root);
+    assert.equal(graph.cycles.length, 0);
+    assert.ok(graph.edges.some((edge) => edge.to === "docs/a.md" && edge.edge_kind === "PROJECT_CONTEXT_REFERENCE"));
+    assert.ok(graph.edges.some((edge) => edge.from === "docs/b.md" && edge.to === "docs/b.md" && edge.edge_kind === "PROJECT_CONTEXT_REFERENCE"));
+    assert.ok(graph.nodes.filter((node) => node.path.startsWith("docs/")).every((node) => node.authority_scope === "PROJECT_CONTEXT"));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("installed Guidance still rejects cycles between exact managed assets", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-managed-guidance-cycle-"));
+  try {
+    fs.mkdirSync(path.join(root, ".intentos", "core"), { recursive: true });
+    fs.writeFileSync(path.join(root, ".intentos", "version.json"), `${JSON.stringify({
+      assetMigrationDepth: "SELECTED_ASSETS",
+      workflowAssets: [
+        ".intentos/core/root.md",
+        ".intentos/core/second.md",
+        ".intentos/version.json",
+      ],
+      managedAssetDigests: {
+        ".intentos/core/root.md": `sha256:${"a".repeat(64)}`,
+        ".intentos/core/second.md": `sha256:${"b".repeat(64)}`,
+      },
+    }, null, 2)}\n`);
+    fs.writeFileSync(path.join(root, ".intentos", "core", "root.md"), "Continue with `.intentos/core/second.md`.\n");
+    fs.writeFileSync(path.join(root, ".intentos", "core", "second.md"), "Return to `.intentos/core/root.md`.\n");
+    const selectedAuthority = {
+      ...authority,
+      activeGuidance: [{ source: "core/root.md", installed: ".intentos/core/root.md" }],
+      activeGuidanceFamilies: [],
+      activeGuidanceProducers: [],
+    };
+
+    const graph = effectiveGuidanceGraph(selectedAuthority, true, root);
+    assert.ok(graph.edges.every((edge) => edge.edge_kind === "MANAGED_AUTHORITY_DEPENDENCY"));
+    assert.ok(graph.nodes.every((node) => node.authority_scope === "INTENTOS_MANAGED"));
+    assert.deepEqual(graph.cycles, [[
+      ".intentos/core/root.md",
+      ".intentos/core/second.md",
+      ".intentos/core/root.md",
+    ]]);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("review inputs bind to the current context contract", () => {
   const binding = reviewContextBinding(authority);
   assert.match(binding.context_digest, /^sha256:[a-f0-9]{64}$/);

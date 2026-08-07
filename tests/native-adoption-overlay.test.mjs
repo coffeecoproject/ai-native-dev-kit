@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -17,7 +18,8 @@ import {
   requiredAgentGovernanceMarkers,
   selectedAgentGovernanceAppendix,
 } from "../scripts/init-project/assets.mjs";
-import { buildPlan } from "../scripts/init-project/plan.mjs";
+import { buildCandidateStaticActivationPreflight, buildPlan } from "../scripts/init-project/plan.mjs";
+import { resolveVerifiedInitialTaskIntakeProof } from "../scripts/lib/behavioral-adoption-activation.mjs";
 import { validateRequestBoundLocalActionGraph } from "../scripts/lib/request-bound-apply-authority.mjs";
 
 function projectFixture(t, { governed = true, historicalTasks = 0 } = {}) {
@@ -325,6 +327,10 @@ test("ready selected overlay authorizes only the canonical missing AGENTS entry"
   });
   assert.equal(plan.adoptionAssessment.assessment_state, "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION");
   assert.equal(plan.executionState, "EXECUTABLE");
+  assert.equal(plan.candidateStaticActivationPreflight.state, "READY");
+  assert.equal(plan.candidateStaticActivationPreflight.guidance.state, "CURRENT");
+  assert.equal(plan.candidateStaticActivationPreflight.runtime_identity.state, "READY");
+  assert.equal(plan.candidateStaticActivationPreflight.operational_policy.state, "READY");
   const agent = plan.actions.find((action) => action.path === "AGENTS.md" && action.willWrite);
   assert.equal(agent?.type, "CREATE");
   assert.equal(agent?.capability, "PROJECT_ENTRY");
@@ -339,6 +345,33 @@ test("ready selected overlay authorizes only the canonical missing AGENTS entry"
   const tamperedAgent = tampered.actions.find((action) => action.path === "AGENTS.md" && action.willWrite);
   tamperedAgent.inlineContentBase64 = Buffer.from("# Untrusted replacement\n").toString("base64");
   assert.match(validateRequestBoundLocalActionGraph(tampered).join("\n"), /outside request-bound local authority: AGENTS\.md/);
+
+  const candidateConflict = structuredClone(plan);
+  const managedGuidance = candidateConflict.actions.find((action) => action.path === ".intentos/core/project-onboarding.md");
+  assert.ok(managedGuidance?.willWrite);
+  const conflictContent = "用户必须确认技术基线。\n";
+  const conflictDigest = `sha256:${createHash("sha256").update(conflictContent).digest("hex")}`;
+  managedGuidance.source = null;
+  managedGuidance.inlineContentBase64 = Buffer.from(conflictContent).toString("base64");
+  managedGuidance.sourceHash = conflictDigest;
+  managedGuidance.expectedHashAfter = conflictDigest;
+  const blockedCandidate = buildCandidateStaticActivationPreflight(candidateConflict);
+  assert.equal(blockedCandidate.state, "BLOCKED");
+  assert.ok(blockedCandidate.invalid_nodes.some((item) => item.path === managedGuidance.path));
+
+  const runtimeConflict = structuredClone(plan);
+  const versionAction = runtimeConflict.actions.find((action) => action.path === ".intentos/version.json");
+  const versionRecord = JSON.parse(Buffer.from(versionAction.inlineContentBase64, "base64").toString("utf8"));
+  delete versionRecord.managedAssetDigests["scripts/workflow-next.mjs"];
+  const versionContent = `${JSON.stringify(versionRecord, null, 2)}\n`;
+  const versionDigest = `sha256:${createHash("sha256").update(versionContent).digest("hex")}`;
+  versionAction.inlineContentBase64 = Buffer.from(versionContent).toString("base64");
+  versionAction.sourceHash = versionDigest;
+  versionAction.expectedHashAfter = versionDigest;
+  const blockedRuntime = buildCandidateStaticActivationPreflight(runtimeConflict);
+  assert.equal(blockedRuntime.state, "BLOCKED");
+  assert.equal(blockedRuntime.runtime_identity.state, "BLOCKED");
+  assert.ok(blockedRuntime.runtime_identity.errors.includes("WORKFLOW_NEXT_MANAGED_DIGEST_MISMATCH"));
 });
 
 test("blocked selected adoption emits a compact zero-write diagnostic graph", (t) => {
@@ -449,6 +482,21 @@ test("selected overlay controlled apply verifies without changing historical tas
     fs.writeFileSync(path.join(root, relative), content);
     historical.set(relative, content);
   }
+  fs.mkdirSync(path.join(root, "src"));
+  fs.writeFileSync(path.join(root, "src", "current-work.ts"), "export const currentWork = 1;\n");
+  for (const args of [
+    ["init", "-q"],
+    ["add", "."],
+    ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"],
+  ]) {
+    const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+  }
+  const dirtyBusiness = new Map([
+    ["src/current-work.ts", "export const currentWork = 2;\n"],
+    ["src/untracked-work.ts", "export const untrackedWork = true;\n"],
+  ]);
+  for (const [relative, content] of dirtyBusiness) fs.writeFileSync(path.join(root, relative), content);
 
   const goal = "adopt this governed project while preserving project release authority";
   const plan = buildPlan(root, {
@@ -458,6 +506,9 @@ test("selected overlay controlled apply verifies without changing historical tas
     profiles: "web-app",
     baselineLevel: "BL1_STANDARD",
   });
+  assert.equal(plan.targetFingerprint.isDirty, true);
+  assert.equal(plan.candidateStaticActivationPreflight.dirty_activation.state, "READY");
+  assert.equal(plan.candidateStaticActivationPreflight.dirty_activation.mode, "NATIVE_ADOPTION_ZERO_OVERLAP");
   const planRelative = "apply-execution-plans/selected-native.json";
   fs.mkdirSync(path.join(root, "apply-execution-plans"));
   fs.writeFileSync(path.join(root, planRelative), `${JSON.stringify(plan, null, 2)}\n`);
@@ -475,6 +526,41 @@ test("selected overlay controlled apply verifies without changing historical tas
   const version = JSON.parse(fs.readFileSync(path.join(root, ".intentos", "version.json"), "utf8"));
   assert.equal(version.assetMigrationDepth, "SELECTED_ASSETS");
   assert.ok(version.workflowAssets.length > 0 && version.workflowAssets.length < 500);
+  const initialIntake = resolveVerifiedInitialTaskIntakeProof({ targetRoot: root });
+  assert.equal(initialIntake.state, "VERIFIED");
+  assert.equal(initialIntake.request_bound_proof.intent, goal);
+  const firstReceiptFile = path.join(root, plan.receiptPath);
+  const firstReceiptContent = fs.readFileSync(firstReceiptFile, "utf8");
+  fs.writeFileSync(firstReceiptFile, firstReceiptContent.replaceAll("APPLY_VERIFIED", "APPLY_FAILED_NO_WRITE"));
+  assert.equal(resolveVerifiedInitialTaskIntakeProof({ targetRoot: root }).state, "BLOCKED");
+  fs.writeFileSync(firstReceiptFile, firstReceiptContent);
+  const updatePlan = buildPlan(root, {
+    starter: "generic-project",
+    update: true,
+    goal,
+    profiles: "web-app",
+    baselineLevel: "BL1_STANDARD",
+  });
+  assert.equal(updatePlan.operationKind, "CONTROLLED_UPDATE");
+  assert.equal(updatePlan.arguments.migrationDepth, "SELECTED_ASSETS");
+  assert.equal(updatePlan.candidateStaticActivationPreflight.state, "READY");
+  assert.equal(
+    updatePlan.candidateStaticActivationPreflight.dirty_activation.mode,
+    "CONTROLLED_UPDATE_VERIFIED_PRIOR_OVERLAP",
+  );
+  const updateVersionAction = updatePlan.actions.find((action) => action.path === ".intentos/version.json");
+  const updateVersion = JSON.parse(Buffer.from(updateVersionAction.inlineContentBase64, "base64").toString("utf8"));
+  assert.equal(updateVersion.assetMigrationDepth, "SELECTED_ASSETS");
+  assert.ok(updateVersion.workflowAssets.length > 0 && updateVersion.workflowAssets.length < 500);
+  for (const deferred of [
+    "docs/project-onboarding.md",
+    "docs/tech-stack-strategy.md",
+    "docs/business-spec-index.md",
+    "docs/sample-policy.md",
+    "docs/onboarding-decisions.md",
+  ]) {
+    assert.equal(updatePlan.actions.some((action) => action.path === deferred && action.willWrite), false, deferred);
+  }
   assert.equal(
     fs.readFileSync(path.join(root, "AGENTS.md"), "utf8"),
     `${selectedAgentGovernanceAppendix().trim()}\n`,
@@ -488,10 +574,11 @@ test("selected overlay controlled apply verifies without changing historical tas
   });
   assert.equal(next.status, 0, next.stderr || next.stdout);
   const state = JSON.parse(next.stdout);
+  assert.equal(state.versionState, "CURRENT");
   assert.equal(state.operationalProfile, "SELECTED_EXISTING_PROJECT");
   assert.equal(state.onboardingState, "SELECTED_PROJECT_MAPPING_READY");
   assert.equal(state.platformBaselineState, "SELECTED_BASELINE_MAPPING_READY");
-  assert.equal(state.nextAction, "READY_FOR_TASK_EXECUTION");
+  assert.equal(state.nextAction, "REVIEW_DIRTY_WORKTREE");
   assert.ok(state.deferredProjectDocs.includes("docs/product-vision.md"));
   assert.ok(state.deferredBaselineEvidence.includes("standard-pack evidence: EVIDENCE_INCOMPLETE"));
   assert.doesNotMatch(state.suggestedCommand, /project-onboarding-agent|check-project-onboarding|check-platform-baseline/);
@@ -505,6 +592,30 @@ test("selected overlay controlled apply verifies without changing historical tas
     assert.equal(fs.existsSync(path.join(root, deferred)), false, deferred);
   }
   for (const [relative, content] of historical) {
+    assert.equal(fs.readFileSync(path.join(root, relative), "utf8"), content, relative);
+  }
+  for (const [relative, content] of dirtyBusiness) {
+    assert.equal(fs.readFileSync(path.join(root, relative), "utf8"), content, relative);
+  }
+
+  const updatePlanRelative = "apply-execution-plans/selected-update.json";
+  fs.writeFileSync(path.join(root, updatePlanRelative), `${JSON.stringify(updatePlan, null, 2)}\n`);
+  const updated = spawnSync(process.execPath, [
+    "scripts/init-project.mjs",
+    "--apply-plan", path.join(root, updatePlanRelative),
+    "--goal", goal,
+  ], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    maxBuffer: 256 * 1024 * 1024,
+    timeout: 300_000,
+  });
+  assert.equal(updated.status, 0, updated.stderr || updated.stdout);
+  assert.equal(fs.readdirSync(path.join(root, "apply-receipts")).filter((name) => name.endsWith(".md")).length, 2);
+  for (const [relative, content] of historical) {
+    assert.equal(fs.readFileSync(path.join(root, relative), "utf8"), content, relative);
+  }
+  for (const [relative, content] of dirtyBusiness) {
     assert.equal(fs.readFileSync(path.join(root, relative), "utf8"), content, relative);
   }
 });

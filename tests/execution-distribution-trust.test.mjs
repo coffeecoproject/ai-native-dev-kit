@@ -938,14 +938,21 @@ test("deferred agent authority cannot count as verified workflow activation", as
   assert.equal(isWorkflowActivationState({ nextAction: "READY_FOR_FIRST_REQUEST" }, {}), true);
 });
 
-test("dirty-worktree activation requires exact zero-overlap or one verified prior-transaction overlap", async () => {
+test("dirty-worktree activation accepts bounded first adoption and update with operation-specific overlap proof", async () => {
   const moduleUrl = `${pathToFileURL(path.join(kitRoot, "scripts/lib/adoption-apply-chain.mjs")).href}?test=${Date.now()}`;
   const { isWorkflowActivationState } = await import(moduleUrl);
   const state = { nextAction: "REVIEW_DIRTY_WORKTREE" };
   const exactPlan = {
     operation: "UPDATE_WORKFLOW_ASSETS",
     operationKind: "CONTROLLED_UPDATE",
-    arguments: { updateWorkflowAssets: true, controlledAdoption: true },
+    arguments: {
+      updateWorkflowAssets: true,
+      controlledAdoption: true,
+      projectEntryOrigin: "NEW_PROJECT",
+      migrationDepth: "FULL_NATIVE",
+    },
+    executionState: "EXECUTABLE",
+    candidateStaticActivationPreflight: { state: "NOT_APPLICABLE" },
     ownershipConflicts: [],
     targetFingerprint: {
       targetExists: true,
@@ -961,6 +968,40 @@ test("dirty-worktree activation requires exact zero-overlap or one verified prio
   };
   assert.equal(isWorkflowActivationState(state, exactPlan), true);
   assert.equal(isWorkflowActivationState({ nextAction: "RUN_WORKFLOW_ASSET_UPDATE" }, exactPlan), false);
+
+  const selectedUpdatePlan = {
+    ...exactPlan,
+    arguments: {
+      ...exactPlan.arguments,
+      projectEntryOrigin: "EXISTING_PROJECT",
+      migrationDepth: "SELECTED_ASSETS",
+    },
+    candidateStaticActivationPreflight: { state: "READY" },
+  };
+  assert.equal(isWorkflowActivationState(state, selectedUpdatePlan), true);
+  assert.equal(isWorkflowActivationState(state, {
+    ...selectedUpdatePlan,
+    candidateStaticActivationPreflight: { state: "BLOCKED" },
+  }), false);
+  assert.equal(isWorkflowActivationState(state, {
+    ...selectedUpdatePlan,
+    candidateStaticActivationPreflight: { state: "NOT_APPLICABLE" },
+  }), false);
+
+  const nativePlan = {
+    ...exactPlan,
+    operation: "INIT_PROJECT",
+    operationKind: "NATIVE_ADOPTION",
+    arguments: {
+      updateWorkflowAssets: false,
+      controlledAdoption: true,
+      projectEntryOrigin: "EXISTING_PROJECT",
+      migrationDepth: "SELECTED_ASSETS",
+    },
+    candidateStaticActivationPreflight: { state: "READY" },
+    adoptionAssessment: { assessment_state: "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION" },
+  };
+  assert.equal(isWorkflowActivationState(state, nativePlan), true);
 
   const priorHash = `sha256:${"a".repeat(64)}`;
   const overlapPlan = {
@@ -1022,6 +1063,19 @@ test("dirty-worktree activation requires exact zero-overlap or one verified prio
 
   const rejected = [
     { ...exactPlan, operationKind: "NATIVE_ADOPTION" },
+    { ...nativePlan, executionState: "DIAGNOSTIC_ONLY" },
+    { ...nativePlan, candidateStaticActivationPreflight: { state: "BLOCKED" } },
+    { ...nativePlan, arguments: { ...nativePlan.arguments, projectEntryOrigin: "NEW_PROJECT" } },
+    { ...nativePlan, arguments: { ...nativePlan.arguments, migrationDepth: "FULL_NATIVE" } },
+    { ...nativePlan, adoptionAssessment: { assessment_state: "BLOCKED" } },
+    {
+      ...nativePlan,
+      targetFingerprint: {
+        ...nativePlan.targetFingerprint,
+        changedFileCount: 1,
+        changedFiles: ["M scripts/workflow-next.mjs"],
+      },
+    },
     { ...exactPlan, ownershipConflicts: [{ path: "scripts/workflow-next.mjs" }] },
     { ...exactPlan, targetFingerprint: { ...exactPlan.targetFingerprint, isDirty: false } },
     { ...exactPlan, targetFingerprint: { ...exactPlan.targetFingerprint, changedFileCount: 3 } },

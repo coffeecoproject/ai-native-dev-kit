@@ -3239,6 +3239,7 @@
       "tests/init-project-modularity.test.mjs",
       "tests/manifest-authority.test.mjs",
       "tests/native-adoption-overlay.test.mjs",
+      "tests/native-migration-contract.test.mjs",
       "tests/operating-entry-trust.test.mjs",
       "tests/operating-model.test.mjs",
       "tests/profile-role-coverage.test.mjs",

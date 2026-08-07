@@ -11,6 +11,7 @@ import { inspectTargetTopology } from "./target-topology.mjs";
 import { collectProjectFactProjection, hasGlobalTrustConflict, projectGoalProjection } from "./project-fact-projection.mjs";
 import {
   analyzeActiveGuidanceConflicts,
+  createGuidanceFileView,
   effectiveGuidanceGraph,
   loadReviewContextAuthority,
   reviewContextBinding,
@@ -657,9 +658,36 @@ function guidanceBindingFor({ targetRoot, sourceRoot, identity, agentAuthority }
   }
 }
 
-function guidanceSnapshot({ authorityRoot, installed, agentAuthority, requireAgentAuthority }) {
-  const authority = loadReviewContextAuthority(authorityRoot);
-  const graph = effectiveGuidanceGraph(authority, installed, authorityRoot);
+export function evaluateGuidanceAuthority(options = {}) {
+  const authorityRoot = path.resolve(options.authorityRoot || options.projectRoot || ".");
+  const installed = options.installed !== false;
+  const contentOverrides = options.contentOverrides || new Map();
+  const fileView = options.fileView || createGuidanceFileView(authorityRoot, contentOverrides);
+  const authority = options.authority || (installed
+    ? JSON.parse(fileView.readText(".intentos/core/review-context-authority.json"))
+    : loadReviewContextAuthority(authorityRoot));
+  const agentAuthority = options.agentAuthority || collectProjectAgentAuthority(authorityRoot, {
+    contentOverrides,
+  });
+  return guidanceSnapshot({
+    authorityRoot,
+    installed,
+    agentAuthority,
+    requireAgentAuthority: options.requireAgentAuthority !== false,
+    authority,
+    fileView,
+  });
+}
+
+function guidanceSnapshot({
+  authorityRoot,
+  installed,
+  agentAuthority,
+  requireAgentAuthority,
+  authority = loadReviewContextAuthority(authorityRoot),
+  fileView = createGuidanceFileView(authorityRoot),
+}) {
+  const graph = effectiveGuidanceGraph(authority, installed, authorityRoot, { fileView });
   const invalidByPath = new Map();
   const recordInvalid = (node) => {
     const current = invalidByPath.get(node.path);
@@ -676,9 +704,9 @@ function guidanceSnapshot({ authorityRoot, installed, agentAuthority, requireAge
       recordInvalid({ ...node, conflict_codes: [] });
       continue;
     }
-    if (node.responsibilitySurface !== "USER_OR_AGENT_GUIDANCE") continue;
-    const file = path.join(authorityRoot, node.path);
-    const conflicts = analyzeActiveGuidanceConflicts(fs.readFileSync(file, "utf8"));
+    if (node.responsibilitySurface !== "USER_OR_AGENT_GUIDANCE"
+      || node.authority_scope !== "INTENTOS_MANAGED") continue;
+    const conflicts = analyzeActiveGuidanceConflicts(fileView.readText(node.path));
     if (conflicts.length > 0) {
       recordInvalid({ ...node, file_state: "SEMANTIC_CONFLICT", conflict_codes: conflicts.map((item) => item.code) });
     }
@@ -765,6 +793,23 @@ export function collectProjectAgentAuthority(projectRoot, options = {}) {
   const sourceCheckout = isIntentOSSourceCheckout(root);
   const state = { entries: 0 };
   walkAgentAuthority(root, root, sources, scanErrors, { sourceCheckout, state });
+  for (const [relativePath, contentValue] of options.contentOverrides instanceof Map
+    ? options.contentOverrides.entries()
+    : Object.entries(options.contentOverrides || {})) {
+    const relative = String(relativePath || "").replaceAll("\\", "/").replace(/^\.\//, "");
+    if (!relative || relative.startsWith("../") || path.posix.isAbsolute(relative) || !isAgentAuthorityPath(relative)) continue;
+    const content = Buffer.isBuffer(contentValue) ? contentValue.toString("utf8") : String(contentValue);
+    const replacement = authoritySource(
+      relative,
+      content.trim() ? "CURRENT" : "EMPTY_AUTHORITY",
+      `sha256:${createHash("sha256").update(content).digest("hex")}`,
+      authorityConflictCodes(content),
+      authorityPolarityStatements(content, relative),
+    );
+    const index = sources.findIndex((item) => item.path === relative);
+    if (index >= 0) sources[index] = replacement;
+    else sources.push(replacement);
+  }
   sources.sort((left, right) => left.path.localeCompare(right.path));
   const scopeConflicts = nestedAuthorityConflicts(sources);
   const invalid = scanErrors.length > 0

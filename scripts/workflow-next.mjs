@@ -839,7 +839,7 @@ function workflowAssetUpdateNeedsPlan(context) {
     || Boolean(context.governanceSignals?.isProductionGoverned);
 }
 
-function buildResult() {
+function buildResult(entryTrust = null) {
   const targetExists = fs.existsSync(projectRoot);
   if (!targetExists) {
     return {
@@ -868,7 +868,12 @@ function buildResult() {
   }
 
   const kitRoot = localKitRoot();
-  const localVersion = readLocalKitVersion(kitRoot);
+  const trustedInstalledVersion = entryTrust?.entry_state === "READY_FOR_INTENTOS_OPERATION"
+    && entryTrust?.project_identity?.state === "INSTALLED_CURRENT"
+    && entryTrust?.project_identity?.form === "INSTALLED"
+    ? String(entryTrust.project_identity.source_version || "").trim()
+    : "";
+  const localVersion = readLocalKitVersion(kitRoot) || trustedInstalledVersion || null;
   const isIntentOSRepository = exists("VERSION.md")
     && exists("core/workflow.md")
     && exists("templates/workflow-version.json")
@@ -1124,7 +1129,7 @@ function buildResult() {
 
 const initialEntryTrust = resolveInitialProjectEntryTrust();
 const safeForLegacyInspection = !["UNSAFE", "NON_DIRECTORY"].includes(initialEntryTrust.target_topology.state);
-const baseResult = safeForLegacyInspection ? buildResult() : blockedTopologyResult(initialEntryTrust);
+const baseResult = safeForLegacyInspection ? buildResult(initialEntryTrust) : blockedTopologyResult(initialEntryTrust);
 const result = attachProjectEntryTrust(baseResult, initialEntryTrust);
 const enforceFailures = enforceReasons(result);
 

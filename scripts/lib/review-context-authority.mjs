@@ -38,6 +38,69 @@ function startsWithAny(value, prefixes = []) {
   return prefixes.some((prefix) => value.startsWith(prefix));
 }
 
+export function createGuidanceFileView(root, contentOverrides = new Map()) {
+  const resolvedRoot = path.resolve(root);
+  const overrides = new Map();
+  for (const [relativePath, content] of contentOverrides instanceof Map
+    ? contentOverrides.entries()
+    : Object.entries(contentOverrides || {})) {
+    const normalized = normalizeReviewContextPath(relativePath);
+    if (!normalized) throw new Error(`guidance override path is unsafe: ${relativePath}`);
+    overrides.set(normalized, Buffer.isBuffer(content) ? content : Buffer.from(String(content)));
+  }
+  const absolute = (relativePath) => path.join(resolvedRoot, normalizeReviewContextPath(relativePath));
+  const overrideDirectory = (relativePath) => {
+    const normalized = normalizeReviewContextPath(relativePath);
+    const prefix = normalized ? `${normalized}/` : "";
+    return [...overrides.keys()].some((candidate) => candidate.startsWith(prefix));
+  };
+  return {
+    exists(relativePath) {
+      const normalized = normalizeReviewContextPath(relativePath);
+      return overrides.has(normalized) || overrideDirectory(normalized) || fs.existsSync(absolute(normalized));
+    },
+    isDirectory(relativePath) {
+      const normalized = normalizeReviewContextPath(relativePath);
+      if (overrideDirectory(normalized) && !overrides.has(normalized)) return true;
+      try { return fs.statSync(absolute(normalized)).isDirectory(); } catch { return false; }
+    },
+    isFile(relativePath) {
+      const normalized = normalizeReviewContextPath(relativePath);
+      if (overrides.has(normalized)) return true;
+      try { return fs.statSync(absolute(normalized)).isFile(); } catch { return false; }
+    },
+    isSymbolicLink(relativePath) {
+      const normalized = normalizeReviewContextPath(relativePath);
+      if (overrides.has(normalized)) return false;
+      try { return fs.lstatSync(absolute(normalized)).isSymbolicLink(); } catch { return false; }
+    },
+    readBuffer(relativePath) {
+      const normalized = normalizeReviewContextPath(relativePath);
+      if (overrides.has(normalized)) return overrides.get(normalized);
+      return fs.readFileSync(absolute(normalized));
+    },
+    readText(relativePath) {
+      return this.readBuffer(relativePath).toString("utf8");
+    },
+    readdir(relativePath) {
+      const normalized = normalizeReviewContextPath(relativePath);
+      const names = new Set();
+      try {
+        for (const name of fs.readdirSync(absolute(normalized))) names.add(name);
+      } catch {
+        // An overlay may create this directory in the projected view.
+      }
+      const prefix = normalized ? `${normalized}/` : "";
+      for (const candidate of overrides.keys()) {
+        if (!candidate.startsWith(prefix)) continue;
+        const name = candidate.slice(prefix.length).split("/")[0];
+        if (name) names.add(name);
+      }
+      return [...names].sort();
+    },
+  };
+}
+
 export function loadReviewContextAuthority(root = defaultRoot) {
   const resolvedRoot = path.resolve(root);
   const authoritativeSourceRoot = fs.realpathSync(defaultRoot);
@@ -83,11 +146,10 @@ function isIntentOSSourceCheckout(root) {
   }
 }
 
-function selectedInstalledAssetSet(root, installedLayout) {
+function selectedInstalledAssetSet(root, installedLayout, fileView = createGuidanceFileView(root)) {
   if (!installedLayout) return null;
-  const versionPath = path.join(root, ".intentos", "version.json");
   try {
-    const version = JSON.parse(fs.readFileSync(versionPath, "utf8"));
+    const version = JSON.parse(fileView.readText(".intentos/version.json"));
     if (version.assetMigrationDepth !== "SELECTED_ASSETS"
       || !Array.isArray(version.workflowAssets)
       || version.workflowAssets.length === 0) return null;
@@ -100,16 +162,48 @@ function selectedInstalledAssetSet(root, installedLayout) {
   }
 }
 
-function activeGuidanceRows(authority, root = defaultRoot, installedLayout = false) {
+function installedManagedAssetSet(root, installedLayout, fileView = createGuidanceFileView(root)) {
+  if (!installedLayout) return null;
+  try {
+    const version = JSON.parse(fileView.readText(".intentos/version.json"));
+    if (!version.managedAssetDigests
+      || typeof version.managedAssetDigests !== "object"
+      || Array.isArray(version.managedAssetDigests)) return null;
+    const managed = Object.keys(version.managedAssetDigests)
+      .map(normalizeReviewContextPath)
+      .filter(Boolean);
+    return managed.length === Object.keys(version.managedAssetDigests).length
+      ? new Set(managed)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function installedProjectEntryOrigin(root, installedLayout, fileView = createGuidanceFileView(root)) {
+  if (!installedLayout) return "";
+  try {
+    const version = JSON.parse(fileView.readText(".intentos/version.json"));
+    return String(version.projectEntryOrigin || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function activeGuidanceRows(
+  authority,
+  root = defaultRoot,
+  installedLayout = false,
+  fileView = createGuidanceFileView(root),
+) {
   let rows = Array.isArray(authority.activeGuidance) ? [...authority.activeGuidance] : [];
   for (const family of authority.activeGuidanceFamilies || []) {
     const prefix = normalizeReviewContextPath(installedLayout ? family.installedPrefix : family.sourcePrefix);
     const sourcePrefix = normalizeReviewContextPath(family.sourcePrefix);
     if (!prefix || !sourcePrefix) continue;
-    const absolute = path.join(root, prefix);
-    if (!fs.existsSync(absolute) || !fs.statSync(absolute).isDirectory()) continue;
+    if (!fileView.exists(prefix) || !fileView.isDirectory(prefix)) continue;
     const extension = String(family.extension || "");
-    for (const name of fs.readdirSync(absolute).sort()) {
+    for (const name of fileView.readdir(prefix)) {
       if (extension && !name.endsWith(extension)) continue;
       rows.push({
         source: path.posix.join(sourcePrefix, name),
@@ -118,12 +212,11 @@ function activeGuidanceRows(authority, root = defaultRoot, installedLayout = fal
     }
   }
   if (installedLayout) {
-    const selectedAssets = selectedInstalledAssetSet(root, installedLayout);
-    const versionPath = path.join(root, ".intentos", "version.json");
+    const selectedAssets = selectedInstalledAssetSet(root, installedLayout, fileView);
     let installedStarter = "";
     let projectEntryOrigin = "";
     try {
-      const version = JSON.parse(fs.readFileSync(versionPath, "utf8"));
+      const version = JSON.parse(fileView.readText(".intentos/version.json"));
       installedStarter = String(version.starter || "").trim();
       projectEntryOrigin = String(version.projectEntryOrigin || "").trim();
     } catch {
@@ -140,7 +233,7 @@ function activeGuidanceRows(authority, root = defaultRoot, installedLayout = fal
       // turn absent, never-selected assets into false project authority.
       if (projectEntryOrigin === "EXISTING_PROJECT") return false;
       if (installedStarter) return match[1] === installedStarter;
-      return Boolean(installed && fs.existsSync(path.join(root, installed)));
+      return Boolean(installed && fileView.exists(installed));
     });
   }
   return rows;
@@ -182,12 +275,12 @@ function sourcePathForGuidanceReference(reference) {
   return normalized.startsWith(".intentos/") ? normalized.slice(".intentos/".length) : normalized;
 }
 
-function installedPathForGuidanceReference(reference, source, root) {
+function installedPathForGuidanceReference(reference, source, root, fileView = createGuidanceFileView(root)) {
   const normalized = normalizeReviewContextPath(reference);
   if (normalized.startsWith(".intentos/")) return normalized;
-  if (fs.existsSync(path.join(root, normalized))) return normalized;
+  if (fileView.exists(normalized)) return normalized;
   const managed = `.intentos/${source}`;
-  return fs.existsSync(path.join(root, managed)) ? managed : normalized;
+  return fileView.exists(managed) ? managed : normalized;
 }
 
 function referenceResponsibilitySurface(source, from) {
@@ -201,11 +294,10 @@ function referenceResponsibilitySurface(source, from) {
   return "USER_OR_AGENT_GUIDANCE";
 }
 
-function cliGuidanceRows(root) {
+function cliGuidanceRows(root, fileView = createGuidanceFileView(root)) {
   const cliPath = "scripts/cli.mjs";
-  const absolute = path.join(root, cliPath);
-  if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) return [];
-  const content = fs.readFileSync(absolute, "utf8");
+  if (!fileView.exists(cliPath) || !fileView.isFile(cliPath)) return [];
+  const content = fileView.readText(cliPath);
   const routes = [...content.matchAll(/\bscript:\s*["'](scripts\/[A-Za-z0-9._/-]+\.mjs)["']/g)]
     .map((match) => normalizeReviewContextPath(match[1]))
     .filter(Boolean);
@@ -221,18 +313,16 @@ function cliGuidanceRows(root) {
   }));
 }
 
-function distributedRuntimeGuidanceRows(root, installedLayout) {
-  const manifestPath = installedLayout
-    ? path.join(root, ".intentos", "intentos-manifest.json")
-    : path.join(root, "intentos-manifest.json");
-  if (!fs.existsSync(manifestPath) || !fs.statSync(manifestPath).isFile()) return [];
+function distributedRuntimeGuidanceRows(root, installedLayout, fileView = createGuidanceFileView(root)) {
+  const manifestPath = installedLayout ? ".intentos/intentos-manifest.json" : "intentos-manifest.json";
+  if (!fileView.exists(manifestPath) || !fileView.isFile(manifestPath)) return [];
   let manifest;
   try {
-    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    manifest = JSON.parse(fileView.readText(manifestPath));
   } catch {
     return [];
   }
-  const selectedAssets = selectedInstalledAssetSet(root, installedLayout);
+  const selectedAssets = selectedInstalledAssetSet(root, installedLayout, fileView);
   return (manifest.copyRules?.files || [])
     .filter((item) => /^scripts\/[A-Za-z0-9._/-]+\.mjs$/.test(String(item.source || "")))
     .map((item) => ({
@@ -242,7 +332,7 @@ function distributedRuntimeGuidanceRows(root, installedLayout) {
     .filter((item) => item.source
       && item.file
       && (!selectedAssets || selectedAssets.has(item.file))
-      && fs.existsSync(path.join(root, item.file)))
+      && fileView.exists(item.file))
     .map((item) => ({
       ...item,
       registration: STRICT_EXECUTION_CONSUMERS.has(item.source) ? "WORKFLOW_CONSUMER" : "DISTRIBUTED_RUNTIME",
@@ -256,25 +346,23 @@ function distributedRuntimeGuidanceRows(root, installedLayout) {
     }));
 }
 
-function workflowGuidanceRows(root, installedLayout) {
-  const manifestPath = installedLayout
-    ? path.join(root, ".intentos", "intentos-manifest.json")
-    : path.join(root, "intentos-manifest.json");
-  if (!fs.existsSync(manifestPath) || !fs.statSync(manifestPath).isFile()) return [];
+function workflowGuidanceRows(root, installedLayout, fileView = createGuidanceFileView(root)) {
+  const manifestPath = installedLayout ? ".intentos/intentos-manifest.json" : "intentos-manifest.json";
+  if (!fileView.exists(manifestPath) || !fileView.isFile(manifestPath)) return [];
   let manifest;
   try {
-    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    manifest = JSON.parse(fileView.readText(manifestPath));
   } catch {
     return [];
   }
 
   const rows = [];
-  const selectedAssets = selectedInstalledAssetSet(root, installedLayout);
+  const selectedAssets = selectedInstalledAssetSet(root, installedLayout, fileView);
   if (!installedLayout) {
     for (const source of manifest.groups?.sourceRequired || []) {
       const normalized = normalizeReviewContextPath(source);
       if (!/^\.github\/workflows\/[A-Za-z0-9._/-]+\.ya?ml$/.test(normalized)) continue;
-      if (!fs.existsSync(path.join(root, normalized))) continue;
+      if (!fileView.exists(normalized)) continue;
       rows.push({
         source: normalized,
         file: normalized,
@@ -290,7 +378,7 @@ function workflowGuidanceRows(root, installedLayout) {
       || !/^\.github\/workflows\/[A-Za-z0-9._/-]+\.ya?ml$/.test(target)) continue;
     const file = installedLayout ? target : source;
     if (selectedAssets && !selectedAssets.has(file)) continue;
-    if (!fs.existsSync(path.join(root, file))) continue;
+    if (!fileView.exists(file)) continue;
     rows.push({
       source,
       file,
@@ -305,9 +393,13 @@ export function effectiveGuidanceGraph(
   authority = loadReviewContextAuthority(),
   installedLayout = false,
   root = defaultRoot,
+  options = {},
 ) {
   const resolvedRoot = path.resolve(root);
-  const selectedAssets = selectedInstalledAssetSet(resolvedRoot, installedLayout);
+  const fileView = options.fileView || createGuidanceFileView(resolvedRoot, options.contentOverrides);
+  const selectedAssets = selectedInstalledAssetSet(resolvedRoot, installedLayout, fileView);
+  const managedAssets = installedManagedAssetSet(resolvedRoot, installedLayout, fileView);
+  const projectEntryOrigin = installedProjectEntryOrigin(resolvedRoot, installedLayout, fileView);
   const prefixes = (authority.effectiveGuidanceReferencePrefixes || [])
     .map(normalizeReviewContextPath)
     .filter(Boolean);
@@ -335,10 +427,25 @@ export function effectiveGuidanceGraph(
     GENERATOR: 5,
     ACTIVE_ROOT: 6,
   };
+  const authorityScopeFor = (file, registration) => {
+    if (!installedLayout) return "INTENTOS_MANAGED";
+    if (managedAssets) return managedAssets.has(file) ? "INTENTOS_MANAGED" : "PROJECT_CONTEXT";
+    // Legacy installations predate the exact managed digest ledger. Keep the
+    // fallback deliberately narrow for adopted projects so an existing
+    // project document is never promoted to IntentOS authority by a link.
+    if (file.startsWith(".intentos/")
+      || file.startsWith("scripts/")
+      || file.startsWith(".github/workflows/")) return "INTENTOS_MANAGED";
+    if (projectEntryOrigin !== "EXISTING_PROJECT" && registration === "ACTIVE_ROOT") {
+      return "INTENTOS_MANAGED";
+    }
+    return "PROJECT_CONTEXT";
+  };
   const addNode = (source, file, registration, discoveredFrom = null, responsibilitySurface = "USER_OR_AGENT_GUIDANCE") => {
     const normalizedSource = normalizeReviewContextPath(source);
     const normalizedFile = normalizeReviewContextPath(file);
     if (!normalizedSource || !normalizedFile) return;
+    const authorityScope = authorityScopeFor(normalizedFile, registration);
     const existing = nodes.get(normalizedFile);
     if (existing) {
       let upgraded = false;
@@ -351,6 +458,10 @@ export function effectiveGuidanceGraph(
         existing.discoveredFrom = discoveredFrom;
         upgraded = true;
       }
+      if (authorityScope === "INTENTOS_MANAGED" && existing.authority_scope !== authorityScope) {
+        existing.authority_scope = authorityScope;
+        upgraded = true;
+      }
       if (upgraded && processedSurfaces.get(normalizedFile) !== existing.responsibilitySurface) queue.push(normalizedFile);
       return;
     }
@@ -360,12 +471,13 @@ export function effectiveGuidanceGraph(
       registration,
       discoveredFrom,
       responsibilitySurface,
+      authority_scope: authorityScope,
       classification: baseGuidanceClassification(normalizedSource, authority),
     });
     queue.push(normalizedFile);
   };
 
-  for (const row of activeGuidanceRows(authority, resolvedRoot, installedLayout)) {
+  for (const row of activeGuidanceRows(authority, resolvedRoot, installedLayout, fileView)) {
     const file = installedLayout ? row.installed : row.source;
     if (file) addNode(row.source, file, "ACTIVE_ROOT");
   }
@@ -379,14 +491,14 @@ export function effectiveGuidanceGraph(
   // source checkout, so treating every lexical CLI route as an installed asset
   // would manufacture missing Guidance nodes.
   if (!installedLayout) {
-    for (const route of cliGuidanceRows(resolvedRoot)) {
+    for (const route of cliGuidanceRows(resolvedRoot, fileView)) {
       addNode(route.source, route.file, route.registration, "scripts/cli.mjs", route.responsibilitySurface);
     }
   }
-  for (const workflow of workflowGuidanceRows(resolvedRoot, installedLayout)) {
+  for (const workflow of workflowGuidanceRows(resolvedRoot, installedLayout, fileView)) {
     addNode(workflow.source, workflow.file, workflow.registration, "intentos-manifest.json", workflow.responsibilitySurface);
   }
-  for (const runtime of distributedRuntimeGuidanceRows(resolvedRoot, installedLayout)) {
+  for (const runtime of distributedRuntimeGuidanceRows(resolvedRoot, installedLayout, fileView)) {
     addNode(runtime.source, runtime.file, runtime.registration, "intentos-manifest.json", runtime.responsibilitySurface);
   }
 
@@ -395,13 +507,12 @@ export function effectiveGuidanceGraph(
     const from = nodes.get(fromPath);
     if (processedSurfaces.get(fromPath) === from.responsibilitySurface) continue;
     processedSurfaces.set(fromPath, from.responsibilitySurface);
-    const absolute = path.join(resolvedRoot, from.path);
-    if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) continue;
+    if (!fileView.exists(from.path) || !fileView.isFile(from.path)) continue;
     // Registry JSON contains asset paths as metadata, not user-facing guidance
     // references. Expanding those values would incorrectly promote current plans
     // and release evidence into the active guidance graph.
     if (path.extname(from.path).toLowerCase() === ".json") continue;
-    for (const reference of guidanceReferences(fs.readFileSync(absolute, "utf8"))) {
+    for (const reference of guidanceReferences(fileView.readText(from.path))) {
       const source = sourcePathForGuidanceReference(reference);
       const executionReference = ["EXECUTION_ORCHESTRATION", "EXECUTION_CONSUMER"].includes(from.responsibilitySurface)
         && (/^scripts\/check-[A-Za-z0-9._/-]+\.mjs$/.test(source)
@@ -410,19 +521,32 @@ export function effectiveGuidanceGraph(
       if (!allowed) continue;
       const classification = baseGuidanceClassification(source, authority);
       const targetPath = installedLayout
-        ? installedPathForGuidanceReference(reference, source, resolvedRoot)
+        ? installedPathForGuidanceReference(reference, source, resolvedRoot, fileView)
         : source;
       const selectedManagedTarget = targetPath.startsWith(".intentos/")
         || targetPath.startsWith("scripts/")
         || targetPath.startsWith(".github/workflows/");
       if (selectedAssets && selectedManagedTarget && !selectedAssets.has(targetPath)) continue;
       const referenceIsManaged = reference.startsWith(".intentos/");
-      const targetExists = fs.existsSync(path.join(resolvedRoot, targetPath));
+      const targetExists = fileView.exists(targetPath);
       if (!referenceIsManaged && !targetExists) continue;
       const active = !["HISTORICAL", "COMPATIBILITY"].includes(classification);
       const responsibilitySurface = referenceResponsibilitySurface(source, from);
       const registration = responsibilitySurface === "EXECUTION_CONSUMER" ? "WORKFLOW_CONSUMER" : "REFERENCE";
-      edges.push({ from: from.path, to: targetPath, source, classification, active, responsibilitySurface });
+      const targetAuthorityScope = authorityScopeFor(targetPath, registration);
+      const edgeKind = from.authority_scope === "INTENTOS_MANAGED"
+        && targetAuthorityScope === "INTENTOS_MANAGED"
+        ? "MANAGED_AUTHORITY_DEPENDENCY"
+        : "PROJECT_CONTEXT_REFERENCE";
+      edges.push({
+        from: from.path,
+        to: targetPath,
+        source,
+        classification,
+        active,
+        responsibilitySurface,
+        edge_kind: edgeKind,
+      });
       if (active) {
         addNode(
           source,
@@ -436,15 +560,13 @@ export function effectiveGuidanceGraph(
   }
 
   const materializedNodes = [...nodes.values()].map((node) => {
-    const absolute = path.join(resolvedRoot, node.path);
-    if (!fs.existsSync(absolute)) return { ...node, file_state: "MISSING", content_digest: "N/A" };
-    const stat = fs.lstatSync(absolute);
-    if (stat.isSymbolicLink()) return { ...node, file_state: "UNSAFE_SYMLINK", content_digest: "N/A" };
-    if (!stat.isFile()) return { ...node, file_state: "NOT_REGULAR_FILE", content_digest: "N/A" };
+    if (!fileView.exists(node.path)) return { ...node, file_state: "MISSING", content_digest: "N/A" };
+    if (fileView.isSymbolicLink(node.path)) return { ...node, file_state: "UNSAFE_SYMLINK", content_digest: "N/A" };
+    if (!fileView.isFile(node.path)) return { ...node, file_state: "NOT_REGULAR_FILE", content_digest: "N/A" };
     return {
       ...node,
       file_state: "CURRENT",
-      content_digest: `sha256:${createHash("sha256").update(fs.readFileSync(absolute)).digest("hex")}`,
+      content_digest: `sha256:${createHash("sha256").update(fileView.readBuffer(node.path)).digest("hex")}`,
     };
   });
   const cycles = guidanceCycles(materializedNodes, edges);
@@ -458,11 +580,15 @@ export function effectiveGuidanceGraph(
 
 function guidanceCycles(nodes, edges) {
   const known = new Set(nodes
-    .filter((node) => node.responsibilitySurface === "USER_OR_AGENT_GUIDANCE")
+    .filter((node) => node.responsibilitySurface === "USER_OR_AGENT_GUIDANCE"
+      && node.authority_scope === "INTENTOS_MANAGED")
     .map((node) => node.path));
   const graph = new Map([...known].map((value) => [value, []]));
   for (const edge of edges) {
-    if (edge.active && known.has(edge.from) && known.has(edge.to)) graph.get(edge.from).push(edge.to);
+    if (edge.active
+      && edge.edge_kind === "MANAGED_AUTHORITY_DEPENDENCY"
+      && known.has(edge.from)
+      && known.has(edge.to)) graph.get(edge.from).push(edge.to);
   }
   const visiting = new Set();
   const visited = new Set();
@@ -704,7 +830,10 @@ function semanticSegments(text) {
     current = current ? `${current} ${line}` : line;
   }
   flush();
-  return blocks.flatMap((block) => block.split(/(?<=[.!?。！？])\s+/).map((item) => item.trim()).filter(Boolean));
+  return blocks.flatMap((block) => block
+    .split(/(?<=[。！？])|(?<=[.!?])\s+/u)
+    .map((item) => item.trim())
+    .filter(Boolean));
 }
 
 function humanOnlyDecisionSections(text) {

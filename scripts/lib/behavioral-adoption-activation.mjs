@@ -183,6 +183,9 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
   const executionRoot = allowProjectLocalExecution ? targetRoot : sourceRoot;
   const goal = String(options.goal || "start the first ordinary product task").trim();
   const expectedGoalDigest = String(options.expectedGoalDigest || projectGoalProjection(goal).goal_digest);
+  let activationTaskGoal = goal;
+  let activationTaskGoalDigest = expectedGoalDigest;
+  let verifiedInitialQueueProof = options.requestBoundInitialQueue || null;
   const targetBefore = directoryObservation(targetRoot);
   const projectRevisionBefore = projectRevisionObservation(targetRoot);
   const expectedProjectRevision = String(options.expectedProjectRevision || projectRevisionBefore);
@@ -197,7 +200,7 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
     ...(options.activationEnvironment || {}),
     ...isolation.environment,
   };
-  const requireCurrentIntentBinding = options.requireCurrentIntentBinding === true
+  let requireCurrentIntentBinding = options.requireCurrentIntentBinding === true
     || Boolean(options.transaction?.transaction_id)
     || Boolean(options.requestBoundInitialQueue);
   const deniedSourceRoot = allowProjectLocalExecution && sourceRoot && sourceRoot !== targetRoot ? sourceRoot : "";
@@ -225,19 +228,29 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
     workflow = run("workflow-next", "scripts/workflow-next.mjs", [targetRoot, "--json", "--intent", goal]);
     queue = run("work-queue", "scripts/resolve-work-queue.mjs", [targetRoot, "--json"]);
     const queueIntent = resolveCurrentQueueIntent(targetRoot, queue.parsed);
-    const requestBoundInitialQueue = inspectRequestBoundInitialQueue(
+    let requestBoundInitialQueue = inspectRequestBoundInitialQueue(
       targetRoot,
       queueIntent,
-      options.requestBoundInitialQueue,
+      verifiedInitialQueueProof,
     );
     const strictRoute = resolveGovernedCurrentTaskRoute({ targetRoot, queueReport: queue.parsed });
     const governedIntent = strictRoute.intent || queueIntent.intent || goal;
     const strictRequired = requiresDurableExistingProjectTakeover(targetRoot);
+    const routedIntent = strictRoute.state === "VERIFIED"
+      ? strictRoute.intent
+      : requestBoundInitialQueue.state === "VERIFIED"
+        ? verifiedInitialQueueProof.intent
+        : governedIntent;
+    if (requestBoundInitialQueue.state === "VERIFIED") {
+      activationTaskGoal = routedIntent;
+      activationTaskGoalDigest = verifiedInitialQueueProof.intent_digest;
+      requireCurrentIntentBinding = true;
+    }
     governance = strictRoute.state === "VERIFIED"
       ? run("task-governance", "scripts/resolve-task-governance.mjs", [
           targetRoot,
           "--json",
-          "--intent", governedIntent,
+          "--intent", routedIntent,
           "--work-queue-item", strictRoute.work_queue_item_ref,
         ])
       : requestBoundInitialQueue.state === "VERIFIED"
@@ -248,12 +261,12 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
         ? run("task-governance", "scripts/resolve-task-governance.mjs", [
             targetRoot,
             "--json",
-            "--intent", governedIntent,
+            "--intent", routedIntent,
           ])
       : strictRequired
         ? unavailable("task-governance", `strict current-task route is unavailable: ${strictRoute.blockers.join("; ")}`)
-        : run("task-governance", "scripts/resolve-task-governance.mjs", [targetRoot, "--json", "--intent", governedIntent]);
-    const planningArgs = [targetRoot, "--json", "--intent", governedIntent];
+        : run("task-governance", "scripts/resolve-task-governance.mjs", [targetRoot, "--json", "--intent", routedIntent]);
+    const planningArgs = [targetRoot, "--json", "--intent", routedIntent];
     if (strictRoute.state === "VERIFIED") {
       planningArgs.push(
         "--task-ref", strictRoute.task_ref,
@@ -262,9 +275,9 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
       );
     }
     planning = run("planning-closure", "scripts/resolve-planning-closure.mjs", planningArgs);
-    review = run("review-surface", "scripts/resolve-review-surface.mjs", [targetRoot, "--json", "--intent", governedIntent]);
-    verification = run("verification-plan", "scripts/resolve-verification-plan.mjs", [targetRoot, "--json", "--intent", governedIntent, "--project-level", "BL1", "--platform", "generic"]);
-    finish = run("strict-finish-guard", "scripts/resolve-closure-decision.mjs", [targetRoot, "--json", "--intent", governedIntent]);
+    review = run("review-surface", "scripts/resolve-review-surface.mjs", [targetRoot, "--json", "--intent", routedIntent]);
+    verification = run("verification-plan", "scripts/resolve-verification-plan.mjs", [targetRoot, "--json", "--intent", routedIntent, "--project-level", "BL1", "--platform", "generic"]);
+    finish = run("strict-finish-guard", "scripts/resolve-closure-decision.mjs", [targetRoot, "--json", "--intent", routedIntent]);
     resumeQueue = run("work-queue-resume-probe", "scripts/resolve-work-queue.mjs", [targetRoot, "--json"]);
   } finally {
     isolation.cleanup();
@@ -277,10 +290,10 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
   const workflowTrust = workflow?.parsed?.projectEntryTrust;
   const workQueueTakeover = inspectGovernedWorkQueueTakeover({
     targetRoot,
-    goal,
-    expectedGoalDigest,
+    goal: activationTaskGoal,
+    expectedGoalDigest: activationTaskGoalDigest,
     requireCurrentIntentBinding,
-    requestBoundInitialQueue: options.requestBoundInitialQueue,
+    requestBoundInitialQueue: verifiedInitialQueueProof,
     queueReport: queue.parsed,
     taskGovernanceReport: governance.parsed,
     resumeQueueReport: resumeQueue.parsed,
@@ -381,7 +394,7 @@ export function verifyProjectLocalBehavioralRoute(options = {}) {
     fresh_process_resume_state: workQueueTakeover.fresh_process_resume_state,
     current_intent_binding_state: workQueueTakeover.current_intent_binding_state,
     current_task_binding_state: workQueueTakeover.current_task_binding_state,
-    activation_goal_digest: expectedGoalDigest,
+    activation_goal_digest: activationTaskGoalDigest,
     activation_task_digest: workQueueTakeover.current_item_digest,
     project_revision: expectedProjectRevision,
     project_revision_binding_state: projectRevisionBindingState,
@@ -582,9 +595,8 @@ export function resolveGovernedCurrentTaskRoute(options = {}) {
   return { ...base, route_digest: evidenceDigest(base, []) };
 }
 
-export function resolveVerifiedInitialTaskIntake(options = {}) {
+export function resolveVerifiedInitialTaskIntakeProof(options = {}) {
   const targetRoot = path.resolve(options.targetRoot || ".");
-  const currentResolution = resolveCurrentQueueIntent(targetRoot, options.queueReport || {});
   const receipts = durableMarkdownFiles(targetRoot, "apply-receipts");
   const matches = new Map();
   const blockers = [];
@@ -624,17 +636,24 @@ export function resolveVerifiedInitialTaskIntake(options = {}) {
       queue_path: queuePath,
       queue_digest: queueActions[0].hash_after,
     };
-    const inspected = inspectRequestBoundInitialQueue(targetRoot, currentResolution, proof);
-    if (inspected.state !== "VERIFIED") continue;
+    const requestFile = readDurableProjectFile(targetRoot, requestPath, {
+      requiredPrefix: "requests/",
+      label: "request-bound task request",
+    });
+    const queueFile = readDurableProjectFile(targetRoot, queuePath, {
+      requiredPrefix: "work-queue/",
+      label: "request-bound Work Queue",
+    });
+    if (!requestFile.ok
+      || !queueFile.ok
+      || rawSha256(requestFile.content) !== proof.request_digest
+      || rawSha256(queueFile.content) !== proof.queue_digest) continue;
     const key = [queuePath, proof.queue_digest, requestPath, proof.request_digest, proof.intent_digest].join("\n");
     matches.set(key, {
       state: "VERIFIED",
       intent: normalizeIntent(proof.intent),
       intent_digest: proof.intent_digest,
-      current_item_ref: currentResolution.currentItemRef,
-      current_item_digest: currentResolution.currentItemDigest,
-      queue_ref: currentResolution.queueRef,
-      queue_digest: currentResolution.queueDigest,
+      request_bound_proof: proof,
       receipt_ref: receiptRef,
       receipt_digest: rawSha256(fs.readFileSync(path.join(targetRoot, receiptRef), "utf8")),
       blockers: [],
@@ -648,13 +667,37 @@ export function resolveVerifiedInitialTaskIntake(options = {}) {
     state: "BLOCKED",
     intent: "",
     intent_digest: "N/A",
+    receipt_ref: "N/A",
+    receipt_digest: "N/A",
+    request_bound_proof: null,
+    blockers,
+  };
+  return { ...base, proof_digest: evidenceDigest(base, []) };
+}
+
+export function resolveVerifiedInitialTaskIntake(options = {}) {
+  const targetRoot = path.resolve(options.targetRoot || ".");
+  const currentResolution = resolveCurrentQueueIntent(targetRoot, options.queueReport || {});
+  const resolvedProof = resolveVerifiedInitialTaskIntakeProof({ targetRoot });
+  const inspected = inspectRequestBoundInitialQueue(
+    targetRoot,
+    currentResolution,
+    resolvedProof.request_bound_proof,
+  );
+  const verified = resolvedProof.state === "VERIFIED" && inspected.state === "VERIFIED";
+  const base = {
+    ...resolvedProof,
+    state: verified ? "VERIFIED" : "BLOCKED",
     current_item_ref: currentResolution.currentItemRef,
     current_item_digest: currentResolution.currentItemDigest,
     queue_ref: currentResolution.queueRef,
     queue_digest: currentResolution.queueDigest,
-    receipt_ref: "N/A",
-    receipt_digest: "N/A",
-    blockers,
+    blockers: verified
+      ? []
+      : [...new Set([
+          ...(resolvedProof.blockers || []),
+          ...(resolvedProof.state === "VERIFIED" ? ["VERIFIED_INITIAL_TASK_INTAKE_CURRENT_QUEUE_MISMATCH"] : []),
+        ])],
   };
   return { ...base, intake_digest: evidenceDigest(base, []) };
 }

@@ -24,7 +24,11 @@ import {
   buildNativeAuthoritySourceInventory,
   partitionNativeAuthorityPaths,
 } from "../scripts/lib/project-signals.mjs";
-import { collectProjectAgentAuthority, resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
+import {
+  collectProjectAgentAuthority,
+  evaluateGuidanceAuthority,
+  resolveProjectEntryTrust,
+} from "../scripts/lib/project-entry-trust.mjs";
 import { sameRunBindingFromTrust } from "../scripts/lib/same-run-evidence-envelope.mjs";
 import {
   createTaskResumeDecision,
@@ -1006,6 +1010,49 @@ test("all root and nested agent authorities participate in identity and semantic
   assert.equal(trust.entry_state, "BLOCKED_REPAIR_REQUIRED");
   assert.ok(trust.guidance_authority.invalid_nodes.some((item) => item.path === "packages/api/a/b/c/agent.md"));
   assert.ok(trust.guidance_authority.invalid_nodes.some((item) => item.path === "packages/web/AGENTS.md"));
+});
+
+test("installed Guidance applies IntentOS semantic authority only to exact managed assets", (t) => {
+  const root = fixture(t, "intentos-managed-guidance-scope-");
+  const authority = {
+    ...JSON.parse(fs.readFileSync(path.join(kitRoot, "core/review-context-authority.json"), "utf8")),
+    activeGuidance: [{ source: "core/root.md", installed: ".intentos/core/root.md" }],
+    activeGuidanceFamilies: [],
+    activeGuidanceProducers: [],
+  };
+  write(root, "AGENTS.md", "# Project Agent\n\nRun tests before review.\n");
+  write(root, ".intentos/version.json", `${JSON.stringify({
+    intentOSVersion: "1.113.0",
+    projectEntryOrigin: "EXISTING_PROJECT",
+    assetMigrationDepth: "SELECTED_ASSETS",
+    workflowAssets: [
+      ".intentos/core/root.md",
+      ".intentos/core/review-context-authority.json",
+      ".intentos/version.json",
+      "docs/business-policy.md",
+    ],
+    managedAssetDigests: {
+      ".intentos/core/root.md": `sha256:${"a".repeat(64)}`,
+      ".intentos/core/review-context-authority.json": `sha256:${"b".repeat(64)}`,
+    },
+  }, null, 2)}\n`);
+  write(root, ".intentos/core/review-context-authority.json", `${JSON.stringify(authority, null, 2)}\n`);
+  write(root, ".intentos/core/root.md", "Read `docs/business-policy.md` for project facts.\n");
+  write(root, "docs/business-policy.md", "用户必须确认技术基线。\n");
+
+  const projectContext = evaluateGuidanceAuthority({ authorityRoot: root, authority });
+  assert.equal(projectContext.state, "CURRENT", JSON.stringify(projectContext, null, 2));
+
+  const managedConflict = evaluateGuidanceAuthority({
+    authorityRoot: root,
+    authority,
+    contentOverrides: new Map([
+      [".intentos/core/root.md", "用户必须确认技术基线。\n"],
+    ]),
+  });
+  assert.equal(managedConflict.state, "INVALID");
+  assert.ok(managedConflict.invalid_nodes.some((item) => item.path === ".intentos/core/root.md"
+    && item.conflict_codes.includes("INTERNAL_TECHNICAL_ROUTE_DELEGATED_TO_USER")));
 });
 
 test("a governed Work Queue takeover requires one durable CURRENT and survives a fresh process", (t) => {

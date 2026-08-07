@@ -12,13 +12,14 @@ import {
   controlledApplyImpactFlags,
   formatActionId,
   initExecutableActions,
-  isWorkflowActivationState,
+  inspectControlledDirtyActivation,
   validateVerifiedApplyReceiptFile,
   validateApprovalRecordForInitApplyPlan,
   validateReadinessForInitApplyPlan,
   validateReadinessPlanReview,
 } from "../lib/adoption-apply-chain.mjs";
 import { isGovernedWorkflowOutputPath, projectIdentity } from "../lib/evidence-authority.mjs";
+import { createGuidanceFileView } from "../lib/review-context-authority.mjs";
 import {
   createBootstrapTransaction,
   executeBootstrapTransaction,
@@ -55,11 +56,16 @@ import {
   validateRequestBoundLocalActionGraph,
   validateRequestBoundReadiness,
 } from "../lib/request-bound-apply-authority.mjs";
-import { resolveProjectEntryTrust, requireTrustedProjectEntry } from "../lib/project-entry-trust.mjs";
+import {
+  evaluateGuidanceAuthority,
+  resolveProjectEntryTrust,
+  requireTrustedProjectEntry,
+} from "../lib/project-entry-trust.mjs";
 import { projectGoalProjection } from "../lib/project-fact-projection.mjs";
 import { inspectTargetTopology } from "../lib/target-topology.mjs";
 import {
   nativeAdoptionActionCapability,
+  nativeAdoptionOperationalPolicy,
   normalizeNativeAdoptionMigrationDepth,
   resolveNativeAdoptionStage,
   selectedNativeOverlayAssets,
@@ -218,6 +224,142 @@ function planDigest(plan) {
   return `sha256:${createHash("sha256").update(normalized).digest("hex")}`;
 }
 
+function buildCandidateStaticActivationPreflight(plan) {
+  const selectedExistingProject = plan.arguments?.projectEntryOrigin === "EXISTING_PROJECT"
+    && plan.arguments?.migrationDepth === "SELECTED_ASSETS";
+  if (plan.executionState !== "EXECUTABLE" || !selectedExistingProject) {
+    const base = {
+      schema_version: "1.113.0",
+      state: "NOT_APPLICABLE",
+      reason: plan.executionState !== "EXECUTABLE"
+        ? "The plan has no executable candidate write graph."
+        : "Candidate activation preflight is scoped to selected-assets existing-project adoption and update.",
+      action_graph_digest: evidenceDigest([], []),
+      guidance: { state: "NOT_EVALUATED", guidance_digest: "N/A", graph_digest: "N/A" },
+      runtime_identity: { state: "NOT_EVALUATED" },
+      operational_policy: { state: "NOT_EVALUATED" },
+      dirty_activation: { state: "NOT_EVALUATED" },
+      invalid_nodes: [],
+      cycles: [],
+      boundaries: {
+        reads_candidate_view_only: "Yes",
+        writes_target_files: "No",
+        authorizes_apply: "No",
+      },
+    };
+    return { ...base, preflight_digest: evidenceDigest(base, []) };
+  }
+  const candidateActions = bootstrapActionsFromPlan(plan);
+  const contentOverrides = new Map(candidateActions.map((action) => [action.path, action.content]));
+  const candidateView = createGuidanceFileView(plan.targetRoot, contentOverrides);
+  const actionById = new Map(plan.actions.map((action) => [action.id, action]));
+  const actionGraph = candidateActions.map((action) => ({
+    id: action.id,
+    path: action.path,
+    expected_hash_after: actionById.get(action.id)?.expectedHashAfter || "N/A",
+  }));
+  let guidance;
+  try {
+    guidance = evaluateGuidanceAuthority({
+      authorityRoot: plan.targetRoot,
+      installed: true,
+      contentOverrides,
+      requireAgentAuthority: true,
+    });
+  } catch (error) {
+    guidance = {
+      state: "INVALID",
+      guidance_digest: "N/A",
+      graph_digest: "N/A",
+      invalid_nodes: [],
+      cycles: [],
+      reason: error.message,
+    };
+  }
+  let candidateVersion = null;
+  try {
+    candidateVersion = JSON.parse(contentOverrides.get(".intentos/version.json")?.toString("utf8") || "");
+  } catch {
+    candidateVersion = null;
+  }
+  const workflowNextAction = plan.actions.find((action) => action.path === "scripts/workflow-next.mjs");
+  const workflowNextContent = candidateView.exists("scripts/workflow-next.mjs")
+    ? candidateView.readBuffer("scripts/workflow-next.mjs")
+    : null;
+  const workflowNextDigest = workflowNextContent ? sha256Content(workflowNextContent) : null;
+  const runtimeErrors = [];
+  if (!candidateVersion) runtimeErrors.push("CANDIDATE_VERSION_RECORD_INVALID");
+  if (candidateVersion?.intentOSVersion !== plan.intentOSVersion) runtimeErrors.push("CANDIDATE_VERSION_MISMATCH");
+  if (!(candidateVersion?.workflowAssets || []).includes("scripts/workflow-next.mjs")) {
+    runtimeErrors.push("WORKFLOW_NEXT_NOT_DECLARED");
+  }
+  if (!workflowNextAction || !workflowNextContent || workflowNextDigest !== workflowNextAction.expectedHashAfter) {
+    runtimeErrors.push("WORKFLOW_NEXT_CANDIDATE_NOT_BOUND");
+  }
+  if (candidateVersion?.managedAssetDigests?.["scripts/workflow-next.mjs"] !== workflowNextDigest) {
+    runtimeErrors.push("WORKFLOW_NEXT_MANAGED_DIGEST_MISMATCH");
+  }
+  const runtimeIdentity = {
+    state: runtimeErrors.length === 0 ? "READY" : "BLOCKED",
+    intentos_version: candidateVersion?.intentOSVersion || "N/A",
+    workflow_next_digest: workflowNextDigest || "N/A",
+    errors: runtimeErrors,
+  };
+  const operational = candidateVersion ? nativeAdoptionOperationalPolicy(candidateVersion) : null;
+  const operationalPolicy = {
+    state: operational?.valid === true ? "READY" : "BLOCKED",
+    profile: operational?.profile || "INVALID",
+    missing_required_assets: operational?.missingRequiredAssets || [],
+  };
+  const dirtyEligibility = plan.targetFingerprint?.isGitRepository === true
+    && plan.targetFingerprint?.isDirty === true
+    ? inspectControlledDirtyActivation(plan)
+    : null;
+  const dirtyActivation = dirtyEligibility
+    ? {
+      state: dirtyEligibility.ok ? "READY" : "BLOCKED",
+      mode: dirtyEligibility.mode,
+      code: dirtyEligibility.code,
+      overlap_paths: dirtyEligibility.overlapPaths,
+    }
+    : {
+      state: "NOT_APPLICABLE",
+      mode: "CLEAN_OR_NON_GIT_TARGET",
+      code: "NOT_REQUIRED",
+      overlap_paths: [],
+    };
+  const componentFailures = [
+    guidance.state === "CURRENT" ? null : "GUIDANCE_AUTHORITY_INVALID",
+    runtimeIdentity.state === "READY" ? null : "RUNTIME_IDENTITY_INVALID",
+    operationalPolicy.state === "READY" ? null : "OPERATIONAL_POLICY_INVALID",
+    dirtyActivation.state === "BLOCKED" ? "DIRTY_ACTIVATION_INVALID" : null,
+  ].filter(Boolean);
+  const base = {
+    schema_version: "1.113.0",
+    state: componentFailures.length === 0 ? "READY" : "BLOCKED",
+    reason: componentFailures.length === 0
+      ? "The exact selected-assets candidate passes all predictable static activation checks."
+      : componentFailures.join("; "),
+    action_graph_digest: evidenceDigest(actionGraph, []),
+    guidance: {
+      state: guidance.state,
+      guidance_digest: guidance.guidance_digest || "N/A",
+      graph_digest: guidance.graph_digest || "N/A",
+    },
+    runtime_identity: runtimeIdentity,
+    operational_policy: operationalPolicy,
+    dirty_activation: dirtyActivation,
+    invalid_nodes: guidance.invalid_nodes || [],
+    cycles: guidance.cycles || [],
+    boundaries: {
+      reads_candidate_view_only: "Yes",
+      writes_target_files: "No",
+      authorizes_apply: "No",
+    },
+  };
+  return { ...base, preflight_digest: evidenceDigest(base, []) };
+}
+
 function omitPlanDigest(value) {
   if (Array.isArray(value)) return value.map(omitPlanDigest);
   if (!value || typeof value !== "object") return value;
@@ -264,7 +406,7 @@ function gitFingerprint(targetPath) {
   const branch = spawnSync("git", ["-C", targetPath, "branch", "--show-current"], { encoding: "utf8" });
   const head = spawnSync("git", ["-C", targetPath, "rev-parse", "HEAD"], { encoding: "utf8" });
   const status = spawnSync("git", [
-    "-C", targetPath, "status", "--short", "--", ".",
+    "-C", targetPath, "status", "--short", "--untracked-files=all", "--", ".",
     ":(exclude)apply-execution-plans/**",
     ":(exclude)approval-records/**",
     ":(exclude)release-approval-records/**",
@@ -765,9 +907,14 @@ function buildPlan(targetPath, options = {}) {
   const operation = operationKind === "CONTROLLED_UPDATE"
     ? "UPDATE_WORKFLOW_ASSETS"
     : "INIT_PROJECT";
+  const installedVersion = operationKind === "CONTROLLED_UPDATE"
+    ? readJsonIfExists(path.join(targetPath, ".intentos", "version.json"))
+    : null;
   const migrationDepth = operationKind === "NATIVE_ADOPTION"
     ? normalizeNativeAdoptionMigrationDepth(options.migrationDepth)
-    : "FULL_NATIVE";
+    : operationKind === "CONTROLLED_UPDATE" && installedVersion?.assetMigrationDepth === "SELECTED_ASSETS"
+      ? "SELECTED_ASSETS"
+      : "FULL_NATIVE";
   const goal = String(options.goal || "").trim();
   const adoptionAssessment = operationKind === "NATIVE_ADOPTION"
     ? buildNativeAdoptionAssessment(targetPath, goal, {
@@ -794,16 +941,16 @@ function buildPlan(targetPath, options = {}) {
 
   const actions = executableNativeAdoption ? [] : blockedNativeAdoptionActions(adoptionAssessment, migrationDepth);
   if (executableNativeAdoption) {
-    const selectedNativeAdoption = operationKind === "NATIVE_ADOPTION"
+    const selectedExistingOverlay = projectEntryOrigin === "EXISTING_PROJECT"
       && migrationDepth === "SELECTED_ASSETS";
-    if (!selectedNativeAdoption) addOnboardingDocPlanActions(actions, targetPath);
+    if (!selectedExistingOverlay) addOnboardingDocPlanActions(actions, targetPath);
     if (operationKind === "NEW_BOOTSTRAP") {
       addDirectoryPlanActions(actions, targetPath, path.join(kitRoot, "starters", options.starter), ".", {
         overwrite: false,
         reason: "starter asset",
       });
     }
-    if (selectedNativeAdoption) {
+    if (selectedExistingOverlay) {
       addSelectedDistributionPlanActions(actions, targetPath, options);
       addSelectedBaselineAssetPlanActions(actions, targetPath, baselineConfig, options);
     } else {
@@ -817,9 +964,9 @@ function buildPlan(targetPath, options = {}) {
     addGovernancePlanActions(actions, targetPath, options.starter, {
       ...options,
       includePullRequestGovernance: operationKind !== "NATIVE_ADOPTION",
-      selectedNativeOverlay: selectedNativeAdoption,
+      selectedNativeOverlay: selectedExistingOverlay,
     });
-    if (!selectedNativeAdoption) {
+    if (!selectedExistingOverlay) {
       addWorkflowDirPlanActions(actions, targetPath);
     }
     addVersionPlanAction(actions, targetPath, options);
@@ -830,7 +977,7 @@ function buildPlan(targetPath, options = {}) {
     ? ".intentos/bootstrap-receipt.json"
     : `apply-receipts/${planRunId(createdAt)}.md`;
   if (executableNativeAdoption) {
-    const workflowAssetsOverride = operationKind === "NATIVE_ADOPTION" && migrationDepth === "SELECTED_ASSETS"
+    const workflowAssetsOverride = projectEntryOrigin === "EXISTING_PROJECT" && migrationDepth === "SELECTED_ASSETS"
       ? actions.map((action) => action.path).filter(Boolean)
       : null;
     enrichExecutionActions(actions, targetPath, {
@@ -898,11 +1045,21 @@ function buildPlan(targetPath, options = {}) {
     executionState: executableNativeAdoption ? "EXECUTABLE" : "DIAGNOSTIC_ONLY",
   };
   plan.receiptActionId = actions.find((action) => action.type === "WRITE_APPLY_RECEIPT")?.id || null;
-  plan.planDigest = planDigest(plan);
   if (operationKind === "NATIVE_ADOPTION" && executableNativeAdoption) {
     attachInitialGoalToPlan(plan, projectGoalProjection(options.goal), { existingAdoption: true });
     decorateNativeAdoptionActions(plan.actions, adoptionAssessment);
-    plan.planDigest = planDigest(plan);
+  }
+  plan.candidateStaticActivationPreflight = buildCandidateStaticActivationPreflight(plan);
+  if (plan.candidateStaticActivationPreflight.state === "BLOCKED") {
+    const details = [
+      plan.candidateStaticActivationPreflight.reason,
+      ...plan.candidateStaticActivationPreflight.invalid_nodes.map((item) => `${item.path}:${(item.conflict_codes || []).join(",") || item.state}`),
+      ...plan.candidateStaticActivationPreflight.cycles.map((cycle) => cycle.join(" -> ")),
+    ].filter(Boolean);
+    throw new Error(`Candidate activation preflight failed before target writes: ${details.join("; ")}`);
+  }
+  plan.planDigest = planDigest(plan);
+  if (operationKind === "NATIVE_ADOPTION" && executableNativeAdoption) {
     assertRequestBoundNativeAdoptionActions(plan);
   }
   return plan;
@@ -1471,6 +1628,9 @@ function attachInitialGoalToPlan(plan, goalProjection, options = {}) {
     targetExists: fs.existsSync(plan.targetRoot),
     fileHashes: plan.targetFingerprint.fileHashes,
   };
+  if (plan.candidateStaticActivationPreflight) {
+    plan.candidateStaticActivationPreflight = buildCandidateStaticActivationPreflight(plan);
+  }
   plan.planDigest = planDigest(plan);
 }
 
@@ -1519,6 +1679,7 @@ export {
   assignPlanActionIds,
   attachInitialGoalToPlan,
   bootstrapActionsFromPlan,
+  buildCandidateStaticActivationPreflight,
   buildNativeAdoptionAssessment,
   buildPlan,
   controlledBackupRunRoot,
