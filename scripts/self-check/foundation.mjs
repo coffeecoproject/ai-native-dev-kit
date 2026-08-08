@@ -1477,6 +1477,21 @@ function checkIntentOSNamingHardcut() {
     "docs/plans/baseline-manifest-public-entry-consolidation-1.94-plan.md",
     "docs/source-only-adoption.md",
   ]);
+  // This reader must recognize the exact identities written by deprecated
+  // installations. Keep the exception term-scoped so new naming drift in the
+  // same live source file is still rejected.
+  const allowedTermsByFile = new Map([
+    [
+      "scripts/lib/legacy-intentos-installation.mjs",
+      new Set([
+        ["AI", "Native"].join(" "),
+        ["ai", "native"].join("-"),
+        ["dev", "kit"].join("-"),
+        ["dev", "Kit"].join(""),
+        `.${["ai", "native"].join("-")}`,
+      ]),
+    ],
+  ]);
   const extensions = [".md", ".mjs", ".json", ".yml", ".yaml"];
   const files = [];
   for (const item of scanRoots) {
@@ -1513,6 +1528,7 @@ function checkIntentOSNamingHardcut() {
   for (const file of files) {
     const relativePath = rel(file);
     if (allowedExceptions.has(relativePath)) continue;
+    const allowedTerms = allowedTermsByFile.get(relativePath) || new Set();
     let content = "";
     try {
       content = fs.readFileSync(file, "utf8");
@@ -1520,7 +1536,7 @@ function checkIntentOSNamingHardcut() {
       continue;
     }
     for (const term of forbidden) {
-      if (content.includes(term)) findings.push(`${relativePath}: ${term}`);
+      if (content.includes(term) && !allowedTerms.has(term)) findings.push(`${relativePath}: ${term}`);
     }
   }
 

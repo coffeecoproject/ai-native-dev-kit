@@ -1,11 +1,10 @@
-# Notice
+# NOTICE
 
-IntentOS is provided under the license stated in [LICENSE.md](LICENSE.md).
+IntentOS
 
-Copyright and attribution notices must be preserved when the material is copied, adapted, or shared
-for permitted personal, educational, or non-commercial purposes.
+Copyright 2026 IntentOS contributors
 
-Commercial use, resale, paid redistribution, and use as part of commercial consulting or service
-delivery are not permitted without prior written permission.
+Licensed under the Apache License, Version 2.0. See [LICENSE.md](LICENSE.md).
 
-This notice is informational and does not replace or override the license.
+This NOTICE is provided for attribution and informational purposes. It does not
+modify the Apache License 2.0.

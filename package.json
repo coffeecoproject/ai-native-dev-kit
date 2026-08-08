@@ -2,6 +2,7 @@
   "name": "intentos",
   "version": "1.113.0",
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "engines": {
     "node": ">=22 <23"

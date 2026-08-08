@@ -1,51 +1,54 @@
 # License FAQ
 
-This FAQ is a plain-language guide for the current project policy. It is not legal advice and does
-not replace or override [LICENSE.md](LICENSE.md).
+This is a plain-language summary of the repository's current license. It is not
+legal advice and does not replace or modify [LICENSE.md](LICENSE.md).
 
-## What license does this project use?
+## What license does IntentOS use?
 
-This project is licensed under Creative Commons Attribution-NonCommercial 4.0 International
-License, also known as CC BY-NC 4.0.
+The current repository is licensed under the Apache License, Version 2.0
+(`Apache-2.0`). It is an OSI-approved open-source software license.
 
-## What can I do for personal use?
+## Can I use IntentOS commercially?
 
-Personal, educational, and non-commercial use is allowed with attribution.
+Yes. Apache-2.0 permits commercial and private use, modification, and
+redistribution, subject to the license terms.
 
-## Can I use it for education or learning?
+## Can I use it in customer projects or paid consulting?
 
-Yes, if the use is educational and non-commercial, and attribution is included.
+Yes. There is no separate commercial license or prior-permission requirement
+for uses allowed by Apache-2.0.
 
-## Can a company evaluate it internally?
+## Can I modify or redistribute IntentOS?
 
-Internal evaluation is allowed only as a non-commercial assessment. Do not use it as part of paid
-delivery, resale, customer consulting, a customer implementation, or a commercial product without
-prior written permission.
+Yes. When redistributing the work or a derivative, follow Apache-2.0, including
+providing the license, marking modified files, and preserving applicable
+copyright, patent, trademark, attribution, and NOTICE information.
 
-## Can I use it in a commercial product or paid customer project?
+## Must my own project be open source?
 
-No. Commercial product delivery and paid customer project delivery are not permitted without prior
-written permission.
+Apache-2.0 does not require a project that uses IntentOS to publish all of its
+own source code. You remain responsible for complying with the license and with
+licenses for third-party material in your project.
 
-## Can I use it as part of consulting or service delivery?
+## Are contributions covered by the same license?
 
-No. Use as part of commercial consulting or service delivery is not permitted without prior written
-permission.
+Unless explicitly stated otherwise, contributions intentionally submitted for
+inclusion in this repository are provided under Apache-2.0, as described in
+Section 5 of the license.
 
-## Can I resell it or redistribute it in a paid package?
+## Does the license grant trademark rights?
 
-No. Resale, paid redistribution, or bundling it into paid materials is not permitted without prior
-written permission.
+No. Apache-2.0 does not grant general permission to use contributor trade
+names, trademarks, service marks, or product names beyond customary origin and
+NOTICE references.
 
-## Can I copy generated assets, templates, or checkers into a customer project?
+## What about earlier releases?
 
-Not as part of paid customer delivery, consulting, service delivery, resale, or commercial
-implementation without prior written permission.
+Previously distributed versions remain governed by the license file included
+with that distribution. The current repository license does not silently
+rewrite the contents of an older distribution.
 
-## Can I adapt or share it non-commercially?
+## What if my use case is legally sensitive?
 
-Yes, for personal, educational, and non-commercial purposes with attribution.
-
-## What should I do if my use case is unclear?
-
-Treat it as not permitted until you receive prior written permission.
+Read [LICENSE.md](LICENSE.md) and obtain qualified legal advice for your own
+situation. This project does not provide legal advice.

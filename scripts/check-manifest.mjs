@@ -399,7 +399,6 @@ function isImportantSourceAsset(file) {
     "CONTRIBUTING.md",
     "LICENSE.md",
     "LICENSE-FAQ.md",
-    "LICENSE-COMMERCIAL.md",
     ".github/CODEOWNERS",
     ".github/pull_request_template.md",
   ].includes(file);
@@ -449,7 +448,6 @@ function checkManifestReverseDrift(manifest, candidateFiles) {
       "CONTRIBUTING.md",
       "LICENSE.md",
       "LICENSE-FAQ.md",
-      "LICENSE-COMMERCIAL.md",
       ".github/CODEOWNERS",
       ".github/pull_request_template.md",
     ].filter((file) => fs.existsSync(path.join(projectRoot, file))),

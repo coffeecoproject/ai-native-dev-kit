@@ -52,6 +52,5 @@ This policy is not legal advice.
 ## Out Of Scope
 
 - Security guarantees for projects that copy this kit without running their own checks.
-- Commercial authorization decisions.
-- Legal advice about license compliance.
+- Legal advice or interpretation of license compliance.
 - Vulnerabilities introduced by user-specific project code outside this repository.

@@ -46,4 +46,6 @@ Not by default. Packs have maturity stages. Current concrete packs are treated c
 
 ## Can this be used commercially?
 
-The repository is licensed under CC BY-NC 4.0. Commercial use, resale, paid redistribution, or consulting/service delivery use requires prior written permission. See `LICENSE.md`, `LICENSE-FAQ.md`, and `LICENSE-COMMERCIAL.md`.
+Yes. The current repository is open source under Apache License 2.0. Commercial
+and private use, modification, and redistribution are permitted under the
+license terms. See `LICENSE.md`, `LICENSE-FAQ.md`, and `NOTICE.md`.

@@ -4,6 +4,12 @@
 
 Changes to this repository should keep IntentOS installable, checkable, and safe for real project adoption. Small documentation fixes can stay lightweight. Productization, workflow, checker, CI, or template changes need workflow evidence and local verification.
 
+IntentOS is open source under Apache License 2.0. Unless explicitly stated
+otherwise, contributions intentionally submitted for inclusion are provided
+under the same license. External contributors may open a focused issue or pull
+request without recreating the repository's internal historical artifact set;
+maintainers will identify any additional current evidence required for merge.
+
 Use Node.js `22.x` (supported engine range `>=22 <23`) for repository checks.
 The supported maintainer runtime must match the Node 22 first-party CI jobs;
 testing on a newer major does not expand the formal support boundary.

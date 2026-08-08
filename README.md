@@ -1,293 +1,208 @@
 # IntentOS
 
-An AI-native system for guided software delivery.
+[简体中文](README.zh-CN.md) | English
+
+An open-source, Codex-first operating layer for evidence-backed software delivery.
 
 Current release: `1.113.0`.
 
 Release record: [releases/1.113.0/release-record.md](releases/1.113.0/release-record.md).
 
-IntentOS lets one zero-experience solo developer describe real business goals
-while the AI handles technical planning, implementation, testing, review,
-evidence, repair, migration, and delivery coordination.
+IntentOS lets you describe a real product or engineering goal in ordinary
+language while Codex handles the technical delivery loop: understanding the
+project, planning, implementation, verification, review, repair, completion
+evidence, and release preparation.
 
-It is not a prompt collection, code template, framework starter, or deploy tool. It is a workflow and governance layer formally supported for Codex. Claude and Cursor files are compatibility references, not current behavior-parity claims.
+> You provide the goal, real business facts, and consent for concrete
+> real-world effects. IntentOS keeps the technical workflow coherent and
+> inspectable.
 
-> You describe the goal and the real business. AI makes the technical decisions and completes
-> the internal workflow. You supply only missing business facts and consent to
-> concrete real-world effects.
+IntentOS is fully open source under the [Apache License 2.0](LICENSE.md). You
+may use, modify, and redistribute it, including for commercial work, under the
+terms of that license.
 
-## Start In 30 Seconds
+## What IntentOS Is
 
-Prerequisite: Node.js `22.x` (supported engine range `>=22 <23`).
-
-Most users should start with natural language:
+IntentOS is a project-local workflow and governance system for AI-assisted
+software delivery. It sits around an AI coding agent and the repository:
 
 ```text
-I want to build a booking app. Start this project for me.
+your goal
+  -> Codex reads the project
+  -> IntentOS selects the delivery controls
+  -> Codex plans and implements
+  -> IntentOS verifies evidence and boundaries
+  -> Codex repairs findings and prepares a safe handoff
 ```
 
-When command evidence is useful, use one public operating loop:
+It is not another model, an autonomous production operator, a hosted service,
+or a replacement for your application framework. Codex is the formally
+supported agent surface. Claude and Cursor files are compatibility references,
+not behavior-parity claims.
+
+## Current Distribution Status
+
+IntentOS currently ships as source code:
+
+- Node.js `22.x` is required (`>=22 <23`).
+- Git and npm are required for the source checkout and repository checks.
+- Codex is the formally supported interactive agent.
+- There is no public npm package, global installer, dashboard, or hosted
+  IntentOS service yet.
+- The source CLI can inspect and route work without modifying a target project.
+- Installing project-local assets into an existing project uses an exact,
+  reviewable plan with rollback and an apply receipt.
+
+Open source describes the rights to use and change the code. It does not imply
+that the planned package/plugin distribution work is already complete.
+
+## Get Started With Codex
+
+### 1. Clone IntentOS
 
 ```bash
-node scripts/cli.mjs work <project> "<what you want>"
+git clone <this-repository-url> intentos
+cd intentos
+node --version
 ```
 
-`work` identifies the project entry and routes six ordinary meanings: start,
-continue, check status, finish, prepare release, or adopt an existing project.
-The entry itself is read-only. Ordinary reversible engineering may proceed
-after internal gates without another technical approval. Production, cost,
-real-user communication, real account/provider, and irreversible real-data
-effects still require explicit consent to the concrete effect.
+### 2. Open the project you want to work on
 
-Maintainers can use `node scripts/cli.mjs --help-advanced` for the lower-level
-source-system commands. Ordinary users do not need to select them.
+Install and sign in to the Codex CLI using the
+[official Codex CLI guide](https://learn.chatgpt.com/docs/codex/cli), then run
+Codex from your target project:
 
-Start here:
+```bash
+cd /path/to/your-project
+codex
+```
 
-- [Start Here](docs/start-here.md)
-- [Operating Model](docs/operating-model.md)
-- [Minimal Adoption](docs/minimal-adoption.md)
-- [Source-Only Adoption](docs/source-only-adoption.md)
-- [For Existing Projects](docs/for-existing-projects.md)
-- [For Maintainers](docs/for-maintainers.md)
-
-Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
-
-1.113.0 closes the P0/P1 consumer-chain defects found by the 1.112 audit.
-Required checks now report typed outcomes, every task keeps a proportional
-minimum verification and completion chain, Completion Evidence revalidates
-current execution evidence, and public finish has one fail-closed technical
-authority. Generated and installed projects, controlled-apply interruption,
-future-session activation, and strict release preparation are covered without
-adding a public workflow or asking the user to make technical decisions.
-Existing-project adoption now binds the original request, project identity,
-revision, source state, canonical plan, and exact reversible action graph to a
-short-lived single-use local authority. It preserves legacy agent rules while
-creating the canonical Codex entry, and cannot authorize business code, CI,
-hooks, release, production, secrets, paid resources, or irreversible data work.
-
-1.112.0 audits the complete IntentOS trust chain through nine capability
-domains and nineteen required consumer edges. It confirms substantial current
-controls, but also records one false-completion P0 and five P1 root causes where
-strict evidence is not always selected or enforced by public consumers. This
-is an audit release, not a behavioral-completion claim; 1.113 must close those
-findings before repository structure is reorganized.
-
-1.111.1 closes responsibility drift in the guidance Codex actually reads,
-generates, and installs. Codex selects technical routes, plans, baselines,
-reviews, verification, apply safeguards, and release-readiness recommendations;
-the user supplies only real business facts, bounded product preferences, exact
-consent for a prepared real-world effect, or an unavailable external fact.
-Compatibility fields remain readable, but no six-stage workflow or new public
-command was added.
-
-1.111.0 adds one internal planning close-out before implementation review.
-IntentOS now checks that the current task, required business and impact scope,
-verification obligations, plan review, and relied-on controls all refer to the
-same project and intent. Only a fully ready result emits a non-authorizing
-execution handoff; it does not permit writes, apply, release, production, or a
-completion claim. Ordinary users still use only natural language or `work`.
-
-1.110.0 verifies the checks that IntentOS relies on. A project gate, test,
-policy, workflow, or IntentOS checker is no longer treated as effective merely
-because it exists or reports PASS. When a current task or adoption claim
-depends on one, Codex must bind the exact claim to current implementation,
-scope, semantic, failure, identity, and safety evidence. Unrelated work stays
-lightweight, stronger proven project rules remain project-owned, and the user
-does not choose controls or verification techniques.
-
-1.109.0 hardcuts project entry and adoption trust. One natural-language goal
-now drives one shared target topology, project identity, fact projection,
-effective guidance view, and current-work record across public entry points.
-Blank targets use an atomic setup transaction with recovery and a verified
-project-local receipt; existing projects use one strict same-run adoption chain
-without asking the user to choose migration depth or technical governance.
-Dirty work blocks only overlapping unsafe writes, and a generated project must
-cold-start IntentOS and route its first ordinary task before activation can be
-claimed.
-
-1.108.0 adds conditional Business Universe Coverage. When project evidence
-shows omission risk across related categories, origins, processing paths,
-lifecycle branches, selection points, or derived consistency relationships,
-Codex must trace every relevant scenario and bind exclusions to evidence before
-implementation can count as complete. This runs inside the existing `work`
-flow; the user does not select a checker or make technical completeness
-decisions.
-
-1.107.1 closes Active Guidance distribution drift. IntentOS now checks the
-guidance Codex actually reads or generates, not only a manual registry. Codex
-is the only formal agent platform; Claude and Cursor remain compatibility
-references. Existing-project migration reports no longer ask the user to make
-technical governance choices.
-
-1.107.0 completes release-topology migration governance. IntentOS can now
-separate project-file changes, non-production rehearsal, cutover, release,
-post-cutover proof, and old-path retirement, while binding every claimed stage
-to current evidence. These reports do not deploy or authorize production.
-
-1.106.0 binds strict release consumers to the exact current topology, source,
-candidate, package, and action. Copied, stale, missing, legacy-only, or
-conflicting topology evidence cannot unlock strict release readiness.
-
-1.105.0 adds a platform-neutral release topology view. IntentOS now separates
-source, orchestration, execution, package transport, evidence storage, and the
-real target before recommending a release path. It does not ask the user to
-choose technical plumbing and does not authorize release or production.
-
-1.104.1 hardcuts the zero-experience solo contract into active guidance and
-runtime output. Codex now derives Profile, stack, baseline, BL level, industrial
-packs, verification, review, and workflow routing without presenting technical
-approval menus to the user. User input remains limited to missing business
-facts, exact consent to prepared real-world effects, and unavailable external
-facts.
-
-1.104.0 hardcuts Runtime Trust into every strict completion consumer. Test
-Evidence, Execution Assurance, Completion Evidence, and public `finish` now
-independently validate and agree on the same current-task Verification Run
-Manifest. Historical, copied, stale, mismatched, textual, or empty evidence
-cannot satisfy a current completion claim.
-
-1.103.0 adds the bounded Verification Runtime Lifecycle. IntentOS can now turn
-a current Runtime Plan into exact local actions, execute them without a shell,
-record observed outputs and service identity, own only run-scoped resources,
-and preserve cleanup-before/after proof. Provider, remote, container,
-production, release, credential-bearing, broad-cleanup, and unowned effects
-remain blocked.
-
-1.102.0 adds Verification Runtime Adapters. IntentOS now binds its runtime
-choice to current project evidence and checks the exact identity required for a
-local process, Docker container, Kubernetes workload, serverless deployment,
-static build, or native app target. Codex still makes every technical choice;
-this release observes and plans but does not start services or create resources.
-
-1.101.0 adds Verification Runtime Trust Core. IntentOS now derives how strongly
-a task's test run must be bound to the current source, service instance,
-isolated data/session resources, run-owned cleanup, and exact outputs. Codex
-chooses the technical runtime path; the zero-experience user is not asked to
-choose ports, databases, containers, or test tools. This release validates the
-plan and run record but does not yet hardcut downstream completion consumers.
-
-1.100.0 makes existing authority executable end to end: release plans cannot
-assign provider or production effects to Codex, public completion consumes the
-current task chain, controlled apply rolls back attempted writes on failure,
-large existing projects are scanned without shallow omission, baseline claims
-require real evidence, and installed CI enforces current task and release
-consumers when relevant.
-
-1.99.3 closes the current review and execution trust chain: review inputs are
-bound to the current task and project, Plan Review sources must resolve with
-current digests, downstream completion/apply/release checks retain strict
-requirements, installed projects use installed authority, and starter
-verification fails when no real verification path can run.
-
-1.99.2 makes that authority fail closed for unknown semantic sources, rejects
-directly conflicting active guidance, and binds newly generated Review Packets
-and GPT review prompts to one current context digest. It does not add user
-modes or duplicate the execution evidence chain.
-
-1.99.1 gives the current solo operating contract explicit authority over old
-release language and machine-compatibility fields. GPT, reviewer, and subagent
-review now reject team-mode proposals, technical choices delegated to the
-user, owner-field literalism, and capability scope inflation. Historical audit
-records remain available without defining current product direction.
-
-1.99.0 hardcuts the default user model to one zero-experience solo developer.
-Public entry no longer asks the user to choose technical architecture,
-baselines, packs, tests, review systems, workflow commands, or enterprise owner
-roles. IntentOS derives internal responsibility domains and capability coverage,
-continues ordinary reversible engineering after internal gates, and asks only
-for missing business facts or consent to concrete real-world effects. Strict
-evidence, apply, rollback, completion, and release trust remain unchanged.
-
-## Release History
-
-Current behavior is defined by the current product contracts and active runtime,
-not by earlier release wording. Detailed audit history remains available in
-[VERSION.md](VERSION.md) and the [release records](releases/).
-
-Earlier records may retain machine-compatibility terms such as `owner` or
-`human approval`. Under the current solo model, those terms do not require the
-user to assemble a team or make technical decisions. See
-[Review Context Authority](core/review-context-authority.md).
-
-## How It Works
-
-IntentOS keeps one public interaction loop:
+Tell Codex where the IntentOS source checkout is:
 
 ```text
-business goal
-  -> read the project and current task
-  -> choose the technical path internally
-  -> implement across every affected surface
-  -> test and review the work
-  -> repair findings
-  -> prove completion
-  -> prepare release and rollback
+Read /path/to/intentos as the IntentOS source and install IntentOS
+into this project. Inspect first, preserve existing project rules and business
+code, show the exact plan before writing, and verify the project-local entry
+after apply.
 ```
 
-The ordinary user does not choose workflow stages, commands, agents, baselines,
-or evidence types. Internal systems remain strict and are selected
-automatically.
+For a new empty project, describe what you want to build instead:
+
+```text
+Read /path/to/intentos and use IntentOS to start a booking application
+in this directory. Derive the technical approach from the goal and verify the
+first usable slice.
+```
+
+### 3. Keep using natural language
+
+After adoption, continue using Codex normally:
+
+```text
+Continue the current task.
+```
+
+```text
+Add cancellation rules to the booking flow and verify every affected surface.
+```
+
+```text
+Is this task actually complete? Show me the remaining risks.
+```
+
+The installed project contains its own IntentOS guidance and project-local
+scripts, so daily work does not need the original source checkout for every
+entry.
+
+## Read-Only Source Entry
+
+To inspect or route a project directly from the source checkout without
+installing anything into the target:
+
+```bash
+node /path/to/intentos/scripts/cli.mjs \
+  work /path/to/your-project \
+  "inspect this project and tell me the correct next step"
+```
+
+The public `work` entry maps ordinary requests such as start, continue, check,
+finish, prepare release, and adopt. It is read-only by itself. Maintainers can
+see lower-level commands with:
+
+```bash
+node scripts/cli.mjs --help-advanced
+```
 
 ## What IntentOS Covers
 
-- natural-language entry for new and existing projects;
-- Work Queue and interrupted-task recovery;
-- business-rule closure and cross-surface impact coverage;
-- platform and engineering baseline selection;
+- new and existing project entry;
+- current-task and interrupted-work recovery;
+- business-rule and cross-surface impact coverage;
+- engineering and platform baseline selection;
 - implementation planning and plan review;
-- verification planning, test evidence, independent review, and repair loops;
-- completion evidence and one final close-out decision;
-- controlled project migration with exact plans, receipts, and rollback;
-- release preparation, evidence, runtime checks, and platform-specific paths.
+- test planning, execution evidence, review, and repair;
+- completion evidence and unified closure;
+- controlled adoption and updates with exact actions and receipts;
+- release preparation, topology, runtime hygiene, and rollback evidence.
 
-IntentOS is a governance and delivery system. It does not replace provider
-accounts, app stores, cloud platforms, legal or tax sources, or real production
-authority.
+The internal machinery is strict, but ordinary users should not have to choose
+profile IDs, baseline levels, checker commands, schemas, action IDs, or review
+roles.
 
-## New, Existing, And Production Projects
+## Existing Project Safety
 
-**New projects:** IntentOS derives the platform and engineering depth from the
-business goal, establishes the complete baseline, creates the first bounded
-slice, and continues through verification.
+IntentOS treats an existing repository as project-owned:
 
-**Existing projects:** IntentOS reads current code, task records, governance,
-baselines, and release rules. It preserves stronger proven rules, repairs weak
-or missing governance through controlled apply, and makes the same operating
-model active without asking the user to select an adoption mode.
+- it inspects before writing;
+- it preserves stronger project rules backed by current project evidence;
+- it does not overwrite business code merely to install workflow assets;
+- dirty work blocks only unsafe overlapping writes;
+- adoption writes require a project-bound plan, readiness proof, exact action
+  replay, rollback handling, and a verified receipt;
+- CI, hooks, secrets, provider accounts, release, production, paid resources,
+  real-user communication, and irreversible data effects remain outside an
+  ordinary local adoption authority.
 
-**Production-sensitive projects:** IntentOS first maps current authority and
-evidence. Reversible project-local work may continue after internal gates.
-Production, paid services, real-user communication, external accounts, and
-irreversible real-data effects require consent to the exact prepared effect.
+Read [For Existing Projects](docs/for-existing-projects.md) and
+[Source-Only Adoption](docs/source-only-adoption.md) for the detailed boundary.
 
 ## Safety Boundaries
 
 IntentOS does not:
 
 - invent business, legal, tax, compliance, or provider facts;
-- treat silence or a generated report as consent;
-- use historical records or compatibility fields to redefine current behavior;
-- ask the user to make technical decisions;
-- write outside an exact approved project plan;
-- treat tests as proof unless their evidence is task-bound and valid;
-- claim completion without strict closure evidence;
-- treat release readiness as permission to operate production.
+- interpret silence as permission for an external or irreversible effect;
+- treat tests as proof when evidence is stale or unrelated to the current task;
+- claim completion when required verification or closure evidence is missing;
+- treat release readiness as authorization to operate production;
+- guarantee that application code is correct merely because IntentOS was
+  installed successfully.
+
+## Repository Map
+
+| Path | Purpose |
+|---|---|
+| `scripts/cli.mjs` | Public source entry |
+| `scripts/` | Resolvers, checkers, controlled apply, and verification runtime |
+| `core/` | Current workflow and governance contracts |
+| `starters/` | New-project starter assets |
+| `profiles/` | Platform and project profile baselines |
+| `standard-baseline-packs/` | Reusable standard engineering baselines |
+| `industrial-packs/` | Deeper domain and platform controls |
+| `schemas/` | Machine-readable artifact contracts |
+| `tests/` and `test-fixtures/` | Behavioral and failure-path coverage |
+| `examples/` | Worked evidence and calibration examples |
 
 ## Verification
 
-Repository maintainers can run:
+Repository maintainers can run the complete candidate verification:
 
 ```bash
 npm run verify
 ```
 
-Advanced command, artifact, and checker references are intentionally outside the
-ordinary user path:
-
-- [Script Reference](docs/reference/scripts.md)
-- [Artifact Reference](docs/reference/artifacts.md)
-- [Checker Reference](docs/reference/checkers.md)
+The complete suite is intentionally broad and can take time. For contribution
+requirements and targeted checks, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentation
 
@@ -297,10 +212,27 @@ ordinary user path:
 - [Source-Only Adoption](docs/source-only-adoption.md)
 - [For Existing Projects](docs/for-existing-projects.md)
 - [For Maintainers](docs/for-maintainers.md)
-- [Review Context Authority](core/review-context-authority.md)
 - [Documentation Index](docs/index.md)
-- [Chinese README](README.zh-CN.md)
+- [Security Policy](SECURITY.md)
+
+## Release History
+
+Current behavior is defined by the current source, product contracts, and
+runtime. Detailed historical records live in [VERSION.md](VERSION.md) and
+[releases/](releases/); older records do not redefine the current operating
+model or current license.
+
+## Contributing
+
+Issues, documentation improvements, tests, and focused code contributions are
+welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md). Security-sensitive
+reports should follow [SECURITY.md](SECURITY.md).
 
 ## License
 
-This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0). See [LICENSE.md](LICENSE.md), [LICENSE-FAQ.md](LICENSE-FAQ.md), and [LICENSE-COMMERCIAL.md](LICENSE-COMMERCIAL.md).
+Licensed under the [Apache License 2.0](LICENSE.md). See
+[LICENSE-FAQ.md](LICENSE-FAQ.md) and [NOTICE.md](NOTICE.md) for the plain-language
+summary and attribution notice.
+
+Previous distributions remain governed by the license file included with that
+distribution. This README is a project summary, not legal advice.
