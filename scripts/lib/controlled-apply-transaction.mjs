@@ -627,9 +627,14 @@ export function completeControlledApplyJournal(handle, options = {}) {
   const outcome = String(options.outcome || "");
   if (outcome === "APPLY_VERIFIED") {
     try {
-      if (!verifiedReceiptMatches(handle.record, handle.record.target_root)
-        || !trustedReceiptValidation(options.validateVerifiedReceipt, handle.record, handle.record.target_root).ok) {
-        throw new Error("controlled apply journal cannot close without an exact verified receipt");
+      const exactReceipt = verifiedReceiptMatches(handle.record, handle.record.target_root);
+      const trustedReceipt = trustedReceiptValidation(options.validateVerifiedReceipt, handle.record, handle.record.target_root);
+      if (!exactReceipt || !trustedReceipt.ok) {
+        const details = [
+          exactReceipt ? "" : "journal action graph does not match the receipt and current targets",
+          ...(trustedReceipt.errors || []),
+        ].filter(Boolean);
+        throw new Error(`controlled apply journal cannot close without an exact verified receipt: ${details.join("; ")}`);
       }
       const backups = validateOwnedBackups(handle.record, handle.record.target_root);
       if (!backups.ok) throw new Error(`controlled apply journal cannot close without exact rollback backups: ${backups.errors.join("; ")}`);

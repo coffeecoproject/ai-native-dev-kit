@@ -2180,6 +2180,7 @@
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/evidence-retention.mjs",
+      "scripts/lib/existing-project-adoption-coordinator.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -2187,6 +2188,7 @@
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-decision-work-packet.mjs",
       "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
@@ -2195,8 +2197,11 @@
       "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-asset-lifecycle.mjs",
+      "scripts/lib/project-profile-reconciliation.mjs",
       "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/legacy-intentos-installation.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-execution-topology.mjs",
       "scripts/lib/release-surface-evidence.mjs",
@@ -3236,7 +3241,10 @@
       "tests/evidence-retention.test.mjs",
       "tests/execution-distribution-trust.test.mjs",
       "tests/existing-adoption-activation-hardening.test.mjs",
+      "tests/existing-project-adoption-coordinator.test.mjs",
       "tests/init-project-modularity.test.mjs",
+      "tests/legacy-intentos-installation.test.mjs",
+      "tests/project-profile-reconciliation.test.mjs",
       "tests/manifest-authority.test.mjs",
       "tests/native-adoption-overlay.test.mjs",
       "tests/native-migration-contract.test.mjs",
@@ -3914,6 +3922,7 @@
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/evidence-retention.mjs",
+      "scripts/lib/existing-project-adoption-coordinator.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -3921,6 +3930,7 @@
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-decision-work-packet.mjs",
       "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
@@ -3929,8 +3939,11 @@
       "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-asset-lifecycle.mjs",
+      "scripts/lib/project-profile-reconciliation.mjs",
       "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/legacy-intentos-installation.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/request-bound-apply-authority.mjs",
@@ -4798,6 +4811,7 @@
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/evidence-retention.mjs",
+      "scripts/lib/existing-project-adoption-coordinator.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -4805,6 +4819,7 @@
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-decision-work-packet.mjs",
       "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
@@ -4813,8 +4828,11 @@
       "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-asset-lifecycle.mjs",
+      "scripts/lib/project-profile-reconciliation.mjs",
       "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/legacy-intentos-installation.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-evidence-requirements.mjs",
       "scripts/lib/release-execution-topology.mjs",
@@ -5688,6 +5706,7 @@
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/evidence-retention.mjs",
+      "scripts/lib/existing-project-adoption-coordinator.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -5695,6 +5714,7 @@
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-decision-work-packet.mjs",
       "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
@@ -5703,8 +5723,11 @@
       "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-asset-lifecycle.mjs",
+      "scripts/lib/project-profile-reconciliation.mjs",
       "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/legacy-intentos-installation.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/request-bound-apply-authority.mjs",
@@ -7299,6 +7322,7 @@
       "scripts/lib/current-work-continuity.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/evidence-retention.mjs",
+      "scripts/lib/existing-project-adoption-coordinator.mjs",
       "scripts/lib/execution-assurance-consumer.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -7306,6 +7330,7 @@
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/native-rule-block-decisions.mjs",
+      "scripts/lib/native-rule-decision-work-packet.mjs",
       "scripts/lib/native-rule-block-ledger.mjs",
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
@@ -7314,8 +7339,11 @@
       "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-asset-lifecycle.mjs",
+      "scripts/lib/project-profile-reconciliation.mjs",
       "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/legacy-intentos-installation.mjs",
       "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-evidence-requirements.mjs",
       "scripts/lib/release-execution-topology.mjs",
@@ -8018,11 +8046,15 @@
       "scripts/lib/control-effectiveness.mjs",
       "scripts/lib/controlled-apply-transaction.mjs",
       "scripts/lib/current-work-continuity.mjs",
+      "scripts/lib/existing-project-adoption-coordinator.mjs",
       "scripts/lib/planning-closure.mjs",
+      "scripts/lib/native-rule-decision-work-packet.mjs",
       "scripts/lib/native-adoption-overlay.mjs",
       "scripts/lib/structured-child-process.mjs",
       "scripts/lib/report-authority.mjs",
       "scripts/lib/project-entry-trust.mjs",
+      "scripts/lib/project-asset-lifecycle.mjs",
+      "scripts/lib/project-profile-reconciliation.mjs",
       "scripts/lib/project-fact-projection.mjs",
       "scripts/lib/request-bound-apply-authority.mjs",
       "scripts/lib/risk-surfaces.mjs",
@@ -9209,6 +9241,10 @@
         "target": "scripts/lib/evidence-retention.mjs"
       },
       {
+        "source": "scripts/lib/existing-project-adoption-coordinator.mjs",
+        "target": "scripts/lib/existing-project-adoption-coordinator.mjs"
+      },
+      {
         "source": "scripts/lib/execution-assurance-consumer.mjs",
         "target": "scripts/lib/execution-assurance-consumer.mjs"
       },
@@ -9235,6 +9271,10 @@
       {
         "source": "scripts/lib/native-rule-block-decisions.mjs",
         "target": "scripts/lib/native-rule-block-decisions.mjs"
+      },
+      {
+        "source": "scripts/lib/native-rule-decision-work-packet.mjs",
+        "target": "scripts/lib/native-rule-decision-work-packet.mjs"
       },
       {
         "source": "scripts/lib/native-rule-block-ledger.mjs",
@@ -9269,12 +9309,24 @@
         "target": "scripts/lib/project-entry-trust.mjs"
       },
       {
+        "source": "scripts/lib/project-asset-lifecycle.mjs",
+        "target": "scripts/lib/project-asset-lifecycle.mjs"
+      },
+      {
+        "source": "scripts/lib/project-profile-reconciliation.mjs",
+        "target": "scripts/lib/project-profile-reconciliation.mjs"
+      },
+      {
         "source": "scripts/lib/project-fact-projection.mjs",
         "target": "scripts/lib/project-fact-projection.mjs"
       },
       {
         "source": "scripts/lib/project-signals.mjs",
         "target": "scripts/lib/project-signals.mjs"
+      },
+      {
+        "source": "scripts/lib/legacy-intentos-installation.mjs",
+        "target": "scripts/lib/legacy-intentos-installation.mjs"
       },
       {
         "source": "scripts/lib/release-action-authority.mjs",

@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
@@ -20,6 +21,7 @@ import {
   applyNativeRuleBlockDecisions,
   readNativeRuleBlockDecisionArtifact,
 } from "./lib/native-rule-block-decisions.mjs";
+import { createNativeRuleDecisionWorkPacket } from "./lib/native-rule-decision-work-packet.mjs";
 import {
   isControlledApplyProtocolArtifactPath,
   resolveAuthoritativeEvidenceReference,
@@ -98,12 +100,15 @@ function buildNativeMigration(root, options) {
   const posture = postureFor(projectState, options);
   const authority = authorityFor(posture, projectState);
   const inventory = inventoryFor(migrationSignals);
+  const classification = classifyRules(root, migrationSignals, projectState, blockDecisionInput);
   const {
     ruleClassifications,
     ruleExtractionCoverage,
     parserWarnings,
     blockDecisionResolution,
-  } = classifyRules(root, migrationSignals, projectState, blockDecisionInput);
+    decisionPacketExtractions,
+  } = classification;
+  const nativeRuleDecisionWorkPacket = nativeRuleDecisionPacketFor(decisionPacketExtractions, sourceBinding);
   const conflicts = conflictsFor(migrationSignals, posture, ruleClassifications, blockDecisionResolution);
   const proposedActions = proposedActionsFor(posture, migrationSignals, projectState);
   const humanDecisionsNeeded = humanDecisionsFor(posture, projectState, migrationSignals);
@@ -129,6 +134,7 @@ function buildNativeMigration(root, options) {
     ruleExtractionCoverage,
     parserWarnings,
     blockDecisionResolution,
+    nativeRuleDecisionWorkPacket,
     ruleClassifications,
     conflicts,
     proposedActions,
@@ -175,7 +181,20 @@ function collectSignals(root, pathSet, sourceRoot) {
   const allPaths = Array.from(pathSet);
   const partition = partitionNativeAuthorityPaths(root, sourceRoot, allPaths);
   const nativePaths = partition.nativePaths;
-  const authoritySources = buildNativeAuthoritySourceInventory(root, nativePaths);
+  const legacyAgent = partition.legacyAgentReconciliation;
+  const authoritySources = buildNativeAuthoritySourceInventory(root, nativePaths).map((source) => (
+    source.path === "AGENTS.md" && legacyAgent?.state === "VERIFIED_LEGACY_AGENT_SUFFIX"
+      ? {
+          ...source,
+          contentProjection: {
+            mode: "VERIFIED_LEGACY_PROJECT_PREFIX",
+            sourceDigest: legacyAgent.sourceDigest,
+            content: legacyAgent.projectPrefix,
+            reconciliationDigest: legacyAgent.reconciliationDigest,
+          },
+        }
+      : source
+  ));
   const authorityPathsForRole = (role) => authoritySources
     .filter((source) => source.role === role)
     .map((source) => source.path);
@@ -505,7 +524,33 @@ function classifyRules(root, signals, projectState, blockDecisionInput) {
       }));
       continue;
     }
-    const content = fs.readFileSync(authoritative.file, "utf8");
+    let content = fs.readFileSync(authoritative.file, "utf8");
+    if (source.contentProjection?.mode === "VERIFIED_LEGACY_PROJECT_PREFIX") {
+      const observedDigest = `sha256:${createHash("sha256").update(content).digest("hex")}`;
+      if (observedDigest !== source.contentProjection.sourceDigest
+        || !content.startsWith(source.contentProjection.content)) {
+        const warning = `${rel} changed after its verified legacy suffix boundary was resolved.`;
+        sourceExtractions.push(createSyntheticNativeRuleExtraction({
+          sourceFile: rel,
+          contextHeading: "legacy governance ownership changed",
+          sourceExcerpt: rel,
+          warning,
+          classification: {
+            rule_class: "UNKNOWN_AUTHORITY",
+            authority: "Unresolved project authority",
+            default_handling: "stop for classification",
+            preserve_or_replace: "preserve until classified",
+            reason: "IntentOS must re-verify the legacy generated suffix before excluding it from project authority.",
+            risk_surfaces: "workflow authority",
+            target_action: "Codex blocks governance replacement until the source boundary is stable and re-verified",
+            human_decision_required: "No",
+            confidence: "LOW",
+          },
+        }));
+        continue;
+      }
+      content = source.contentProjection.content;
+    }
     const extracted = extractNativeRulesFromMarkdown(content, authoritative.relativePath, {
       authoritySource: source,
     });
@@ -554,7 +599,31 @@ function nativeRuleClassificationResult(sourceExtractions, blockDecisionInput) {
     ruleExtractionCoverage: coverage,
     parserWarnings: warnings,
     blockDecisionResolution: applied.resolution,
+    decisionPacketExtractions: applied.extractions,
   };
+}
+
+function nativeRuleDecisionPacketFor(extractions, sourceBinding) {
+  const unresolved = (extractions || []).reduce((count, extraction) => count
+    + (extraction.coverage?.block_ledger || [])
+      .filter((block) => block.disposition === "NEEDS_REVIEW").length, 0);
+  if (unresolved === 0) return null;
+  try {
+    return createNativeRuleDecisionWorkPacket(extractions, sourceBinding);
+  } catch (error) {
+    return {
+      schema_version: "1.0.0",
+      artifact_type: "native_rule_decision_work_packet_error",
+      state: "BLOCKED_INVALID_BINDING",
+      required_decisions: unresolved,
+      errors: [error.message],
+      boundary: {
+        writes_target_files: "No",
+        authorizes_apply: "No",
+        authorizes_release_or_production: "No",
+      },
+    };
+  }
 }
 
 function currentIntentOSSourceExtraction() {

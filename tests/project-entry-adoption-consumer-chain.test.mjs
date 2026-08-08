@@ -114,6 +114,33 @@ test("current-work discovery disables project-configured fsmonitor execution", (
   assert.equal(fs.existsSync(marker), false, "read-only Git discovery must not execute a project fsmonitor command");
 });
 
+test("non-Git current-work identity excludes controlled apply protocol artifacts only when requested", (t) => {
+  const root = fixture("intentos-current-work-non-git-");
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  write(root, "README.md", "# Existing project\n");
+
+  const initialProjected = collectCurrentWorkContinuity(root, {
+    excludeControlledApplyProtocolArtifacts: true,
+  });
+  const initialRaw = collectCurrentWorkContinuity(root);
+  write(root, "apply-execution-plans/adoption.json", "{\"state\":\"planned\"}\n");
+
+  const protocolProjected = collectCurrentWorkContinuity(root, {
+    excludeControlledApplyProtocolArtifacts: true,
+  });
+  const protocolRaw = collectCurrentWorkContinuity(root);
+  assert.equal(protocolProjected.git.revision, initialProjected.git.revision);
+  assert.equal(protocolProjected.continuity_digest, initialProjected.continuity_digest);
+  assert.notEqual(protocolRaw.git.revision, initialRaw.git.revision);
+
+  write(root, "README.md", "# Existing project changed\n");
+  const businessChanged = collectCurrentWorkContinuity(root, {
+    excludeControlledApplyProtocolArtifacts: true,
+  });
+  assert.notEqual(businessChanged.git.revision, initialProjected.git.revision);
+  assert.notEqual(businessChanged.continuity_digest, initialProjected.continuity_digest);
+});
+
 function envelope(options = {}) {
   const expected = { ...binding(), ...(options.binding || {}) };
   return createSameRunEvidenceEnvelope({

@@ -55,9 +55,12 @@ import {
   validateRequestBoundReadiness,
 } from "../lib/request-bound-apply-authority.mjs";
 import { resolveProjectEntryTrust, requireTrustedProjectEntry } from "../lib/project-entry-trust.mjs";
+import { isProjectOwnedAfterBootstrapPath } from "../lib/project-asset-lifecycle.mjs";
+import { assessExistingProjectProfileReconciliation } from "../lib/existing-project-adoption-coordinator.mjs";
 import { projectGoalProjection } from "../lib/project-fact-projection.mjs";
 import { inspectTargetTopology } from "../lib/target-topology.mjs";
 import {
+  deriveProfilesFromProjectEvidence,
   normalizeBaselineLevel,
   parseSelectionIds,
   renderBaselineEvidence,
@@ -324,6 +327,46 @@ function baselineConfigurationForPlan(targetPath, options = {}) {
   config.reconciliation = baselineReconciliation(targetPath, config);
   assertExistingBaselineConfigurationCompatible(targetPath, config);
   return config;
+}
+
+function nativeAdoptionProfileConfigurationForPlan(targetPath, options = {}) {
+  const declaredProfiles = selectedListFromProjectDoc(targetPath, "project-profile.md", "Selected Profiles");
+  const explicitProfiles = parseSelectionIds(options.profiles);
+  const projectEvidence = deriveProfilesFromProjectEvidence(targetPath);
+  const profileFile = path.join(targetPath, "docs", "project-profile.md");
+  let assessment = assessExistingProjectProfileReconciliation({
+    declaredProfiles,
+    proposedProfiles: explicitProfiles.length > 0 ? explicitProfiles : undefined,
+    projectEvidence,
+  });
+  if (!fs.existsSync(profileFile) || declaredProfiles.length === 0) {
+    const { assessment_digest: _digest, ...assessmentBase } = assessment;
+    const incomplete = {
+      ...assessmentBase,
+      state: "INCOMPLETE",
+      human_decision_required: "No",
+      reason: "Existing project adoption requires a readable docs/project-profile.md Selected Profiles contract before section reconciliation.",
+    };
+    assessment = {
+      ...incomplete,
+      assessment_digest: evidenceDigest(incomplete, []),
+    };
+  }
+  return {
+    configured: false,
+    baselineLevel: null,
+    profiles: assessment.proposed_profiles,
+    standardPacks: [],
+    industrialPacks: [],
+    projectEvidence,
+    profileReconciliation: assessment,
+    reconciliation: {
+      current: { baselineLevel: null, profiles: declaredProfiles, standardPacks: [], industrialPacks: [] },
+      target: { baselineLevel: null, profiles: assessment.proposed_profiles, standardPacks: [], industrialPacks: [] },
+      required: assessment.state === "ADDITIVE_RECONCILIATION_REQUIRED",
+      levelChange: "NOT_EVALUATED",
+    },
+  };
 }
 
 function highestBaselineLevel(left, right) {
@@ -1945,16 +1988,19 @@ function managedAssetDigestsForVersion(targetPath, workflowAssets, existing, act
   });
   const digests = {};
   for (const [relative, digest] of Object.entries(existing?.managedAssetDigests || {})) {
+    if (isProjectOwnedAfterBootstrapPath(relative)) continue;
     if (!declared(relative) || !/^sha256:[a-f0-9]{64}$/.test(String(digest || ""))) continue;
     const current = sha256File(path.join(targetPath, relative));
     if (current === digest) digests[relative] = digest;
   }
   for (const action of actions) {
     const relative = String(action?.path || "").replaceAll("\\", "/");
+    if (isProjectOwnedAfterBootstrapPath(relative)) continue;
     if (!relative || relative === ".intentos/version.json" || !declared(relative)) continue;
     const expected = action.willWrite ? action.expectedHashAfter : action.hashBefore;
     const owned = action.type === "CREATE"
       || action.ownership?.state === "VERIFIED_PRIOR_INTENTOS_MANAGED"
+      || action.ownership?.state === "VERIFIED_LEGACY_INTENTOS_MANAGED"
       || ["RECONCILE_PRESERVE", "BACKUP_THEN_RECONCILE"].includes(action.type);
     if (owned && /^sha256:[a-f0-9]{64}$/.test(String(expected || ""))) digests[relative] = expected;
   }
@@ -2078,6 +2124,7 @@ export {
   agentsGovernanceMigrationReportPath,
   assertExistingTargetRootIsSafe,
   baselineConfigurationForPlan,
+  nativeAdoptionProfileConfigurationForPlan,
   buildVersionRecord,
   copyDir,
   copySharedAssets,

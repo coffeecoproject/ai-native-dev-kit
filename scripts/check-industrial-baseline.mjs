@@ -179,11 +179,7 @@ if (result.baselineLevel === "BL2_INDUSTRIAL") {
     pass(`selected industrial packs: ${result.selectedIndustrialPacks.join(", ")}`);
   }
 
-  if (
-    Array.isArray(result.knownIndustrialPacks)
-    && result.knownIndustrialPacks.length > 0
-    && result.selectedIndustrialPacks.length >= result.knownIndustrialPacks.length
-  ) {
+  if (result.selectsAllIndustrialPacks) {
     fail("BL2 selects all industrial packs by default");
   }
 

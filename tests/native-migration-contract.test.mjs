@@ -226,6 +226,49 @@ test("native block decision schema enforces disposition-specific structure", () 
   assert.equal(validateVersionedArtifact(unknownField, decisionSchema, { requireCurrent: true }).ok, false);
 });
 
+test("native migration emits one current project-bound Codex decision packet for unresolved blocks", (t) => {
+  const root = existingProject(t);
+  const intent = "adopt this existing project without replacing project authority";
+  const report = runJson("scripts/resolve-native-migration.mjs", root, ["--json", "--intent", intent]);
+  const packet = report.nativeRuleDecisionWorkPacket;
+  const unresolved = report.ruleExtractionCoverage
+    .flatMap((coverage) => coverage.blockLedger
+      .filter((block) => block.disposition === "NEEDS_REVIEW"));
+
+  assert.equal(packet.artifact_type, "native_rule_decision_work_packet");
+  assert.equal(packet.required_decisions, unresolved.length);
+  assert.ok(packet.required_decisions > 0);
+  assert.deepEqual(packet.project_binding, report.structuredEvidence.project_binding);
+  assert.equal(packet.goal_digest, report.structuredEvidence.goal_digest);
+  assert.deepEqual(packet.blocks.map((block) => block.block_id), unresolved.map((block) => block.blockId));
+  assert.equal(packet.decision_policy.may_write_target_files, "No");
+  assert.equal(packet.decision_policy.may_authorize_apply, "No");
+
+  write(root, "docs/project-profile.md", [
+    "# Project Profile",
+    "",
+    "## Selected Profiles",
+    "",
+    "- web-app",
+    "",
+  ].join("\n"));
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "profile"]);
+  const plan = buildPlan(root, {
+    starter: "generic-project",
+    goal: intent,
+    migrationDepth: "READ_ONLY_DIAGNOSIS",
+  });
+  assert.equal(plan.executionState, "DIAGNOSTIC_ONLY");
+  assert.equal(plan.adoptionAssessment.rule_reconciliation.source_mode, "SAME_RUN_ENVELOPE");
+  assert.equal(plan.adoptionAssessment.adoption_checkpoint.state, "SELECTED_ASSETS_PLAN_REQUIRED");
+  assert.equal(plan.adoptionAssessment.adoption_checkpoint.next_action, "GENERATE_SELECTED_ASSETS_APPLY_PLAN");
+  assert.equal(plan.adoptionAssessment.adoption_checkpoint.governance_state, "GOVERNANCE_DECISION_BACKLOG");
+  assert.equal(plan.adoptionAssessment.adoption_checkpoint.governance_next_action, "CODEX_REVIEW_NATIVE_RULE_DECISION_BACKLOG");
+  assert.equal(plan.adoptionAssessment.adoption_checkpoint.governance_blocks_operation, "No");
+  assert.ok(plan.adoptionAssessment.native_rule_decision_work_packet.required_decisions > 0);
+});
+
 test("a current project-bound block decision survives plan write and controlled apply replay", { timeout: 480_000 }, (t) => {
   const root = existingProject(t);
   const intent = "adopt this existing project without replacing project authority";
@@ -234,6 +277,11 @@ test("a current project-bound block decision survives plan write and controlled 
   const coverage = initial.ruleExtractionCoverage.find((item) => item.sourceFile === "AGENTS.md");
   const block = coverage.blockLedger.find((item) => item.disposition === "NEEDS_REVIEW");
   assert.ok(block, JSON.stringify(coverage, null, 2));
+  assert.equal(initial.nativeRuleDecisionWorkPacket.artifact_type, "native_rule_decision_work_packet");
+  assert.equal(initial.nativeRuleDecisionWorkPacket.required_decisions, 1);
+  assert.equal(initial.nativeRuleDecisionWorkPacket.blocks[0].block_id, block.blockId);
+  assert.equal(initial.nativeRuleDecisionWorkPacket.blocks[0].block_digest, block.blockDigest);
+  assert.equal(initial.nativeRuleDecisionWorkPacket.decision_policy.may_write_target_files, "No");
 
   const binding = sameRunBindingFromTrust(resolveProjectEntryTrust({
     projectRoot: root,
@@ -256,6 +304,7 @@ test("a current project-bound block decision survives plan write and controlled 
     "--json", "--intent", intent, "--native-rule-decisions", decisionFile,
   ]);
   assert.equal(resolved.blockDecisionResolution.state, "APPLIED", JSON.stringify(resolved, null, 2));
+  assert.equal(resolved.nativeRuleDecisionWorkPacket, null);
   assert.notEqual(resolved.outcome, "BLOCKED", JSON.stringify(resolved, null, 2));
   const statusBeforePlan = spawnSync("git", ["-C", root, "status", "--porcelain"], { encoding: "utf8" });
   assert.equal(statusBeforePlan.stdout, "", statusBeforePlan.stdout);

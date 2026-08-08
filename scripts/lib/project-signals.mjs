@@ -3,6 +3,11 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 
 import { isIntentOSSourceCheckout, loadManifestOrNull } from "./manifest.mjs";
+import {
+  inspectLegacyIntentOSInstallation,
+  resolveLegacyAgentReconciliation,
+  resolveLegacyManagedAssetOwnership,
+} from "./legacy-intentos-installation.mjs";
 
 export const defaultIgnoredDirs = new Set([
   ".git",
@@ -239,6 +244,54 @@ export function partitionNativeAuthorityPaths(root, sourceRoot, relativePaths) {
   const installedManifestPath = path.join(root, ".intentos", "intentos-manifest.json");
   const installedVersionPath = path.join(root, ".intentos", "version.json");
   if (!isRegularFile(installedManifestPath) || !isRegularFile(installedVersionPath)) {
+    const legacy = inspectLegacyIntentOSInstallation(root, sourceRoot);
+    if (legacy.state === "VERIFIED") {
+      const nativePaths = [];
+      const excluded = [];
+      const legacyAgentReconciliation = resolveLegacyAgentReconciliation(root, sourceRoot, legacy);
+      for (const relativePath of paths) {
+        if (relativePath === "AGENTS.md"
+          && legacyAgentReconciliation.state === "VERIFIED_LEGACY_GENERATED_AGENT") {
+          excluded.push({
+            path: relativePath,
+            classification: "VERIFIED_LEGACY_INTENTOS_MANAGED",
+            evidence: legacyAgentReconciliation.reconciliationDigest,
+            source: legacyAgentReconciliation.generatedAgentSourcePath,
+          });
+          continue;
+        }
+        const targetDigest = regularFileDigest(root, relativePath);
+        const ownership = targetDigest
+          ? resolveLegacyManagedAssetOwnership(root, sourceRoot, relativePath, targetDigest, legacy)
+          : { state: "UNPROVEN_PROJECT_OWNED" };
+        if (ownership.state === "VERIFIED_LEGACY_INTENTOS_MANAGED") {
+          excluded.push({
+            path: relativePath,
+            classification: "VERIFIED_LEGACY_INTENTOS_MANAGED",
+            evidence: ownership.evidence_ref,
+            source: ownership.source_path,
+          });
+        } else {
+          nativePaths.push(relativePath);
+        }
+      }
+      return {
+        nativePaths,
+        excluded,
+        status: "LEGACY_PARTITIONED",
+        legacyInstallation: legacy,
+        legacyAgentReconciliation,
+      };
+    }
+    if (legacy.state !== "NOT_PRESENT") {
+      return {
+        nativePaths: paths,
+        excluded: [],
+        status: "INVALID_LEGACY_INTENTOS_EVIDENCE",
+        legacyInstallation: legacy,
+        legacyAgentReconciliation: { state: "BLOCKED", errors: legacy.errors || [legacy.state] },
+      };
+    }
     return {
       nativePaths: paths,
       excluded: [],

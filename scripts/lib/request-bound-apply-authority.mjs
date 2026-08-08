@@ -1,10 +1,22 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { evidenceDigest } from "./artifact-schema.mjs";
 import { normalizePathList, sameSet } from "./approval-record-validation.mjs";
 import { verifiedBootstrapManagedOwnership } from "./bootstrap-transaction.mjs";
-import { isTrustedSelectedAgentCreateAction } from "./native-adoption-overlay.mjs";
+import {
+  isTrustedSelectedAgentCreateAction,
+  selectedAgentGovernanceAppendix,
+} from "./native-adoption-overlay.mjs";
+import {
+  resolveLegacyAgentReconciliation,
+  resolveLegacyManagedAssetOwnership,
+} from "./legacy-intentos-installation.mjs";
+import { isProjectOwnedAfterBootstrapPath } from "./project-asset-lifecycle.mjs";
+import { validateSelectedProfilesReconciliationAction } from "./project-profile-reconciliation.mjs";
+
+const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const REQUEST_AUTHORITY_VERSION = "1.113.0";
 const REQUEST_AUTHORITY_MODE = "REQUEST_BOUND_LOCAL";
@@ -26,20 +38,6 @@ const forbiddenPathPatterns = [
   /(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?)$/,
   /(^|\/)package\.json$/,
 ];
-
-const generatedProjectDocs = new Set([
-  "docs/project-onboarding.md",
-  "docs/project-profile.md",
-  "docs/tech-stack-strategy.md",
-  "docs/business-spec-index.md",
-  "docs/sample-policy.md",
-  "docs/onboarding-decisions.md",
-  "docs/verification-matrix.md",
-  "docs/engineering-baseline.md",
-  "docs/environment-baseline.md",
-  "docs/baseline-selection.md",
-  "docs/baseline-evidence.md",
-]);
 
 export function requestBoundTaskRef(goalDigest) {
   const hex = String(goalDigest || "").replace(/^sha256:/, "");
@@ -159,7 +157,7 @@ export function isRequestBoundLocalActionAllowed(action, plan, options = {}) {
     authorized = !target.startsWith("src/") && !target.startsWith("app/");
   } else if (target.startsWith("scripts/") || target.startsWith("release-recipes/")) {
     authorized = Boolean(source) && source === target;
-  } else if (generatedProjectDocs.has(target)) {
+  } else if (isProjectOwnedAfterBootstrapPath(target)) {
     authorized = !source || source === `templates/${path.posix.basename(target)}`;
   } else if (target === "baseline-gap-reports/intentos-baseline-reconciliation.md") {
     authorized = ["CREATE", "RECONCILE_PRESERVE", "BACKUP_THEN_RECONCILE"].includes(action.type)
@@ -182,7 +180,7 @@ export function isRequestBoundLocalActionAllowed(action, plan, options = {}) {
       authorized = ["RECONCILE_PRESERVE", "BACKUP_THEN_RECONCILE"].includes(action.type)
         && !source
         && Boolean(action.hashBefore)
-        && validExactAgentPrefixPreservation(action, target, { requireTargetPreimage: true });
+        && validAgentPreservation(action, target, { requireTargetPreimage: true, plan });
     }
   }
   if (!authorized) return false;
@@ -245,6 +243,105 @@ function validExactAgentPrefixPreservation(action, target, options = {}) {
     && suffix.startsWith(preservation.separator)
     && content.includes("IntentOS")
     && content.includes("Zero-Experience Solo Developer");
+}
+
+function validAgentPreservation(action, target, options = {}) {
+  return validExactAgentPrefixPreservation(action, target, options)
+    || validVerifiedLegacyAgentReplacement(action, target, options.plan)
+    || validVerifiedLegacyGeneratedAgentReplacement(action, target, options.plan);
+}
+
+function validVerifiedLegacyAgentReplacement(action, target, plan) {
+  const preservation = action?.preservation;
+  if (target !== "AGENTS.md"
+    || preservation?.mode !== "EXACT_PREFIX_REPLACE_VERIFIED_LEGACY_SUFFIX"
+    || normalizePath(preservation.sourcePath) !== target
+    || action.source
+    || action.hashBefore !== preservation.sourceDigest
+    || plan?.operationKind !== "NATIVE_ADOPTION"
+    || plan?.arguments?.migrationDepth !== "SELECTED_ASSETS"
+    || typeof action.inlineContentBase64 !== "string") return false;
+  for (const digest of [
+    preservation.sourceDigest,
+    preservation.projectPrefixDigest,
+    preservation.legacySuffixDigest,
+    preservation.installationDigest,
+    preservation.migrationReportDigest,
+    preservation.reconciliationDigest,
+  ]) {
+    if (!/^sha256:[a-f0-9]{64}$/.test(String(digest || ""))) return false;
+  }
+  if (!Number.isSafeInteger(preservation.sourceBytes)
+    || !Number.isSafeInteger(preservation.projectPrefixBytes)
+    || !Number.isSafeInteger(preservation.legacySuffixBytes)
+    || preservation.projectPrefixBytes <= 0
+    || preservation.legacySuffixBytes <= 0
+    || preservation.sourceBytes !== preservation.projectPrefixBytes + preservation.legacySuffixBytes) return false;
+  const proposed = Buffer.from(action.inlineContentBase64, "base64");
+  const prefix = proposed.subarray(0, preservation.projectPrefixBytes);
+  const suffix = proposed.subarray(preservation.projectPrefixBytes);
+  const expectedSuffix = Buffer.from(`${selectedAgentGovernanceAppendix().trim()}\n`);
+  return digestBuffer(prefix) === preservation.projectPrefixDigest
+    && suffix.equals(expectedSuffix);
+}
+
+function validVerifiedLegacyGeneratedAgentReplacement(action, target, plan) {
+  const preservation = action?.preservation;
+  if (target !== "AGENTS.md"
+    || preservation?.mode !== "REPLACE_VERIFIED_LEGACY_GENERATED_AGENT"
+    || normalizePath(preservation.sourcePath) !== target
+    || action.source
+    || action.hashBefore !== preservation.sourceDigest
+    || plan?.operationKind !== "NATIVE_ADOPTION"
+    || plan?.arguments?.migrationDepth !== "SELECTED_ASSETS"
+    || typeof action.inlineContentBase64 !== "string") return false;
+  for (const digest of [
+    preservation.sourceDigest,
+    preservation.generatedAgentDigest,
+    preservation.installationDigest,
+    preservation.reconciliationDigest,
+  ]) {
+    if (!/^sha256:[a-f0-9]{64}$/.test(String(digest || ""))) return false;
+  }
+  if (!Number.isSafeInteger(preservation.sourceBytes)
+    || !Number.isSafeInteger(preservation.generatedAgentBytes)
+    || preservation.sourceBytes <= 0
+    || preservation.sourceBytes !== preservation.generatedAgentBytes
+    || preservation.sourceDigest !== preservation.generatedAgentDigest
+    || !normalizePath(preservation.generatedAgentSourcePath)) return false;
+  const proposed = Buffer.from(action.inlineContentBase64, "base64");
+  return proposed.equals(Buffer.from(`${selectedAgentGovernanceAppendix().trim()}\n`));
+}
+
+function hasCurrentVerifiedLegacyAgentReplacement(action, plan) {
+  const mode = action?.preservation?.mode;
+  if (!["EXACT_PREFIX_REPLACE_VERIFIED_LEGACY_SUFFIX", "REPLACE_VERIFIED_LEGACY_GENERATED_AGENT"].includes(mode)) return true;
+  const verified = resolveLegacyAgentReconciliation(plan?.targetRoot, kitRoot);
+  const preservation = action.preservation;
+  if (mode === "REPLACE_VERIFIED_LEGACY_GENERATED_AGENT") {
+    return verified.state === "VERIFIED_LEGACY_GENERATED_AGENT"
+      && verified.sourceDigest === preservation.sourceDigest
+      && verified.sourceBytes === preservation.sourceBytes
+      && verified.generatedAgentSourcePath === preservation.generatedAgentSourcePath
+      && verified.generatedAgentDigest === preservation.generatedAgentDigest
+      && verified.generatedAgentBytes === preservation.generatedAgentBytes
+      && verified.legacyVersion === preservation.legacyVersion
+      && verified.sourceRevision === preservation.sourceRevision
+      && verified.installationDigest === preservation.installationDigest
+      && verified.reconciliationDigest === preservation.reconciliationDigest;
+  }
+  return verified.state === "VERIFIED_LEGACY_AGENT_SUFFIX"
+    && verified.sourceDigest === preservation.sourceDigest
+    && verified.sourceBytes === preservation.sourceBytes
+    && verified.projectPrefixDigest === preservation.projectPrefixDigest
+    && verified.projectPrefixBytes === preservation.projectPrefixBytes
+    && verified.legacySuffixDigest === preservation.legacySuffixDigest
+    && verified.legacySuffixBytes === preservation.legacySuffixBytes
+    && verified.legacyVersion === preservation.legacyVersion
+    && verified.sourceRevision === preservation.sourceRevision
+    && verified.installationDigest === preservation.installationDigest
+    && verified.migrationReportDigest === preservation.migrationReportDigest
+    && verified.reconciliationDigest === preservation.reconciliationDigest;
 }
 
 export function validateRequestBoundLocalActionGraph(plan, options = {}) {
@@ -413,7 +510,9 @@ export function createRequestBoundReadiness(options = {}) {
     },
     verification: {
       pre_apply: "Regenerate and compare the exact plan, request authority, project identity, revision, and source state.",
-      post_apply: "Verify every target digest and the full project-local IntentOS behavioral route.",
+      post_apply: plan?.operationKind === "NATIVE_ADOPTION" && plan?.arguments?.migrationDepth === "DOCS_BRIDGE"
+        ? "Verify the exact project-profile target digest and require a new read-only adoption discovery before selected-assets planning."
+        : "Verify every target digest and the full project-local IntentOS behavioral route.",
       evidence_path: String(plan?.receiptPath || ""),
     },
     boundary: {
@@ -604,6 +703,16 @@ function hasVerifiedPriorOwnership(action, plan) {
   if (!action?.hashBefore) return true;
   if (isExplicitPreservingReconcile(action, plan)) return true;
   const target = normalizePath(action.path);
+  if (action?.ownership?.state === "VERIFIED_LEGACY_INTENTOS_MANAGED") {
+    const verifiedLegacy = resolveLegacyManagedAssetOwnership(
+      plan?.targetRoot,
+      kitRoot,
+      target,
+      action.hashBefore,
+    );
+    return verifiedLegacy.state === "VERIFIED_LEGACY_INTENTOS_MANAGED"
+      && evidenceDigest(action.ownership, []) === evidenceDigest(verifiedLegacy, []);
+  }
   const versionEntry = readProjectRegularFile(plan?.targetRoot, ".intentos/version.json");
   if (versionEntry) {
     let version;
@@ -627,9 +736,16 @@ function hasVerifiedPriorOwnership(action, plan) {
 function isExplicitPreservingReconcile(action, plan) {
   if (!["RECONCILE_PRESERVE", "BACKUP_THEN_RECONCILE"].includes(String(action?.type || ""))) return false;
   const target = normalizePath(action.path);
+  if (target === "docs/project-profile.md") {
+    const current = readProjectRegularFile(plan?.targetRoot, target);
+    return Boolean(current
+      && validateSelectedProfilesReconciliationAction(action, plan, current.content)
+      && validateRequestBoundActionPreconditions(action, plan));
+  }
   if (!["AGENTS.md", "agent.md", ".agent.md"].includes(target)
-    || !validExactAgentPrefixPreservation(action, target, { requireTargetPreimage: true })) return false;
-  return validateRequestBoundActionPreconditions(action, plan);
+    || !validAgentPreservation(action, target, { requireTargetPreimage: true, plan })) return false;
+  return hasCurrentVerifiedLegacyAgentReplacement(action, plan)
+    && validateRequestBoundActionPreconditions(action, plan);
 }
 
 function normalizePath(value) {

@@ -6,6 +6,10 @@ import { createHash, randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "../lib/manifest.mjs";
+import {
+  resolveLegacyAgentReconciliation,
+  resolveLegacyManagedAssetOwnership,
+} from "../lib/legacy-intentos-installation.mjs";
 import { evidenceDigest, extractMachineReadableEvidence, loadSchema, validateSchema } from "../lib/artifact-schema.mjs";
 import {
   controlledUpdateDirtyWriteOverlap,
@@ -68,6 +72,16 @@ import {
   resolveProjectEntryTrust,
   requireTrustedProjectEntry,
 } from "../lib/project-entry-trust.mjs";
+import {
+  projectAssetLifecycle,
+  projectAssetLifecycles,
+  projectOwnedPreservationAction,
+} from "../lib/project-asset-lifecycle.mjs";
+import { createSelectedProfilesReconciliationAction } from "../lib/project-profile-reconciliation.mjs";
+import {
+  assessExistingProjectGovernanceBacklog,
+  resolveExistingProjectAdoptionCheckpoint,
+} from "../lib/existing-project-adoption-coordinator.mjs";
 import { projectGoalProjection } from "../lib/project-fact-projection.mjs";
 import { inspectTargetTopology } from "../lib/target-topology.mjs";
 import {
@@ -78,6 +92,10 @@ import {
   selectedNativeOverlayAssets,
 } from "../lib/native-adoption-overlay.mjs";
 import { runStructuredJsonChildSync } from "../lib/structured-child-process.mjs";
+import {
+  createSameRunEvidenceEnvelope,
+  encodeSameRunEnvelopeBundle,
+} from "../lib/same-run-evidence-envelope.mjs";
 import {
   normalizeBaselineLevel,
   parseSelectionIds,
@@ -111,6 +129,7 @@ import {
   isIgnorableNewProjectEntry,
   kitRoot,
   normalizeOutput,
+  nativeAdoptionProfileConfigurationForPlan,
   parseArgs,
   parseIndustrialPackIds,
   preferredAgentEntry,
@@ -168,6 +187,7 @@ function enrichExecutionActions(actions, targetPath, options, createdAt, receipt
       if (options.update
         && action.type === "SKIP_EXISTING"
         && action.source
+        && action.assetLifecycle === projectAssetLifecycles.INTENTOS_MANAGED_REFRESH
         && action.sourceHash !== action.hashBefore) {
         throw new Error(`Controlled update cannot skip source drift for ${action.path}`);
       }
@@ -467,10 +487,16 @@ function addFilePlanAction(actions, targetPath, sourcePath, targetRel, options =
   const sourceRel = assertSafeRelativePath(path.relative(kitRoot, sourcePath).replaceAll(path.sep, "/"), "plan action source path");
   const currentHash = sha256File(destPath);
   const sourceHash = sha256File(sourcePath);
+  const assetLifecycle = projectAssetLifecycle(safeTargetRel);
   const ownership = existed ? priorManagedAssetOwnership(targetPath, safeTargetRel, currentHash) : { state: "NEW_TARGET" };
   let type;
   if (!existed) type = "CREATE";
   else if (currentHash === sourceHash) type = "SKIP_EXISTING";
+  else if (assetLifecycle === projectAssetLifecycles.PROJECT_OWNED_AFTER_BOOTSTRAP) type = projectOwnedPreservationAction;
+  else if (options.allowLegacyManagedUpdate
+    && ownership.state === "VERIFIED_LEGACY_INTENTOS_MANAGED") {
+    type = options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED";
+  }
   else if (!overwrite) type = "SKIP_EXISTING";
   else if (ownership.state === "VERIFIED_PRIOR_INTENTOS_MANAGED") type = options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED";
   else type = "PRESERVE_UNMANAGED";
@@ -482,6 +508,7 @@ function addFilePlanAction(actions, targetPath, sourcePath, targetRel, options =
     willWrite: ["CREATE", "BACKUP_THEN_UPDATE", "UPDATE_MANAGED"].includes(type),
     hashBefore: currentHash,
     ownership,
+    assetLifecycle,
   });
 }
 
@@ -491,11 +518,13 @@ function addGeneratedFilePlanAction(actions, targetPath, targetRel, content, opt
   const existed = fs.existsSync(destPath);
   const currentHash = sha256File(destPath);
   const nextHash = sha256Content(content);
+  const assetLifecycle = projectAssetLifecycle(safeTargetRel);
   const ownership = existed ? priorManagedAssetOwnership(targetPath, safeTargetRel, currentHash) : { state: "NEW_TARGET" };
   let type;
   if (!existed) type = "CREATE";
   else if (currentHash === nextHash) type = "SKIP_EXISTING";
   else if (options.controlledReconciliation) type = options.backupDir ? "BACKUP_THEN_RECONCILE" : "RECONCILE_PRESERVE";
+  else if (assetLifecycle === projectAssetLifecycles.PROJECT_OWNED_AFTER_BOOTSTRAP) type = projectOwnedPreservationAction;
   else if (!options.overwrite) type = "SKIP_EXISTING";
   else if (ownership.state === "VERIFIED_PRIOR_INTENTOS_MANAGED") type = options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED";
   else type = "PRESERVE_UNMANAGED";
@@ -508,34 +537,41 @@ function addGeneratedFilePlanAction(actions, targetPath, targetRel, content, opt
     hashBefore: currentHash,
     inlineContentBase64: Buffer.from(content).toString("base64"),
     ownership,
+    assetLifecycle,
   });
 }
 
 function priorManagedAssetOwnership(targetPath, targetRel, currentHash) {
   const versionPath = path.join(targetPath, ".intentos", "version.json");
-  if (!currentHash || !fs.existsSync(versionPath)) return { state: "UNPROVEN_PROJECT_OWNED" };
-  let stat;
-  try { stat = fs.lstatSync(versionPath); } catch { return { state: "UNPROVEN_PROJECT_OWNED" }; }
-  if (stat.isSymbolicLink() || !stat.isFile()) return { state: "UNPROVEN_PROJECT_OWNED" };
-  let version;
-  try { version = JSON.parse(fs.readFileSync(versionPath, "utf8")); } catch { return { state: "UNPROVEN_PROJECT_OWNED" }; }
-  if (targetRel === ".intentos/version.json"
-    && /^\d+\.\d+\.\d+/.test(String(version.intentOSVersion || ""))
-    && Array.isArray(version.workflowAssets)
-    && version.workflowAssets.length > 0
-    && sha256File(versionPath) === currentHash) {
-    return { state: "VERIFIED_PRIOR_INTENTOS_MANAGED", evidence_ref: ".intentos/version.json", managed_digest: currentHash };
-  }
-  const managedDigest = version.managedAssetDigests?.[targetRel];
-  const declared = (version.workflowAssets || []).some((value) => {
-    const managed = String(value || "").replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, "");
-    return managed && (targetRel === managed || targetRel.startsWith(`${managed}/`));
-  });
-  if (managedDigest === currentHash && declared) {
-    return { state: "VERIFIED_PRIOR_INTENTOS_MANAGED", evidence_ref: ".intentos/version.json", managed_digest: currentHash };
+  if (!currentHash) return { state: "UNPROVEN_PROJECT_OWNED" };
+  if (fs.existsSync(versionPath)) {
+    let stat;
+    try { stat = fs.lstatSync(versionPath); } catch { stat = null; }
+    if (stat?.isFile() && !stat.isSymbolicLink()) {
+      let version;
+      try { version = JSON.parse(fs.readFileSync(versionPath, "utf8")); } catch { version = null; }
+      if (version) {
+        if (targetRel === ".intentos/version.json"
+          && /^\d+\.\d+\.\d+/.test(String(version.intentOSVersion || ""))
+          && Array.isArray(version.workflowAssets)
+          && version.workflowAssets.length > 0
+          && sha256File(versionPath) === currentHash) {
+          return { state: "VERIFIED_PRIOR_INTENTOS_MANAGED", evidence_ref: ".intentos/version.json", managed_digest: currentHash };
+        }
+        const managedDigest = version.managedAssetDigests?.[targetRel];
+        const declared = (version.workflowAssets || []).some((value) => {
+          const managed = String(value || "").replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, "");
+          return managed && (targetRel === managed || targetRel.startsWith(`${managed}/`));
+        });
+        if (managedDigest === currentHash && declared) {
+          return { state: "VERIFIED_PRIOR_INTENTOS_MANAGED", evidence_ref: ".intentos/version.json", managed_digest: currentHash };
+        }
+      }
+    }
   }
   const bootstrapOwnership = verifiedBootstrapManagedOwnership(targetPath, targetRel, currentHash);
-  return bootstrapOwnership || { state: "UNPROVEN_PROJECT_OWNED" };
+  if (bootstrapOwnership) return bootstrapOwnership;
+  return resolveLegacyManagedAssetOwnership(targetPath, kitRoot, targetRel, currentHash);
 }
 
 function addDirectoryPlanActions(actions, targetPath, sourceDir, targetRel, options = {}) {
@@ -781,7 +817,57 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
   } else {
     const content = fs.readFileSync(agentsPath, "utf8");
     const missingMarkers = requiredAgentGovernanceMarkers.filter((marker) => !content.includes(marker));
-    if (missingMarkers.length === 0) {
+    const legacyReconciliation = options.selectedNativeOverlay && agentEntry === "AGENTS.md"
+      ? resolveLegacyAgentReconciliation(targetPath, kitRoot)
+      : { state: "NOT_APPLICABLE" };
+    if (legacyReconciliation.state === "BLOCKED") {
+      throw new Error(`Legacy AGENTS.md reconciliation blocked: ${legacyReconciliation.errors.join("; ")}`);
+    }
+    if (["VERIFIED_LEGACY_AGENT_SUFFIX", "VERIFIED_LEGACY_GENERATED_AGENT"].includes(legacyReconciliation.state)) {
+      const replacesGeneratedAgent = legacyReconciliation.state === "VERIFIED_LEGACY_GENERATED_AGENT";
+      const merged = `${replacesGeneratedAgent ? "" : legacyReconciliation.projectPrefix}${selectedAgentGovernanceAppendix().trim()}\n`;
+      const preservation = replacesGeneratedAgent
+        ? {
+            mode: "REPLACE_VERIFIED_LEGACY_GENERATED_AGENT",
+            sourcePath: "AGENTS.md",
+            sourceDigest: legacyReconciliation.sourceDigest,
+            sourceBytes: legacyReconciliation.sourceBytes,
+            generatedAgentSourcePath: legacyReconciliation.generatedAgentSourcePath,
+            generatedAgentDigest: legacyReconciliation.generatedAgentDigest,
+            generatedAgentBytes: legacyReconciliation.generatedAgentBytes,
+            legacyVersion: legacyReconciliation.legacyVersion,
+            sourceRevision: legacyReconciliation.sourceRevision,
+            installationDigest: legacyReconciliation.installationDigest,
+            reconciliationDigest: legacyReconciliation.reconciliationDigest,
+          }
+        : {
+            mode: "EXACT_PREFIX_REPLACE_VERIFIED_LEGACY_SUFFIX",
+            sourcePath: "AGENTS.md",
+            sourceDigest: legacyReconciliation.sourceDigest,
+            sourceBytes: legacyReconciliation.sourceBytes,
+            projectPrefixDigest: legacyReconciliation.projectPrefixDigest,
+            projectPrefixBytes: legacyReconciliation.projectPrefixBytes,
+            legacySuffixDigest: legacyReconciliation.legacySuffixDigest,
+            legacySuffixBytes: legacyReconciliation.legacySuffixBytes,
+            legacyVersion: legacyReconciliation.legacyVersion,
+            sourceRevision: legacyReconciliation.sourceRevision,
+            installationDigest: legacyReconciliation.installationDigest,
+            migrationReportDigest: legacyReconciliation.migrationReportDigest,
+            reconciliationDigest: legacyReconciliation.reconciliationDigest,
+          };
+      actions.push({
+        type: options.backupDir ? "BACKUP_THEN_RECONCILE" : "RECONCILE_PRESERVE",
+        path: "AGENTS.md",
+        source: null,
+        inlineContentBase64: Buffer.from(merged).toString("base64"),
+        preservation,
+        reason: replacesGeneratedAgent
+          ? "replace the exact verified legacy generated AGENTS.md with selected native governance"
+          : "replace only the verified legacy IntentOS AGENTS.md suffix while preserving the exact project prefix",
+        willWrite: true,
+        hashBefore: legacyReconciliation.sourceDigest,
+      });
+    } else if (missingMarkers.length === 0) {
       actions.push({ type: "SKIP_EXISTING", path: agentEntry, source: null, reason: `${agentEntry} already has required governance markers`, willWrite: false, hashBefore: sha256File(agentsPath) });
     } else if (options.applyAgentGovernance) {
       const appendix = options.selectedNativeOverlay
@@ -863,6 +949,7 @@ function addSelectedDistributionPlanActions(actions, targetPath, options) {
   for (const asset of selectedNativeOverlayAssets()) {
     addFilePlanAction(actions, targetPath, path.join(kitRoot, asset.source), asset.target, {
       overwrite: Boolean(options.update),
+      allowLegacyManagedUpdate: true,
       backupDir: options.backupDir,
       reason: `selected native overlay: ${asset.capabilities.join("+")}`,
     });
@@ -926,7 +1013,6 @@ function blockedNativeAdoptionActions(assessment, migrationDepth) {
 
 function buildPlan(targetPath, options = {}) {
   if (options.backupDir) resolveBackupRoot(targetPath, controlledBackupRunRoot(options.backupDir));
-  const baselineConfig = baselineConfigurationForPlan(targetPath, options);
   const detectedProjectEntryOrigin = fs.existsSync(targetPath)
     && fs.statSync(targetPath).isDirectory()
     && fs.readdirSync(targetPath).some((entry) => !isIgnorableNewProjectEntry(entry))
@@ -949,6 +1035,9 @@ function buildPlan(targetPath, options = {}) {
     : operationKind === "CONTROLLED_UPDATE" && installedVersion?.assetMigrationDepth === "SELECTED_ASSETS"
       ? "SELECTED_ASSETS"
       : "FULL_NATIVE";
+  const baselineConfig = operationKind === "NATIVE_ADOPTION" && migrationDepth !== "SELECTED_ASSETS"
+    ? nativeAdoptionProfileConfigurationForPlan(targetPath, options)
+    : baselineConfigurationForPlan(targetPath, options);
   let initialTaskIntake = installedVersion?.initialTaskIntake || null;
   if (operationKind === "CONTROLLED_UPDATE"
     && migrationDepth === "SELECTED_ASSETS"
@@ -966,7 +1055,12 @@ function buildPlan(targetPath, options = {}) {
       nativeRuleDecisions: options.nativeRuleDecisions,
     })
     : null;
+  const executableProfileReconciliation = operationKind === "NATIVE_ADOPTION"
+    && migrationDepth === "DOCS_BRIDGE"
+    && adoptionAssessment?.assessment_state === "READY_FOR_PROFILE_RECONCILIATION"
+    && baselineConfig.profileReconciliation?.state === "ADDITIVE_RECONCILIATION_REQUIRED";
   const executableNativeAdoption = operationKind !== "NATIVE_ADOPTION"
+    || executableProfileReconciliation
     || (migrationDepth === "SELECTED_ASSETS"
       && adoptionAssessment?.assessment_state === "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION");
   options = {
@@ -987,33 +1081,44 @@ function buildPlan(targetPath, options = {}) {
   if (executableNativeAdoption) {
     const selectedExistingOverlay = projectEntryOrigin === "EXISTING_PROJECT"
       && migrationDepth === "SELECTED_ASSETS";
-    if (!selectedExistingOverlay) addOnboardingDocPlanActions(actions, targetPath);
+    if (executableProfileReconciliation) {
+      actions.push(createSelectedProfilesReconciliationAction({
+        currentContent: fs.readFileSync(path.join(targetPath, "docs", "project-profile.md"), "utf8"),
+        assessment: baselineConfig.profileReconciliation,
+        backupDir: options.backupDir,
+      }));
+    } else if (!selectedExistingOverlay) addOnboardingDocPlanActions(actions, targetPath);
     if (operationKind === "NEW_BOOTSTRAP") {
       addDirectoryPlanActions(actions, targetPath, path.join(kitRoot, "starters", options.starter), ".", {
         overwrite: false,
         reason: "starter asset",
       });
     }
-    if (selectedExistingOverlay) {
+    if (executableProfileReconciliation) {
+      // DOCS_BRIDGE is one exact project-owned section transaction. Selected
+      // assets are planned only after this receipt changes the project facts.
+    } else if (selectedExistingOverlay) {
       addSelectedDistributionPlanActions(actions, targetPath, options);
       addSelectedBaselineAssetPlanActions(actions, targetPath, baselineConfig, options);
     } else {
       addFullDistributionPlanActions(actions, targetPath, options);
     }
-    addIndustrialPlanActions(actions, targetPath, {
-      ...options,
-      industrialPacks: baselineConfig.industrialPacks.join(","),
-    });
-    addBaselineConfigurationPlanActions(actions, targetPath, baselineConfig, options);
-    addGovernancePlanActions(actions, targetPath, options.starter, {
-      ...options,
-      includePullRequestGovernance: !selectedExistingOverlay,
-      selectedNativeOverlay: selectedExistingOverlay,
-    });
-    if (!selectedExistingOverlay) {
-      addWorkflowDirPlanActions(actions, targetPath);
+    if (!executableProfileReconciliation) {
+      addIndustrialPlanActions(actions, targetPath, {
+        ...options,
+        industrialPacks: baselineConfig.industrialPacks.join(","),
+      });
+      addBaselineConfigurationPlanActions(actions, targetPath, baselineConfig, options);
+      addGovernancePlanActions(actions, targetPath, options.starter, {
+        ...options,
+        includePullRequestGovernance: !selectedExistingOverlay,
+        selectedNativeOverlay: selectedExistingOverlay,
+      });
+      if (!selectedExistingOverlay) {
+        addWorkflowDirPlanActions(actions, targetPath);
+      }
+      addVersionPlanAction(actions, targetPath, options);
     }
-    addVersionPlanAction(actions, targetPath, options);
   }
   collapseDuplicateTargetActions(actions);
   const createdAt = options.createdAt || new Date().toISOString();
@@ -1046,7 +1151,7 @@ function buildPlan(targetPath, options = {}) {
       applyPrTemplateGovernance: Boolean(options.applyPrTemplateGovernance),
       applyAgentGovernance: Boolean(options.applyAgentGovernance),
       withIndustrialPacks: Boolean(options.withIndustrialPacks),
-      industrialPacks: options.industrialPacks || "",
+      industrialPacks: baselineConfig.industrialPacks.join(","),
       profiles: baselineConfig.profiles,
       baselineLevel: baselineConfig.baselineLevel,
       standardPacks: baselineConfig.standardPacks,
@@ -1084,7 +1189,9 @@ function buildPlan(targetPath, options = {}) {
     executionState: executableNativeAdoption ? "EXECUTABLE" : "DIAGNOSTIC_ONLY",
   };
   plan.receiptActionId = actions.find((action) => action.type === "WRITE_APPLY_RECEIPT")?.id || null;
-  if (operationKind === "NATIVE_ADOPTION" && executableNativeAdoption) {
+  if (operationKind === "NATIVE_ADOPTION"
+    && executableNativeAdoption
+    && migrationDepth === "SELECTED_ASSETS") {
     attachInitialGoalToPlan(plan, projectGoalProjection(options.goal), { existingAdoption: true });
     decorateNativeAdoptionActions(plan.actions, adoptionAssessment);
   }
@@ -1092,6 +1199,9 @@ function buildPlan(targetPath, options = {}) {
   if (plan.candidateStaticActivationPreflight.state === "BLOCKED") {
     const details = [
       plan.candidateStaticActivationPreflight.reason,
+      ...(plan.candidateStaticActivationPreflight.runtime_identity?.errors || []),
+      ...(plan.candidateStaticActivationPreflight.operational_policy?.missing_required_assets || [])
+        .map((item) => `MISSING_OPERATIONAL_ASSET:${item}`),
       ...plan.candidateStaticActivationPreflight.invalid_nodes.map((item) => `${item.path}:${(item.conflict_codes || []).join(",") || item.state}`),
       ...plan.candidateStaticActivationPreflight.cycles.map((cycle) => cycle.join(" -> ")),
     ].filter(Boolean);
@@ -1159,14 +1269,7 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
     goal,
     ...decisionArgs,
   ]);
-  const reconciliation = runReadOnlyAdoptionResolver("resolve-existing-rule-reconciliation.mjs", [
-    targetPath,
-    "--json",
-    "--auto-native",
-    "--intent",
-    goal,
-    ...decisionArgs,
-  ]);
+  const reconciliation = runReadOnlyAdoptionReconciliation(targetPath, goal, decisionArgs, native);
   const sourceAfter = targetSourceStateDigest(targetPath);
   const nativeDecisions = Array.isArray(native.humanDecisionsNeeded) ? native.humanDecisionsNeeded : [];
   const userTechnicalDecisionRequired = nativeDecisions.some((item) => {
@@ -1176,12 +1279,21 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
   });
   const coverage = reconciliation.ruleReconciliationCoverage || {};
   const decision = reconciliation.nativeAdoptionDecision || {};
+  const nativeRuleDecisionWorkPacket = native.nativeRuleDecisionWorkPacket || null;
+  const governanceBacklog = assessExistingProjectGovernanceBacklog({
+    reconciliationCoverage: coverage,
+    nativeEvidence: native.structuredEvidence,
+    packet: nativeRuleDecisionWorkPacket,
+    blockDecisionResolution: native.blockDecisionResolution,
+  });
   const adoptionStage = resolveNativeAdoptionStage({
     requestedStage: migrationDepth,
     recommendation: decision.recommendation,
     reconciliationPath: decision.migrationDepth,
     canRecommendApplyPlanNow: reconciliation.canRecommendApplyPlanNow,
     scanState: coverage.scanState,
+    profileReconciliationState: options.baselineConfig?.profileReconciliation?.state,
+    governanceBacklogState: governanceBacklog.state,
   });
   adoptionStage.transition_evidence_digest = evidenceDigest(adoptionStage.transition_evidence, []);
   const blockers = [];
@@ -1196,9 +1308,12 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
       blockers.push(profileMapping.reason);
     }
     if (native.outcome !== "NATIVE_MIGRATION_PLAN_RECORDED") blockers.push(`Native Migration outcome is ${native.outcome || "missing"}.`);
-    if (reconciliation.outcome !== "RECONCILIATION_RECORDED") blockers.push(`Rule Reconciliation outcome is ${reconciliation.outcome || "missing"}.`);
-    if (Number(coverage.omittedRules || 0) !== 0 || coverage.blocksSelectedNativeAdoption !== "No") blockers.push("Existing-rule reconciliation is incomplete.");
-    if (decision.recommendation !== "SELECTED_NATIVE_ADOPTION" || reconciliation.canRecommendApplyPlanNow !== "Yes") blockers.push("Selected native adoption is not technically ready.");
+    if (governanceBacklog.blocks_operation === "Yes") {
+      blockers.push(...governanceBacklog.reasons);
+    } else if (governanceBacklog.state === "CURRENT") {
+      if (reconciliation.outcome !== "RECONCILIATION_RECORDED") blockers.push(`Rule Reconciliation outcome is ${reconciliation.outcome || "missing"}.`);
+      if (decision.recommendation !== "SELECTED_NATIVE_ADOPTION" || reconciliation.canRecommendApplyPlanNow !== "Yes") blockers.push("Selected native adoption is not technically ready.");
+    }
     if ((reconciliation.conflicts || []).length > 0) blockers.push("Rule reconciliation retains unresolved conflicts.");
     if (userTechnicalDecisionRequired) blockers.push("Native Migration still asks the user for a technical decision.");
   }
@@ -1213,8 +1328,18 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
     : migrationDepth === "READ_ONLY_DIAGNOSIS"
       ? "READ_ONLY_DIAGNOSIS_COMPLETE"
       : migrationDepth === "DOCS_BRIDGE"
-        ? adoptionStage.state
+        ? options.baselineConfig?.profileReconciliation?.state === "ADDITIVE_RECONCILIATION_REQUIRED"
+          ? "READY_FOR_PROFILE_RECONCILIATION"
+          : adoptionStage.state
         : "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION";
+  const adoptionCheckpoint = existingProjectAdoptionCheckpointFor({
+    native,
+    reconciliation,
+    profileReconciliation: options.baselineConfig?.profileReconciliation,
+    migrationDepth,
+    sourceStateUnchanged: sourceBefore === sourceAfter,
+    governanceBacklog,
+  });
   const base = {
     schema_version: "1.113.0",
     assessment_state: assessmentState,
@@ -1236,9 +1361,13 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
       },
       user_technical_decision_required: userTechnicalDecisionRequired ? "Yes" : "No",
     },
+    native_rule_decision_work_packet: nativeRuleDecisionWorkPacket,
+    governance_backlog: governanceBacklog,
+    adoption_checkpoint: adoptionCheckpoint,
     rule_reconciliation: {
       outcome: reconciliation.outcome || "UNKNOWN",
       coverage,
+      source_mode: reconciliation.sameRunSource?.mode || "UNKNOWN",
       recommendation: decision.recommendation || "UNKNOWN",
       migration_depth: decision.migrationDepth || "UNKNOWN",
       conflicts: reconciliation.conflicts || [],
@@ -1252,6 +1381,10 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
       scope: "CURRENT_NATURAL_LANGUAGE_REQUEST_ONLY",
     },
     profile_mapping: profileMapping,
+    profile_reconciliation: options.baselineConfig?.profileReconciliation || {
+      state: "NOT_APPLICABLE",
+      assessment_digest: "N/A",
+    },
     historical_task_migration: {
       state: "NOT_REQUESTED",
       scans_existing_task_history: "No",
@@ -1265,6 +1398,67 @@ function buildNativeAdoptionAssessment(targetPath, goal, options = {}) {
     blockers,
   };
   return { ...base, assessment_digest: evidenceDigest(base, []) };
+}
+
+function existingProjectAdoptionCheckpointFor(options = {}) {
+  const nativeEvidence = options.native?.structuredEvidence || {};
+  const coverage = options.reconciliation?.ruleReconciliationCoverage || {};
+  const packet = options.native?.nativeRuleDecisionWorkPacket;
+  const packetCurrent = packet?.artifact_type === "native_rule_decision_work_packet"
+    && Number.isSafeInteger(packet.required_decisions)
+    && packet.required_decisions > 0;
+  const unresolvedCovered = packetCurrent
+    && Number(coverage.omittedRules || 0) === packet.required_decisions;
+  const scanState = unresolvedCovered
+    ? "COMPLETE_ACTIONABLE_RULES"
+    : String(coverage.scanState || "UNKNOWN");
+  const decisionState = options.native?.blockDecisionResolution?.state === "INVALID"
+    ? "INVALID"
+    : packetCurrent ? "NOT_PROVIDED" : "CURRENT";
+  const profile = options.profileReconciliation || {};
+  const governanceBacklog = options.governanceBacklog || assessExistingProjectGovernanceBacklog({
+    reconciliationCoverage: coverage,
+    nativeEvidence,
+    packet,
+    blockDecisionResolution: options.native?.blockDecisionResolution,
+  });
+  return resolveExistingProjectAdoptionCheckpoint({
+    binding: {
+      state: nativeEvidence.project_binding
+        && /^sha256:[a-f0-9]{64}$/.test(String(nativeEvidence.project_fact_digest || ""))
+        ? "CURRENT"
+        : "MISSING",
+      projectBinding: nativeEvidence.project_binding || {},
+      projectFactDigest: nativeEvidence.project_fact_digest || "N/A",
+      sourceRevision: nativeEvidence.source_revision || "N/A",
+    },
+    discovery: {
+      state: options.sourceStateUnchanged && nativeEvidence.artifact_type === "native_migration_plan"
+        ? "CURRENT"
+        : "MISSING",
+      evidenceDigest: evidenceDigest(nativeEvidence, []),
+    },
+    profile: {
+      state: profile.state || (options.migrationDepth === "SELECTED_ASSETS" ? "CURRENT" : "MISSING"),
+      declaredProfiles: profile.declared_profiles || [],
+      observedProfiles: profile.observed_profiles || [],
+      proposedProfiles: profile.proposed_profiles || [],
+      evidenceDigest: profile.assessment_digest || "N/A",
+      humanDecisionRequired: profile.human_decision_required || "No",
+    },
+    rules: {
+      scanState,
+      unresolvedBlocks: packetCurrent
+        ? packet.required_decisions
+        : ["COMPLETE_NO_ACTIONABLE_RULES", "COMPLETE_ACTIONABLE_RULES"].includes(scanState) ? 0 : null,
+      decisionState,
+      operationalBoundaryState: governanceBacklog.state,
+      evidenceDigest: packetCurrent ? packet.packet_digest : evidenceDigest(coverage, []),
+    },
+    selectedAssetsPlan: { state: "MISSING", planDigest: "N/A" },
+    apply: { state: "MISSING", receiptDigest: "N/A" },
+    activation: { state: "MISSING", evidenceDigest: "N/A" },
+  });
 }
 
 function nativeAdoptionProfileMapping(baselineConfig, migrationDepth) {
@@ -1300,11 +1494,57 @@ function nativeAdoptionProfileMapping(baselineConfig, migrationDepth) {
 }
 
 function runReadOnlyAdoptionResolver(scriptName, resolverArgs) {
+  return runReadOnlyAdoptionResolverWithOptions(scriptName, resolverArgs);
+}
+
+function runReadOnlyAdoptionReconciliation(targetPath, goal, decisionArgs, nativeReport) {
+  const evidence = nativeReport?.structuredEvidence || {};
+  const taskRef = /^sha256:[a-f0-9]{64}$/.test(String(evidence.goal_digest || ""))
+    ? `task:${evidence.goal_digest.slice("sha256:".length)}`
+    : "N/A";
+  const envelope = createSameRunEvidenceEnvelope({
+    evidenceType: "native_migration",
+    producer: "scripts/resolve-native-migration.mjs",
+    producerSchemaVersion: evidence.schema_version || "unknown",
+    projectBinding: evidence.project_binding || {},
+    taskRef,
+    intentDigest: evidence.goal_digest || "N/A",
+    goalDigest: evidence.goal_digest || "N/A",
+    projectFactDigest: evidence.project_fact_digest || "N/A",
+    guidanceDigest: evidence.guidance_digest || "N/A",
+    authorityInventoryDigest: evidence.authority_inventory_digest || "N/A",
+    sourceRevision: evidence.source_revision || "N/A",
+    payload: nativeReport,
+  });
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-native-reconciliation-"));
+  const bundleFile = path.join(tempRoot, "same-run-envelope.json");
+  try {
+    fs.writeFileSync(bundleFile, encodeSameRunEnvelopeBundle([envelope]));
+    return runReadOnlyAdoptionResolverWithOptions("resolve-existing-rule-reconciliation.mjs", [
+      targetPath,
+      "--json",
+      "--auto-native",
+      "--intent",
+      goal,
+      ...decisionArgs,
+    ], {
+      env: {
+        ...process.env,
+        INTENTOS_SAME_RUN_BUNDLE_FILE: bundleFile,
+      },
+    });
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function runReadOnlyAdoptionResolverWithOptions(scriptName, resolverArgs, options = {}) {
   const result = runStructuredJsonChildSync({
     command: process.execPath,
     args: [path.join(kitRoot, "scripts", scriptName), ...resolverArgs],
     cwd: targetPathForResolver(resolverArgs[0]),
     timeout: 120000,
+    env: options.env,
   });
   const acceptedExitStatuses = scriptName === "resolve-existing-rule-reconciliation.mjs"
     ? [0, 1]

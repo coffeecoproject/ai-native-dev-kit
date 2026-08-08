@@ -25,6 +25,12 @@ import {
   resolveBaselineConfiguration,
 } from "../scripts/lib/baseline-selection.mjs";
 import { resolveProjectEntryTrust } from "../scripts/lib/project-entry-trust.mjs";
+import {
+  projectAssetLifecycle,
+  projectAssetLifecycles,
+  projectOwnedAfterBootstrapPaths,
+  projectOwnedPreservationAction,
+} from "../scripts/lib/project-asset-lifecycle.mjs";
 import { validateRequestBoundLocalActionGraph } from "../scripts/lib/request-bound-apply-authority.mjs";
 import { planDigest } from "../scripts/init-project/plan.mjs";
 
@@ -68,6 +74,7 @@ function sourceSnapshot() {
     "scripts/resolve-verification-plan.mjs",
     "scripts/resolve-closure-decision.mjs",
     "scripts/lib/project-entry-trust.mjs",
+    "scripts/lib/project-asset-lifecycle.mjs",
     "scripts/lib/bootstrap-transaction.mjs",
     "scripts/lib/controlled-apply-transaction.mjs",
     "scripts/lib/behavioral-adoption-activation.mjs",
@@ -83,6 +90,33 @@ function fileDigest(file) {
 
 function contentDigest(content) {
   return `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`;
+}
+
+function projectOwnedDocumentSnapshot(root) {
+  return Object.fromEntries(projectOwnedAfterBootstrapPaths.map((relative) => {
+    const file = path.join(root, relative);
+    assert.equal(fs.existsSync(file), true, `missing project-owned document: ${relative}`);
+    return [relative, fs.readFileSync(file, "utf8")];
+  }));
+}
+
+function assertProjectOwnedDocumentsPreserved(root, snapshot, label) {
+  assert.deepEqual(projectOwnedDocumentSnapshot(root), snapshot, label);
+}
+
+function assertProjectOwnedLifecycleActions(plan) {
+  const actions = (plan.actions || []).filter((action) => projectOwnedAfterBootstrapPaths.includes(action.path));
+  assert.ok(actions.length > 0, "the controlled update did not classify project-owned documents");
+  for (const action of actions) {
+    assert.equal(
+      action.assetLifecycle,
+      projectAssetLifecycles.PROJECT_OWNED_AFTER_BOOTSTRAP,
+      `${action.path} did not carry the project-owned lifecycle`,
+    );
+  }
+  const onboarding = actions.find((action) => action.path === "docs/project-onboarding.md" && action.source);
+  assert.equal(onboarding?.type, projectOwnedPreservationAction);
+  assert.equal(onboarding?.willWrite, false);
 }
 
 function executableActions(plan) {
@@ -298,6 +332,15 @@ function prepareTaskReadyProjectSetup(root) {
   }));
 }
 
+test("project asset lifecycle transfers generated documents to project ownership after bootstrap", () => {
+  for (const relative of projectOwnedAfterBootstrapPaths) {
+    assert.equal(projectAssetLifecycle(relative), projectAssetLifecycles.PROJECT_OWNED_AFTER_BOOTSTRAP);
+  }
+  for (const relative of ["AGENTS.md", "scripts/init-project.mjs", ".intentos/version.json"]) {
+    assert.equal(projectAssetLifecycle(relative), projectAssetLifecycles.INTENTOS_MANAGED_REFRESH);
+  }
+});
+
 test("an imperative English product goal routes an absent target to controlled project setup", (t) => {
   const parent = fixture(t);
   const target = path.join(parent, "appointment-app");
@@ -477,6 +520,7 @@ test("a generated project remains trusted during and after an exact controlled w
   });
   assert.equal(initialized.status, 0, combined(initialized));
   prepareTaskReadyProjectSetup(target);
+  const projectOwnedDocuments = projectOwnedDocumentSnapshot(target);
 
   const retiredVerifyPath = path.join(target, "scripts", "verify.sh");
   fs.appendFileSync(retiredVerifyPath, "\n# project-owned verification extension\n");
@@ -499,6 +543,7 @@ test("a generated project remains trusted during and after an exact controlled w
   const evidence = controlledUpdateEvidence(planPath);
   assert.equal(evidence.plan.operation, "UPDATE_WORKFLOW_ASSETS");
   assert.equal(evidence.plan.actions.some((action) => action.path === "scripts/verify.sh"), false);
+  assertProjectOwnedLifecycleActions(evidence.plan);
 
   const applied = spawnSync(process.execPath, [
     path.join(kitRoot, "scripts/init-project.mjs"),
@@ -512,6 +557,11 @@ test("a generated project remains trusted during and after an exact controlled w
   });
   assert.equal(applied.status, 0, combined(applied));
   assert.equal(fs.readFileSync(retiredVerifyPath, "utf8"), retiredVerifyContent);
+  assertProjectOwnedDocumentsPreserved(target, projectOwnedDocuments, "the controlled update changed project-owned documents");
+  const version = JSON.parse(fs.readFileSync(path.join(target, ".intentos", "version.json"), "utf8"));
+  for (const relative of projectOwnedAfterBootstrapPaths) {
+    assert.equal(version.managedAssetDigests?.[relative], undefined, `${relative} remained in IntentOS managed digests`);
+  }
   const receipt = fs.readFileSync(path.join(target, evidence.plan.receiptPath), "utf8");
   assert.match(receipt, /APPLY_VERIFIED/);
   const trust = resolveProjectEntryTrust({
@@ -538,6 +588,7 @@ test("a dirty generated project preserves business work across two verified cont
   });
   assert.equal(initialized.status, 0, combined(initialized));
   prepareTaskReadyProjectSetup(target);
+  const projectOwnedDocuments = projectOwnedDocumentSnapshot(target);
 
   const businessPath = path.join(target, "src", "business.js");
   fs.mkdirSync(path.dirname(businessPath), { recursive: true });
@@ -574,6 +625,7 @@ test("a dirty generated project preserves business work across two verified cont
   assert.equal(firstPlanned.status, 0, combined(firstPlanned));
   const firstEvidence = controlledUpdateEvidence(firstPlanPath, "consecutive-first");
   assert.equal(firstEvidence.plan.targetFingerprint.verifiedPriorApplyOverlap, null);
+  assertProjectOwnedLifecycleActions(firstEvidence.plan);
 
   const firstApplied = spawnSync(process.execPath, [
     path.join(kitRoot, "scripts/init-project.mjs"),
@@ -588,6 +640,7 @@ test("a dirty generated project preserves business work across two verified cont
   assert.equal(firstApplied.status, 0, combined(firstApplied));
   assert.match(fs.readFileSync(path.join(target, firstEvidence.plan.receiptPath), "utf8"), /APPLY_VERIFIED/);
   assert.equal(fileDigest(businessPath), businessDigestBefore, "the first update changed dirty business work");
+  assertProjectOwnedDocumentsPreserved(target, projectOwnedDocuments, "the first update changed project-owned documents");
 
   const secondGoal = "perform the second controlled workflow refresh without changing business work";
   const secondPlanPath = path.join(target, "apply-execution-plans", "consecutive-second.json");
@@ -605,6 +658,7 @@ test("a dirty generated project preserves business work across two verified cont
   });
   assert.equal(secondPlanned.status, 0, combined(secondPlanned));
   const secondEvidence = controlledUpdateEvidence(secondPlanPath, "consecutive-second");
+  assertProjectOwnedLifecycleActions(secondEvidence.plan);
   const priorOverlap = secondEvidence.plan.targetFingerprint.verifiedPriorApplyOverlap;
   assert.equal(priorOverlap?.state, "VERIFIED_PRIOR_APPLY_OVERLAP");
   assert.equal(priorOverlap?.receiptRef, `artifact:${firstEvidence.plan.receiptPath}`);
@@ -652,6 +706,7 @@ test("a dirty generated project preserves business work across two verified cont
   assert.match(fs.readFileSync(path.join(target, secondEvidence.plan.receiptPath), "utf8"), /APPLY_VERIFIED/);
   assert.equal(fs.readFileSync(businessPath, "utf8"), dirtyBusinessContent);
   assert.equal(fileDigest(businessPath), businessDigestBefore, "the second update changed dirty business work");
+  assertProjectOwnedDocumentsPreserved(target, projectOwnedDocuments, "the second update changed project-owned documents");
 
   const chain = evaluateVerifiedAdoptionApplyChain(target, { schemasRoot: kitRoot });
   assert.equal(chain.status, "VERIFIED", chain.errors.join("; "));

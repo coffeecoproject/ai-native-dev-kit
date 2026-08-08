@@ -3,10 +3,14 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { evidenceDigest, extractMachineReadableEvidence } from "./artifact-schema.mjs";
 import { evaluateVerifiedAdoptionApplyChain } from "./adoption-apply-chain.mjs";
-import { canonicalFileDigest } from "./evidence-authority.mjs";
+import {
+  canonicalFileDigest,
+  isControlledApplyProtocolArtifactPath,
+} from "./evidence-authority.mjs";
 import { validateVerifiedBootstrapReceipt } from "./bootstrap-transaction.mjs";
 import { inspectControlledApplyActivationOwnership } from "./controlled-apply-transaction.mjs";
 import { validateRequestBoundApplyAuthority, validateRequestBoundReadiness } from "./request-bound-apply-authority.mjs";
+import { resolveLegacyAgentReconciliation } from "./legacy-intentos-installation.mjs";
 import { inspectTargetTopology } from "./target-topology.mjs";
 import { collectProjectFactProjection, hasGlobalTrustConflict, projectGoalProjection } from "./project-fact-projection.mjs";
 import {
@@ -22,13 +26,14 @@ export function resolveProjectEntryTrust(options = {}) {
   const sourceRoot = path.resolve(options.sourceRoot || targetRoot);
   const topology = inspectTargetTopology(targetRoot);
   const goalProjection = projectGoalProjection(options.goal, options.goalOptions);
+  const excludeControlledApplyProtocolArtifacts = options.excludeControlledApplyProtocolArtifacts !== false;
   const facts = collectProjectFactProjection(targetRoot, {
     topology,
     goalProjection,
     sourceRoot,
-    excludeControlledApplyProtocolArtifacts: options.excludeControlledApplyProtocolArtifacts === true,
+    excludeControlledApplyProtocolArtifacts,
   });
-  const agentAuthority = collectProjectAgentAuthority(targetRoot, { topology });
+  const agentAuthority = collectProjectAgentAuthority(targetRoot, { topology, sourceRoot });
   const identity = installedIdentity(targetRoot, sourceRoot, topology, facts, agentAuthority);
   const guidance = guidanceBindingFor({ targetRoot, sourceRoot, identity, agentAuthority });
   const blockers = [];
@@ -793,11 +798,16 @@ export function collectProjectAgentAuthority(projectRoot, options = {}) {
   const sourceCheckout = isIntentOSSourceCheckout(root);
   const state = { entries: 0 };
   walkAgentAuthority(root, root, sources, scanErrors, { sourceCheckout, state });
+  projectVerifiedLegacyAgentAuthority(root, options.sourceRoot, sources);
   for (const [relativePath, contentValue] of options.contentOverrides instanceof Map
     ? options.contentOverrides.entries()
     : Object.entries(options.contentOverrides || {})) {
     const relative = String(relativePath || "").replaceAll("\\", "/").replace(/^\.\//, "");
-    if (!relative || relative.startsWith("../") || path.posix.isAbsolute(relative) || !isAgentAuthorityPath(relative)) continue;
+    if (!relative
+      || relative.startsWith("../")
+      || path.posix.isAbsolute(relative)
+      || isControlledApplyProtocolArtifactPath(relative)
+      || !isAgentAuthorityPath(relative)) continue;
     const content = Buffer.isBuffer(contentValue) ? contentValue.toString("utf8") : String(contentValue);
     const replacement = authoritySource(
       relative,
@@ -826,6 +836,26 @@ export function collectProjectAgentAuthority(projectRoot, options = {}) {
   return { ...base, agent_authority_digest: evidenceDigest(base, []) };
 }
 
+function projectVerifiedLegacyAgentAuthority(projectRoot, sourceRoot, sources) {
+  if (!sourceRoot) return;
+  const reconciliation = resolveLegacyAgentReconciliation(projectRoot, sourceRoot);
+  if (!["VERIFIED_LEGACY_AGENT_SUFFIX", "VERIFIED_LEGACY_GENERATED_AGENT"].includes(reconciliation.state)) return;
+  const index = sources.findIndex((item) => item.path === "AGENTS.md");
+  if (index < 0) return;
+  if (reconciliation.state === "VERIFIED_LEGACY_GENERATED_AGENT"
+    || !reconciliation.projectPrefix.trim()) {
+    sources.splice(index, 1);
+    return;
+  }
+  sources[index] = authoritySource(
+    "AGENTS.md",
+    "CURRENT",
+    reconciliation.projectPrefixDigest,
+    authorityConflictCodes(reconciliation.projectPrefix),
+    authorityPolarityStatements(reconciliation.projectPrefix, "AGENTS.md"),
+  );
+}
+
 function emptyAgentAuthorityInventory() {
   const base = {
     state: "ABSENT",
@@ -847,14 +877,15 @@ function walkAgentAuthority(root, current, sources, scanErrors, options) {
     return;
   }
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
-    if (shouldIgnoreAuthorityEntry(root, current, entry.name, options.sourceCheckout)) continue;
+    const full = path.join(current, entry.name);
+    const relative = normalizeRelative(root, full);
+    if (isControlledApplyProtocolArtifactPath(relative)
+      || shouldIgnoreAuthorityEntry(root, current, entry.name, options.sourceCheckout)) continue;
     options.state.entries += 1;
     if (options.state.entries > 1000000) {
       scanErrors.push("Agent authority scan exceeded the safe 1000000-entry limit.");
       return;
     }
-    const full = path.join(current, entry.name);
-    const relative = normalizeRelative(root, full);
     if (entry.isSymbolicLink()) {
       let linksToDirectory = false;
       try { linksToDirectory = fs.statSync(full).isDirectory(); } catch { linksToDirectory = true; }

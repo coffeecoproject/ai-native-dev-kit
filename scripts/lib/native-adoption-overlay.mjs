@@ -169,12 +169,16 @@ export function resolveNativeAdoptionStage(input = {}) {
   const requestedStage = normalizeNativeAdoptionMigrationDepth(input.requestedStage);
   const reconciliationPath = String(input.reconciliationPath || "READ_ONLY_DIAGNOSIS").trim().toUpperCase();
   const scanState = String(input.scanState || "UNKNOWN");
+  const profileReconciliationState = String(input.profileReconciliationState || "NOT_EVALUATED").trim().toUpperCase();
+  const governanceBacklogState = String(input.governanceBacklogState || "NOT_EVALUATED").trim().toUpperCase();
+  const deferredGovernanceBacklog = governanceBacklogState === "BOUNDED_NON_BLOCKING";
   const scanComplete = ["COMPLETE_NO_ACTIONABLE_RULES", "COMPLETE_ACTIONABLE_RULES"].includes(scanState);
-  const requiredStages = reconciliationPath === "SELECTED_ASSETS"
+  const operationalPath = deferredGovernanceBacklog ? "SELECTED_ASSETS" : reconciliationPath;
+  const requiredStages = operationalPath === "SELECTED_ASSETS"
     ? ["READ_ONLY_DIAGNOSIS", "SELECTED_ASSETS"]
-    : reconciliationPath === "DOCS_BRIDGE_THEN_SELECTED_ASSETS"
+    : operationalPath === "DOCS_BRIDGE_THEN_SELECTED_ASSETS"
       ? ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE", "SELECTED_ASSETS"]
-      : reconciliationPath === "DOCS_BRIDGE"
+      : operationalPath === "DOCS_BRIDGE"
         ? ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE"]
         : ["READ_ONLY_DIAGNOSIS"];
   const transitionEvidence = {
@@ -182,11 +186,13 @@ export function resolveNativeAdoptionStage(input = {}) {
     recommendation: String(input.recommendation || "UNKNOWN"),
     reconciliation_path: reconciliationPath,
     can_recommend_apply_plan_now: String(input.canRecommendApplyPlanNow || "No"),
+    profile_reconciliation_state: profileReconciliationState,
+    governance_backlog_state: governanceBacklogState,
   };
-  const selectedAssetsEligible = scanComplete
+  const selectedAssetsEligible = deferredGovernanceBacklog || (scanComplete
     && input.recommendation === "SELECTED_NATIVE_ADOPTION"
     && input.canRecommendApplyPlanNow === "Yes"
-    && ["SELECTED_ASSETS", "DOCS_BRIDGE_THEN_SELECTED_ASSETS"].includes(reconciliationPath);
+    && ["SELECTED_ASSETS", "DOCS_BRIDGE_THEN_SELECTED_ASSETS"].includes(reconciliationPath));
   const blockers = [];
 
   if (requestedStage === "READ_ONLY_DIAGNOSIS") {
@@ -197,19 +203,57 @@ export function resolveNativeAdoptionStage(input = {}) {
       required_stages: requiredStages,
       completed_stages: ["READ_ONLY_DIAGNOSIS"],
       next_stage: scanComplete
-        ? reconciliationPath === "SELECTED_ASSETS" ? "SELECTED_ASSETS" : "DOCS_BRIDGE"
+        ? operationalPath === "SELECTED_ASSETS" ? "SELECTED_ASSETS" : "DOCS_BRIDGE"
+        : deferredGovernanceBacklog ? "SELECTED_ASSETS"
         : null,
       selected_assets_eligible: selectedAssetsEligible ? "Yes" : "No",
       write_graph_allowed: "No",
       transition_evidence: transitionEvidence,
-      blockers: scanComplete ? [] : ["Complete the bounded existing-rule scan before advancing adoption."],
+      blockers: scanComplete || deferredGovernanceBacklog
+        ? []
+        : ["Complete the bounded existing-rule scan before advancing adoption."],
     };
   }
 
-  if (!scanComplete) blockers.push("Existing-rule scan is not complete.");
   if (requestedStage === "DOCS_BRIDGE") {
+    if (profileReconciliationState === "ADDITIVE_RECONCILIATION_REQUIRED") {
+      return {
+        requested_stage: requestedStage,
+        reconciliation_path: reconciliationPath,
+        state: blockers.length > 0 ? "DOCS_BRIDGE_BLOCKED" : "DOCS_BRIDGE_READY",
+        required_stages: requiredStages,
+        completed_stages: ["READ_ONLY_DIAGNOSIS"],
+        next_stage: blockers.length > 0 ? null : "DOCS_BRIDGE",
+        selected_assets_eligible: "No",
+        write_graph_allowed: blockers.length > 0 ? "No" : "Yes",
+        transition_evidence: transitionEvidence,
+        blockers,
+      };
+    }
     if (!["DOCS_BRIDGE", "DOCS_BRIDGE_THEN_SELECTED_ASSETS", "SELECTED_ASSETS"].includes(reconciliationPath)) {
       blockers.push(`Reconciliation path ${reconciliationPath} does not permit a docs bridge.`);
+    }
+    if (!scanComplete) blockers.push("Existing-rule scan is not complete.");
+    if (["INCOMPLETE", "CONFLICT"].includes(profileReconciliationState)) {
+      blockers.push(`Project profile reconciliation is ${profileReconciliationState}.`);
+    }
+    if (profileReconciliationState === "CURRENT") {
+      return {
+        requested_stage: requestedStage,
+        reconciliation_path: reconciliationPath,
+        state: blockers.length > 0
+          ? "DOCS_BRIDGE_BLOCKED"
+          : selectedAssetsEligible ? "READY_FOR_SELECTED_ASSETS" : "DOCS_BRIDGE_COMPLETE",
+        required_stages: requiredStages,
+        completed_stages: blockers.length > 0
+          ? ["READ_ONLY_DIAGNOSIS"]
+          : ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE"],
+        next_stage: blockers.length === 0 && selectedAssetsEligible ? "SELECTED_ASSETS" : null,
+        selected_assets_eligible: blockers.length === 0 && selectedAssetsEligible ? "Yes" : "No",
+        write_graph_allowed: "No",
+        transition_evidence: transitionEvidence,
+        blockers,
+      };
     }
     return {
       requested_stage: requestedStage,
@@ -229,6 +273,7 @@ export function resolveNativeAdoptionStage(input = {}) {
     };
   }
 
+  if (!scanComplete && !deferredGovernanceBacklog) blockers.push("Existing-rule scan is not complete.");
   if (!selectedAssetsEligible) {
     blockers.push("Current reconciliation does not authorize selected-assets planning.");
   }
@@ -321,6 +366,60 @@ export function selectedNativeBaselineReadiness(policy, baseline) {
   return {
     ready: reasons.length === 0,
     state: reasons.length === 0 ? "SELECTED_BASELINE_MAPPING_READY" : "SELECTED_BASELINE_MAPPING_INCOMPLETE",
+    reasons,
+    deferredEvidence,
+  };
+}
+
+export function selectedNativeIndustrialReadiness(policy, baseline) {
+  if (!policy?.selected || !policy.valid) {
+    return {
+      ready: false,
+      state: "SELECTED_OPERATIONAL_PROFILE_INVALID",
+      reasons: policy?.missingRequiredAssets || [],
+      deferredEvidence: [],
+    };
+  }
+
+  const baselineLevel = String(baseline?.baselineLevel || "");
+  if (baselineLevel !== "BL2_INDUSTRIAL") {
+    const ready = baseline?.state === "NOT_APPLICABLE";
+    return {
+      ready,
+      state: ready ? "SELECTED_INDUSTRIAL_MAPPING_NOT_APPLICABLE" : "SELECTED_INDUSTRIAL_MAPPING_INCOMPLETE",
+      reasons: ready ? [] : [`selected industrial mapping is not structurally ready: ${baseline?.state || "UNKNOWN"}`],
+      deferredEvidence: [],
+    };
+  }
+
+  const structurallyReadyStates = new Set(["BASELINE_READY", "EVIDENCE_MISSING", "EVIDENCE_INVALID"]);
+  const reasons = [];
+  if (!structurallyReadyStates.has(baseline?.state)) {
+    reasons.push(`selected industrial mapping is not structurally ready: ${baseline?.state || "UNKNOWN"}`);
+  }
+  if (!Array.isArray(baseline?.selectedIndustrialPacks) || baseline.selectedIndustrialPacks.length === 0) {
+    reasons.push("selected industrial packs are missing");
+  }
+  if (baseline?.profileDocuments?.conflict) {
+    reasons.push(`selected industrial profile documents conflict: ${baseline.profileDocuments.conflict.reason || "unknown conflict"}`);
+  }
+  for (const [key, label] of [
+    ["unknownPacks", "unknown"],
+    ["plannedPacks", "not available"],
+    ["invalidPacks", "invalid"],
+    ["incompatiblePacks", "incompatible"],
+  ]) {
+    if (Array.isArray(baseline?.[key]) && baseline[key].length > 0) {
+      reasons.push(`selected industrial packs are ${label}: ${baseline[key].map((item) => item?.packId || item).join(", ")}`);
+    }
+  }
+
+  const deferredEvidence = ["EVIDENCE_MISSING", "EVIDENCE_INVALID"].includes(baseline?.state)
+    ? [`industrial baseline evidence: ${baseline.state}`]
+    : [];
+  return {
+    ready: reasons.length === 0,
+    state: reasons.length === 0 ? "SELECTED_INDUSTRIAL_MAPPING_READY" : "SELECTED_INDUSTRIAL_MAPPING_INCOMPLETE",
     reasons,
     deferredEvidence,
   };

@@ -1153,6 +1153,9 @@ export function resolveIndustrialBaseline(projectRoot) {
   const knownExecutablePackIds = unique(packIndex.entries
     .filter((entry) => entry && entry.status !== "planned" && entry.id)
     .map((entry) => entry.id));
+  const selectsAllIndustrialPacks = selection.baselineLevel === "BL2_INDUSTRIAL"
+    && knownExecutablePackIds.length > 0
+    && selection.selectedIndustrialPacks.length >= knownExecutablePackIds.length;
   const selectedPacks = selection.selectedIndustrialPacks
     .filter((packId) => entriesById.has(packId))
     .map((packId) => loadPack(root, packIndex, entriesById.get(packId)));
@@ -1223,8 +1226,9 @@ export function resolveIndustrialBaseline(projectRoot) {
   } else if (selection.selectedIndustrialPacks.length === 0) {
     state = "PACKS_NOT_SELECTED";
     pendingReasons.push("BL2_INDUSTRIAL selected but no industrial packs are selected");
-  } else if (unknownPacks.length > 0 || invalidPacks.length > 0) {
+  } else if (unknownPacks.length > 0 || invalidPacks.length > 0 || selectsAllIndustrialPacks) {
     state = "PACKS_INVALID";
+    if (selectsAllIndustrialPacks) pendingReasons.push("BL2 selects all industrial packs by default");
   } else if (plannedPacks.length > 0) {
     state = "PACKS_NOT_AVAILABLE";
   } else if (documentConflict) {
@@ -1281,6 +1285,7 @@ export function resolveIndustrialBaseline(projectRoot) {
     packIndexPath: packIndex.path ? path.relative(root, packIndex.path).replaceAll(path.sep, "/") : null,
     packIndexError: packIndex.error,
     knownIndustrialPacks: knownExecutablePackIds,
+    selectsAllIndustrialPacks,
     unknownPacks,
     plannedPacks,
     invalidPacks,

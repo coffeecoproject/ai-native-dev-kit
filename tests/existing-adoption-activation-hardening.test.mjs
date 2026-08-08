@@ -1012,6 +1012,54 @@ test("all root and nested agent authorities participate in identity and semantic
   assert.ok(trust.guidance_authority.invalid_nodes.some((item) => item.path === "packages/web/AGENTS.md"));
 });
 
+test("controlled apply protocol artifacts never become active project agent authority", (t) => {
+  const root = fixture(t, "intentos-protocol-authority-boundary-");
+  write(root, "README.md", "# Existing project\n");
+  write(root, "AGENTS.md", "# Project Rules\n\nRun tests before review.\n");
+  write(root, "packages/api/AGENTS.md", "# API Rules\n\nRun API tests before review.\n");
+  git(root, ["init", "-q"]);
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=IntentOS Tests", "-c", "user.email=intentos@example.invalid", "commit", "-qm", "fixture"]);
+
+  const invalidProtocolAuthority = "# Retained rollback authority\n\nAI drafts; humans decide.\n";
+  write(root, ".intentos/backups/apply-test/AGENTS.md", invalidProtocolAuthority);
+  write(root, ".intentos/apply-authorities/CLAUDE.md", "# Apply authority record\n\nThe user must choose the architecture.\n");
+  write(root, "apply-execution-plans/AGENTS.md", invalidProtocolAuthority);
+  write(root, "apply-receipts/agent.md", invalidProtocolAuthority);
+
+  const inventory = collectProjectAgentAuthority(root);
+  assert.equal(inventory.state, "CURRENT", JSON.stringify(inventory, null, 2));
+  assert.deepEqual(inventory.sources.map((item) => item.path), [
+    "AGENTS.md",
+    "packages/api/AGENTS.md",
+  ]);
+
+  const projected = collectProjectAgentAuthority(root, {
+    contentOverrides: new Map([
+      [".intentos/backups/future-apply/AGENTS.md", invalidProtocolAuthority],
+      ["apply-readiness-reports/CLAUDE.md", invalidProtocolAuthority],
+    ]),
+  });
+  assert.equal(projected.state, "CURRENT", JSON.stringify(projected, null, 2));
+  assert.deepEqual(projected.sources.map((item) => item.path), [
+    "AGENTS.md",
+    "packages/api/AGENTS.md",
+  ]);
+
+  const trust = resolveProjectEntryTrust({
+    projectRoot: root,
+    sourceRoot: kitRoot,
+    goal: "Inspect this existing project",
+  });
+  assert.equal(trust.guidance_authority.agent_authority_state, "CURRENT");
+  assert.deepEqual(trust.guidance_authority.agent_authority_paths, [
+    "AGENTS.md",
+    "packages/api/AGENTS.md",
+  ]);
+  assert.equal(trust.project_fact_projection.current_work_continuity.state, "NO_CURRENT_WORK");
+  assert.deepEqual(trust.project_fact_projection.current_work_continuity.git.changed_paths, []);
+});
+
 test("installed Guidance applies IntentOS semantic authority only to exact managed assets", (t) => {
   const root = fixture(t, "intentos-managed-guidance-scope-");
   const authority = {

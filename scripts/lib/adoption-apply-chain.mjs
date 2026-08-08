@@ -384,19 +384,6 @@ function validateReceiptAgainstProject(projectRoot, receiptFile, receipt, schema
   if (receipt.receipt_state !== "APPLY_VERIFIED" || receipt.outcome !== "APPLY_VERIFIED") errors.push("receipt state is not APPLY_VERIFIED");
   if (receipt.project_identity?.root_digest !== projectIdentity(projectRoot).fingerprint) errors.push("receipt project identity mismatch");
   if (!Array.isArray(receipt.unexpected_changed_paths) || receipt.unexpected_changed_paths.length > 0) errors.push("receipt contains unexpected changed paths");
-  if (receipt.activation?.status !== "VERIFIED" || receipt.activation?.read_only !== true || receipt.activation?.workflow_next_exit_code !== "0") {
-    errors.push("receipt activation is not verified and read-only");
-  }
-  if (currentReceipt && (
-    receipt.activation?.cold_start_state !== "COLD_START_VERIFIED"
-    || receipt.activation?.route_state !== "ROUTE_VERIFIED"
-    || receipt.activation?.project_work_queue_unchanged !== "Yes"
-    || receipt.activation?.synthetic_current_items_created !== "No"
-    || !/^sha256:[a-f0-9]{64}$/.test(String(receipt.activation?.cold_start_digest || ""))
-    || !/^sha256:[a-f0-9]{64}$/.test(String(receipt.activation?.route_digest || ""))
-  )) {
-    errors.push("receipt does not prove the full project-local IntentOS behavioral route");
-  }
 
   const planRef = resolveAuthoritativeEvidenceReference(projectRoot, receiptFile, receipt.execution_plan?.path);
   const authorityReference = receipt.apply_authority?.path || receipt.approval_record?.path;
@@ -416,12 +403,41 @@ function validateReceiptAgainstProject(projectRoot, receiptFile, receipt, schema
   if (plan.planDigest !== evidenceDigest(plan, ["planDigest"]) || receipt.execution_plan.plan_digest !== plan.planDigest) {
     errors.push("execution plan digest mismatch");
   }
+  const profileBridge = plan.operationKind === "NATIVE_ADOPTION"
+    && plan.arguments?.migrationDepth === "DOCS_BRIDGE";
+  if (profileBridge) {
+    if (receipt.activation?.status !== "VERIFIED"
+      || receipt.activation?.read_only !== true
+      || receipt.activation?.workflow_next_exit_code !== "N/A"
+      || receipt.activation?.project_state !== "PROFILE_RECONCILED"
+      || receipt.activation?.next_action !== "RERUN_NATIVE_ADOPTION_DISCOVERY"
+      || receipt.activation?.route_state !== "PROFILE_RECONCILIATION_VERIFIED") {
+      errors.push("receipt does not prove the exact profile reconciliation transaction");
+    }
+  } else {
+    if (receipt.activation?.status !== "VERIFIED" || receipt.activation?.read_only !== true || receipt.activation?.workflow_next_exit_code !== "0") {
+      errors.push("receipt activation is not verified and read-only");
+    }
+    if (currentReceipt && (
+      receipt.activation?.cold_start_state !== "COLD_START_VERIFIED"
+      || receipt.activation?.route_state !== "ROUTE_VERIFIED"
+      || receipt.activation?.project_work_queue_unchanged !== "Yes"
+      || receipt.activation?.synthetic_current_items_created !== "No"
+      || !/^sha256:[a-f0-9]{64}$/.test(String(receipt.activation?.cold_start_digest || ""))
+      || !/^sha256:[a-f0-9]{64}$/.test(String(receipt.activation?.route_digest || ""))
+    )) {
+      errors.push("receipt does not prove the full project-local IntentOS behavioral route");
+    }
+  }
   if (receipt.execution_plan.manifest_digest !== plan.manifestDigest) errors.push("manifest digest mismatch");
   if (currentReceipt) {
     if (!Date.parse(String(receipt.executed_at || ""))) errors.push("current receipt executed_at is missing or invalid");
     if (receipt.execution_plan.operation_kind !== plan.operationKind) errors.push("execution operation kind mismatch");
     if (receipt.execution_plan.adoption_assessment_digest !== (plan.adoptionAssessment?.assessment_digest || "N/A")) errors.push("native-adoption assessment digest mismatch");
-    if (plan.operationKind === "NATIVE_ADOPTION" && plan.adoptionAssessment?.assessment_state !== "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION") {
+    const expectedNativeAssessmentState = profileBridge
+      ? "READY_FOR_PROFILE_RECONCILIATION"
+      : "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION";
+    if (plan.operationKind === "NATIVE_ADOPTION" && plan.adoptionAssessment?.assessment_state !== expectedNativeAssessmentState) {
       errors.push("native-adoption plan was not technically ready");
     }
   }

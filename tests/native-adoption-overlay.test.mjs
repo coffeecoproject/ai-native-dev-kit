@@ -12,6 +12,7 @@ import {
   normalizeNativeAdoptionMigrationDepth,
   resolveNativeAdoptionStage,
   selectedNativeBaselineReadiness,
+  selectedNativeIndustrialReadiness,
   selectedNativeOverlayAssets,
 } from "../scripts/lib/native-adoption-overlay.mjs";
 import {
@@ -67,6 +68,48 @@ function projectFixture(t, { governed = true, historicalTasks = 0 } = {}) {
   return root;
 }
 
+function industrialWorkflowFixture(t, { profiles, industrialPacks }) {
+  const root = projectFixture(t, { governed: false });
+  fs.mkdirSync(path.join(root, "docs"), { recursive: true });
+  fs.writeFileSync(path.join(root, "docs", "project-profile.md"), [
+    "# Project Profile",
+    "",
+    "## Selected Profiles",
+    "",
+    ...profiles.map((profile) => `- ${profile}`),
+    "",
+  ].join("\n"));
+  fs.writeFileSync(path.join(root, "docs", "baseline-selection.md"), [
+    "# Baseline Selection",
+    "",
+    "## Baseline Level",
+    "",
+    "BL2_INDUSTRIAL",
+    "",
+    "## Selected Profiles",
+    "",
+    ...profiles.map((profile) => `- ${profile}`),
+    "",
+    "## Selected Industrial Packs",
+    "",
+    ...industrialPacks.map((packId) => `- ${packId}`),
+    "",
+  ].join("\n"));
+  fs.writeFileSync(path.join(root, "docs", "baseline-evidence.md"), "# Baseline Evidence\n");
+
+  const sourceRoot = path.resolve("industrial-packs");
+  const targetRoot = path.join(root, ".intentos", "industrial-packs");
+  fs.mkdirSync(targetRoot, { recursive: true });
+  fs.copyFileSync(path.join(sourceRoot, "index.json"), path.join(targetRoot, "index.json"));
+  const index = JSON.parse(fs.readFileSync(path.join(sourceRoot, "index.json"), "utf8"));
+  for (const packId of industrialPacks) {
+    const entry = index.packs.find((candidate) => candidate.id === packId);
+    assert.ok(entry, packId);
+    fs.cpSync(path.join(sourceRoot, entry.path), path.join(targetRoot, entry.path), { recursive: true });
+  }
+  return root;
+}
+
 test("selected native overlay is a strict capability-derived subset of the full target", () => {
   const assets = selectedNativeOverlayAssets();
   const targets = new Set(assets.map((asset) => asset.target));
@@ -87,6 +130,42 @@ test("selected native overlay is a strict capability-derived subset of the full 
     assert.ok(asset.sourceGroups.length > 0);
     assert.ok(asset.capabilities.length > 0);
   }
+});
+
+test("plan metadata canonicalizes unordered baseline selections for strict replay", (t) => {
+  const root = projectFixture(t, { governed: false });
+  const goal = "adopt this existing web project without changing project-owned work";
+  const plan = buildPlan(root, {
+    starter: "generic-project",
+    goal,
+    projectEntryOrigin: "EXISTING_PROJECT",
+    migrationDepth: "SELECTED_ASSETS",
+    profiles: "web-app,high-risk-change",
+    baselineLevel: "BL2_INDUSTRIAL",
+    industrialPacks: "web-app-industrial,high-risk-change-industrial",
+    createdAt: "2030-01-01T00:00:00.000Z",
+  });
+
+  assert.equal(plan.arguments.industrialPacks, "high-risk-change-industrial,web-app-industrial");
+  const replay = buildPlan(plan.targetRoot, {
+    starter: plan.arguments.starter,
+    update: plan.operation === "UPDATE_WORKFLOW_ASSETS",
+    applyPrTemplateGovernance: plan.arguments.applyPrTemplateGovernance,
+    applyAgentGovernance: plan.arguments.applyAgentGovernance,
+    withIndustrialPacks: plan.arguments.withIndustrialPacks,
+    industrialPacks: plan.arguments.selectedIndustrialPacks.join(","),
+    profiles: plan.arguments.profiles.join(","),
+    baselineLevel: plan.arguments.baselineLevel,
+    standardPacks: plan.arguments.standardPacks.join(","),
+    backupDir: plan.arguments.backupDir || "",
+    goal: plan.arguments.goal,
+    migrationDepth: plan.arguments.migrationDepth,
+    nativeRuleDecisions: plan.arguments.nativeRuleDecisions || "",
+    projectEntryOrigin: plan.arguments.projectEntryOrigin,
+    createdAt: plan.createdAt,
+  });
+
+  assert.equal(replay.planDigest, plan.planDigest);
 });
 
 test("controlled apply protocol artifacts have one exact project-source boundary", () => {
@@ -265,6 +344,88 @@ test("selected baseline mapping keeps incomplete project evidence explicit and t
   }
 });
 
+test("selected industrial mapping defers evidence but blocks structural pack failures", () => {
+  const policy = { selected: true, valid: true, missingRequiredAssets: [] };
+  const deferred = selectedNativeIndustrialReadiness(policy, {
+    baselineLevel: "BL2_INDUSTRIAL",
+    state: "EVIDENCE_INVALID",
+    selectedIndustrialPacks: ["high-risk-change-industrial", "web-app-industrial"],
+    unknownPacks: [],
+    plannedPacks: [],
+    invalidPacks: [],
+    incompatiblePacks: [],
+  });
+  assert.equal(deferred.ready, true);
+  assert.equal(deferred.state, "SELECTED_INDUSTRIAL_MAPPING_READY");
+  assert.deepEqual(deferred.deferredEvidence, ["industrial baseline evidence: EVIDENCE_INVALID"]);
+
+  const blocked = selectedNativeIndustrialReadiness(policy, {
+    baselineLevel: "BL2_INDUSTRIAL",
+    state: "PACKS_INCOMPATIBLE",
+    selectedIndustrialPacks: ["web-app-industrial"],
+    unknownPacks: [],
+    plannedPacks: [],
+    invalidPacks: [],
+    incompatiblePacks: ["web-app-industrial"],
+  });
+  assert.equal(blocked.ready, false);
+  assert.equal(blocked.state, "SELECTED_INDUSTRIAL_MAPPING_INCOMPLETE");
+  assert.match(blocked.reasons.join("\n"), /not structurally ready|incompatible/);
+
+  const profileConflict = selectedNativeIndustrialReadiness(policy, {
+    baselineLevel: "BL2_INDUSTRIAL",
+    state: "EVIDENCE_INVALID",
+    selectedIndustrialPacks: ["web-app-industrial"],
+    unknownPacks: [],
+    plannedPacks: [],
+    invalidPacks: [],
+    incompatiblePacks: [],
+    profileDocuments: {
+      conflict: { reason: "project profile and baseline selection differ" },
+    },
+  });
+  assert.equal(profileConflict.ready, false);
+  assert.equal(profileConflict.state, "SELECTED_INDUSTRIAL_MAPPING_INCOMPLETE");
+  assert.match(profileConflict.reasons.join("\n"), /profile documents conflict/);
+});
+
+test("workflow-next preserves authoritative industrial pack-pair incompatibility", (t) => {
+  const root = industrialWorkflowFixture(t, {
+    profiles: ["ios-app", "web-app"],
+    industrialPacks: ["ios-app-industrial", "web-app-industrial"],
+  });
+  const result = spawnSync(process.execPath, [path.resolve("scripts/workflow-next.mjs"), root, "--json"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 120_000,
+  });
+  assert.ok(result.stdout, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.industrialBaselineState, "PACKS_INCOMPATIBLE");
+});
+
+test("workflow-next preserves authoritative rejection of selecting every industrial pack", (t) => {
+  const root = industrialWorkflowFixture(t, {
+    profiles: ["web-app"],
+    industrialPacks: ["web-app-industrial"],
+  });
+  const indexPath = path.join(root, ".intentos", "industrial-packs", "index.json");
+  const index = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+  index.packs = index.packs.filter((entry) => entry.id === "web-app-industrial");
+  fs.writeFileSync(indexPath, `${JSON.stringify(index, null, 2)}\n`);
+
+  const result = spawnSync(process.execPath, [path.resolve("scripts/workflow-next.mjs"), root, "--json"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 120_000,
+  });
+  assert.ok(result.stdout, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.industrialBaselineState, "PACKS_INVALID");
+});
+
 test("native adoption migration depth is explicit and fails closed", () => {
   assert.equal(normalizeNativeAdoptionMigrationDepth(), "READ_ONLY_DIAGNOSIS");
   assert.equal(normalizeNativeAdoptionMigrationDepth("adapter_only"), "READ_ONLY_DIAGNOSIS");
@@ -312,10 +473,72 @@ test("native adoption stages never authorize a write graph before selected asset
     recommendation: "SELECTED_NATIVE_ADOPTION",
     reconciliation_path: "DOCS_BRIDGE_THEN_SELECTED_ASSETS",
     can_recommend_apply_plan_now: "Yes",
+    profile_reconciliation_state: "NOT_EVALUATED",
+    governance_backlog_state: "NOT_EVALUATED",
   });
 });
 
-test("existing-project default and docs-bridge plans are diagnostic-only", (t) => {
+test("native adoption authorizes only the pending additive profile section at docs bridge", () => {
+  const reconciliation = {
+    recommendation: "SELECTED_NATIVE_ADOPTION",
+    reconciliationPath: "DOCS_BRIDGE_THEN_SELECTED_ASSETS",
+    canRecommendApplyPlanNow: "Yes",
+    scanState: "COMPLETE_ACTIONABLE_RULES",
+  };
+  const pending = resolveNativeAdoptionStage({
+    ...reconciliation,
+    requestedStage: "DOCS_BRIDGE",
+    profileReconciliationState: "ADDITIVE_RECONCILIATION_REQUIRED",
+  });
+  assert.equal(pending.state, "DOCS_BRIDGE_READY");
+  assert.equal(pending.next_stage, "DOCS_BRIDGE");
+  assert.equal(pending.write_graph_allowed, "Yes");
+  assert.equal(pending.selected_assets_eligible, "No");
+  assert.deepEqual(pending.completed_stages, ["READ_ONLY_DIAGNOSIS"]);
+
+  const current = resolveNativeAdoptionStage({
+    ...reconciliation,
+    requestedStage: "DOCS_BRIDGE",
+    profileReconciliationState: "CURRENT",
+  });
+  assert.equal(current.state, "READY_FOR_SELECTED_ASSETS");
+  assert.equal(current.next_stage, "SELECTED_ASSETS");
+  assert.equal(current.write_graph_allowed, "No");
+  assert.deepEqual(current.completed_stages, ["READ_ONLY_DIAGNOSIS", "DOCS_BRIDGE"]);
+
+  const ruleDecisionsPending = resolveNativeAdoptionStage({
+    requestedStage: "DOCS_BRIDGE",
+    recommendation: "BLOCKED_NEEDS_OWNER",
+    reconciliationPath: "READ_ONLY_DIAGNOSIS",
+    canRecommendApplyPlanNow: "No",
+    scanState: "INCOMPLETE_RULE_SCAN",
+    profileReconciliationState: "ADDITIVE_RECONCILIATION_REQUIRED",
+  });
+  assert.equal(ruleDecisionsPending.state, "DOCS_BRIDGE_READY");
+  assert.equal(ruleDecisionsPending.write_graph_allowed, "Yes");
+  assert.equal(ruleDecisionsPending.next_stage, "DOCS_BRIDGE");
+  assert.deepEqual(ruleDecisionsPending.blockers, []);
+});
+
+test("a current exact governance backlog does not block selected operational assets", () => {
+  const selected = resolveNativeAdoptionStage({
+    requestedStage: "SELECTED_ASSETS",
+    recommendation: "BLOCKED_NEEDS_OWNER",
+    reconciliationPath: "READ_ONLY_DIAGNOSIS",
+    canRecommendApplyPlanNow: "No",
+    scanState: "INCOMPLETE_RULE_SCAN",
+    profileReconciliationState: "CURRENT",
+    governanceBacklogState: "BOUNDED_NON_BLOCKING",
+  });
+
+  assert.equal(selected.state, "SELECTED_ASSETS_READY");
+  assert.equal(selected.write_graph_allowed, "Yes");
+  assert.equal(selected.selected_assets_eligible, "Yes");
+  assert.deepEqual(selected.blockers, []);
+  assert.deepEqual(selected.required_stages, ["READ_ONLY_DIAGNOSIS", "SELECTED_ASSETS"]);
+});
+
+test("existing-project default and incomplete docs-bridge plans are diagnostic-only", (t) => {
   const root = projectFixture(t);
   const options = {
     starter: "generic-project",
@@ -334,7 +557,7 @@ test("existing-project default and docs-bridge plans are diagnostic-only", (t) =
 
   const bridge = buildPlan(root, { ...options, migrationDepth: "DOCS_BRIDGE" });
   assert.equal(bridge.arguments.migrationDepth, "DOCS_BRIDGE");
-  assert.equal(bridge.adoptionAssessment.assessment_state, "READY_FOR_SELECTED_ASSETS");
+  assert.equal(bridge.adoptionAssessment.assessment_state, "BLOCKED");
   assert.equal(bridge.adoptionAssessment.adoption_stage.requested_stage, "DOCS_BRIDGE");
   assert.equal(bridge.adoptionAssessment.adoption_stage.write_graph_allowed, "No");
   assert.equal(bridge.executionState, "DIAGNOSTIC_ONLY");
@@ -530,11 +753,13 @@ test("profileless selected adoption stops at technical discovery before apply", 
   assert.equal(fs.existsSync(path.join(root, ".intentos")), false);
 });
 
-test("structured reconciliation blocker becomes a diagnostic plan instead of a source failure", (t) => {
+test("an exact project-bound governance backlog permits operational adoption without resolving project semantics", (t) => {
   const root = projectFixture(t, { governed: false });
-  fs.writeFileSync(path.join(root, "AGENTS.md"), "# Agent Rules\n\nRun tests before review.\n");
+  const existingPackage = fs.readFileSync(path.join(root, "package.json"), "utf8");
+  const existingAgentRules = "# Agent Rules\n\nRun tests before review.\n";
+  fs.writeFileSync(path.join(root, "AGENTS.md"), existingAgentRules);
   fs.mkdirSync(path.join(root, "docs"));
-  fs.writeFileSync(path.join(root, "docs", "Governance.md"), [
+  const existingGovernance = [
     "# Governance",
     "",
     "This descriptive context has no classified authority yet.",
@@ -545,7 +770,8 @@ test("structured reconciliation blocker becomes a diagnostic plan instead of a s
     "",
     "Run tests before review.",
     "",
-  ].join("\n"));
+  ].join("\n");
+  fs.writeFileSync(path.join(root, "docs", "Governance.md"), existingGovernance);
 
   const plan = buildPlan(root, {
     starter: "generic-project",
@@ -553,16 +779,65 @@ test("structured reconciliation blocker becomes a diagnostic plan instead of a s
     migrationDepth: "SELECTED_ASSETS",
     profiles: "web-app",
     baselineLevel: "BL1_STANDARD",
-    createdAt: "2030-01-01T00:00:00.000Z",
   });
-  assert.equal(plan.adoptionAssessment.assessment_state, "BLOCKED");
+  assert.equal(plan.adoptionAssessment.assessment_state, "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION");
   assert.equal(plan.adoptionAssessment.rule_reconciliation.coverage.scanState, "INCOMPLETE_RULE_SCAN");
-  assert.match(plan.adoptionAssessment.blockers.join("\n"), /Rule Reconciliation outcome is BLOCKED/);
-  assert.equal(plan.executionState, "DIAGNOSTIC_ONLY");
-  assert.equal(plan.actions.some((action) => action.willWrite), false);
+  assert.equal(plan.adoptionAssessment.governance_backlog.state, "BOUNDED_NON_BLOCKING");
+  assert.equal(plan.adoptionAssessment.governance_backlog.blocks_operation, "No");
+  assert.ok(plan.adoptionAssessment.governance_backlog.backlog_count > 0);
+  assert.deepEqual(plan.adoptionAssessment.blockers, []);
+  assert.equal(plan.executionState, "EXECUTABLE");
+  assert.equal(plan.actions.some((action) => action.willWrite), true);
+  assert.equal(plan.actions.some((action) => action.path === "docs/Governance.md" && action.willWrite), false);
+  const agentAction = plan.actions.find((action) => action.path === "AGENTS.md");
+  assert.equal(agentAction.type, "RECONCILE_PRESERVE");
+  assert.equal(agentAction.willWrite, true);
+  assert.ok(Buffer.from(agentAction.inlineContentBase64, "base64").toString("utf8").startsWith(existingAgentRules));
+  assert.equal(plan.adoptionAssessment.native_rule_decision_work_packet.decision_policy.may_authorize_apply, "No");
+
+  const planRelative = "apply-execution-plans/governance-backlog.json";
+  fs.mkdirSync(path.join(root, "apply-execution-plans"));
+  fs.writeFileSync(path.join(root, planRelative), `${JSON.stringify(plan, null, 2)}\n`);
+  const applied = spawnSync(process.execPath, [
+    "scripts/init-project.mjs",
+    "--apply-plan", path.join(root, planRelative),
+    "--goal", plan.arguments.goal,
+  ], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    maxBuffer: 256 * 1024 * 1024,
+    timeout: 300_000,
+  });
+  assert.equal(applied.status, 0, applied.stderr || applied.stdout);
+  assert.equal(validateVerifiedApplyReceiptFile(root, plan.receiptPath).ok, true);
+  assert.match(fs.readFileSync(path.join(root, plan.receiptPath), "utf8"), /APPLY_VERIFIED/);
+
+  const runWorkflowNext = () => spawnSync(process.execPath, [
+    path.join(root, "scripts", "workflow-next.mjs"),
+    root,
+    "--json",
+  ], {
+    cwd: root,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 120_000,
+  });
+  const firstColdStart = runWorkflowNext();
+  assert.equal(firstColdStart.status, 0, firstColdStart.stderr || firstColdStart.stdout);
+  const firstState = JSON.parse(firstColdStart.stdout);
+  assert.equal(firstState.projectEntryTrust.entry_state, "READY_FOR_INTENTOS_OPERATION");
+  assert.equal(firstState.versionState, "CURRENT");
+
+  const secondColdStart = runWorkflowNext();
+  assert.equal(secondColdStart.status, 0, secondColdStart.stderr || secondColdStart.stdout);
+  assert.equal(secondColdStart.stdout, firstColdStart.stdout);
+
+  assert.equal(fs.readFileSync(path.join(root, "package.json"), "utf8"), existingPackage);
+  assert.equal(fs.readFileSync(path.join(root, "docs", "Governance.md"), "utf8"), existingGovernance);
+  assert.ok(fs.readFileSync(path.join(root, "AGENTS.md"), "utf8").startsWith(existingAgentRules));
 });
 
-test("selected overlay controlled apply verifies without changing historical task files", (t) => {
+test("selected BL2 overlay controlled apply defers evidence without changing historical task files", (t) => {
   const outer = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "intentos-native-overlay-apply-")));
   const root = path.join(outer, "project");
   fs.mkdirSync(root);
@@ -598,13 +873,17 @@ test("selected overlay controlled apply verifies without changing historical tas
   for (const [relative, content] of dirtyBusiness) fs.writeFileSync(path.join(root, relative), content);
 
   const goal = "adopt this governed project while preserving project release authority";
+  const selectedProfiles = "web-app,high-risk-change";
+  const selectedIndustrialPacks = "web-app-industrial,high-risk-change-industrial";
   const plan = buildPlan(root, {
     starter: "generic-project",
     goal,
     migrationDepth: "SELECTED_ASSETS",
-    profiles: "web-app",
-    baselineLevel: "BL1_STANDARD",
+    profiles: selectedProfiles,
+    baselineLevel: "BL2_INDUSTRIAL",
+    industrialPacks: selectedIndustrialPacks,
   });
+  assert.equal(plan.arguments.industrialPacks, "high-risk-change-industrial,web-app-industrial");
   assert.equal(plan.targetFingerprint.isDirty, true);
   assert.equal(plan.candidateStaticActivationPreflight.dirty_activation.state, "READY");
   assert.equal(plan.candidateStaticActivationPreflight.dirty_activation.mode, "NATIVE_ADOPTION_ZERO_OVERLAP");
@@ -656,8 +935,9 @@ test("selected overlay controlled apply verifies without changing historical tas
     starter: "generic-project",
     update: true,
     goal,
-    profiles: "web-app",
-    baselineLevel: "BL1_STANDARD",
+    profiles: selectedProfiles,
+    baselineLevel: "BL2_INDUSTRIAL",
+    industrialPacks: selectedIndustrialPacks,
   });
   assert.equal(updatePlan.operationKind, "CONTROLLED_UPDATE");
   assert.equal(updatePlan.arguments.migrationDepth, "SELECTED_ASSETS");
@@ -701,9 +981,11 @@ test("selected overlay controlled apply verifies without changing historical tas
   assert.equal(state.operationalProfile, "SELECTED_EXISTING_PROJECT");
   assert.equal(state.onboardingState, "SELECTED_PROJECT_MAPPING_READY");
   assert.equal(state.platformBaselineState, "SELECTED_BASELINE_MAPPING_READY");
+  assert.equal(state.industrialBaselineState, "EVIDENCE_MISSING");
   assert.equal(state.nextAction, "REVIEW_DIRTY_WORKTREE");
   assert.ok(state.deferredProjectDocs.includes("docs/product-vision.md"));
   assert.ok(state.deferredBaselineEvidence.includes("standard-pack evidence: EVIDENCE_INCOMPLETE"));
+  assert.ok(state.deferredBaselineEvidence.includes("industrial baseline evidence: EVIDENCE_MISSING"));
   assert.doesNotMatch(state.suggestedCommand, /project-onboarding-agent|check-project-onboarding|check-platform-baseline/);
   for (const deferred of [
     "docs/project-onboarding.md",
@@ -758,8 +1040,9 @@ test("selected overlay controlled apply verifies without changing historical tas
     starter: "generic-project",
     update: true,
     goal: "perform another controlled workflow refresh without changing project work",
-    profiles: "web-app",
-    baselineLevel: "BL1_STANDARD",
+    profiles: selectedProfiles,
+    baselineLevel: "BL2_INDUSTRIAL",
+    industrialPacks: selectedIndustrialPacks,
   });
   assert.equal(secondUpdatePlan.operationKind, "CONTROLLED_UPDATE");
   const secondUpdatePlanRelative = "apply-execution-plans/selected-update-second.json";

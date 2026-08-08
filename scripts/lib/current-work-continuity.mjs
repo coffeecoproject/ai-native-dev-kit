@@ -76,7 +76,7 @@ function collectGitWork(root, options = {}) {
   const top = runGit(root, ["rev-parse", "--show-toplevel"]);
   if (!top.ok) return {
     mode: fs.existsSync(path.join(root, ".git")) ? "GIT_UNAVAILABLE" : "NON_GIT",
-    revision: nonGitRevision(root),
+    revision: nonGitRevision(root, options),
     changed_paths: [],
     status_digest: digest("non-git:no-status"),
     observation_status: fs.existsSync(path.join(root, ".git")) ? "FAILED" : "OBSERVED",
@@ -242,24 +242,26 @@ function spawnReadOnlyGit(root, args) {
   });
 }
 
-function nonGitRevision(root) {
+function nonGitRevision(root, options = {}) {
   if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) return digest("non-git:missing");
   const rows = [];
-  walkForRevision(root, root, rows);
+  walkForRevision(root, root, rows, options);
   return digest(rows.join("\n"));
 }
 
-function walkForRevision(root, dir, rows) {
+function walkForRevision(root, dir, rows, options) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
     if (dir === root && [".git", "node_modules"].includes(entry.name)) continue;
     const full = path.join(dir, entry.name);
     const relative = path.relative(root, full).replaceAll(path.sep, "/");
+    if (options.excludeControlledApplyProtocolArtifacts === true
+      && isControlledApplyProtocolArtifactPath(relative)) continue;
     const stat = fs.lstatSync(full);
     if (stat.isSymbolicLink()) {
       rows.push(`${relative}:symlink:${fs.readlinkSync(full)}`);
     } else if (stat.isDirectory()) {
       rows.push(`${relative}:dir`);
-      walkForRevision(root, full, rows);
+      walkForRevision(root, full, rows, options);
     } else if (stat.isFile()) {
       rows.push(`${relative}:file:${stat.mode}:${stat.size}:${digest(fs.readFileSync(full))}`);
     } else {

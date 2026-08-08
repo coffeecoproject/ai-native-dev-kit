@@ -56,6 +56,10 @@ import {
 } from "../lib/request-bound-apply-authority.mjs";
 import { resolveProjectEntryTrust, requireTrustedProjectEntry } from "../lib/project-entry-trust.mjs";
 import { projectGoalProjection } from "../lib/project-fact-projection.mjs";
+import {
+  nativeAdoptionOperationalPolicy,
+  selectedNativeIndustrialReadiness,
+} from "../lib/native-adoption-overlay.mjs";
 import { inspectTargetTopology } from "../lib/target-topology.mjs";
 import {
   normalizeBaselineLevel,
@@ -81,6 +85,7 @@ import {
   agentsGovernanceMigrationReportPath,
   assertExistingTargetRootIsSafe,
   baselineConfigurationForPlan,
+  nativeAdoptionProfileConfigurationForPlan,
   buildVersionRecord,
   copyDir,
   copySharedAssets,
@@ -179,15 +184,23 @@ function validatePlanForApply(plan, backupDirOverride = null) {
       throw new Error("Native-adoption apply requires the original natural-language request and its exact digest");
     }
     assertPlanEligibleForControlledRecovery(plan);
+    const assessmentBaseline = plan.arguments?.migrationDepth === "DOCS_BRIDGE"
+      ? nativeAdoptionProfileConfigurationForPlan(plan.targetRoot, {
+        profiles: plan.arguments?.profiles,
+      })
+      : {
+        profiles: plan.arguments?.profiles,
+        baselineLevel: plan.arguments?.baselineLevel,
+      };
     const currentAssessment = buildNativeAdoptionAssessment(plan.targetRoot, goal, {
       migrationDepth: plan.arguments?.migrationDepth,
       nativeRuleDecisions: plan.arguments?.nativeRuleDecisions || "",
-      baselineConfig: {
-        profiles: plan.arguments?.profiles,
-        baselineLevel: plan.arguments?.baselineLevel,
-      },
+      baselineConfig: assessmentBaseline,
     });
-    if (currentAssessment.assessment_state !== "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION") {
+    const expectedAssessmentState = plan.arguments?.migrationDepth === "DOCS_BRIDGE"
+      ? "READY_FOR_PROFILE_RECONCILIATION"
+      : "READY_FOR_REQUEST_BOUND_NATIVE_ADOPTION";
+    if (currentAssessment.assessment_state !== expectedAssessmentState) {
       throw new Error(`Native-adoption assessment is blocked: ${(currentAssessment.blockers || []).join("; ")}`);
     }
     if (plan.adoptionAssessment?.assessment_digest !== currentAssessment.assessment_digest) {
@@ -288,7 +301,8 @@ function validatePlanForApply(plan, backupDirOverride = null) {
 
 function assertPlanEligibleForControlledRecovery(plan) {
   if (plan?.operationKind === "NATIVE_ADOPTION"
-    && (plan.executionState !== "EXECUTABLE" || plan.arguments?.migrationDepth !== "SELECTED_ASSETS")) {
+    && (plan.executionState !== "EXECUTABLE"
+      || !["DOCS_BRIDGE", "SELECTED_ASSETS"].includes(plan.arguments?.migrationDepth))) {
     throw new Error("Native-adoption diagnostic plan cannot be applied");
   }
 }
@@ -771,6 +785,9 @@ function replayApprovedPlan(plan, context) {
 }
 
 function verifyControlledAdoptionActivation(targetRoot, plan, activationEnvironment, requestBoundInitialQueue) {
+  if (plan.operationKind === "NATIVE_ADOPTION" && plan.arguments?.migrationDepth === "DOCS_BRIDGE") {
+    return verifyProfileReconciliationActivation(targetRoot, plan);
+  }
   const entry = verifyInstalledWorkflowActivation(targetRoot, plan, activationEnvironment);
   const behavioral = verifyProjectLocalBehavioralRoute({
     targetRoot,
@@ -798,6 +815,50 @@ function verifyControlledAdoptionActivation(targetRoot, plan, activationEnvironm
     synthetic_current_items_created: behavioral.routeCalibration?.synthetic_current_items_created || "Unknown",
     behavioral_results_digest: evidenceDigest(behavioral.results || [], []),
     reason: verified ? "" : [entry.reason, ...(behavioral.errors || [])].filter(Boolean).join("; "),
+  };
+}
+
+function verifyProfileReconciliationActivation(targetRoot, plan) {
+  const actions = (plan.actions || []).filter((action) => action.willWrite && !action.dynamicReceipt);
+  const action = actions[0];
+  const current = action ? sha256File(path.join(targetRoot, action.path)) : null;
+  const proposed = action?.inlineContentBase64
+    ? Buffer.from(action.inlineContentBase64, "base64")
+    : null;
+  const profile = nativeAdoptionProfileConfigurationForPlan(targetRoot);
+  const exactGraph = actions.length === 1
+    && action.path === "docs/project-profile.md"
+    && ["RECONCILE_PRESERVE", "BACKUP_THEN_RECONCILE"].includes(action.type);
+  const exactTarget = Boolean(proposed
+    && current === action.expectedHashAfter
+    && sha256Content(proposed) === action.expectedHashAfter
+    && fs.readFileSync(path.join(targetRoot, action.path)).equals(proposed));
+  const currentProfiles = profile.profileReconciliation?.state === "CURRENT"
+    && JSON.stringify(profile.profiles) === JSON.stringify(action?.preservation?.proposedProfiles || []);
+  const verified = exactGraph && exactTarget && currentProfiles;
+  const evidence = {
+    exact_graph: exactGraph,
+    exact_target: exactTarget,
+    profile_state: profile.profileReconciliation?.state || "UNKNOWN",
+    profiles: profile.profiles,
+    expected_digest: action?.expectedHashAfter || "N/A",
+    observed_digest: current || "N/A",
+  };
+  return {
+    status: verified ? "VERIFIED" : "FAILED",
+    workflow_next_exit_code: "N/A",
+    output_digest: evidenceDigest(evidence, []),
+    project_state: verified ? "PROFILE_RECONCILED" : "PROFILE_RECONCILIATION_FAILED",
+    next_action: verified ? "RERUN_NATIVE_ADOPTION_DISCOVERY" : "REGENERATE_PROFILE_RECONCILIATION_PLAN",
+    read_only: true,
+    cold_start_state: "NOT_APPLICABLE",
+    cold_start_digest: evidenceDigest({ state: "NOT_APPLICABLE", reason: "IntentOS runtime is not installed by DOCS_BRIDGE." }, []),
+    route_state: "PROFILE_RECONCILIATION_VERIFIED",
+    route_digest: evidenceDigest(evidence, []),
+    project_work_queue_unchanged: "Yes",
+    synthetic_current_items_created: "No",
+    behavioral_results_digest: evidenceDigest([evidence], []),
+    reason: verified ? "" : "Profile reconciliation did not match the exact approved section transaction.",
   };
 }
 
@@ -1089,6 +1150,9 @@ function verifyInstalledWorkflowActivation(targetRoot, plan, activationEnvironme
   });
   let baselineResult = null;
   let industrialResult = null;
+  let selectedIndustrialResult = null;
+  const selectedExistingProject = plan.arguments?.projectEntryOrigin === "EXISTING_PROJECT"
+    && plan.arguments?.migrationDepth === "SELECTED_ASSETS";
   if (plan?.arguments?.baselineLevel && Array.isArray(plan?.arguments?.profiles) && plan.arguments.profiles.length > 0) {
     const baselineScript = path.join(targetRoot, "scripts", "check-baseline-installation.mjs");
     baselineResult = fs.existsSync(baselineScript)
@@ -1104,7 +1168,11 @@ function verifyInstalledWorkflowActivation(targetRoot, plan, activationEnvironme
   if (plan?.arguments?.baselineLevel === "BL2_INDUSTRIAL") {
     const industrialScript = path.join(targetRoot, "scripts", "check-industrial-baseline.mjs");
     industrialResult = fs.existsSync(industrialScript)
-      ? spawnSync(process.execPath, [industrialScript, targetRoot], {
+      ? spawnSync(process.execPath, [
+        industrialScript,
+        targetRoot,
+        ...(selectedExistingProject ? ["--json"] : []),
+      ], {
         cwd: targetRoot,
         env: { ...process.env, ...activationEnvironment },
         encoding: "utf8",
@@ -1112,6 +1180,18 @@ function verifyInstalledWorkflowActivation(targetRoot, plan, activationEnvironme
         timeout: 60000,
       })
       : { status: 1, stdout: "", stderr: "installed industrial baseline checker is missing" };
+    if (selectedExistingProject) {
+      let industrialEvidence = null;
+      try {
+        industrialEvidence = JSON.parse(industrialResult.stdout || "");
+      } catch {
+        industrialEvidence = null;
+      }
+      selectedIndustrialResult = selectedNativeIndustrialReadiness(
+        nativeAdoptionOperationalPolicy(versionRecord),
+        industrialEvidence,
+      );
+    }
   }
   const after = snapshotTargetFiles(targetRoot);
   let parsed = null;
@@ -1126,7 +1206,9 @@ function verifyInstalledWorkflowActivation(targetRoot, plan, activationEnvironme
     ? parsed.projectState
     : String(parsed?.projectState?.state || parsed?.projectStateTags?.[0] || "");
   const baselineOk = !baselineResult || baselineResult.status === 0;
-  const industrialOk = !industrialResult || industrialResult.status === 0;
+  const industrialOk = !industrialResult
+    || selectedIndustrialResult?.ready === true
+    || industrialResult.status === 0;
   const ok = result.status === 0 && parsed && isWorkflowActivationState(parsed, plan) && projectState && changed.length === 0 && baselineOk && industrialOk;
   const projectEntryReason = String(parsed?.projectEntryTrust?.project_identity?.reason || "").trim();
   return {
@@ -1139,9 +1221,9 @@ function verifyInstalledWorkflowActivation(targetRoot, plan, activationEnvironme
     reason: ok ? "" : normalizeOutput(
       baselineResult && baselineResult.status !== 0
         ? baselineResult.stderr || baselineResult.stdout
-        : industrialResult && industrialResult.status !== 0
+        : industrialResult && !industrialOk
           ? industrialResult.stderr || industrialResult.stdout
-        : projectEntryReason || result.stderr || result.stdout || `activation changed: ${changed.join(", ")}`,
+          : projectEntryReason || result.stderr || result.stdout || `activation changed: ${changed.join(", ")}`,
     ),
   };
 }
@@ -1282,7 +1364,9 @@ function buildApplyReceipt(plan, context, result) {
 function writeApplyReceipt(plan, receipt, transaction = null, phase = "final") {
   const receiptPath = assertSafeWritePath(plan.targetRoot, plan.receiptPath, "apply receipt");
   const humanResult = receipt.receipt_state === "APPLY_VERIFIED"
-    ? "The exact authorized IntentOS governance plan was applied and the full project-local working route was verified."
+    ? plan.operationKind === "NATIVE_ADOPTION" && plan.arguments?.migrationDepth === "DOCS_BRIDGE"
+      ? "The exact authorized project-profile section reconciliation was applied and verified. IntentOS runtime installation has not occurred; rerun native adoption discovery."
+      : "The exact authorized IntentOS governance plan was applied and the full project-local working route was verified."
     : "The controlled apply did not complete as verified; review rollback and blocker evidence.";
   const content = [
     `# Apply Execution Receipt: ${receipt.artifact_id}`,

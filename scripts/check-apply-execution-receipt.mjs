@@ -70,10 +70,16 @@ function checkReceipt(file) {
       for (const error of current.errors) fail(`${relative}: ${error}`);
       return;
     }
-    pass(`${relative} binds one current request authority, exact action graph, current targets, and full behavioral activation`);
     const planResolved = resolveLocal(file, receipt.execution_plan.path, "execution plan");
     const plan = planResolved ? readJson(planResolved.file, `${relative} execution plan`) : null;
-    if (plan) checkActivation(receipt, plan, relative);
+    if (plan) {
+      const profileBridge = plan.operationKind === "NATIVE_ADOPTION"
+        && plan.arguments?.migrationDepth === "DOCS_BRIDGE";
+      pass(profileBridge
+        ? `${relative} binds one current request authority, exact profile reconciliation graph, and current target`
+        : `${relative} binds one current request authority, exact action graph, current targets, and full behavioral activation`);
+      checkActivation(receipt, plan, relative);
+    }
     return;
   }
   if (receipt.outcome === receipt.receipt_state) pass(`${relative} outcome matches receipt state`);
@@ -184,6 +190,22 @@ function checkActionSet(receipt, plan, label) {
 
 function checkActivation(receipt, plan, label) {
   if (receipt.receipt_state !== "APPLY_VERIFIED") return;
+  if (plan.operationKind === "NATIVE_ADOPTION" && plan.arguments?.migrationDepth === "DOCS_BRIDGE") {
+    const profileAction = (plan.actions || []).find((action) => action.willWrite && action.path === "docs/project-profile.md");
+    const exactProfile = profileAction
+      && matchesApprovedPlanTarget(plan, "docs/project-profile.md");
+    if (receipt.activation.status === "VERIFIED"
+      && receipt.activation.read_only === true
+      && receipt.activation.workflow_next_exit_code === "N/A"
+      && receipt.activation.project_state === "PROFILE_RECONCILED"
+      && receipt.activation.next_action === "RERUN_NATIVE_ADOPTION_DISCOVERY"
+      && exactProfile) {
+      pass(`${label} exact profile reconciliation remains verified`);
+    } else {
+      fail(`${label} exact profile reconciliation is no longer current`);
+    }
+    return;
+  }
   if (receipt.activation.status === "VERIFIED" && receipt.activation.read_only === true && receipt.activation.workflow_next_exit_code === "0") {
     pass(`${label} activation is verified and read-only`);
   } else {

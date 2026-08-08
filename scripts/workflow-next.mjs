@@ -3,15 +3,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
 import { parseArgs } from "./lib/args.mjs";
 import { isControlledApplyProtocolArtifactPath } from "./lib/evidence-authority.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
-import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
 import { workflowRequiredPaths as manifestWorkflowRequiredPaths } from "./lib/manifest.mjs";
 import {
   nativeAdoptionOperationalPolicy,
   selectedNativeBaselineReadiness,
+  selectedNativeIndustrialReadiness,
 } from "./lib/native-adoption-overlay.mjs";
 import {
   defaultIgnoredDirs,
@@ -22,6 +21,7 @@ import {
   walkRelativePaths as walkRelativePathsForRoot,
 } from "./lib/project-signals.mjs";
 import { resolveProjectEntryTrust } from "./lib/project-entry-trust.mjs";
+import { resolveIndustrialBaseline } from "./resolve-industrial-baseline.mjs";
 import { resolvePlatformBaseline } from "./resolve-platform-baseline.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -584,184 +584,30 @@ function onboardingState() {
   return { state: "READY", missing: [], pending: [] };
 }
 
-function cleanProfileId(value) {
-  return String(value || "")
-    .replace(/[`*_#[\]]/g, "")
-    .replace(/\(.+\)$/g, "")
-    .trim();
-}
-
 function unique(values) {
   return [...new Set(values.filter(Boolean))].sort();
 }
 
-function isProfilePlaceholder(value) {
-  return !value
-    || value.includes("<")
-    || /^(profile-id|selected profile|none|n\/a|pending|tbd|todo|not_ready)$/i.test(value)
-    || /PENDING|TBD|TODO|NOT_READY/i.test(value);
-}
-
-function selectedProfiles() {
-  const content = read("docs/project-profile.md");
-  if (!content) return [];
-  const body = sectionBody(content, "Selected Profiles");
-  if (!body) return [];
-  return [...new Set(body
-    .split("\n")
-    .map((line) => line.match(/^\s*-\s+(.+?)\s*$/)?.[1])
-    .map(cleanProfileId)
-    .filter((value) => !isProfilePlaceholder(value)))].sort();
-}
-
-function cleanListValue(value) {
-  return String(value || "")
-    .replace(/[`*_#[\]]/g, "")
-    .replace(/\(.+\)$/g, "")
-    .trim();
-}
-
-function isBaselinePlaceholder(value) {
-  return !value
-    || value.includes("<")
-    || /^(industrial-pack-id|none|n\/a|pending|tbd|todo|not_ready)$/i.test(value)
-    || /PENDING|TBD|TODO|NOT_READY/i.test(value);
-}
-
-function parseSingleEnum(body, allowed) {
-  if (!body) return null;
-  const allowedPattern = allowed.map(escapeRegExp).join("|");
-  for (const line of body.split("\n")) {
-    const matches = line.match(new RegExp(`\\b(${allowedPattern})\\b`, "g")) || [];
-    const distinct = unique(matches);
-    if (distinct.length === 1) return distinct[0];
-  }
-  const matches = body.match(new RegExp(`\\b(${allowedPattern})\\b`, "g")) || [];
-  const distinct = unique(matches);
-  return distinct.length === 1 ? distinct[0] : null;
-}
-
-function selectedBaselineLevel() {
-  const content = read("docs/baseline-selection.md");
-  if (!content) return null;
-  return parseSingleEnum(sectionBody(content, "Baseline Level"), ["BL0_LIGHTWEIGHT", "BL1_STANDARD", "BL2_INDUSTRIAL"]);
-}
-
-function selectedIndustrialPacks() {
-  const content = read("docs/baseline-selection.md");
-  if (!content) return [];
-  const body = sectionBody(content, "Selected Industrial Packs");
-  if (!body) return [];
-  const packs = [];
-  for (const line of body.split("\n")) {
-    const match = line.match(/^\s*-\s+(.+?)\s*$/);
-    if (!match) continue;
-    const value = cleanListValue(match[1]);
-    if (isBaselinePlaceholder(value)) continue;
-    const token = value.match(/\b[a-z0-9][a-z0-9-]*-industrial\b/i)?.[0];
-    if (token && !isBaselinePlaceholder(token)) packs.push(token);
-  }
-  return unique(packs);
-}
-
-function compatibilityApprovalStatus(relativePath) {
-  const content = read(relativePath);
-  if (!content) return null;
-  return parseSingleEnum(sectionBody(content, "Human Approval"), ["PENDING", "APPROVED", "REJECTED"]);
-}
-
 function industrialBaselineState() {
-  const hasSelection = exists("docs/baseline-selection.md");
-  const baselineLevel = selectedBaselineLevel();
-  const selectedPacks = selectedIndustrialPacks();
-  const humanApprovalStatus = compatibilityApprovalStatus("docs/baseline-selection.md");
-  const selectedProfileIds = selectedProfiles();
-  const base = {
-    baselineLevel,
-    selectedIndustrialPacks: selectedPacks,
-    humanApprovalStatus,
-    unknownPacks: [],
-    plannedPacks: [],
-    invalidPacks: [],
-    incompatiblePacks: [],
-    missingProjectDocs: [],
-  };
-
-  if (!hasSelection || !baselineLevel) {
-    return { ...base, state: "NOT_SELECTED" };
-  }
-  if (baselineLevel !== "BL2_INDUSTRIAL") {
-    return { ...base, state: "NOT_APPLICABLE" };
-  }
-
-  const index = readJson(".intentos/industrial-packs/index.json");
-  if (!index?.packs) {
-    return { ...base, state: "PACK_INDEX_MISSING" };
-  }
-  if (selectedPacks.length === 0) {
-    return { ...base, state: "PACKS_NOT_SELECTED" };
-  }
-
-  const entriesById = new Map(index.packs.map((entry) => [entry.id, entry]));
-  const unknownPacks = selectedPacks.filter((packId) => !entriesById.has(packId));
-  const plannedPacks = selectedPacks
-    .map((packId) => entriesById.get(packId))
-    .filter((entry) => entry?.status === "planned")
-    .map((entry) => entry.id);
-  const invalidPacks = [];
-  const incompatiblePacks = [];
-  for (const packId of selectedPacks) {
-    const entry = entriesById.get(packId);
-    if (!entry || entry.status === "planned") continue;
-    const manifest = readJson(path.join(".intentos", "industrial-packs", entry.path || "", "pack.json"));
-    if (!manifest) {
-      invalidPacks.push(packId);
-      continue;
-    }
-    const appliesToProfiles = Array.isArray(manifest.appliesToProfiles) ? manifest.appliesToProfiles : entry.appliesToProfiles || [];
-    if (appliesToProfiles.length > 0
-      && selectedProfileIds.length > 0
-      && !appliesToProfiles.some((profileId) => selectedProfileIds.includes(profileId))) {
-      incompatiblePacks.push(packId);
-    }
-  }
-
-  if (unknownPacks.length > 0 || invalidPacks.length > 0) {
-    return { ...base, state: "PACKS_INVALID", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks };
-  }
-  if (plannedPacks.length > 0) {
-    return { ...base, state: "PACKS_NOT_AVAILABLE", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks };
-  }
-  if (incompatiblePacks.length > 0) {
-    return { ...base, state: "PACKS_INCOMPATIBLE", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks };
-  }
-
-  const missingProjectDocs = ["docs/baseline-selection.md", "docs/baseline-evidence.md"].filter((rel) => !exists(rel));
-  if (missingProjectDocs.length > 0) {
-    return { ...base, state: "EVIDENCE_MISSING", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks, missingProjectDocs };
-  }
-  const strictIndustrial = spawnSync(process.execPath, [
-    path.join(__dirname, "check-industrial-baseline.mjs"),
-    projectRoot,
-    "--strict",
-  ], { encoding: "utf8", maxBuffer: 1024 * 1024 * 20 });
-  if (strictIndustrial.status !== 0) {
+  try {
+    return resolveIndustrialBaseline(projectRoot);
+  } catch (error) {
     return {
-      ...base,
-      state: "EVIDENCE_INVALID",
-      unknownPacks,
-      plannedPacks,
-      invalidPacks,
-      incompatiblePacks,
-      missingProjectDocs,
-      strictEvidenceError: firstUsefulLine(strictIndustrial.stderr || strictIndustrial.stdout),
+      state: "BASELINE_RESOLUTION_FAILED",
+      strictState: "BASELINE_RESOLUTION_FAILED",
+      strictStatus: { state: "BASELINE_RESOLUTION_FAILED", ready: false },
+      baselineLevel: null,
+      selectedIndustrialPacks: [],
+      humanApprovalStatus: null,
+      unknownPacks: [],
+      plannedPacks: [],
+      invalidPacks: [],
+      incompatiblePacks: [],
+      missingProjectDocs: [],
+      pendingReasons: [error.message],
+      profileDocuments: { conflict: null },
     };
   }
-  return { ...base, state: "BASELINE_READY", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks, missingProjectDocs };
-}
-
-function firstUsefulLine(value) {
-  return String(value || "").split(/\r?\n/).map((line) => line.trim()).find(Boolean) || "strict industrial baseline validation failed";
 }
 
 function platformBaselineState() {
@@ -960,6 +806,13 @@ function buildResult(entryTrust = null) {
     }
     : rawPlatformBaseline;
   const industrialBaseline = industrialBaselineState();
+  const selectedIndustrial = operationalPolicy.selected
+    ? selectedNativeIndustrialReadiness(operationalPolicy, industrialBaseline)
+    : null;
+  const deferredBaselineEvidence = [
+    ...(platformBaseline.deferredEvidence || []),
+    ...(selectedIndustrial?.deferredEvidence || []),
+  ];
   const artifactCount = workflowArtifactCount();
   const signals = governanceSignals();
   const nativeNewProject = claimedNativeNewProject
@@ -1023,7 +876,10 @@ function buildResult(entryTrust = null) {
     nextAction = "RUN_PROJECT_ONBOARDING";
   } else if (!operationalPolicy.selected && platformBaseline.state !== "BASELINE_READY") {
     nextAction = "RUN_PLATFORM_BASELINE_SETUP";
-  } else if ([
+  } else if (operationalPolicy.selected && !selectedIndustrial.ready) {
+    nextAction = "RUN_INDUSTRIAL_BASELINE_SETUP";
+  } else if (!operationalPolicy.selected && [
+    "BASELINE_RESOLUTION_FAILED",
     "PACK_INDEX_MISSING",
     "PACKS_NOT_SELECTED",
     "PACKS_INVALID",
@@ -1078,7 +934,7 @@ function buildResult(entryTrust = null) {
   if (!operationalPolicy.selected && onboarding.state === "MISSING") notes.push(`${onboarding.missing.length} onboarding doc(s) are missing.`);
   if (operationalPolicy.selected && selectedBaseline.ready) notes.push("Selected existing-project mapping is ready; full project onboarding remains task-bound and is not claimed by this installation.");
   if (operationalPolicy.selected && platformBaseline.deferredRequiredDocs.length > 0) notes.push(`${platformBaseline.deferredRequiredDocs.length} full-native profile document(s) are deferred to task-bound governance.`);
-  if (operationalPolicy.selected && platformBaseline.deferredEvidence.length > 0) notes.push(`Full baseline satisfaction remains task-bound: ${platformBaseline.deferredEvidence.join("; ")}.`);
+  if (operationalPolicy.selected && deferredBaselineEvidence.length > 0) notes.push(`Full baseline satisfaction remains task-bound: ${deferredBaselineEvidence.join("; ")}.`);
   if (platformBaseline.state === "MISSING_PROFILE") notes.push("Project profile has not selected platform profiles.");
   if (platformBaseline.state === "PROFILE_INVALID") notes.push(`${platformBaseline.missingProfiles.length} selected platform profile(s) are missing.`);
   if (platformBaseline.state === "BASELINE_DOCS_MISSING") notes.push(`${platformBaseline.missingRequiredDocs.length} platform baseline doc(s) are missing.`);
@@ -1090,11 +946,12 @@ function buildResult(entryTrust = null) {
   if (industrialBaseline.state === "NOT_SELECTED") notes.push("Industrial baseline level is not selected; BL2 checks are not active.");
   if (industrialBaseline.state === "PACK_INDEX_MISSING") notes.push("Industrial pack index is missing.");
   if (industrialBaseline.state === "PACKS_NOT_SELECTED") notes.push("BL2 is selected but no industrial packs are selected.");
-  if (industrialBaseline.state === "PACKS_INVALID") notes.push("One or more selected industrial packs are unknown or invalid.");
+  if (industrialBaseline.state === "PACKS_INVALID") notes.push(`Industrial pack selection is invalid: ${(industrialBaseline.pendingReasons || []).join("; ") || "one or more packs are unknown or invalid"}.`);
   if (industrialBaseline.state === "PACKS_NOT_AVAILABLE") notes.push("One or more selected industrial packs are planned but not executable yet.");
-  if (industrialBaseline.state === "PACKS_INCOMPATIBLE") notes.push("One or more selected industrial packs do not match selected platform profiles.");
-  if (industrialBaseline.state === "EVIDENCE_MISSING") notes.push(`${industrialBaseline.missingProjectDocs.length} BL2 project evidence doc(s) are missing.`);
-  if (industrialBaseline.state === "EVIDENCE_INVALID") notes.push(`BL2 evidence failed strict validation: ${industrialBaseline.strictEvidenceError}.`);
+  if (industrialBaseline.state === "PACKS_INCOMPATIBLE") notes.push("One or more selected industrial packs conflict with selected profiles or with each other.");
+  if (industrialBaseline.state === "EVIDENCE_MISSING") notes.push(`BL2 evidence is incomplete: ${(industrialBaseline.pendingReasons || []).join("; ") || `${industrialBaseline.missingProjectDocs.length} project evidence doc(s) are missing`}.`);
+  if (industrialBaseline.state === "EVIDENCE_INVALID") notes.push(`BL2 evidence failed strict validation: ${(industrialBaseline.pendingReasons || []).join("; ") || "industrial evidence is invalid"}.`);
+  if (industrialBaseline.state === "BASELINE_RESOLUTION_FAILED") notes.push(`Industrial baseline resolution failed: ${(industrialBaseline.pendingReasons || []).join("; ") || "unknown resolution error"}.`);
   if (industrialBaseline.humanApprovalStatus) notes.push("BL2 compatibility approval metadata is retained for old records but does not control technical baseline selection.");
   if (artifactCount > 0) notes.push(`${artifactCount} workflow artifact file(s) exist.`);
   if (!nativeNewProject && signals.isGovernedExisting) notes.push(`${signals.basicSignals.length} existing governance signal(s) detected.`);
@@ -1126,7 +983,7 @@ function buildResult(entryTrust = null) {
     projectAssetMigrationDepth,
     operationalProfile: operationalPolicy.profile,
     deferredProjectDocs: platformBaseline.deferredRequiredDocs || [],
-    deferredBaselineEvidence: platformBaseline.deferredEvidence || [],
+    deferredBaselineEvidence,
     existingRuleComparisonRequired: existingRuleComparisonRequired ? "yes" : "no",
     governanceSignals: signals,
     nextAction,
