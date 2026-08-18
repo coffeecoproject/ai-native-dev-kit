@@ -1,3 +1,6 @@
+暂时停止更新，目前这套会导致文档和代码出现双权威，增加治理难度和token消耗
+
+
 # IntentOS
 
 [简体中文](README.zh-CN.md) | English
